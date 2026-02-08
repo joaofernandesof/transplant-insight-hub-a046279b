@@ -118,7 +118,7 @@ export default function AvivarAgendaSettings() {
   const [blockEndDateOpen, setBlockEndDateOpen] = useState(false);
 
   // Fetch existing config - usar account_id para compatibilidade com índice único
-  const { data: existingConfig, isLoading: loadingConfig } = useQuery({
+  const { data: existingConfig, isLoading: loadingConfig, isFetching: fetchingConfig } = useQuery({
     queryKey: ['avivar-schedule-config', selectedAgenda?.id, accountId],
     queryFn: async () => {
       if (!accountId) return null;
@@ -142,7 +142,7 @@ export default function AvivarAgendaSettings() {
   });
 
   // Fetch hours for config
-  const { data: existingHours } = useQuery({
+  const { data: existingHours, isLoading: loadingHours, isFetching: fetchingHours } = useQuery({
     queryKey: ['avivar-schedule-hours', existingConfig?.id],
     queryFn: async () => {
       if (!existingConfig?.id) return [];
@@ -207,7 +207,11 @@ export default function AvivarAgendaSettings() {
   });
 
   // Update local state when data loads
+  // CRITICAL: Only reset to defaults when we KNOW there's no config (not during refetch)
   useEffect(() => {
+    // Don't reset state while queries are fetching (prevents race condition on invalidate)
+    if (fetchingConfig) return;
+    
     if (existingConfig) {
       setConfig({
         id: existingConfig.id,
@@ -218,8 +222,8 @@ export default function AvivarAgendaSettings() {
         advance_booking_days: existingConfig.advance_booking_days || 30,
         timezone: existingConfig.timezone || 'America/Sao_Paulo',
       });
-    } else {
-      // Reset to defaults
+    } else if (!loadingConfig) {
+      // Only reset when confirmed no config exists (not loading/refetching)
       setConfig({
         professional_name: selectedAgenda?.professional_name || '',
         consultation_duration: 30,
@@ -229,7 +233,7 @@ export default function AvivarAgendaSettings() {
         timezone: 'America/Sao_Paulo',
       });
     }
-  }, [existingConfig, selectedAgenda]);
+  }, [existingConfig, selectedAgenda, loadingConfig, fetchingConfig]);
 
   // Auto-select first agenda when agendas load (prevent "Todas as agendas" ghost config)
   useEffect(() => {
@@ -239,13 +243,18 @@ export default function AvivarAgendaSettings() {
     }
   }, [agendas, agendaInitialized]);
 
+  // CRITICAL: Only update hours from DB when data actually loaded, never reset during refetch
   useEffect(() => {
+    // Don't reset while config or hours are being fetched
+    if (fetchingConfig || fetchingHours) return;
+    
     if (existingHours && existingHours.length > 0) {
       setHours(existingHours);
-    } else {
+    } else if (!loadingConfig && !loadingHours) {
+      // Only reset to defaults when confirmed no data exists
       setHours(DEFAULT_HOURS);
     }
-  }, [existingHours]);
+  }, [existingHours, loadingConfig, loadingHours, fetchingConfig, fetchingHours]);
 
   useEffect(() => {
     if (existingBlocks) {
@@ -363,10 +372,18 @@ export default function AvivarAgendaSettings() {
     },
     onSuccess: (configId) => {
       // Update local state with the saved config id to prevent duplicate inserts
-      setConfig(prev => ({ ...prev, id: configId }));
+      setConfig(prev => ({ ...prev, id: configId! }));
       toast.success('Configurações salvas com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config'] });
-      queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours'] });
+      // Use setQueryData to update cache directly instead of invalidating
+      // This prevents the race condition where invalidation causes temporary undefined → DEFAULT_HOURS reset
+      const agendaId = selectedAgenda?.id || null;
+      queryClient.setQueryData(
+        ['avivar-schedule-config', agendaId, accountId],
+        (old: any) => old ? { ...old, id: configId } : { id: configId, account_id: accountId, agenda_id: agendaId }
+      );
+      // Refetch in background without clearing existing data
+      queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config', agendaId, accountId], refetchType: 'none' });
+      queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours', configId], refetchType: 'none' });
     },
     onError: (error) => {
       console.error('Error saving config:', error);
