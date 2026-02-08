@@ -139,7 +139,7 @@ export default function AvivarAgenda() {
   const [cancelReason, setCancelReason] = useState('');
   
   const { user } = useUnifiedAuth();
-  const { agendas } = useAvivarAgendas();
+  const { agendas, isLoading: loadingAgendas } = useAvivarAgendas();
   const { scheduleConfig, scheduleHours, isLoading: loadingSchedule } = useAvivarScheduleConfig(selectedAgenda?.id || null);
   const queryClient = useQueryClient();
 
@@ -456,6 +456,40 @@ export default function AvivarAgenda() {
       setSearchParams({});
     }
   };
+
+  // Empty state - no agendas created yet
+  if (!loadingAgendas && agendas.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-6 text-center max-w-md">
+          <div className="p-6 rounded-full bg-[hsl(var(--avivar-primary))]/10">
+            <CalendarIcon className="h-16 w-16 text-[hsl(var(--avivar-primary))]" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
+              Bem-vindo à sua Agenda
+            </h2>
+            <p className="text-[hsl(var(--avivar-muted-foreground))] text-sm leading-relaxed">
+              Crie sua primeira agenda para começar a gerenciar seus agendamentos, horários e atendimentos.
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowCreateAgenda(true)}
+            size="lg"
+            className="gap-2 bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary))]/90 text-[hsl(var(--avivar-primary-foreground))] px-8"
+          >
+            <Plus className="h-5 w-5" />
+            Criar sua primeira agenda
+          </Button>
+        </div>
+
+        <CreateAvivarAgendaDialog
+          open={showCreateAgenda}
+          onOpenChange={setShowCreateAgenda}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6 space-y-6">
