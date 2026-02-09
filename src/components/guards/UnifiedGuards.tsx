@@ -134,6 +134,17 @@ export function ProfileGuard({
     return <>{children}</>;
   }
 
+  // Verificar allowed_portals - se o usuário tem acesso via allowedPortals, permitir
+  const userPortals = user.allowedPortals;
+  if (userPortals && userPortals.length > 0) {
+    // Mapear a rota atual para um portal key
+    const currentPath = location.pathname;
+    const portalKeyFromRoute = getPortalKeyFromRoute(currentPath);
+    if (portalKeyFromRoute && userPortals.includes(portalKeyFromRoute)) {
+      return <>{children}</>;
+    }
+  }
+
   // Verificar se tem perfil ativo
   if (!activeProfile) {
     return <Navigate to="/select-profile" replace />;
@@ -152,6 +163,19 @@ export function ProfileGuard({
   }
 
   return <>{children}</>;
+}
+
+// Helper: mapear rota para portal key
+function getPortalKeyFromRoute(route: string): string | null {
+  if (route.startsWith('/neolicense/hotleads')) return 'hotleads';
+  if (route.startsWith('/neolicense')) return 'neolicense';
+  if (route.startsWith('/neoteam')) return 'neoteam';
+  if (route.startsWith('/academy')) return 'academy';
+  if (route.startsWith('/neocare')) return 'neocare';
+  if (route.startsWith('/avivar')) return 'avivar';
+  if (route.startsWith('/vision')) return 'vision';
+  if (route.startsWith('/neopay')) return 'neopay';
+  return null;
 }
 
 // ====================================
