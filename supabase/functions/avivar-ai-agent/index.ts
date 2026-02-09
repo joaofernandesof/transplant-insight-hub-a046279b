@@ -343,7 +343,7 @@ const TOOLS = [
         properties: {
           agenda_name: {
             type: "string",
-            description: "Nome da unidade/agenda (ex: 'Juazeiro', 'São Paulo'). Case-insensitive."
+            description: "Nome EXATO da unidade/agenda retornada por list_agendas. NUNCA invente nomes - use apenas os listados. Case-insensitive."
           },
           date: {
             type: "string",
@@ -364,7 +364,7 @@ const TOOLS = [
         properties: {
           agenda_name: {
             type: "string",
-            description: "Nome da unidade/agenda (ex: 'Juazeiro'). Case-insensitive."
+            description: "Nome EXATO da unidade/agenda retornada por list_agendas. NUNCA invente nomes - use SEMPRE a mesma agenda da consulta anterior (get_available_slots). Case-insensitive."
           },
           date: {
             type: "string",
@@ -819,6 +819,22 @@ async function resolveAgenda(
       .eq("is_active", true)
       .ilike("city", `%${agendaName}%`);
     agendaInfo = byCity?.[0] || null;
+  }
+
+  // Fallback: se não encontrou a agenda pelo nome/cidade, usar a primeira agenda ativa da conta
+  if (!agendaInfo) {
+    console.warn(`[AI Agent] Agenda "${agendaName}" not found. Falling back to first active agenda.`);
+    const { data: fallback } = await supabase
+      .from("avivar_agendas")
+      .select("id, name, city, professional_name, address")
+      .eq("account_id", accountId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true })
+      .limit(1);
+    agendaInfo = fallback?.[0] || null;
+    if (agendaInfo) {
+      console.log(`[AI Agent] Using fallback agenda: "${agendaInfo.name}" (${agendaInfo.city})`);
+    }
   }
 
   return {
