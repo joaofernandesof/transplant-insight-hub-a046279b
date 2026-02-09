@@ -136,8 +136,9 @@ async function createGoogleCalendarEvent(
 
     if (response.ok) {
       const created = await response.json();
-      console.log("[AI Agent] Google Calendar event created successfully, id:", created.id);
-      return created.id || null;
+      const meetLink = created.conferenceData?.entryPoints?.find((ep: { entryPointType: string }) => ep.entryPointType === "video")?.uri || created.hangoutLink || null;
+      console.log("[AI Agent] Google Calendar event created successfully, id:", created.id, "meetLink:", meetLink);
+      return JSON.stringify({ eventId: created.id || null, meetLink });
     } else {
       console.error("[AI Agent] Failed to create Google Calendar event:", response.status);
       return null;
@@ -1218,27 +1219,46 @@ async function createAppointment(
     return "❌ Ocorreu um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato conosco.";
   }
 
-  // Sync to Google Calendar and store event ID
+  // Sync to Google Calendar and store event ID + meet link
+  let meetLink: string | null = null;
   if (agendaId) {
     const serviceLabel = serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar";
     try {
-      const googleEventId = await createGoogleCalendarEvent(
+      const googleResult = await createGoogleCalendarEvent(
         supabase, agendaId,
         `${serviceLabel} - ${patientName}`,
         normalizedDate, normalizedTime, endTime,
         `Paciente: ${patientName}\nTelefone: ${patientPhone}\n${notes || ""}`,
         agendaInfo?.address || agendaInfo?.city || undefined
       );
-      if (googleEventId && appointment?.id) {
-        await supabase
-          .from("avivar_appointments")
-          .update({ google_event_id: googleEventId })
-          .eq("id", appointment.id);
-        console.log(`[AI Agent] Stored google_event_id=${googleEventId} for appointment ${appointment.id}`);
+      if (googleResult && appointment?.id) {
+        try {
+          const parsed = JSON.parse(googleResult);
+          const googleEventId = parsed.eventId;
+          meetLink = parsed.meetLink;
+          if (googleEventId) {
+            await supabase
+              .from("avivar_appointments")
+              .update({ google_event_id: googleEventId })
+              .eq("id", appointment.id);
+            console.log(`[AI Agent] Stored google_event_id=${googleEventId}, meetLink=${meetLink} for appointment ${appointment.id}`);
+          }
+        } catch {
+          // Legacy fallback: if result is just a string ID
+          await supabase
+            .from("avivar_appointments")
+            .update({ google_event_id: googleResult })
+            .eq("id", appointment.id);
+        }
       }
     } catch (e) {
       console.error("[AI Agent] Google Calendar sync error:", e);
     }
+  }
+
+  // Fallback meet link if no Google Calendar
+  if (!meetLink && appointment?.id) {
+    meetLink = `https://meet.jit.si/avivar-${appointment.id}`;
   }
 
   // Auto-fill checklist fields after successful appointment creation
@@ -1261,7 +1281,7 @@ async function createAppointment(
     if (leadKanban) {
       const { data: checklistFields } = await supabase
         .from("avivar_column_checklists")
-        .select("field_key, field_type")
+        .select("field_key, field_type, options")
         .eq("account_id", accountId);
 
       if (checklistFields && checklistFields.length > 0) {
@@ -1280,14 +1300,37 @@ async function createAppointment(
           }
         }
         
-        // Auto-fill consultation type
+        // Auto-fill consultation type - respect select options if available
         for (const tk of possibleTypeKeys) {
           if (fieldKeys.includes(tk)) {
             const matchField = checklistFields.find(f => f.field_key.toLowerCase() === tk);
             if (matchField) {
-              checklistCampos[matchField.field_key] = serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar";
+              if (matchField.field_type === "select" && matchField.options) {
+                // For select fields, pick the first available option or match based on context
+                const opts = matchField.options as string[];
+                if (opts.length > 0) {
+                  // Default to "PRESENCIAL" if available, otherwise first option
+                  checklistCampos[matchField.field_key] = opts.includes("PRESENCIAL") ? "PRESENCIAL" : opts[0];
+                }
+              } else {
+                checklistCampos[matchField.field_key] = serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar";
+              }
             }
             break;
+          }
+        }
+
+        // Auto-fill meet link
+        const possibleLinkKeys = ["link_da_call", "link_meet", "link_videochamada", "link_call", "meet_link"];
+        if (meetLink) {
+          for (const lk of possibleLinkKeys) {
+            if (fieldKeys.includes(lk)) {
+              const matchField = checklistFields.find(f => f.field_key.toLowerCase() === lk);
+              if (matchField) {
+                checklistCampos[matchField.field_key] = meetLink;
+              }
+              break;
+            }
           }
         }
       }
