@@ -6,9 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface UserPasswordPair {
+  email: string;
+  password: string;
+}
+
 interface ResetRequest {
-  userEmails: string[];
-  newPassword: string;
+  userEmails?: string[];
+  newPassword?: string;
+  users?: UserPasswordPair[];
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -31,65 +37,59 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
 
-    const { userEmails, newPassword }: ResetRequest = await req.json();
+    const body: ResetRequest = await req.json();
 
-    if (!userEmails || userEmails.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No user emails provided" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Support both formats: individual passwords per user OR single password for all
+    let userList: UserPasswordPair[] = [];
 
-    if (!newPassword || newPassword.length < 6) {
+    if (body.users && body.users.length > 0) {
+      userList = body.users;
+    } else if (body.userEmails && body.newPassword) {
+      userList = body.userEmails.map(email => ({ email, password: body.newPassword! }));
+    } else {
       return new Response(
-        JSON.stringify({ error: "Password must be at least 6 characters" }),
+        JSON.stringify({ error: "Provide either 'users' array or 'userEmails' + 'newPassword'" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const results: { email: string; status: string; error?: string }[] = [];
 
-    for (const email of userEmails) {
+    // Build email-to-user map efficiently
+    const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+
+    if (listError) {
+      throw new Error("Failed to list users: " + listError.message);
+    }
+
+    const emailToUser = new Map<string, string>();
+    for (const u of usersData.users) {
+      if (u.email) {
+        emailToUser.set(u.email.toLowerCase(), u.id);
+      }
+    }
+
+    for (const { email, password } of userList) {
       try {
-        // First, get the user by email using getUserByEmail
-        const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(
-          email // This won't work, let's try listing with filter
-        );
-        
-        // Try to get user via listUsers with proper pagination
-        let user = null;
-        let page = 1;
-        const perPage = 1000;
-        
-        while (!user) {
-          const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-            page,
-            perPage,
-          });
-          
-          if (listError) {
-            console.error(`Error listing users page ${page}:`, listError);
-            break;
-          }
-          
-          user = usersData.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
-          
-          if (usersData.users.length < perPage) {
-            break; // No more pages
-          }
-          page++;
-        }
-        
-        if (!user) {
+        const userId = emailToUser.get(email.toLowerCase());
+
+        if (!userId) {
           console.log(`User not found: ${email}`);
           results.push({ email, status: "not_found" });
           continue;
         }
 
-        // Update the user's password
+        if (password.length < 6) {
+          results.push({ email, status: "error", error: "Password too short" });
+          continue;
+        }
+
         const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-          user.id,
-          { password: newPassword }
+          userId,
+          { password }
         );
 
         if (updateError) {
@@ -99,7 +99,6 @@ const handler = async (req: Request): Promise<Response> => {
           console.log(`Password updated for ${email}`);
           results.push({ email, status: "updated" });
         }
-
       } catch (err: any) {
         console.error(`Error processing ${email}:`, err);
         results.push({ email, status: "error", error: err.message });

@@ -39,6 +39,7 @@ import TermsOfService from "./pages/TermsOfService";
 const PublicDashboardPage = lazy(() => import("./pages/public/PublicDashboardPage"));
 const ArchitectureDocDownload = lazy(() => import("./pages/docs/ArchitectureDocDownload"));
 const FlowDoArchitecturePlan = lazy(() => import("./pages/docs/FlowDoArchitecturePlan"));
+const HotleadsUserExport = lazy(() => import("./pages/admin/HotleadsUserExport"));
  const HotLeadsLanding = lazy(() => import("./pages/HotLeadsLanding"));
  const TransplanteLanding = lazy(() => import("./pages/TransplanteLanding"));
  const AvivarCapilarLanding = lazy(() => import("./pages/AvivarCapilarLanding"));
@@ -642,6 +643,7 @@ function AppRoutes() {
       <Route path="/neohub" element={<NeoHubSalesPage />} />
       <Route path="/docs/architecture" element={<LazyRoute><ArchitectureDocDownload /></LazyRoute>} />
       <Route path="/docs/flow-do" element={<LazyRoute><FlowDoArchitecturePlan /></LazyRoute>} />
+      <Route path="/docs/loginhotleads" element={<LazyRoute><HotleadsUserExport /></LazyRoute>} />
        
        {/* Landing Page HotLeads - Pública */}
        <Route path="/hotleads-vendas" element={<LazyRoute><HotLeadsLanding /></LazyRoute>} />
