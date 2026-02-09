@@ -1007,7 +1007,7 @@ async function getAvailableSlots(
         selectedTimes = allTimes.slice(0, 2);
       }
       
-      results.push(`📅 ${dayName} (${dateFormatted}): ${selectedTimes.join(" ou ")}`);
+      results.push(`📅 ${dayName} (${dateFormatted}): ${selectedTimes.map(formatTimeDisplay).join(" ou ")}`);
     }
   }
 
