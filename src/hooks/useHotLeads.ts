@@ -108,7 +108,8 @@ export function useHotLeads() {
   }, [user?.id, fetchLeads]);
 
   const importLeads = useCallback(async (
-    leadsData: { name: string; phone: string; email: string; state: string; city: string; tags?: string[] }[]
+    leadsData: { name: string; phone: string; email: string; state: string; city: string; tags?: string[] }[],
+    onProgress?: (progress: { current: number; total: number; success: number; errors: number }) => void,
   ): Promise<{ success: number; errors: number }> => {
     if (!isAdmin) {
       toast.error('Apenas administradores podem importar leads');
@@ -118,8 +119,9 @@ export function useHotLeads() {
     let success = 0;
     let errors = 0;
 
-    // Batch insert in chunks of 50
     const chunkSize = 50;
+    const totalChunks = Math.ceil(leadsData.length / chunkSize);
+
     for (let i = 0; i < leadsData.length; i += chunkSize) {
       const chunk = leadsData.slice(i, i + chunkSize);
       const rows = chunk.map(l => ({
@@ -147,9 +149,15 @@ export function useHotLeads() {
       } else {
         success += data?.length || 0;
       }
+
+      onProgress?.({
+        current: Math.min(i + chunkSize, leadsData.length),
+        total: leadsData.length,
+        success,
+        errors,
+      });
     }
 
-    // Schedule the first release countdown immediately after import
     if (success > 0) {
       try {
         await supabase.functions.invoke('hotleads-release', {
