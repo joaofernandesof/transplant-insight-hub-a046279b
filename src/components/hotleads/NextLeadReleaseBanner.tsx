@@ -53,7 +53,7 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
     }
   };
 
-  if (!info || info.queued_count === 0) return null;
+  if (!isAdmin || !info || info.queued_count === 0) return null;
 
   const isUrgent = countdown > 0 && countdown <= 10;
   const isAboutToRelease = countdown === 0 && info.next_release_at && !justReleased;
