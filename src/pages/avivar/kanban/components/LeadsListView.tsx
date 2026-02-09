@@ -4,19 +4,34 @@
  */
 
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MoreHorizontal, User, Phone, Mail, Calendar, Search, Plus, Filter, RefreshCw, Trash2, Users, ArrowRight, Tags, Edit } from 'lucide-react';
+import { MoreHorizontal, User, Phone, Mail, Calendar, Trash2, Users, ArrowRight, Tags, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import type { KanbanLead } from '../hooks/useKanbanLeads';
 
 interface KanbanColumnData {
@@ -35,6 +50,8 @@ interface LeadsListViewProps {
   onSearchChange: (query: string) => void;
   onAddLead: () => void;
   onRefresh: () => void;
+  onDeleteLead?: (leadId: string) => void;
+  onMoveLead?: (params: { leadId: string; columnId: string }) => void;
   kanbanId: string;
 }
 
@@ -56,9 +73,9 @@ const getColumnColor = (color: string) => {
   return colorMap[color] || 'bg-gray-500';
 };
 
-// Source indicator colors
 const sourceColors: Record<string, string> = {
   'whatsapp': 'bg-green-500',
+  'whatsapp_auto': 'bg-green-500',
   'instagram': 'bg-gradient-to-br from-purple-500 to-pink-500',
   'facebook': 'bg-blue-600',
   'google': 'bg-red-500',
@@ -74,10 +91,11 @@ const getSourceColor = (source: string | null) => {
   return sourceColors[normalized] || sourceColors.default;
 };
 
-export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onAddLead, onRefresh, kanbanId }: LeadsListViewProps) {
+export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onAddLead, onRefresh, onDeleteLead, onMoveLead, kanbanId }: LeadsListViewProps) {
+  const navigate = useNavigate();
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; leadId?: string } | null>(null);
 
-  // Filter leads based on search
   const filteredLeads = useMemo(() => {
     if (!searchQuery.trim()) return leads;
     const query = searchQuery.toLowerCase();
@@ -90,7 +108,6 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
     );
   }, [leads, searchQuery]);
 
-  // Get column info for each lead
   const leadsWithColumns = filteredLeads.map(lead => {
     const column = columns.find(c => c.id === lead.column_id);
     return { ...lead, column };
@@ -113,8 +130,34 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
   };
 
   const clearSelection = () => setSelectedLeads([]);
-
   const hasSelection = selectedLeads.length > 0;
+
+  const handleLeadClick = (lead: KanbanLead) => {
+    if (lead.phone) {
+      navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
+    } else {
+      toast.error('Lead não possui telefone cadastrado');
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteConfirm || !onDeleteLead) return;
+    if (deleteConfirm.type === 'single' && deleteConfirm.leadId) {
+      onDeleteLead(deleteConfirm.leadId);
+    } else if (deleteConfirm.type === 'bulk') {
+      selectedLeads.forEach(id => onDeleteLead(id));
+      setSelectedLeads([]);
+      toast.success(`${selectedLeads.length} lead(s) excluído(s)`);
+    }
+    setDeleteConfirm(null);
+  };
+
+  const handleMoveLead = (leadId: string, columnId: string) => {
+    if (onMoveLead) {
+      onMoveLead({ leadId, columnId });
+      toast.success('Lead movido com sucesso!');
+    }
+  };
 
   if (columns.length === 0) {
     return (
@@ -143,23 +186,48 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="bg-white/20 hover:bg-white/30 text-white border-0"
+              onClick={() => toast.info('Funcionalidade em breve')}
+            >
               <Users className="h-4 w-4 mr-1" />
               Unir Leads
             </Button>
-            <Button size="sm" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="bg-white/20 hover:bg-white/30 text-white border-0"
+              onClick={() => toast.info('Funcionalidade em breve')}
+            >
               <ArrowRight className="h-4 w-4 mr-1" />
               Mover Etapa
             </Button>
-            <Button size="sm" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="bg-white/20 hover:bg-white/30 text-white border-0"
+              onClick={() => toast.info('Funcionalidade em breve')}
+            >
               <Tags className="h-4 w-4 mr-1" />
               Tags
             </Button>
-            <Button size="sm" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="bg-white/20 hover:bg-white/30 text-white border-0"
+              onClick={() => toast.info('Funcionalidade em breve')}
+            >
               <Edit className="h-4 w-4 mr-1" />
               Responsável
             </Button>
-            <Button size="sm" variant="destructive" className="bg-red-600 hover:bg-red-700">
+            <Button 
+              size="sm" 
+              variant="destructive" 
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => setDeleteConfirm({ type: 'bulk' })}
+            >
               <Trash2 className="h-4 w-4 mr-1" />
               Excluir
             </Button>
@@ -221,8 +289,9 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
                       "border-b border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-primary)/0.05)] cursor-pointer transition-colors",
                       selectedLeads.includes(lead.id) && "bg-[hsl(var(--avivar-primary)/0.1)]"
                     )}
+                    onClick={() => handleLeadClick(lead)}
                   >
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={selectedLeads.includes(lead.id)}
                         onCheckedChange={() => toggleSelect(lead.id)}
@@ -230,7 +299,6 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {/* Source indicator */}
                         <div 
                           className={cn("w-2 h-2 rounded-full flex-shrink-0", getSourceColor(lead.source))}
                           title={lead.source || 'Desconhecido'}
@@ -266,7 +334,7 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
                     <TableCell className="text-[hsl(var(--avivar-muted-foreground))]">
                       {new Date(lead.created_at).toLocaleDateString('pt-BR')}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
@@ -281,14 +349,40 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
                           align="end"
                           className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
                         >
-                          <DropdownMenuItem className="cursor-pointer">
+                          <DropdownMenuItem 
+                            className="cursor-pointer"
+                            onClick={() => handleLeadClick(lead)}
+                          >
                             Ver detalhes
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
-                            Mover para...
+                          <DropdownMenuSub>
+                            <DropdownMenuSubTrigger className="cursor-pointer">
+                              <ArrowRight className="h-4 w-4 mr-2" />
+                              Mover para...
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+                              {columns
+                                .filter(c => c.id !== lead.column_id)
+                                .map(col => (
+                                  <DropdownMenuItem
+                                    key={col.id}
+                                    className="cursor-pointer"
+                                    onClick={() => handleMoveLead(lead.id, col.id)}
+                                  >
+                                    <div className={cn("w-2 h-2 rounded-full mr-2", getColumnColor(col.color))} />
+                                    {col.name}
+                                  </DropdownMenuItem>
+                                ))
+                              }
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                            onClick={() => setDeleteConfirm({ type: 'single', leadId: lead.id })}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -309,6 +403,30 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
           </Table>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm?.type === 'bulk' 
+                ? `Tem certeza que deseja excluir ${selectedLeads.length} lead(s)? Esta ação não pode ser desfeita.`
+                : 'Tem certeza que deseja excluir este lead? Esta ação não pode ser desfeita.'
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
