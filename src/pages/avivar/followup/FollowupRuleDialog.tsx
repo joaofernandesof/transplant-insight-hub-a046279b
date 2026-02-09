@@ -22,7 +22,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image, Video, FileText } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image, Video, FileText, Filter } from 'lucide-react';
 import { TEMPLATE_VARIABLES } from '@/hooks/useFollowupTemplates';
 import type { FollowupRule, CreateFollowupRuleInput } from '@/hooks/useFollowupRules';
 import { useKanbanBoards } from '@/hooks/useKanbanBoards';
