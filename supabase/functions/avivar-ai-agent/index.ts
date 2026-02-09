@@ -1467,7 +1467,7 @@ async function rescheduleAppointment(
     existing.start_time?.substring(0, 5) === normalizedTime;
 
   if (!slotAvailable && !isSameSlot) {
-    return `Infelizmente o horário ${normalizedTime} do dia ${normalizedDate} não está disponível. Por favor, escolha outro horário.`;
+    return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} não está disponível. Por favor, escolha outro horário.`;
   }
 
   // UPDATE the existing appointment
