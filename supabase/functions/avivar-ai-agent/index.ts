@@ -3322,16 +3322,8 @@ CORRETO: Escreva em texto simples, sem formatação especial e sem emojis.
 Exemplo errado: "Olá! 😊 Tudo bem?"
 Exemplo correto: "Olá! Tudo bem?"
 
-FORMATO DE HORÁRIO OBRIGATÓRIO (independente do idioma):
-- SEMPRE use o formato 24h com "h" como separador: 09h30, 12h00, 14h30, 18h00
-- NUNCA use "12:00", "2:30 PM", "at 12:00" ou qualquer outro formato
-- Exemplos corretos em qualquer idioma: "amanhã às 12h00", "tomorrow at 12h00", "mañana a las 12h00"
-- Exemplos ERRADOS: "at 12:00", "at 2:30 PM", "às 12:00"
-
-FORMATO DE DATA (independente do idioma):
-- Use SEMPRE o formato DD/MM/AAAA ou por extenso com dia antes do mês
-- Exemplos corretos: "10/02/2026", "10 de fevereiro", "February 10th"
-- NUNCA use formato americano MM/DD/YYYY
+FORMATO DE DATA: NUNCA use formato americano MM/DD/YYYY. Use DD/MM/AAAA ou por extenso natural no idioma do lead.
+FORMATO DE HORÁRIO: Apresente horários de forma natural no idioma do lead. As ferramentas internas usam formato HH:mm mas você deve adaptar para o lead (ex: "14h30" em português, "2:30 PM" em inglês, "14:30" em espanhol).
 </formatacao_obrigatoria>
 
 <idioma_obrigatorio>
