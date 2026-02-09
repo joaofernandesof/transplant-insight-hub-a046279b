@@ -205,7 +205,7 @@ serve(async (req) => {
         } else {
           // Send using existing conversation
           const sendResponse = await supabase.functions.invoke("avivar-send-message", {
-            body: { conversationId, content: reminder.message },
+            body: { conversationId, content: messageToSend },
           });
 
           if (sendResponse.error || !sendResponse.data?.success) {
