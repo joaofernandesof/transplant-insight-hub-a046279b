@@ -9278,6 +9278,7 @@ export type Database = {
           email: string | null
           id: string
           interest_level: string | null
+          language: string | null
           lead_code: string
           name: string
           notes: string | null
@@ -9309,6 +9310,7 @@ export type Database = {
           email?: string | null
           id?: string
           interest_level?: string | null
+          language?: string | null
           lead_code: string
           name: string
           notes?: string | null
@@ -9340,6 +9342,7 @@ export type Database = {
           email?: string | null
           id?: string
           interest_level?: string | null
+          language?: string | null
           lead_code?: string
           name?: string
           notes?: string | null

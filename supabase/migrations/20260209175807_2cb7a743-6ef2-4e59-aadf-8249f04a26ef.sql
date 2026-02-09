@@ -1,0 +1,1 @@
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'pt-BR';
