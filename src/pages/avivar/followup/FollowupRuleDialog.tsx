@@ -22,7 +22,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image, Video, FileText } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image, Video, FileText, Filter } from 'lucide-react';
 import { TEMPLATE_VARIABLES } from '@/hooks/useFollowupTemplates';
 import type { FollowupRule, CreateFollowupRuleInput } from '@/hooks/useFollowupRules';
 import { useKanbanBoards } from '@/hooks/useKanbanBoards';
@@ -79,6 +80,9 @@ import { toast } from 'sonner';
     // Document fields
     document_url: '' as string,
     document_name: '' as string,
+    // Scope fields
+    applicable_kanban_ids: [] as string[],
+    applicable_column_ids: [] as string[],
   });
   
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
@@ -133,6 +137,9 @@ import { toast } from 'sonner';
         // Document fields
         document_url: rule.document_url || '',
         document_name: rule.document_name || '',
+        // Scope fields
+        applicable_kanban_ids: rule.applicable_kanban_ids || [],
+        applicable_column_ids: rule.applicable_column_ids || [],
       });
     } else {
       setFormData(prev => ({
@@ -148,6 +155,8 @@ import { toast } from 'sonner';
         video_caption: '',
         document_url: '',
         document_name: '',
+        applicable_kanban_ids: [],
+        applicable_column_ids: [],
       }));
     }
   }, [rule, existingRulesCount, open]);
@@ -437,6 +446,9 @@ import { toast } from 'sonner';
       // Document fields
       document_url: formData.document_url || null,
       document_name: formData.document_name || null,
+      // Scope fields
+      applicable_kanban_ids: formData.applicable_kanban_ids.length > 0 ? formData.applicable_kanban_ids : null,
+      applicable_column_ids: formData.applicable_column_ids.length > 0 ? formData.applicable_column_ids : null,
     };
 
     if (isEditing && rule) {
@@ -453,7 +465,8 @@ import { toast } from 'sonner';
      }));
    };
  
-   const selectedKanbanColumns = columns.filter(c => c.kanban_id === formData.target_kanban_id);
+  const selectedKanbanColumns = columns.filter(c => c.kanban_id === formData.target_kanban_id);
+  const scopeColumns = columns.filter(c => formData.applicable_kanban_ids.includes(c.kanban_id));
  
    return (
      <Dialog open={open} onOpenChange={onOpenChange}>
@@ -942,8 +955,84 @@ import { toast } from 'sonner';
            </TabsContent>
  
            <TabsContent value="automation" className="space-y-4">
+             {/* Scope Section */}
+             <div className="space-y-3 p-4 rounded-lg border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary)/0.5)]">
+               <div className="flex items-center gap-2 mb-2">
+                 <Filter className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                 <Label className="text-[hsl(var(--avivar-foreground))] font-medium">Aplicar apenas em funis específicos</Label>
+               </div>
+               <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mb-3">
+                 {formData.applicable_kanban_ids.length === 0
+                   ? 'Esta regra será aplicada a todos os leads, independente do funil.'
+                   : `Aplicada apenas aos funis selecionados (${formData.applicable_kanban_ids.length}).`}
+               </p>
+               <div className="space-y-2">
+                 {boards.map((board) => (
+                   <div key={board.id} className="flex items-center space-x-2">
+                     <Checkbox
+                       id={`scope-board-${board.id}`}
+                       checked={formData.applicable_kanban_ids.includes(board.id)}
+                       onCheckedChange={(checked) => {
+                         setFormData(prev => {
+                           const ids = checked
+                             ? [...prev.applicable_kanban_ids, board.id]
+                             : prev.applicable_kanban_ids.filter(id => id !== board.id);
+                           // Remove columns from deselected kanbans
+                           const validColumnIds = prev.applicable_column_ids.filter(colId =>
+                             columns.find(c => c.id === colId && ids.includes(c.kanban_id))
+                           );
+                           return { ...prev, applicable_kanban_ids: ids, applicable_column_ids: validColumnIds };
+                         });
+                       }}
+                     />
+                     <label htmlFor={`scope-board-${board.id}`} className="text-sm text-[hsl(var(--avivar-foreground))] cursor-pointer">
+                       {board.name}
+                     </label>
+                   </div>
+                 ))}
+               </div>
+
+               {/* Column filter within selected kanbans */}
+               {formData.applicable_kanban_ids.length > 0 && scopeColumns.length > 0 && (
+                 <div className="mt-3 pt-3 border-t border-[hsl(var(--avivar-border))]">
+                   <Label className="text-[hsl(var(--avivar-foreground))] text-sm mb-2 block">
+                     Filtrar por colunas (opcional)
+                   </Label>
+                   <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mb-2">
+                     {formData.applicable_column_ids.length === 0
+                       ? 'Todas as colunas dos funis selecionados.'
+                       : `Apenas ${formData.applicable_column_ids.length} coluna(s).`}
+                   </p>
+                   <div className="grid grid-cols-2 gap-2">
+                     {scopeColumns.map((col) => {
+                       const board = boards.find(b => b.id === col.kanban_id);
+                       return (
+                         <div key={col.id} className="flex items-center space-x-2">
+                           <Checkbox
+                             id={`scope-col-${col.id}`}
+                             checked={formData.applicable_column_ids.includes(col.id)}
+                             onCheckedChange={(checked) => {
+                               setFormData(prev => ({
+                                 ...prev,
+                                 applicable_column_ids: checked
+                                   ? [...prev.applicable_column_ids, col.id]
+                                   : prev.applicable_column_ids.filter(id => id !== col.id),
+                               }));
+                             }}
+                           />
+                           <label htmlFor={`scope-col-${col.id}`} className="text-xs text-[hsl(var(--avivar-foreground))] cursor-pointer">
+                             {board && formData.applicable_kanban_ids.length > 1 ? `${board.name} → ` : ''}{col.name}
+                           </label>
+                         </div>
+                       );
+                     })}
+                   </div>
+                 </div>
+               )}
+             </div>
+
              <div className="space-y-2">
-               <Label className="text-[hsl(var(--avivar-foreground))]">Mover para Kanban/Etapa</Label>
+               <Label className="text-[hsl(var(--avivar-foreground))]">Mover para Kanban/Etapa após envio</Label>
                <Select
                  value={formData.target_kanban_id || 'none'}
                  onValueChange={(value) => setFormData(prev => ({ ...prev, target_kanban_id: value === 'none' ? '' : value, move_to_column_id: '' }))}

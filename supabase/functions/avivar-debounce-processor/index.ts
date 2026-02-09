@@ -73,13 +73,29 @@ async function scheduleFollowupForConversation(
   const ruleAccountId = memberInfo?.account_id;
 
   // Get the first active follow-up rule (attempt 1) - use account_id for multi-tenant
+  // First, find lead's kanban/column for scope filtering
+  let leadKanbanId: string | null = null;
+  let leadColumnId: string | null = null;
+
+  const { data: kanbanLead } = await supabase
+    .from("avivar_kanban_leads")
+    .select("kanban_id, column_id")
+    .eq("phone", leadPhone)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (kanbanLead) {
+    leadKanbanId = kanbanLead.kanban_id;
+    leadColumnId = kanbanLead.column_id;
+  }
+
   let ruleQuery = supabase
     .from("avivar_followup_rules")
     .select("*")
     .eq("is_active", true)
     .eq("attempt_number", 1)
-    .order("order_index", { ascending: true })
-    .limit(1);
+    .order("order_index", { ascending: true });
 
   if (ruleAccountId) {
     ruleQuery = ruleQuery.eq("account_id", ruleAccountId);
@@ -87,15 +103,28 @@ async function scheduleFollowupForConversation(
     ruleQuery = ruleQuery.eq("user_id", userId);
   }
 
-  const { data: rule, error: ruleError } = await ruleQuery.maybeSingle();
+  const { data: allRules, error: ruleError } = await ruleQuery;
 
   if (ruleError) {
-    console.error(`[Debounce] Error fetching follow-up rule:`, ruleError);
+    console.error(`[Debounce] Error fetching follow-up rules:`, ruleError);
     return;
   }
 
+  // Filter rules by scope: applicable_kanban_ids / applicable_column_ids
+  const rule = (allRules || []).find((r: any) => {
+    // If no scope defined, rule applies to all leads
+    if (!r.applicable_kanban_ids || r.applicable_kanban_ids.length === 0) return true;
+    // Lead must be in one of the applicable kanbans
+    if (!leadKanbanId || !r.applicable_kanban_ids.includes(leadKanbanId)) return false;
+    // If column scope defined, lead must be in one of those columns
+    if (r.applicable_column_ids && r.applicable_column_ids.length > 0) {
+      if (!leadColumnId || !r.applicable_column_ids.includes(leadColumnId)) return false;
+    }
+    return true;
+  }) || null;
+
   if (!rule) {
-    console.log(`[Debounce] No active follow-up rule found for user ${userId}`);
+    console.log(`[Debounce] No matching follow-up rule for user ${userId} (lead kanban: ${leadKanbanId})`);
     return;
   }
 

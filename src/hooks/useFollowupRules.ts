@@ -38,6 +38,9 @@ export interface FollowupRule {
   // Document fields
   document_url: string | null;
   document_name: string | null;
+  // Scope fields
+  applicable_kanban_ids: string[] | null;
+  applicable_column_ids: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -73,6 +76,9 @@ export interface CreateFollowupRuleInput {
   // Document fields
   document_url?: string | null;
   document_name?: string | null;
+  // Scope fields
+  applicable_kanban_ids?: string[] | null;
+  applicable_column_ids?: string[] | null;
 }
  
  export function useFollowupRules() {

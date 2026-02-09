@@ -17,7 +17,9 @@ import {
   Image,
   Video,
   FileText,
+  Filter,
 } from 'lucide-react';
+import { useKanbanBoards } from '@/hooks/useKanbanBoards';
 import { cn } from '@/lib/utils';
 import type { FollowupRule } from '@/hooks/useFollowupRules';
  
@@ -28,7 +30,11 @@ import type { FollowupRule } from '@/hooks/useFollowupRules';
    onDelete: (id: string) => void;
  }
  
- export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupRuleCardProps) {
+export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupRuleCardProps) {
+  const { boards } = useKanbanBoards();
+  const scopeBoardNames = (rule.applicable_kanban_ids || [])
+    .map(id => boards.find(b => b.id === id)?.name)
+    .filter(Boolean);
    const getDelayLabel = () => {
      const value = rule.delay_minutes;
      if (rule.delay_type === 'hours') return `${value / 60} hora${value / 60 > 1 ? 's' : ''}`;
@@ -113,6 +119,12 @@ import type { FollowupRule } from '@/hooks/useFollowupRules';
                 {rule.document_url && (
                   <Badge className="text-xs bg-cyan-500/20 text-cyan-500 border-cyan-500/30">
                     <FileText className="h-3 w-3 mr-1" />Arquivo
+                  </Badge>
+                )}
+                {scopeBoardNames.length > 0 && (
+                  <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))]">
+                    <Filter className="h-3 w-3 mr-1" />
+                    {scopeBoardNames.length === 1 ? scopeBoardNames[0] : `${scopeBoardNames.length} funis`}
                   </Badge>
                 )}
              </div>

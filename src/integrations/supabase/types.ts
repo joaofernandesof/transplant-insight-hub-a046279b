@@ -920,6 +920,8 @@ export type Database = {
         Row: {
           account_id: string
           ai_context: string | null
+          applicable_column_ids: string[] | null
+          applicable_kanban_ids: string[] | null
           attempt_number: number
           audio_forward: boolean | null
           audio_type: string | null
@@ -954,6 +956,8 @@ export type Database = {
         Insert: {
           account_id: string
           ai_context?: string | null
+          applicable_column_ids?: string[] | null
+          applicable_kanban_ids?: string[] | null
           attempt_number?: number
           audio_forward?: boolean | null
           audio_type?: string | null
@@ -988,6 +992,8 @@ export type Database = {
         Update: {
           account_id?: string
           ai_context?: string | null
+          applicable_column_ids?: string[] | null
+          applicable_kanban_ids?: string[] | null
           attempt_number?: number
           audio_forward?: boolean | null
           audio_type?: string | null
