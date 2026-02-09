@@ -508,6 +508,7 @@ export type Database = {
           created_at: string
           created_by: string
           end_time: string
+          google_event_id: string | null
           id: string
           lead_id: string | null
           location: string | null
@@ -533,6 +534,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           end_time: string
+          google_event_id?: string | null
           id?: string
           lead_id?: string | null
           location?: string | null
@@ -558,6 +560,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           end_time?: string
+          google_event_id?: string | null
           id?: string
           lead_id?: string | null
           location?: string | null

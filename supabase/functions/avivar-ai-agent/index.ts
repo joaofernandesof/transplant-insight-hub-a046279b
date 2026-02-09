@@ -73,6 +73,114 @@ async function createGoogleCalendarEvent(
   endTime: string,
   description?: string,
   location?: string
+): Promise<string | null> {
+  try {
+    const { data: agenda } = await supabase
+      .from("avivar_agendas")
+      .select("google_calendar_id")
+      .eq("id", agendaId)
+      .single();
+
+    if (!agenda?.google_calendar_id) return null;
+
+    const accessToken = await getGoogleAccessToken(supabase, agendaId);
+    if (!accessToken) return null;
+
+    const event = {
+      summary,
+      description,
+      location,
+      start: { dateTime: `${date}T${startTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
+      end: { dateTime: `${date}T${endTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
+      conferenceData: {
+        createRequest: {
+          requestId: crypto.randomUUID(),
+          conferenceSolutionKey: { type: "hangoutsMeet" },
+        },
+      },
+    };
+
+    const response = await fetch(
+      `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(agenda.google_calendar_id)}/events?conferenceDataVersion=1`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+      }
+    );
+
+    if (response.ok) {
+      const created = await response.json();
+      console.log("[AI Agent] Google Calendar event created successfully, id:", created.id);
+      return created.id || null;
+    } else {
+      console.error("[AI Agent] Failed to create Google Calendar event:", response.status);
+      return null;
+    }
+  } catch (e) {
+    console.error("[AI Agent] Error creating Google Calendar event:", e);
+    return null;
+  }
+}
+
+async function updateGoogleCalendarEvent(
+  supabase: AnySupabaseClient,
+  agendaId: string,
+  googleEventId: string,
+  summary: string,
+  date: string,
+  startTime: string,
+  endTime: string,
+  description?: string,
+  location?: string
+): Promise<string | null> {
+  try {
+    const { data: agenda } = await supabase
+      .from("avivar_agendas")
+      .select("google_calendar_id")
+      .eq("id", agendaId)
+      .single();
+
+    if (!agenda?.google_calendar_id) return null;
+
+    const accessToken = await getGoogleAccessToken(supabase, agendaId);
+    if (!accessToken) return null;
+
+    const event = {
+      summary,
+      description,
+      location,
+      start: { dateTime: `${date}T${startTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
+      end: { dateTime: `${date}T${endTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
+    };
+
+    const response = await fetch(
+      `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(agenda.google_calendar_id)}/events/${encodeURIComponent(googleEventId)}`,
+      {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+      }
+    );
+
+    if (response.ok) {
+      const updated = await response.json();
+      console.log("[AI Agent] Google Calendar event updated successfully, id:", updated.id);
+      return updated.id || googleEventId;
+    } else {
+      console.error("[AI Agent] Failed to update Google Calendar event:", response.status);
+      return null;
+    }
+  } catch (e) {
+    console.error("[AI Agent] Error updating Google Calendar event:", e);
+    return null;
+  }
+}
+
+async function deleteGoogleCalendarEvent(
+  supabase: AnySupabaseClient,
+  agendaId: string,
+  googleEventId: string
 ): Promise<void> {
   try {
     const { data: agenda } = await supabase
@@ -86,30 +194,21 @@ async function createGoogleCalendarEvent(
     const accessToken = await getGoogleAccessToken(supabase, agendaId);
     if (!accessToken) return;
 
-    const event = {
-      summary,
-      description,
-      location,
-      start: { dateTime: `${date}T${startTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
-      end: { dateTime: `${date}T${endTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
-    };
-
     const response = await fetch(
-      `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(agenda.google_calendar_id)}/events`,
+      `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(agenda.google_calendar_id)}/events/${encodeURIComponent(googleEventId)}`,
       {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify(event),
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
 
-    if (response.ok) {
-      console.log("[AI Agent] Google Calendar event created successfully");
+    if (response.ok || response.status === 204) {
+      console.log("[AI Agent] Google Calendar event deleted successfully");
     } else {
-      console.error("[AI Agent] Failed to create Google Calendar event:", response.status);
+      console.error("[AI Agent] Failed to delete Google Calendar event:", response.status);
     }
   } catch (e) {
-    console.error("[AI Agent] Error creating Google Calendar event:", e);
+    console.error("[AI Agent] Error deleting Google Calendar event:", e);
   }
 }
 
@@ -316,6 +415,31 @@ const TOOLS = [
         required: ["agenda_name", "patient_name", "date", "time", "service_type"]
       }
     }
+      },
+      {
+        type: "function",
+        function: {
+          name: "reschedule_appointment",
+          description: "Reagenda um agendamento EXISTENTE do lead para uma nova data/horário. Use esta ferramenta (em vez de create_appointment) quando o lead JÁ TEM um agendamento ativo e quer mudar a data ou horário. Isso ATUALIZA o agendamento existente ao invés de criar um novo.",
+          parameters: {
+            type: "object",
+            properties: {
+              new_date: {
+                type: "string",
+                description: "Nova data no formato YYYY-MM-DD"
+              },
+              new_time: {
+                type: "string",
+                description: "Novo horário no formato HH:MM"
+              },
+              agenda_name: {
+                type: "string",
+                description: "Nome da unidade/agenda (opcional, só se mudar de unidade)"
+              }
+            },
+            required: ["new_date", "new_time"]
+          }
+        }
       },
       {
         type: "function",
@@ -669,6 +793,19 @@ async function resolveAgenda(
   };
 }
 
+async function resolveAgendaById(
+  supabase: AnySupabaseClient,
+  agendaId: string | null
+): Promise<ResolvedAgendaInfo> {
+  if (!agendaId) return { agendaId: null, agendaInfo: null };
+  const { data } = await supabase
+    .from("avivar_agendas")
+    .select("id, name, city, professional_name, address")
+    .eq("id", agendaId)
+    .single();
+  return { agendaId: data?.id || null, agendaInfo: data || null };
+}
+
 async function getAvailableSlots(
   supabase: AnySupabaseClient,
   userId: string,
@@ -955,16 +1092,27 @@ async function createAppointment(
     return "❌ Ocorreu um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato conosco.";
   }
 
-  // Sync to Google Calendar (fire and forget)
+  // Sync to Google Calendar and store event ID
   if (agendaId) {
     const serviceLabel = serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar";
-    createGoogleCalendarEvent(
-      supabase, agendaId,
-      `${serviceLabel} - ${patientName}`,
-      normalizedDate, normalizedTime, endTime,
-      `Paciente: ${patientName}\nTelefone: ${patientPhone}\n${notes || ""}`,
-      agendaInfo?.address || agendaInfo?.city || undefined
-    ).catch(e => console.error("[AI Agent] Google Calendar sync error:", e));
+    try {
+      const googleEventId = await createGoogleCalendarEvent(
+        supabase, agendaId,
+        `${serviceLabel} - ${patientName}`,
+        normalizedDate, normalizedTime, endTime,
+        `Paciente: ${patientName}\nTelefone: ${patientPhone}\n${notes || ""}`,
+        agendaInfo?.address || agendaInfo?.city || undefined
+      );
+      if (googleEventId && appointment?.id) {
+        await supabase
+          .from("avivar_appointments")
+          .update({ google_event_id: googleEventId })
+          .eq("id", appointment.id);
+        console.log(`[AI Agent] Stored google_event_id=${googleEventId} for appointment ${appointment.id}`);
+      }
+    } catch (e) {
+      console.error("[AI Agent] Google Calendar sync error:", e);
+    }
   }
 
   const dateObj = new Date(normalizedDate + "T12:00:00");
@@ -983,6 +1131,156 @@ async function createAppointment(
 📋 Tipo: ${serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar"}${locationInfo}
 
 Você receberá uma confirmação por WhatsApp. Aguardamos você!`;
+}
+
+// ============================================
+// RESCHEDULE APPOINTMENT - Updates existing
+// ============================================
+
+async function rescheduleAppointment(
+  supabase: AnySupabaseClient,
+  accountId: string,
+  userId: string,
+  leadId: string | null,
+  conversationId: string,
+  patientPhone: string,
+  newDate: string,
+  newTime: string,
+  agendaName?: string
+): Promise<string> {
+  console.log(`[AI Agent] Tool: reschedule_appointment(${patientPhone}, ${newDate} ${newTime})`);
+
+  // Find the existing active appointment for this lead/phone
+  let existingQuery = supabase
+    .from("avivar_appointments")
+    .select("*")
+    .eq("account_id", accountId)
+    .in("status", ["scheduled", "confirmed"])
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (leadId) {
+    existingQuery = existingQuery.eq("lead_id", leadId);
+  } else {
+    existingQuery = existingQuery.eq("patient_phone", patientPhone);
+  }
+
+  const { data: existingAppts } = await existingQuery;
+  const existing = existingAppts?.[0];
+
+  if (!existing) {
+    return "Não encontrei nenhum agendamento ativo para reagendar. Vamos criar um novo agendamento? Me informe a data e horário desejados.";
+  }
+
+  // Resolve agenda (use existing or new if specified)
+  const targetAgendaId = agendaName 
+    ? (await resolveAgenda(supabase, accountId, agendaName)).agendaId 
+    : existing.agenda_id;
+
+  const { agendaInfo } = agendaName 
+    ? await resolveAgenda(supabase, accountId, agendaName) 
+    : await resolveAgendaById(supabase, targetAgendaId);
+
+  const normalizedDate = normalizeDateISO(newDate);
+  const normalizedTime = normalizeTimeHHMM(newTime);
+  if (!normalizedDate || !normalizedTime) {
+    return "Não consegui entender a data/horário para reagendar. Você pode confirmar no formato 2026-02-09 às 09:30?";
+  }
+
+  const [hours, minutes] = normalizedTime.split(":").map(Number);
+  const endHours = Math.floor((hours * 60 + minutes + 30) / 60);
+  const endMinutes = (hours * 60 + minutes + 30) % 60;
+  const endTime = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
+
+  // Check availability
+  const { data: slots } = await supabase.rpc("get_available_slots_flexible", {
+    p_user_id: userId,
+    p_agenda_id: targetAgendaId,
+    p_date: normalizedDate,
+    p_duration_minutes: 30
+  });
+
+  // The existing appointment's slot will show as occupied, so we need to allow it
+  const slotAvailable = (slots || []).some((s: { slot_start: string; is_available: boolean }) => 
+    s.slot_start.substring(0, 5) === normalizedTime && s.is_available
+  );
+
+  // Also check if the "occupied" slot is actually the same appointment being rescheduled
+  const isSameSlot = existing.appointment_date === normalizedDate && 
+    existing.start_time?.substring(0, 5) === normalizedTime;
+
+  if (!slotAvailable && !isSameSlot) {
+    return `Infelizmente o horário ${normalizedTime} do dia ${normalizedDate} não está disponível. Por favor, escolha outro horário.`;
+  }
+
+  // UPDATE the existing appointment
+  const { error } = await supabase
+    .from("avivar_appointments")
+    .update({
+      appointment_date: normalizedDate,
+      start_time: normalizedTime + ":00",
+      end_time: endTime + ":00",
+      agenda_id: targetAgendaId,
+      location: agendaInfo?.city || existing.location,
+      professional_name: agendaInfo?.professional_name || existing.professional_name,
+      status: "scheduled",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", existing.id);
+
+  if (error) {
+    console.error("[AI Agent] Error rescheduling appointment:", error);
+    return "❌ Ocorreu um erro ao reagendar. Por favor, tente novamente.";
+  }
+
+  // Update Google Calendar event (if exists) or create new one
+  if (targetAgendaId) {
+    const serviceLabel = existing.service_type || "Avaliação Capilar";
+    const patientName = existing.patient_name;
+    try {
+      if (existing.google_event_id) {
+        // UPDATE existing Google Calendar event
+        await updateGoogleCalendarEvent(
+          supabase, targetAgendaId, existing.google_event_id,
+          `${serviceLabel} - ${patientName}`,
+          normalizedDate, normalizedTime, endTime,
+          `Paciente: ${patientName}\nTelefone: ${patientPhone}\nReagendado`,
+          agendaInfo?.address || agendaInfo?.city || undefined
+        );
+        console.log(`[AI Agent] Google Calendar event ${existing.google_event_id} updated for reschedule`);
+      } else {
+        // No google event yet, create one
+        const googleEventId = await createGoogleCalendarEvent(
+          supabase, targetAgendaId,
+          `${serviceLabel} - ${patientName}`,
+          normalizedDate, normalizedTime, endTime,
+          `Paciente: ${patientName}\nTelefone: ${patientPhone}\nReagendado`,
+          agendaInfo?.address || agendaInfo?.city || undefined
+        );
+        if (googleEventId) {
+          await supabase
+            .from("avivar_appointments")
+            .update({ google_event_id: googleEventId })
+            .eq("id", existing.id);
+        }
+      }
+    } catch (e) {
+      console.error("[AI Agent] Google Calendar reschedule sync error:", e);
+    }
+  }
+
+  const dateObj = new Date(normalizedDate + "T12:00:00");
+  const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
+  const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  return `✅ Agendamento reagendado com sucesso!
+
+📅 Nova data: ${dayName}, ${dateFormatted}
+⏰ Novo horário: ${normalizedTime}
+👤 Paciente: ${existing.patient_name}
+📋 Tipo: ${existing.service_type || "Avaliação Capilar"}
+
+O agendamento anterior foi atualizado. Aguardamos você!`;
 }
 
 async function transferToHuman(
@@ -1888,6 +2186,19 @@ async function processToolCall(
         toolArgs.notes as string | undefined
       );
     
+    case "reschedule_appointment":
+      return await rescheduleAppointment(
+        supabase,
+        accountId,
+        userId,
+        leadId,
+        conversationId,
+        patientPhone,
+        toolArgs.new_date as string,
+        toolArgs.new_time as string,
+        toolArgs.agenda_name as string | undefined
+      );
+
     case "transfer_to_human":
       return await transferToHuman(supabase, conversationId, toolArgs.reason as string);
     
@@ -2305,10 +2616,15 @@ Você TEM QUE usar "mover_lead_para_etapa" para atualizar o funil. NÃO É OPCIO
 - NUNCA deixe de mover o lead quando usar essas ferramentas!
 
 ### REGRA CRÍTICA PÓS-AGENDAMENTO:
-- Quando create_appointment retornar ✅ (sucesso), o agendamento JÁ ESTÁ CONFIRMADO no sistema.
-- NUNCA use check_slot ou get_available_slots após um create_appointment bem-sucedido na mesma conversa.
-- Após criar o agendamento, apenas confirme ao lead com os detalhes e mova para "${agendadoKey || "agendado"}".
-- NÃO re-verifique disponibilidade — o horário vai aparecer como ocupado porque ACABOU de ser reservado.`;
+- Quando create_appointment ou reschedule_appointment retornar ✅ (sucesso), o agendamento JÁ ESTÁ CONFIRMADO no sistema.
+- NUNCA use check_slot ou get_available_slots após um create_appointment/reschedule_appointment bem-sucedido na mesma conversa.
+- Após criar/reagendar o agendamento, apenas confirme ao lead com os detalhes e mova para "${agendadoKey || "agendado"}".
+- NÃO re-verifique disponibilidade — o horário vai aparecer como ocupado porque ACABOU de ser reservado.
+
+### REGRA CRÍTICA DE REAGENDAMENTO:
+- Se o lead pedir para REMARCAR, MUDAR ou REAGENDAR um agendamento existente, use SEMPRE reschedule_appointment.
+- NUNCA use create_appointment para reagendamento — isso cria duplicatas!
+- reschedule_appointment encontra automaticamente o agendamento ativo do lead e atualiza a data/horário.`;
   return instructions;
 }
 
@@ -2377,7 +2693,8 @@ Você tem acesso a:
 - search_knowledge_base: Consultar base de conhecimento COMPLETA (pré-op, pós-op, comercial, tudo!)
 - get_available_slots: Ver horários disponíveis em qualquer agenda
 - check_slot: Verificar se uma data/horário específico está disponível
-- create_appointment: Agendar em qualquer agenda
+- create_appointment: Agendar em qualquer agenda (APENAS para NOVO agendamento)
+- reschedule_appointment: Reagendar um agendamento existente (SEMPRE use quando o lead já tem agendamento ativo)
 - transfer_to_human: Transferir para humano
 - mover_lead_para_etapa: Mover o lead no funil de vendas conforme o progresso da conversa
 - send_fluxo_media: Enviar mídia (áudio, imagem, vídeo, documento) anexada a um passo do fluxo
@@ -2471,6 +2788,13 @@ Se o lead sugerir apenas UMA DATA (sem horário), use get_available_slots com es
 ### CONFIRMAÇÃO FINAL:
 - Só use create_appointment após o lead CONFIRMAR explicitamente a data e horário
 - Confirme: "Perfeito! Vou agendar sua avaliação para [data] às [horário] em [unidade]. Confirma?"
+
+### REAGENDAMENTO (REGRA CRÍTICA):
+- Se o lead JÁ TEM um agendamento ativo (status scheduled ou confirmed) e pede para REMARCAR/REAGENDAR para outra data ou horário:
+  - Use OBRIGATORIAMENTE reschedule_appointment (em vez de create_appointment)
+  - reschedule_appointment ATUALIZA o agendamento existente (mesma entrada no banco e no Google Calendar)
+  - NUNCA crie um novo agendamento quando o lead já tem um ativo — sempre reagende!
+  - Se o lead não tiver agendamento ativo, aí sim use create_appointment normalmente
 </fluxo_agendamento>
 
 <movimentacao_funil>
@@ -3056,10 +3380,10 @@ serve(async (req) => {
         
         console.log(`[AI Agent] Tool ${toolCall.name} result: ${result.substring(0, 100)}...`);
         
-        // Mark that appointment was successfully created to prevent re-checking slots
-        if (toolCall.name === "create_appointment" && result.includes("✅")) {
+        // Mark that appointment was successfully created/rescheduled to prevent re-checking slots
+        if ((toolCall.name === "create_appointment" || toolCall.name === "reschedule_appointment") && result.includes("✅")) {
           appointmentJustCreated = true;
-          console.log(`[AI Agent] 🔒 Appointment created — blocking future slot re-checks in this response`);
+          console.log(`[AI Agent] 🔒 Appointment created/rescheduled — blocking future slot re-checks in this response`);
         }
         
         toolResults.push({
@@ -3127,7 +3451,7 @@ serve(async (req) => {
 
     // 8. Clean up tool call artifacts, markdown formatting and emojis before sending
     // Remove any raw tool call strings the AI wrote in text (e.g. [send_fluxo_media(step_id="...")])
-    finalResponse = finalResponse.replace(/\[?\b(send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
+    finalResponse = finalResponse.replace(/\[?\b(send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
     // Also remove bracket-style tool calls like [tool_name(...)]
     finalResponse = finalResponse.replace(/\[\w+\([^\]]*\)\]/g, "");
     
