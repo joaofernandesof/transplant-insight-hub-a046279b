@@ -23,6 +23,7 @@ export function useHotLeads() {
   const { user, isAdmin } = useAuth();
   const [leads, setLeads] = useState<HotLead[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [queuedCount, setQueuedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -33,14 +34,29 @@ export function useHotLeads() {
 
       // Filter leads from HotLeads sources (planilha + n8n)
       // This excludes leads from Avivar CRM and other sources
-      const { data, error } = await supabase
+      // Fetch available/claimed leads (not queued) - these are the ones shown in the UI
+      const { data: activeData, error: activeError } = await supabase
         .from('leads')
         .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags')
         .in('source', ['planilha', 'n8n'])
-        .order('created_at', { ascending: false });
+        .neq('release_status', 'queued')
+        .order('created_at', { ascending: false })
+        .limit(5000);
 
-      if (error) throw error;
-      setLeads((data || []) as HotLead[]);
+      // Fetch count of queued leads for the banner (no need to load all 13k+ rows)
+      const { count: queuedCount } = await supabase
+        .from('leads')
+        .select('id', { count: 'exact', head: true })
+        .in('source', ['planilha', 'n8n'])
+        .eq('release_status', 'queued');
+
+      if (activeError) throw activeError;
+      const data = activeData || [];
+      // Store queued count for banner use
+      setQueuedCount(queuedCount || 0);
+
+      if (activeError) throw activeError;
+      setLeads((data) as HotLead[]);
     } catch (error) {
       console.error('Error fetching leads:', error);
       toast.error('Erro ao carregar leads');
@@ -183,6 +199,7 @@ export function useHotLeads() {
     availableLeads,
     myLeads,
     acquiredLeads,
+    queuedCount,
     isLoading,
     isRefreshing,
     isAdmin,
