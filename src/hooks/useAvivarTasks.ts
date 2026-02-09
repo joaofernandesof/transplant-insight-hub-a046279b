@@ -140,7 +140,44 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
         assigned_to: data.assigned_to || user?.id,
         created_by: user?.id,
       };
-      if (data.lead_id) insertData.lead_id = data.lead_id;
+
+      // lead_id from the dialog comes from avivar_kanban_leads table,
+      // but lead_tasks.lead_id FK references the leads table.
+      // We need to resolve the correct leads.id by matching phone.
+      if (data.lead_id) {
+        // First try: check if the ID exists in leads table directly
+        const { data: directLead } = await supabase
+          .from('leads')
+          .select('id')
+          .eq('id', data.lead_id)
+          .maybeSingle();
+
+        if (directLead) {
+          insertData.lead_id = directLead.id;
+        } else {
+          // Fallback: look up avivar_kanban_leads phone → leads.id
+          const { data: kanbanLead } = await supabase
+            .from('avivar_kanban_leads')
+            .select('phone')
+            .eq('id', data.lead_id)
+            .maybeSingle();
+
+          if (kanbanLead?.phone) {
+            const { data: matchedLead } = await supabase
+              .from('leads')
+              .select('id')
+              .eq('phone', kanbanLead.phone)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (matchedLead) {
+              insertData.lead_id = matchedLead.id;
+            }
+            // If no match found, skip lead_id to avoid FK error
+          }
+        }
+      }
 
       const { data: newTask, error } = await supabase
          .from('lead_tasks')
