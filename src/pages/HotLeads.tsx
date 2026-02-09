@@ -126,24 +126,24 @@ export default function HotLeads() {
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <h1 className="text-xl font-bold flex items-center gap-2 pl-12 lg:pl-0">
               <Flame className="h-6 w-6 text-orange-500" />
               HotLeads
             </h1>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {isAdmin && (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Importar
+                    <Upload className="h-4 w-4 mr-1.5" />
+                    <span className="hidden sm:inline">Importar</span>
                   </Button>
                   <LeadExportButton leads={leads} getClaimerName={getClaimerName} />
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-destructive"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     onClick={async () => {
                       if (!confirm('Resetar toda a base de leads? Esta ação não pode ser desfeita.')) return;
                       const { error } = await supabase.from('leads').delete().eq('source', 'planilha');
@@ -162,8 +162,8 @@ export default function HotLeads() {
                 onClick={() => fetchLeads(true)}
                 disabled={isRefreshing}
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Atualizar
+                <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Atualizar</span>
               </Button>
             </div>
           </div>
