@@ -423,19 +423,32 @@ export default function AvivarAgenda() {
     return filtered;
   }, [controlAppointments, controlTab, controlDateFilter, controlSearch]);
 
-  // Control view stats
+  // Control view stats - based on date filter to match visible appointments
   const controlStats = useMemo(() => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const todayAppts = controlAppointments.filter(a => a.appointment_date === today);
-    
+    let dateFiltered = [...controlAppointments];
+    const today = new Date();
+
+    if (controlDateFilter === 'today') {
+      dateFiltered = dateFiltered.filter(a => a.appointment_date === format(today, 'yyyy-MM-dd'));
+    } else if (controlDateFilter === 'tomorrow') {
+      dateFiltered = dateFiltered.filter(a => a.appointment_date === format(addDays(today, 1), 'yyyy-MM-dd'));
+    } else if (controlDateFilter === 'week') {
+      const weekEnd = addDays(today, 7);
+      dateFiltered = dateFiltered.filter(a => {
+        const date = new Date(a.appointment_date);
+        return date >= startOfDay(today) && date <= endOfDay(weekEnd);
+      });
+    }
+    // 'all' => no date filter, show everything
+
     return {
-      total: todayAppts.length,
-      confirmed: todayAppts.filter(a => a.status === 'confirmed').length,
-      pending: todayAppts.filter(a => a.status === 'pending' || a.status === 'scheduled').length,
-      cancelled: todayAppts.filter(a => a.status === 'cancelled').length,
+      total: dateFiltered.length,
+      confirmed: dateFiltered.filter(a => a.status === 'confirmed').length,
+      pending: dateFiltered.filter(a => a.status === 'pending' || a.status === 'scheduled').length,
+      cancelled: dateFiltered.filter(a => a.status === 'cancelled').length,
       alerts: alerts.filter(a => !a.is_resolved).length,
     };
-  }, [controlAppointments, alerts]);
+  }, [controlAppointments, alerts, controlDateFilter]);
 
   const getDateLabel = (date: string) => {
     const d = new Date(date + 'T00:00:00');
@@ -897,7 +910,9 @@ export default function AvivarAgenda() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Hoje</p>
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                      {controlDateFilter === 'today' ? 'Hoje' : controlDateFilter === 'tomorrow' ? 'Amanhã' : controlDateFilter === 'week' ? 'Semana' : 'Total'}
+                    </p>
                     <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{controlStats.total}</p>
                   </div>
                   <CalendarIcon className="h-8 w-8 text-[hsl(var(--avivar-primary))] opacity-50" />
