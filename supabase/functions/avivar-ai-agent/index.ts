@@ -1609,7 +1609,7 @@ async function cancelAppointment(
   return `✅ Agendamento cancelado com sucesso!
 
 📅 Data: ${dateFormatted}
-⏰ Horário: ${existing.start_time?.substring(0, 5)}
+⏰ Horário: ${formatTimeDisplay(existing.start_time?.substring(0, 5) || "")}
 👤 Paciente: ${existing.patient_name}
 📋 Motivo: ${reason}
 
