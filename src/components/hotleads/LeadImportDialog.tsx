@@ -3,6 +3,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Upload, FileSpreadsheet, Loader2, AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -15,10 +16,20 @@ interface ParsedLead {
   city: string;
 }
 
+interface ImportProgress {
+  current: number;
+  total: number;
+  success: number;
+  errors: number;
+}
+
 interface LeadImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImport: (leads: ParsedLead[]) => Promise<{ success: number; errors: number }>;
+  onImport: (
+    leads: ParsedLead[],
+    onProgress?: (progress: ImportProgress) => void,
+  ) => Promise<{ success: number; errors: number }>;
 }
 
 const REQUIRED_COLUMNS = ['nome', 'telefone'];
@@ -32,37 +43,24 @@ function normalizeHeader(header: string): string {
     .trim();
 }
 
-/**
- * Find the value for a field using flexible matching against normalized keys.
- * Tries exact match, then starts-with, then contains.
- */
 function findValue(normalized: Record<string, string>, possibleNames: string[]): string {
   const keys = Object.keys(normalized);
   const targets = possibleNames.map(n => normalizeHeader(n));
 
-  // Priority 1: Exact match
   for (const target of targets) {
     if (normalized[target] !== undefined) return normalized[target];
   }
-
-  // Priority 2: Starts with
   for (const target of targets) {
     const key = keys.find(k => k.startsWith(target));
     if (key) return normalized[key];
   }
-
-  // Priority 3: Contains
   for (const target of targets) {
     const key = keys.find(k => k.includes(target));
     if (key) return normalized[key];
   }
-
   return '';
 }
 
-/**
- * Known field keys that are NOT tags — used to identify leftover columns as potential tag sources.
- */
 const KNOWN_FIELD_KEYWORDS = [
   'nome', 'contato', 'name',
   'telefone', 'phone', 'celular', 'whatsapp', 'fone',
@@ -80,16 +78,9 @@ const KNOWN_FIELD_KEYWORDS = [
 
 const TAG_KEYWORDS = ['tag', 'etiqueta', 'rotulo', 'label', 'marcador', 'classificacao', 'categoria', 'segmento', 'grupo'];
 
-/**
- * Collect ALL tag-like columns from a row.
- * Strategy:
- * 1. Check columns whose name contains a tag keyword
- * 2. If nothing found, check columns that are NOT known fields (leftover = potential tags)
- */
 function collectTags(normalized: Record<string, string>): string {
   const tagParts: string[] = [];
   
-  // Strategy 1: columns with tag-related keywords in the name
   for (const [key, value] of Object.entries(normalized)) {
     if (value && TAG_KEYWORDS.some(kw => key.includes(kw))) {
       tagParts.push(value);
@@ -98,16 +89,12 @@ function collectTags(normalized: Record<string, string>): string {
   
   if (tagParts.length > 0) return tagParts.join(', ');
   
-  // Strategy 2: look for columns not matching any known field
-  // (leftover columns with non-empty values might be tags)
   for (const [key, value] of Object.entries(normalized)) {
     if (!value) continue;
     const isKnown = KNOWN_FIELD_KEYWORDS.some(kw => key.includes(kw));
     if (!isKnown && key.length > 0) {
-      // Only treat as tag if value looks tag-like (short text, not a number, not a long sentence)
       const trimmed = value.trim();
       if (trimmed.length > 0 && trimmed.length < 200 && !/^\d+$/.test(trimmed)) {
-        console.log(`[TagDetect] Potential tag column "${key}" with value "${trimmed}"`);
         tagParts.push(trimmed);
       }
     }
@@ -116,28 +103,18 @@ function collectTags(normalized: Record<string, string>): string {
   return tagParts.join(', ');
 }
 
-/**
- * Parse the "Lead tags" column value into an array of tags.
- * Handles comma-separated, #-separated, semicolon, pipe, and space-separated tags.
- * Filters out noise values.
- */
 function parseTags(raw: string): string[] {
   if (!raw) return [];
   
-  // Only filter out truly meaningless values
   const NOISE = new Set(['N/A', 'N A', 'undefined', 'null', 'none', '-', '']);
   
-  // First try splitting by comma/semicolon/pipe (common delimiters)
-  // Only split by # if the value starts with # (hashtag-style tags)
   let tags: string[];
   
   if (raw.includes(',') || raw.includes(';') || raw.includes('|')) {
     tags = raw.split(/[,;|]/).map(t => t.trim());
   } else if (raw.includes('#')) {
-    // Hashtag-style: "#TAG1#TAG2" or just "#TAG" — preserve the #
     tags = raw.match(/#[^#,;|]+/g)?.map(t => t.trim()) || [raw.trim()];
   } else {
-    // Single value
     tags = [raw.trim()];
   }
   
@@ -145,7 +122,6 @@ function parseTags(raw: string): string[] {
 }
 
 function mapRow(row: Record<string, any>, rowIndex?: number): ParsedLead | null {
-  // Log raw keys on first row to help debug column detection
   if (rowIndex === 0) {
     console.log('[HotLeads Import] Raw column headers:', Object.keys(row));
   }
@@ -159,7 +135,6 @@ function mapRow(row: Record<string, any>, rowIndex?: number): ParsedLead | null 
 
   if (rowIndex === 0) {
     console.log('[HotLeads Import] Normalized keys:', Object.keys(normalized));
-    console.log('[HotLeads Import] Normalized entries:', JSON.stringify(normalized));
   }
 
   const name = findValue(normalized, ['nome', 'contato principal', 'contato', 'name']);
@@ -167,21 +142,14 @@ function mapRow(row: Record<string, any>, rowIndex?: number): ParsedLead | null 
   const email = findValue(normalized, ['email', 'email formulario', 'e-mail', 'e mail']);
   const state = findValue(normalized, ['estado', 'estado do lead', 'uf', 'state']);
   const city = findValue(normalized, ['cidade', 'cidade principal', 'city', 'municipio']);
-  
-  // Tags: try explicit tag columns first, then fallback to collectTags (which checks leftover columns)
-  const explicitTags = findValue(normalized, ['lead tags', 'tags', 'tag', 'etiquetas', 'etiqueta', 'rotulo', 'rotulos', 'labels', 'marcadores', 'classificacao']);
-  const collectedTags = collectTags(normalized);
-  const tagsRaw = explicitTags || collectedTags;
-  
-  if (rowIndex === 0) {
-    console.log('[HotLeads Import] Explicit tags:', JSON.stringify(explicitTags));
-    console.log('[HotLeads Import] Collected tags:', JSON.stringify(collectedTags));
-    console.log('[HotLeads Import] Final tagsRaw:', JSON.stringify(tagsRaw));
-  }
 
   if (!name || !phone) return null;
 
   return { name, phone, email, state, city };
+}
+
+function formatNumber(n: number): string {
+  return n.toLocaleString('pt-BR');
 }
 
 export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDialogProps) {
@@ -189,6 +157,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
   const [fileName, setFileName] = useState('');
   const [parseError, setParseError] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  const [progress, setProgress] = useState<ImportProgress | null>(null);
   const [result, setResult] = useState<{ success: number; errors: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -197,10 +166,10 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
     setFileName('');
     setParseError('');
     setResult(null);
+    setProgress(null);
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  // Download template spreadsheet
   const downloadTemplate = useCallback(() => {
     const templateData = [
       { 'Contato principal': 'João Silva', 'Telefone comercial (contato)': '11999998888', 'EMAIL (FORMULÁRIO)': 'joao@email.com', 'ESTADO DO LEAD': 'SP', 'CIDADE PRINCIPAL': 'São Paulo', 'Lead tags': '' },
@@ -212,12 +181,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
     
     worksheet['!cols'] = [
-      { wch: 25 },
-      { wch: 22 },
-      { wch: 30 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 35 },
+      { wch: 25 }, { wch: 22 }, { wch: 30 }, { wch: 15 }, { wch: 20 }, { wch: 35 },
     ];
     
     XLSX.writeFile(workbook, 'modelo_hotleads.xlsx');
@@ -227,6 +191,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     setParseError('');
     setResult(null);
+    setProgress(null);
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -245,11 +210,8 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
           return;
         }
 
-        // Validate required columns exist
         const rawHeaders = Object.keys(json[0]);
-        console.log('[HotLeads Import] Raw headers from XLSX:', rawHeaders);
         const headers = rawHeaders.map(normalizeHeader);
-        console.log('[HotLeads Import] Normalized headers:', headers);
         const hasName = headers.some(h => h === 'nome' || h.includes('contato'));
         const hasPhone = headers.some(h => h.includes('telefone') || h.includes('phone') || h.includes('celular') || h.includes('whatsapp') || h.includes('fone'));
         
@@ -274,20 +236,26 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
 
   const handleImport = async () => {
     setIsImporting(true);
-    const res = await onImport(parsedLeads);
+    setProgress({ current: 0, total: parsedLeads.length, success: 0, errors: 0 });
+    const res = await onImport(parsedLeads, (p) => setProgress(p));
     setResult(res);
+    setProgress(null);
     setIsImporting(false);
 
     if (res.success > 0) {
-      toast.success(`${res.success} leads importados com sucesso!`);
+      toast.success(`${formatNumber(res.success)} leads importados com sucesso!`);
     }
     if (res.errors > 0) {
-      toast.error(`${res.errors} leads com erro na importação.`);
+      toast.error(`${formatNumber(res.errors)} leads com erro na importação.`);
     }
   };
 
+  const progressPercent = progress
+    ? Math.round((progress.current / progress.total) * 100)
+    : 0;
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v && !isImporting) { reset(); onOpenChange(v); } }}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
@@ -307,7 +275,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
 
         <div className="space-y-4 py-2">
           {/* File input */}
-          {!result && (
+          {!result && !isImporting && (
             <div className="border-2 border-dashed rounded-lg p-6 text-center">
               <input
                 ref={fileRef}
@@ -335,11 +303,38 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
             </div>
           )}
 
+          {/* Import Progress */}
+          {isImporting && progress && (
+            <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  Importando leads...
+                </span>
+                <span className="text-muted-foreground font-mono">
+                  {progressPercent}%
+                </span>
+              </div>
+              <Progress value={progressPercent} className="h-3" />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  {formatNumber(progress.current)} de {formatNumber(progress.total)} processados
+                </span>
+                <span className="flex items-center gap-3">
+                  <span className="text-green-600">✓ {formatNumber(progress.success)}</span>
+                  {progress.errors > 0 && (
+                    <span className="text-destructive">✗ {formatNumber(progress.errors)}</span>
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Preview */}
-          {parsedLeads.length > 0 && !result && (
+          {parsedLeads.length > 0 && !result && !isImporting && (
             <div>
               <p className="text-sm font-medium mb-2">
-                {parsedLeads.length} leads encontrados. Preview:
+                {formatNumber(parsedLeads.length)} leads encontrados. Preview:
               </p>
               <div className="border rounded-lg overflow-auto max-h-60">
                 <table className="w-full text-xs">
@@ -364,8 +359,8 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
                     ))}
                     {parsedLeads.length > 20 && (
                       <tr className="border-t">
-                        <td colSpan={6} className="p-2 text-center text-muted-foreground">
-                          ... e mais {parsedLeads.length - 20} leads
+                        <td colSpan={5} className="p-2 text-center text-muted-foreground">
+                          ... e mais {formatNumber(parsedLeads.length - 20)} leads
                         </td>
                       </tr>
                     )}
@@ -382,8 +377,8 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
               <div>
                 <p className="font-medium">Importação concluída!</p>
                 <p className="text-muted-foreground mt-1">
-                  {result.success} importados com sucesso
-                  {result.errors > 0 && ` • ${result.errors} com erro`}
+                  {formatNumber(result.success)} importados com sucesso
+                  {result.errors > 0 && ` • ${formatNumber(result.errors)} com erro`}
                 </p>
               </div>
             </div>
@@ -395,7 +390,9 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
             <Button onClick={() => { reset(); onOpenChange(false); }}>Fechar</Button>
           ) : (
             <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isImporting}>
+                Cancelar
+              </Button>
               <Button
                 onClick={handleImport}
                 disabled={parsedLeads.length === 0 || isImporting}
@@ -405,7 +402,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
                 ) : (
                   <Upload className="h-4 w-4 mr-2" />
                 )}
-                Importar {parsedLeads.length} leads
+                Importar {formatNumber(parsedLeads.length)} leads
               </Button>
             </>
           )}
