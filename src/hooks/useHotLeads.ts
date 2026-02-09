@@ -16,6 +16,7 @@ export interface HotLead {
   claimed_at: string | null;
   created_at: string;
   tags: string[] | null;
+  release_status: string | null;
 }
 
 export function useHotLeads() {
@@ -69,7 +70,7 @@ export function useHotLeads() {
   }, [fetchLeads, fetchProfiles]);
 
   const availableLeads = useMemo(() =>
-    leads.filter(l => !l.claimed_by && (l as any).release_status !== 'queued'), [leads]);
+    leads.filter(l => !l.claimed_by && l.release_status !== 'queued'), [leads]);
 
   const myLeads = useMemo(() =>
     leads.filter(l => l.claimed_by === user?.id), [leads, user?.id]);
