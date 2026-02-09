@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Briefcase, HeartPulse, TrendingUp, Users, ArrowRight, Plus, 
-  Loader2, LayoutGrid 
+  Loader2, LayoutGrid, Trash2 
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useAvivarAccount } from '@/hooks/useAvivarAccount';
@@ -192,8 +202,36 @@ export function AvivarLeadsSelector() {
     createKanban.mutate(newKanban);
   };
 
+  const [kanbanToDelete, setKanbanToDelete] = useState<KanbanData | null>(null);
+
+  const deleteKanban = useMutation({
+    mutationFn: async (kanbanId: string) => {
+      // Delete columns first, then the kanban
+      const { error: colError } = await supabase
+        .from('avivar_kanban_columns')
+        .delete()
+        .eq('kanban_id', kanbanId);
+      if (colError) throw colError;
+
+      const { error } = await supabase
+        .from('avivar_kanbans')
+        .delete()
+        .eq('id', kanbanId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avivar-kanbans'] });
+      toast.success('Kanban excluído com sucesso!');
+      setKanbanToDelete(null);
+    },
+    onError: (error) => {
+      console.error('Error deleting kanban:', error);
+      toast.error('Erro ao excluir kanban. Verifique se não há leads vinculados.');
+      setKanbanToDelete(null);
+    },
+  });
+
   const handleNavigateToKanban = (kanbanId: string) => {
-    // Navigate to the specific kanban page
     navigate(`/avivar/kanban/${kanbanId}`);
   };
 
@@ -366,8 +404,21 @@ export function AvivarLeadsSelector() {
                       )}
                     </div>
 
-                    {/* Arrow */}
-                    <ArrowRight className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))] group-hover:text-[hsl(var(--avivar-primary))] group-hover:translate-x-1 transition-all" />
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-500/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setKanbanToDelete(kanban);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <ArrowRight className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))] group-hover:text-[hsl(var(--avivar-primary))] group-hover:translate-x-1 transition-all" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -396,6 +447,30 @@ export function AvivarLeadsSelector() {
           </Card>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!kanbanToDelete} onOpenChange={(open) => !open && setKanbanToDelete(null)}>
+        <AlertDialogContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[hsl(var(--avivar-foreground))]">
+              Excluir Kanban
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[hsl(var(--avivar-muted-foreground))]">
+              Tem certeza que deseja excluir o kanban <strong>"{kanbanToDelete?.name}"</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[hsl(var(--avivar-border))]">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => kanbanToDelete && deleteKanban.mutate(kanbanToDelete.id)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleteKanban.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
