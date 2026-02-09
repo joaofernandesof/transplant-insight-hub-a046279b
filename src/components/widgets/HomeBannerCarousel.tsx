@@ -12,7 +12,7 @@ const fallbackBanners = [
     id: 'university-fallback',
     title: 'Aprenda a escalar sua clínica',
     subtitle: 'Conheça a',
-    highlight: 'Universidade ByNeofolic',
+    highlight: 'Academia ByNeofolic',
     bg_color: 'bg-gradient-to-r from-[#1e3a5f] via-[#2d5a87] to-[#1e3a5f]',
     bg_image_url: null,
     text_position: 'left',

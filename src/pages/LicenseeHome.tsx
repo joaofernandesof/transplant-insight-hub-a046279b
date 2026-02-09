@@ -173,7 +173,7 @@ const mainSections = [
   },
   {
     id: 'university',
-    title: 'Universidade ByNeofolic',
+    title: 'Academia ByNeofolic',
     description: 'Trilhas de capacitação, aulas gravadas e imersões',
     icon: Video,
     route: '/university',
