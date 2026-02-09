@@ -196,7 +196,7 @@ serve(async (req) => {
 
           // Use the found conversation
           const sendResponse = await supabase.functions.invoke("avivar-send-message", {
-            body: { conversationId: convId, content: reminder.message },
+            body: { conversationId: convId, content: messageToSend },
           });
 
           if (sendResponse.error || !sendResponse.data?.success) {
