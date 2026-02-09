@@ -1161,14 +1161,14 @@ async function createAppointment(
     ? `\n📍 Local: ${agendaInfo.name}${agendaInfo.address ? ` - ${agendaInfo.address}` : ""}`
     : "";
 
-  return `✅ Agendamento confirmado!
+  return `✅ AGENDAMENTO CRIADO COM SUCESSO — NÃO RE-VERIFIQUE DISPONIBILIDADE!
 
 📅 Data: ${dayName}, ${dateFormatted}
 ⏰ Horário: ${normalizedTime}
 👤 Paciente: ${patientName}
 📋 Tipo: ${serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar"}${locationInfo}
 
-Você receberá uma confirmação por WhatsApp. Aguardamos você!`;
+INSTRUÇÃO INTERNA: O agendamento JÁ FOI SALVO no sistema. O horário ${normalizedTime} agora aparecerá como OCUPADO porque foi reservado com sucesso. NÃO use check_slot nem get_available_slots — apenas confirme ao lead com os dados acima e mova para a etapa "agendado".`;
 }
 
 // ============================================
@@ -2879,11 +2879,13 @@ Você TEM QUE usar "mover_lead_para_etapa" para atualizar o funil. NÃO É OPCIO
 - Após create_appointment → mova para "${agendadoKey || "agendado"}"
 - NUNCA deixe de mover o lead quando usar essas ferramentas!
 
-### REGRA CRÍTICA PÓS-AGENDAMENTO:
-- Quando create_appointment ou reschedule_appointment retornar ✅ (sucesso), o agendamento JÁ ESTÁ CONFIRMADO no sistema.
-- NUNCA use check_slot ou get_available_slots após um create_appointment/reschedule_appointment bem-sucedido na mesma conversa.
-- Após criar/reagendar o agendamento, apenas confirme ao lead com os detalhes e mova para "${agendadoKey || "agendado"}".
-- NÃO re-verifique disponibilidade — o horário vai aparecer como ocupado porque ACABOU de ser reservado.
+### REGRA CRÍTICA PÓS-AGENDAMENTO (PRIORIDADE MÁXIMA):
+- Quando create_appointment ou reschedule_appointment retornar "✅" (sucesso), o agendamento JÁ ESTÁ 100% CONFIRMADO E SALVO no sistema.
+- ABSOLUTAMENTE PROIBIDO usar check_slot, get_available_slots ou qualquer verificação de disponibilidade após um agendamento bem-sucedido.
+- O horário reservado VAI APARECER COMO OCUPADO — isso é CORRETO e ESPERADO, pois acabou de ser reservado pelo próprio lead.
+- Sua ÚNICA ação após o ✅: confirmar ao lead com os detalhes (data, horário, local) e mover para "${agendadoKey || "agendado"}".
+- Se você re-verificar disponibilidade e disser ao lead que o horário está ocupado, você COMETEU UM ERRO GRAVE.
+- NUNCA diga "o horário acabou de ser preenchido" ou "não está mais disponível" após um create_appointment bem-sucedido.
 
 ### REGRA CRÍTICA DE REAGENDAMENTO:
 - Se o lead pedir para REMARCAR, MUDAR ou REAGENDAR um agendamento existente, use SEMPRE reschedule_appointment.
@@ -3732,6 +3734,9 @@ serve(async (req) => {
 
     // 8. Clean up tool call artifacts, markdown formatting and emojis before sending
     // Remove any raw tool call strings the AI wrote in text (e.g. [send_fluxo_media(step_id="...")])
+    finalResponse = finalResponse.replace(/INSTRUÇÃO INTERNA:.*$/gm, "");
+    finalResponse = finalResponse.replace(/AGENDAMENTO CRIADO COM SUCESSO.*?!/g, "");
+    finalResponse = finalResponse.replace(/NÃO RE-VERIFIQUE DISPONIBILIDADE!?/g, "");
     finalResponse = finalResponse.replace(/\[?\b(preencher_checklist|send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
     // Also remove bracket-style tool calls like [tool_name(...)]
     finalResponse = finalResponse.replace(/\[\w+\([^\]]*\)\]/g, "");
