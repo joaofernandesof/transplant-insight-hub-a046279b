@@ -14,7 +14,8 @@ import {
   Users,
   TrendingUp,
   Lock,
-  CreditCard
+  CreditCard,
+  Flame
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
@@ -28,6 +29,7 @@ interface SystemModule {
   icon: React.ElementType;
   route: string;
   color: string;
+  portalKey: string; // Chave usada em allowed_portals
   requiredProfiles: string[];
   adminOnly?: boolean;
 }
@@ -40,6 +42,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     icon: Shield,
     route: '/admin',
     color: 'bg-purple-500',
+    portalKey: 'admin',
     requiredProfiles: [],
     adminOnly: true,
   },
@@ -50,6 +53,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     icon: GraduationCap,
     route: '/academy',
     color: 'bg-emerald-500',
+    portalKey: 'academy',
     requiredProfiles: ['aluno', 'administrador'],
   },
   {
@@ -59,6 +63,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     icon: Building2,
     route: '/neoteam',
     color: 'bg-blue-500',
+    portalKey: 'neoteam',
     requiredProfiles: ['colaborador', 'medico', 'licenciado', 'administrador'],
   },
   {
@@ -68,6 +73,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     icon: Heart,
     route: '/neocare',
     color: 'bg-rose-500',
+    portalKey: 'neocare',
     requiredProfiles: ['paciente', 'administrador'],
   },
   {
@@ -77,6 +83,17 @@ const SYSTEM_MODULES: SystemModule[] = [
     icon: Users,
     route: '/home',
     color: 'bg-amber-500',
+    portalKey: 'neolicense',
+    requiredProfiles: ['licenciado', 'administrador'],
+  },
+  {
+    key: 'hotleads',
+    name: 'HotLeads',
+    description: 'Marketplace de leads quentes',
+    icon: Flame,
+    route: '/neolicense/hotleads',
+    color: 'bg-orange-500',
+    portalKey: 'hotleads',
     requiredProfiles: ['licenciado', 'administrador'],
   },
   {
@@ -86,6 +103,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     icon: CreditCard,
     route: '/neopay',
     color: 'bg-emerald-600',
+    portalKey: 'neopay',
     requiredProfiles: ['administrador'],
   },
   {
@@ -95,6 +113,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     icon: TrendingUp,
     route: '/avivar',
     color: 'bg-orange-500',
+    portalKey: 'avivar',
     requiredProfiles: ['cliente_avivar', 'administrador'],
   },
   {
@@ -104,6 +123,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     icon: VisionIcon,
     route: '/vision',
     color: 'bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500',
+    portalKey: 'vision',
     requiredProfiles: ['medico', 'colaborador', 'administrador'],
   },
 ];
@@ -118,7 +138,6 @@ export default function ProfileSelector() {
   }
 
   const handleSelectModule = (module: SystemModule) => {
-    // Se for admin, definir perfil como administrador
     if (module.adminOnly && user.isAdmin) {
       setActiveProfile('administrador');
       navigate(module.route);
@@ -132,13 +151,25 @@ export default function ProfileSelector() {
 
     if (matchingProfile) {
       setActiveProfile(matchingProfile);
-      navigate(module.route);
+    } else if (user.isAdmin) {
+      setActiveProfile('administrador');
     }
+    
+    navigate(module.route);
   };
 
   const canAccessModule = (module: SystemModule): boolean => {
-    if (module.adminOnly) return user.isAdmin;
+    // Admin sempre tem acesso total
     if (user.isAdmin) return true;
+    if (module.adminOnly) return false;
+    
+    // Verificar allowed_portals - se o array existe e não está vazio, usar como filtro principal
+    const portals = user.allowedPortals;
+    if (portals && portals.length > 0) {
+      return portals.includes(module.portalKey);
+    }
+    
+    // Fallback: verificar por perfis (comportamento legado)
     return module.requiredProfiles.some(profile => user.profiles.includes(profile as any));
   };
 
@@ -204,7 +235,7 @@ export default function ProfileSelector() {
                       "p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 text-center group relative",
                       hasAccess 
                         ? "border-border hover:border-primary hover:bg-muted/50 cursor-pointer"
-                        : "border-border/50 bg-muted/30 cursor-not-allowed opacity-60"
+                        : "border-border/50 cursor-not-allowed opacity-70"
                     )}
                   >
                     {/* Lock icon for inaccessible modules */}
@@ -217,7 +248,7 @@ export default function ProfileSelector() {
                     <div className={cn(
                       "p-3 rounded-lg text-white transition-transform",
                       module.color,
-                      hasAccess ? "group-hover:scale-110" : "grayscale"
+                      hasAccess ? "group-hover:scale-110" : ""
                     )}>
                       <Icon className="h-6 w-6" />
                     </div>
