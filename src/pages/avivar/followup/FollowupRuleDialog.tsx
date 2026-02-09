@@ -80,6 +80,9 @@ import { toast } from 'sonner';
     // Document fields
     document_url: '' as string,
     document_name: '' as string,
+    // Scope fields
+    applicable_kanban_ids: [] as string[],
+    applicable_column_ids: [] as string[],
   });
   
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
