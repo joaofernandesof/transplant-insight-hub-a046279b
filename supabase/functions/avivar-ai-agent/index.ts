@@ -817,6 +817,12 @@ function normalizeTimeHHMM(raw: string): string | null {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+// Format time for display: "12:00" → "12h00"
+function formatTimeDisplay(time: string): string {
+  return time.replace(":", "h");
+}
+
+
 function normalizeDateISO(raw: string, now = new Date()): string | null {
   const trimmed = (raw || "").trim();
   if (!trimmed) return null;
