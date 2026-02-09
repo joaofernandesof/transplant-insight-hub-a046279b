@@ -28,6 +28,8 @@ import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { useAvivarAccount } from "@/hooks/useAvivarAccount";
 import { AgendaSelector } from "@/components/avivar/AgendaSelector";
 import { AvivarAgenda, useAvivarAgendas } from "@/hooks/useAvivarAgendas";
+
+const GOOGLE_CALENDAR_ALLOWED_EMAILS = ['adm@neofolic.com.br', 'ti@neofolic.com.br'];
 import { cn } from "@/lib/utils";
 
 interface ScheduleConfig {
@@ -626,10 +628,12 @@ export default function AvivarAgendaSettings() {
             <Lock className="h-4 w-4 mr-2" />
             Bloqueios
           </TabsTrigger>
-          <TabsTrigger value="google" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
-            <Calendar className="h-4 w-4 mr-2" />
-            Google Calendar
-          </TabsTrigger>
+          {GOOGLE_CALENDAR_ALLOWED_EMAILS.includes(user?.email || '') && (
+            <TabsTrigger value="google" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
+              <Calendar className="h-4 w-4 mr-2" />
+              Google Calendar
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Hours Tab */}
@@ -1140,10 +1144,12 @@ export default function AvivarAgendaSettings() {
             </Card>
           </div>
         </TabsContent>
-        {/* Google Calendar Tab */}
-        <TabsContent value="google">
-          <GoogleCalendarTab agendaId={selectedAgenda?.id || null} agendaName={selectedAgenda?.name || ''} />
-        </TabsContent>
+        {/* Google Calendar Tab - restricted */}
+        {GOOGLE_CALENDAR_ALLOWED_EMAILS.includes(user?.email || '') && (
+          <TabsContent value="google">
+            <GoogleCalendarTab agendaId={selectedAgenda?.id || null} agendaName={selectedAgenda?.name || ''} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
