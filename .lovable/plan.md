@@ -1,94 +1,87 @@
 
-
-# IA Multilingual: Responder no Idioma do Lead
+# Escopo de Funil nas Regras de Follow-up
 
 ## Resumo
 
-Fazer a IA detectar automaticamente o idioma do lead e responder nesse idioma. A detecao sera feita a partir das mensagens do lead (sem necessidade de campo manual). A mudanca e segura e nao quebra o que ja funciona.
+Adicionar a possibilidade de definir em quais funis (Kanbans) e colunas cada regra de follow-up se aplica. Assim, regras diferentes podem ser usadas para leads em etapas diferentes do funil.
 
 ## Como funciona hoje
 
-- A IA tem uma regra fixa: "Responda SEMPRE em Portugues Brasileiro"
-- Follow-ups e lembretes usam templates escritos manualmente em portugues
-- Nao existe nenhum campo de idioma na tabela de leads
+- As regras de follow-up sao aplicadas a TODOS os leads igualmente, sem filtro por funil ou coluna
+- O campo `target_kanban_id` existente serve apenas para MOVER o lead apos o envio (automacao), nao para filtrar onde a regra se aplica
+- O debounce-processor pega a primeira regra ativa (attempt 1) sem verificar em qual funil/coluna o lead esta
 
 ## O que sera feito
 
-### 1. Adicionar campo `language` na tabela `leads`
-- Novo campo `language TEXT DEFAULT 'pt-BR'`
-- Valor padrao portugues, garantindo que nada quebra para leads existentes
+### 1. Migracao SQL: Novos campos de escopo
 
-### 2. IA do Agente: detectar e responder no idioma do lead
-- Remover a regra fixa de "sempre portugues"
-- Substituir por: "Detecte o idioma do lead pelas mensagens e responda no MESMO idioma"
-- Na primeira interacao, a IA detecta o idioma e salva no campo `language` do lead (via uma nova tool `set_lead_language`)
-- Nas interacoes seguintes, o sistema ja carrega o idioma salvo e instrui a IA
+Adicionar dois campos na tabela `avivar_followup_rules`:
+- `applicable_kanban_ids` (UUID array, nullable) - lista de Kanbans onde a regra se aplica
+- `applicable_column_ids` (UUID array, nullable) - lista de colunas especificas (dentro dos Kanbans selecionados)
 
-### 3. Follow-ups: traduzir automaticamente
-- Quando a IA gera/personaliza follow-ups, incluir no prompt: "Responda no idioma: {language}"
-- Para templates fixos (sem IA), a traducao tambem sera feita via IA antes do envio, usando o idioma salvo do lead
-- Fallback: se nao houver idioma salvo, manter portugues
+Quando ambos forem NULL, a regra se aplica a todos os leads (comportamento atual mantido).
 
-### 4. Lembretes de consulta: traduzir automaticamente
-- No `avivar-process-reminders`, antes de enviar, verificar o idioma do lead
-- Se nao for pt-BR, usar IA para traduzir a mensagem do lembrete
-- Operacao rapida (traducao simples) que nao impacta performance
+### 2. UI: Nova secao "Escopo" na aba Mensagem do dialog
 
-## Riscos e seguranca
+No `FollowupRuleDialog.tsx`, adicionar uma secao no inicio ou na aba "Automacao" com:
+- Multi-select de Kanbans (funis) usando checkboxes
+- Quando kanbans selecionados, mostrar as colunas desses kanbans para filtro opcional
+- Label clara: "Aplicar esta regra apenas a leads nos funis/etapas selecionados"
+- Indicacao visual: "Todos os funis" quando nenhum for selecionado
 
-| Preocupacao | Solucao |
-|---|---|
-| Leads existentes sem idioma | Campo tem default `pt-BR`, nada muda |
-| Templates em portugues para lead estrangeiro | IA traduz antes de enviar |
-| Erro na traducao | Fallback: envia em portugues (comportamento atual) |
-| Performance | Apenas 1 chamada extra de IA para traducao, so quando idioma != pt-BR |
-| Agendamentos e ferramentas internas | Continuam funcionando normalmente, so a mensagem ao lead muda |
+### 3. Card: Indicador visual de escopo
+
+No `FollowupRuleCard.tsx`, exibir um Badge indicando o escopo:
+- Se nenhum filtro: nao mostra nada (comportamento atual)
+- Se filtrado: Badge com icone de funil e nome(s) do(s) kanban(s)
+
+### 4. Backend: Filtrar regras pelo escopo do lead
+
+No `avivar-debounce-processor/index.ts`:
+- Antes de agendar, verificar em qual kanban/coluna o lead esta (via `avivar_kanban_leads`)
+- Filtrar regras que se aplicam aquele kanban/coluna
+- Se a regra tem `applicable_kanban_ids` preenchido, so aplicar se o lead esta em um desses kanbans
+
+No `avivar-process-followups/index.ts`:
+- Na hora de buscar a proxima regra (sequencia), aplicar o mesmo filtro de escopo
+
+## Seguranca
+
+- Leads existentes: regras sem escopo definido continuam funcionando normalmente para todos
+- Sem risco de quebrar automacoes existentes (campos novos sao nullable com default NULL)
 
 ## Detalhes Tecnicos
 
-### Migracao SQL
+### SQL Migration
 ```sql
-ALTER TABLE leads ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'pt-BR';
+ALTER TABLE avivar_followup_rules 
+ADD COLUMN IF NOT EXISTS applicable_kanban_ids UUID[] DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS applicable_column_ids UUID[] DEFAULT NULL;
 ```
 
-### Edge Function `avivar-ai-agent/index.ts`
-- Na funcao `buildHybridSystemPrompt`: substituir bloco `<idioma_obrigatorio>` por instrucao dinamica baseada no campo `language` do lead
-- Adicionar tool `set_lead_language` para a IA salvar o idioma detectado
-- Carregar `language` do lead no inicio do fluxo e passar ao prompt
+### Arquivos editados
+1. `FollowupRuleDialog.tsx` - Adicionar UI de selecao multi-kanban/coluna
+2. `FollowupRuleCard.tsx` - Badge indicando escopo
+3. `useFollowupRules.ts` - Incluir novos campos na interface e mutacoes
+4. `avivar-debounce-processor/index.ts` - Filtrar regra pelo kanban/coluna do lead
+5. `avivar-process-followups/index.ts` - Filtrar proxima regra pelo escopo
 
-### Edge Function `avivar-process-followups/index.ts`
-- Carregar `language` do lead junto com os dados existentes
-- Se `language != 'pt-BR'` e mensagem esta em portugues, adicionar etapa de traducao via IA antes do envio
-- Aplicar tanto para mensagens geradas por IA quanto para templates fixos
-
-### Edge Function `avivar-process-reminders/index.ts`
-- Carregar `language` do lead (via appointment -> lead)
-- Se `language != 'pt-BR'`, traduzir mensagem do lembrete via IA antes do envio
-
-### Fluxo de deteccao
+### Fluxo de filtragem no backend
 
 ```text
-Lead envia mensagem
+Lead nao responde
        |
        v
-IA detecta idioma da mensagem
+Debounce busca kanban/coluna do lead
        |
        v
-Salva idioma no campo leads.language
+Filtra regras ativas onde:
+  applicable_kanban_ids IS NULL (aplica a todos)
+  OU lead.kanban_id IN applicable_kanban_ids
        |
        v
-Responde no mesmo idioma
+Pega a primeira regra compativel (attempt 1)
        |
        v
-Follow-ups e lembretes futuros
-usam o idioma salvo para traduzir
+Agenda follow-up normalmente
 ```
-
-## Estimativa de impacto
-
-- **3 arquivos** editados (agent, process-followups, process-reminders)
-- **1 migracao** SQL (adicionar coluna)
-- **Zero risco** para funcionalidades existentes (default pt-BR)
-- Leads em portugues: comportamento identico ao atual
-- Leads em outros idiomas: experiencia significativamente melhor
-
