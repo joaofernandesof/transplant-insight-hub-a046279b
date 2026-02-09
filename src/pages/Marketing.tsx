@@ -13,7 +13,6 @@ import {
   Instagram,
   Facebook,
   Megaphone,
-  Sparkles,
   Play
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
