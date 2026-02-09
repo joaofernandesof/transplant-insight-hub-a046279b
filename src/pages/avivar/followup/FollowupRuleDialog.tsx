@@ -137,6 +137,9 @@ import { toast } from 'sonner';
         // Document fields
         document_url: rule.document_url || '',
         document_name: rule.document_name || '',
+        // Scope fields
+        applicable_kanban_ids: rule.applicable_kanban_ids || [],
+        applicable_column_ids: rule.applicable_column_ids || [],
       });
     } else {
       setFormData(prev => ({
