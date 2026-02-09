@@ -150,6 +150,9 @@ export interface UnifiedUser {
   // Atalhos
   isAdmin: boolean;
   
+  // Portais habilitados
+  allowedPortals: string[];
+  
   // Legado
   legacyRole?: 'admin' | 'licensee';
   clinicName?: string;
@@ -280,6 +283,13 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           // Permissões no formato "module_code:action"
           const permissions = Array.isArray(ctx.permissions) ? ctx.permissions : [];
 
+          // Buscar allowed_portals do neohub_users
+          const { data: portalData } = await supabase
+            .from('neohub_users')
+            .select('allowed_portals')
+            .eq('user_id', ctx.user.auth_id)
+            .single();
+
           return {
             id: ctx.user.id,
             authUserId: ctx.user.auth_id,
@@ -295,6 +305,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             tenants: ctx.tenants || [],
             activeProfileData: ctx.profiles?.[0],
             isAdmin,
+            allowedPortals: portalData?.allowed_portals || [],
             legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
           };
         }
@@ -346,11 +357,12 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           phone: neoHubData.phone,
           avatarUrl: neoHubData.avatar_url,
           profiles,
-          permissions: [], // Fallback não tem permissões granulares
+          permissions: [],
           modules: [],
           overrides: [],
           tenants: [],
           isAdmin,
+          allowedPortals: neoHubData.allowed_portals || [],
           legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
           clinicName: neoHubData.clinic_name,
           clinicLogoUrl: neoHubData.clinic_logo_url,
@@ -402,6 +414,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           overrides: [],
           tenants: [],
           isAdmin,
+          allowedPortals: [],
           legacyRole,
           clinicName: legacyProfile.clinic_name,
           clinicLogoUrl: legacyProfile.clinic_logo_url,
