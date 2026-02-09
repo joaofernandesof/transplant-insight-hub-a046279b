@@ -69,8 +69,8 @@
           rule:avivar_followup_rules(*),
           conversation:crm_conversations(
             id,
-            lead:leads(id, name, phone, email, procedure_interest)
-          )
+            lead:leads(id, name, phone, email, procedure_interest, language)
+           )
          `);
        
        if (claimError) {
