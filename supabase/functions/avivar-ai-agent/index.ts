@@ -3318,12 +3318,12 @@ Exemplo correto: "Olá! Tudo bem?"
 </formatacao_obrigatoria>
 
 <idioma_obrigatorio>
-REGRA ABSOLUTA: Você DEVE responder SEMPRE em Português Brasileiro (pt-BR).
-- NUNCA responda em inglês, espanhol ou qualquer outro idioma, mesmo que o lead escreva em outro idioma.
-- Se o lead escrever em inglês ou outro idioma, responda em português mesmo assim.
-- Todas as confirmações de agendamento, orientações e despedidas DEVEM ser em português.
-- Exemplo errado: "Done, Jhon! Your appointment is successfully confirmed."
-- Exemplo correto: "Pronto, Jhon! Seu agendamento foi confirmado com sucesso."
+${leadLanguage === "pt-BR" ? `REGRA ABSOLUTA: Responda SEMPRE em Português Brasileiro (pt-BR).
+- Se o lead escrever em outro idioma, detecte o idioma e use set_lead_language para salvar. Depois, responda no idioma do lead.` : `REGRA ABSOLUTA: O idioma preferido deste lead é "${leadLanguage}". Responda SEMPRE neste idioma.
+- Todas as mensagens, confirmações de agendamento, orientações e despedidas DEVEM ser no idioma "${leadLanguage}".
+- Se o lead mudar de idioma, use set_lead_language para atualizar e responda no novo idioma.`}
+- Na PRIMEIRA mensagem de qualquer lead, detecte o idioma e use set_lead_language para registrar.
+- Use internamente as ferramentas em português (nomes das ferramentas não mudam), mas responda ao lead no idioma dele.
 </idioma_obrigatorio>
 
 ${fluxoInstructions}
