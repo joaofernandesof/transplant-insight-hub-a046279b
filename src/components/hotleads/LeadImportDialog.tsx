@@ -238,6 +238,9 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
     setIsImporting(true);
     setProgress({ current: 0, total: parsedLeads.length, success: 0, errors: 0 });
     const res = await onImport(parsedLeads, (p) => setProgress(p));
+    // Keep final progress visible briefly before showing result
+    setProgress(prev => prev ? { ...prev, current: prev.total } : null);
+    await new Promise(r => setTimeout(r, 800));
     setResult(res);
     setProgress(null);
     setIsImporting(false);
