@@ -3795,14 +3795,28 @@ serve(async (req) => {
     const checklistFields = await loadChecklistFields(supabase, accountId || userId, kanbanId);
     const checklistInstructions = buildChecklistPromptSection(checklistFields);
 
-    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist)
-    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions);
-
-    // 4. Get conversation history
-    const conversationHistory = await getConversationHistory(supabase, conversationId);
-
-    // 5. Get lead ID for appointment linking
+    // 4.5 Get lead ID for appointment linking (needed before building prompt for language)
     const leadId = await getLeadId(supabase, conversationId);
+
+    // 4.6 Load lead language preference
+    let leadLanguage = "pt-BR";
+    if (leadId) {
+      const { data: leadLangData } = await supabase
+        .from("leads")
+        .select("language")
+        .eq("id", leadId)
+        .single();
+      if (leadLangData?.language) {
+        leadLanguage = leadLangData.language;
+      }
+    }
+    console.log(`[AI Agent] Lead language: ${leadLanguage}`);
+
+    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist + language)
+    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage);
+
+    // 4.7 Get conversation history
+    const conversationHistory = await getConversationHistory(supabase, conversationId);
 
     // 5.5 CRITICAL: Detect desistência patterns BEFORE calling AI
     // This ensures we move to desqualificado even if AI fails
