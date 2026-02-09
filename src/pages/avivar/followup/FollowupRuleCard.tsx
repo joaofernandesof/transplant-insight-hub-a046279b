@@ -17,7 +17,9 @@ import {
   Image,
   Video,
   FileText,
+  Filter,
 } from 'lucide-react';
+import { useKanbanBoards } from '@/hooks/useKanbanBoards';
 import { cn } from '@/lib/utils';
 import type { FollowupRule } from '@/hooks/useFollowupRules';
  
