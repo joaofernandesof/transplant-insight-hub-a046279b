@@ -3771,27 +3771,37 @@ serve(async (req) => {
         ...toolResults.map(tr => ({ role: "tool" as const, content: `[${tr.name}]: ${tr.content}` }))
       ];
 
-      // Call AI again WITH tools so it can make further tool calls if needed
-      const followUpResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...followUpMessages.map(m => ({ role: m.role === "tool" ? "user" : m.role, content: m.content }))
-          ],
-          tools: TOOLS,
-          tool_choice: "auto",
-          max_tokens: 500,
-          temperature: 0.7,
-        }),
-      });
+      // Call AI again WITH tools so it can make further tool calls if needed (with retry for 429)
+      let followUpResponse: Response | null = null;
+      for (let retryAttempt = 0; retryAttempt < 3; retryAttempt++) {
+        if (retryAttempt > 0) {
+          const backoff = retryAttempt * 2000;
+          console.log(`[AI Agent] Follow-up retry ${retryAttempt}/2 after ${backoff}ms...`);
+          await new Promise(r => setTimeout(r, backoff));
+        }
+        followUpResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3-flash-preview",
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...followUpMessages.map(m => ({ role: m.role === "tool" ? "user" : m.role, content: m.content }))
+            ],
+            tools: TOOLS,
+            tool_choice: "auto",
+            max_tokens: 500,
+            temperature: 0.7,
+          }),
+        });
+        if (followUpResponse.ok || followUpResponse.status !== 429) break;
+        console.warn(`[AI Agent] Follow-up got 429, retrying...`);
+      }
 
-      if (followUpResponse.ok) {
+      if (followUpResponse && followUpResponse.ok) {
         const followUpData = await followUpResponse.json();
         const followUpChoice = followUpData.choices?.[0];
         finalResponse = followUpChoice?.message?.content || finalResponse;
@@ -3807,7 +3817,7 @@ serve(async (req) => {
         accumulatedMessages = followUpMessages;
         currentToolCalls = newToolCalls;
       } else {
-        console.error(`[AI Agent] Follow-up AI call failed: ${followUpResponse.status}`);
+        console.error(`[AI Agent] Follow-up AI call failed: ${followUpResponse?.status}`);
         currentToolCalls = []; // Stop loop
       }
     }
