@@ -517,16 +517,39 @@
  
          // Schedule next follow-up if max attempts not reached
          if (rule && execution.attempt_number < (rule.max_attempts || 3)) {
-           // Find next rule
-           const { data: nextRule } = await supabase
+           // Find lead's current kanban/column for scope filtering
+           let leadKanbanId: string | null = null;
+           let leadColumnId: string | null = null;
+           const { data: kanbanLeadInfo } = await supabase
+             .from('avivar_kanban_leads')
+             .select('kanban_id, column_id')
+             .eq('phone', lead.phone)
+             .order('updated_at', { ascending: false })
+             .limit(1)
+             .maybeSingle();
+           if (kanbanLeadInfo) {
+             leadKanbanId = kanbanLeadInfo.kanban_id;
+             leadColumnId = kanbanLeadInfo.column_id;
+           }
+
+           // Find next rule with scope filtering
+           const { data: nextRules } = await supabase
              .from('avivar_followup_rules')
              .select('*')
              .eq('user_id', execution.user_id)
              .eq('is_active', true)
              .eq('attempt_number', execution.attempt_number + 1)
-             .limit(1)
-             .single();
- 
+             .order('order_index', { ascending: true });
+
+           const nextRule = (nextRules || []).find((r: any) => {
+             if (!r.applicable_kanban_ids || r.applicable_kanban_ids.length === 0) return true;
+             if (!leadKanbanId || !r.applicable_kanban_ids.includes(leadKanbanId)) return false;
+             if (r.applicable_column_ids && r.applicable_column_ids.length > 0) {
+               if (!leadColumnId || !r.applicable_column_ids.includes(leadColumnId)) return false;
+             }
+             return true;
+           }) || null;
+
             if (nextRule) {
               const nextScheduledFor = new Date(Date.now() + nextRule.delay_minutes * 60 * 1000);
 
