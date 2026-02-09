@@ -94,19 +94,15 @@ export default function Marketing() {
           <TabsList>
             <TabsTrigger value="templates" className="gap-2">
               <Image className="h-4 w-4" />
-              Templates
+              Estáticos para Redes Sociais
             </TabsTrigger>
             <TabsTrigger value="videos" className="gap-2">
               <Video className="h-4 w-4" />
-              Vídeos
+              Vídeos para Redes Sociais
             </TabsTrigger>
             <TabsTrigger value="campaigns" className="gap-2">
               <Megaphone className="h-4 w-4" />
-              Campanhas
-            </TabsTrigger>
-            <TabsTrigger value="brand" className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Branding
+              Criativos Campeões de Tráfego Pago
             </TabsTrigger>
           </TabsList>
 
