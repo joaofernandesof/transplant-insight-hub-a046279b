@@ -3201,7 +3201,7 @@ Você tem acesso a:
 - send_image: Enviar imagem da galeria do agente
 - send_video: Enviar vídeo da galeria do agente
 - preencher_checklist: Preencher campos do checklist/ficha do lead com dados confirmados na conversa
-</ferramentas_disponiveis>
+- set_lead_language: Salvar o idioma detectado do lead (use na primeira mensagem)
 
 <regra_critica_midia_fluxo>
 ## PROIBIÇÃO ABSOLUTA SOBRE MÍDIAS DO FLUXO
