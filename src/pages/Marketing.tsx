@@ -82,7 +82,7 @@ export default function Marketing() {
           </Card>
           <Card>
             <CardContent className="pt-4 text-center">
-              <Sparkles className="h-8 w-8 mx-auto text-amber-500 mb-2" />
+              <Download className="h-8 w-8 mx-auto text-amber-500 mb-2" />
               <p className="text-2xl font-bold">+500</p>
               <p className="text-xs text-muted-foreground">Downloads</p>
             </CardContent>
