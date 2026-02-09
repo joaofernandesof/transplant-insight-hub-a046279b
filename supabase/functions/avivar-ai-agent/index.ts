@@ -903,6 +903,17 @@ async function getAvailableSlots(
     }
     // Availability comes solely from CRM schedule (no Google Calendar filtering)
     let available = (slots || []).filter((s: { is_available: boolean }) => s.is_available);
+
+    // CRITICAL: Filter out past time slots if the date is TODAY
+    const nowSP = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const todayStr = `${nowSP.getFullYear()}-${String(nowSP.getMonth() + 1).padStart(2, "0")}-${String(nowSP.getDate()).padStart(2, "0")}`;
+    if (date === todayStr) {
+      const currentMinutes = nowSP.getHours() * 60 + nowSP.getMinutes();
+      available = available.filter((s: { slot_start: string }) => {
+        const [h, m] = s.slot_start.substring(0, 5).split(":").map(Number);
+        return h * 60 + m > currentMinutes;
+      });
+    }
     
     if (available.length > 0) {
       const dateObj = new Date(date + "T12:00:00");
@@ -981,15 +992,31 @@ async function checkSlot(
     return "Não consegui verificar a agenda agora. Qual outra data e horário você prefere?";
   }
 
-  const allTimes = (slots || [])
+    // CRITICAL: Filter out past time slots if checking TODAY
+    const nowSP2 = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const todayStr2 = `${nowSP2.getFullYear()}-${String(nowSP2.getMonth() + 1).padStart(2, "0")}-${String(nowSP2.getDate()).padStart(2, "0")}`;
+    const isToday = normalizedDate === todayStr2;
+    const currentMin = nowSP2.getHours() * 60 + nowSP2.getMinutes();
+
+    const allTimes = (slots || [])
     .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
-    .filter(Boolean)
+    .filter((t: string) => {
+      if (!t) return false;
+      if (!isToday) return true;
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m > currentMin;
+    })
     .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
 
   const availableTimes = (slots || [])
     .filter((s: { is_available: boolean }) => s.is_available)
     .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
-    .filter(Boolean)
+    .filter((t: string) => {
+      if (!t) return false;
+      if (!isToday) return true;
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m > currentMin;
+    })
     .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
 
   const dateObj = new Date(normalizedDate + "T12:00:00");
