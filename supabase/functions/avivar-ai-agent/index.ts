@@ -1152,7 +1152,7 @@ async function checkSlot(
 
         if (periods?.length) {
           periodsText = periods
-            .map((p: { start_time: string; end_time: string }) => `${p.start_time.substring(0, 5)}–${p.end_time.substring(0, 5)}`)
+            .map((p: { start_time: string; end_time: string }) => `${formatTimeDisplay(p.start_time.substring(0, 5))}–${formatTimeDisplay(p.end_time.substring(0, 5))}`)
             .join(" e ");
         }
       }
