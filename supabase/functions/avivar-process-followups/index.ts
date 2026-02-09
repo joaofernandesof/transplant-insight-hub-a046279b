@@ -111,10 +111,10 @@
            .select(`
              *,
              rule:avivar_followup_rules(*),
-             conversation:crm_conversations(
-               id,
-               lead:leads(id, name, phone, email, procedure_interest)
-             )
+              conversation:crm_conversations(
+                id,
+                lead:leads(id, name, phone, email, procedure_interest, language)
+              )
            `);
          
          if (!claimError && claimed && claimed.length > 0) {
