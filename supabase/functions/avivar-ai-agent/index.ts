@@ -817,6 +817,12 @@ function normalizeTimeHHMM(raw: string): string | null {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+// Format time for display: "12:00" → "12h00"
+function formatTimeDisplay(time: string): string {
+  return time.replace(":", "h");
+}
+
+
 function normalizeDateISO(raw: string, now = new Date()): string | null {
   const trimmed = (raw || "").trim();
   if (!trimmed) return null;
@@ -1001,7 +1007,7 @@ async function getAvailableSlots(
         selectedTimes = allTimes.slice(0, 2);
       }
       
-      results.push(`📅 ${dayName} (${dateFormatted}): ${selectedTimes.join(" ou ")}`);
+      results.push(`📅 ${dayName} (${dateFormatted}): ${selectedTimes.map(formatTimeDisplay).join(" ou ")}`);
     }
   }
 
@@ -1087,7 +1093,7 @@ async function checkSlot(
   const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
   if (availableTimes.includes(normalizedTime)) {
-    return `Sim, ${dayName} (${dateFormatted}) às ${normalizedTime} está disponível. Posso confirmar o agendamento?`;
+    return `Sim, ${dayName} (${dateFormatted}) às ${formatTimeDisplay(normalizedTime)} está disponível. Posso confirmar o agendamento?`;
   }
 
   if (availableTimes.length === 0) {
@@ -1102,8 +1108,8 @@ async function checkSlot(
     .map((x: { t: string }) => x.t);
 
   const suggestionText = suggestions.length === 1
-    ? suggestions[0]
-    : `${suggestions[0]} ou ${suggestions[1]}`;
+    ? formatTimeDisplay(suggestions[0])
+    : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
 
   // Diferenciar: (1) horário existe na grade mas está ocupado/bloqueado vs (2) horário fora do expediente/turno
   const existsInGrid = allTimes.includes(normalizedTime);
@@ -1146,19 +1152,19 @@ async function checkSlot(
 
         if (periods?.length) {
           periodsText = periods
-            .map((p: { start_time: string; end_time: string }) => `${p.start_time.substring(0, 5)}–${p.end_time.substring(0, 5)}`)
+            .map((p: { start_time: string; end_time: string }) => `${formatTimeDisplay(p.start_time.substring(0, 5))}–${formatTimeDisplay(p.end_time.substring(0, 5))}`)
             .join(" e ");
         }
       }
 
       if (periodsText) {
-        return `Nesse dia a agenda não atende às ${normalizedTime} (atendimento: ${periodsText}). Tenho ${suggestionText}. Qual fica melhor para você?`;
+        return `Nesse dia a agenda não atende às ${formatTimeDisplay(normalizedTime)} (atendimento: ${periodsText}). Tenho ${suggestionText}. Qual fica melhor para você?`;
       }
     } catch (e) {
       console.error("[AI Agent] Error building periods text:", e);
     }
 
-    return `Nesse dia a agenda não atende às ${normalizedTime}. Tenho ${suggestionText}. Qual fica melhor para você?`;
+    return `Nesse dia a agenda não atende às ${formatTimeDisplay(normalizedTime)}. Tenho ${suggestionText}. Qual fica melhor para você?`;
   }
 
   return `Esse horário já está reservado. Para ${dayName} (${dateFormatted}) tenho ${suggestionText}. Qual fica melhor para você?`;
@@ -1205,7 +1211,7 @@ async function createAppointment(
   );
 
   if (!slotAvailable) {
-    return `Infelizmente o horário ${normalizedTime} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
+    return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
   }
 
   const { data: appointment, error } = await supabase
@@ -1377,11 +1383,11 @@ async function createAppointment(
   return `✅ AGENDAMENTO CRIADO COM SUCESSO — NÃO RE-VERIFIQUE DISPONIBILIDADE!
 
 📅 Data: ${dayName}, ${dateFormatted}
-⏰ Horário: ${normalizedTime}
+⏰ Horário: ${formatTimeDisplay(normalizedTime)}
 👤 Paciente: ${patientName}
 📋 Tipo: ${serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar"}${locationInfo}
 
-INSTRUÇÃO INTERNA: O agendamento JÁ FOI SALVO no sistema. O horário ${normalizedTime} agora aparecerá como OCUPADO porque foi reservado com sucesso. NÃO use check_slot nem get_available_slots — apenas confirme ao lead com os dados acima e mova para a etapa "agendado".`;
+INSTRUÇÃO INTERNA: O agendamento JÁ FOI SALVO no sistema. O horário ${formatTimeDisplay(normalizedTime)} agora aparecerá como OCUPADO porque foi reservado com sucesso. NÃO use check_slot nem get_available_slots — apenas confirme ao lead com os dados acima e mova para a etapa "agendado".`;
 }
 
 // ============================================
@@ -1461,7 +1467,7 @@ async function rescheduleAppointment(
     existing.start_time?.substring(0, 5) === normalizedTime;
 
   if (!slotAvailable && !isSameSlot) {
-    return `Infelizmente o horário ${normalizedTime} do dia ${normalizedDate} não está disponível. Por favor, escolha outro horário.`;
+    return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} não está disponível. Por favor, escolha outro horário.`;
   }
 
   // UPDATE the existing appointment
@@ -1527,7 +1533,7 @@ async function rescheduleAppointment(
   return `✅ Agendamento reagendado com sucesso!
 
 📅 Nova data: ${dayName}, ${dateFormatted}
-⏰ Novo horário: ${normalizedTime}
+⏰ Novo horário: ${formatTimeDisplay(normalizedTime)}
 👤 Paciente: ${existing.patient_name}
 📋 Tipo: ${existing.service_type || "Avaliação Capilar"}
 
@@ -1603,7 +1609,7 @@ async function cancelAppointment(
   return `✅ Agendamento cancelado com sucesso!
 
 📅 Data: ${dateFormatted}
-⏰ Horário: ${existing.start_time?.substring(0, 5)}
+⏰ Horário: ${formatTimeDisplay(existing.start_time?.substring(0, 5) || "")}
 👤 Paciente: ${existing.patient_name}
 📋 Motivo: ${reason}
 
@@ -3315,6 +3321,17 @@ PROIBIDO: Nunca use emojis nas suas respostas. Escreva apenas texto puro.
 CORRETO: Escreva em texto simples, sem formatação especial e sem emojis.
 Exemplo errado: "Olá! 😊 Tudo bem?"
 Exemplo correto: "Olá! Tudo bem?"
+
+FORMATO DE HORÁRIO OBRIGATÓRIO (independente do idioma):
+- SEMPRE use o formato 24h com "h" como separador: 09h30, 12h00, 14h30, 18h00
+- NUNCA use "12:00", "2:30 PM", "at 12:00" ou qualquer outro formato
+- Exemplos corretos em qualquer idioma: "amanhã às 12h00", "tomorrow at 12h00", "mañana a las 12h00"
+- Exemplos ERRADOS: "at 12:00", "at 2:30 PM", "às 12:00"
+
+FORMATO DE DATA (independente do idioma):
+- Use SEMPRE o formato DD/MM/AAAA ou por extenso com dia antes do mês
+- Exemplos corretos: "10/02/2026", "10 de fevereiro", "February 10th"
+- NUNCA use formato americano MM/DD/YYYY
 </formatacao_obrigatoria>
 
 <idioma_obrigatorio>
