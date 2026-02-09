@@ -208,10 +208,10 @@ export default function HotLeads() {
               )}
             />
             <PaginatedLeadColumn
-              title="Leads Adquiridos"
+              title="Oportunidade Perdida"
               dotColor="bg-muted-foreground"
               items={acquiredLeads}
-              emptyMessage="Nenhum lead adquirido por outros."
+              emptyMessage="Nenhuma oportunidade perdida no momento."
               renderItem={(lead) => (
                 <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
               )}
