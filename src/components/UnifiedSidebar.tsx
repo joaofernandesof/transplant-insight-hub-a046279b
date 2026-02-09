@@ -110,7 +110,7 @@ const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
   academy: { name: 'Academy', color: 'text-emerald-700', bgColor: 'bg-emerald-100', headerBg: 'bg-gradient-to-r from-emerald-900 to-emerald-800', headerText: 'text-white', icon: GraduationCap },
   neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100', headerBg: 'bg-gradient-to-r from-amber-900 to-amber-800', headerText: 'text-white', icon: Building2 },
   avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-900 to-orange-800', headerText: 'text-white', icon: Zap },
-  hotleads: { name: 'HotLeads', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-600 to-red-700', headerText: 'text-white', icon: Flame },
+  hotleads: { name: 'HotLeads', color: 'text-orange-500', bgColor: 'bg-orange-500/10', headerBg: 'bg-gradient-to-r from-orange-600 to-red-600', headerText: 'text-white', icon: Flame },
   main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10', headerBg: 'bg-gradient-to-r from-slate-900 to-slate-800', headerText: 'text-white', icon: Layers },
 };
 
@@ -270,8 +270,6 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           <span className={cn("font-bold", portalConfig.headerText)}>{portalConfig.name}</span>
         </div>
         <div className="flex items-center gap-1">
-          {/* Module Switcher Button - Mobile Header */}
-          <ModuleSwitcher variant="icon" theme="light" />
           <Button 
             variant="ghost" 
             size="icon" 
@@ -448,11 +446,16 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                         className={cn(
                           "w-full justify-start gap-3 h-10",
                           isCollapsed && "justify-center px-2",
-                          isActive(item.route) && "bg-primary/10 text-primary font-medium"
+                          isActive(item.route) && currentPortal === 'hotleads' 
+                            ? "bg-orange-500/10 text-orange-500 font-medium"
+                            : isActive(item.route) && "bg-primary/10 text-primary font-medium"
                         )}
                         onClick={() => navigate(item.route)}
                       >
-                        {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
+                        {item.icon && <item.icon className={cn(
+                          "h-4 w-4 flex-shrink-0", 
+                          isActive(item.route) && currentPortal === 'hotleads' ? "text-orange-500" : isActive(item.route) && "text-primary"
+                        )} />}
                         {!isCollapsed && <span className="truncate">{item.title}</span>}
                       </Button>
                     ))}
@@ -506,9 +509,6 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
             
             {/* Separator before footer actions */}
             <div className="my-3 border-t border-border" />
-            
-            {/* Switch Module */}
-            <ModuleSwitcher isCollapsed={isCollapsed} />
             
             {/* Logout Button */}
             <Button

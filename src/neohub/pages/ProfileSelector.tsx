@@ -179,13 +179,16 @@ export default function ProfileSelector() {
   };
 
   // Ordenar módulos: acessíveis primeiro, depois bloqueados
-  const sortedModules = [...SYSTEM_MODULES].sort((a, b) => {
-    const aAccess = canAccessModule(a);
-    const bAccess = canAccessModule(b);
-    if (aAccess && !bAccess) return -1;
-    if (!aAccess && bAccess) return 1;
-    return 0;
-  });
+  const sortedModules = [...SYSTEM_MODULES]
+    // Ocultar módulos adminOnly para não-admins
+    .filter(m => !(m.adminOnly && !user.isAdmin))
+    .sort((a, b) => {
+      const aAccess = canAccessModule(a);
+      const bAccess = canAccessModule(b);
+      if (aAccess && !bAccess) return -1;
+      if (!aAccess && bAccess) return 1;
+      return 0;
+    });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col">
