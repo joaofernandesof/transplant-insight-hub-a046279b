@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUnifiedAuth, ProfileKey, PROFILE_NAMES, PROFILE_ROUTES } from '@/contexts/UnifiedAuthContext';
+import { useUnifiedAuth, ProfileKey, PROFILE_ROUTES } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,14 +15,18 @@ import {
   Stethoscope,
   ChevronRight,
   Sparkles,
-  Shield
+  Shield,
+  Lock,
+  Flame,
+  CreditCard
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { cn } from '@/lib/utils';
 
 // Portal configuration with icons, colors and routes
-const PORTAL_CONFIG: Record<string, {
+interface PortalConfig {
   title: string;
   description: string;
   icon: React.ElementType;
@@ -30,7 +34,11 @@ const PORTAL_CONFIG: Record<string, {
   bgColor: string;
   profiles: ProfileKey[];
   route: string;
-}> = {
+  portalKey: string; // Chave usada em allowed_portals
+  adminOnly?: boolean;
+}
+
+const PORTAL_CONFIG: Record<string, PortalConfig> = {
   admin: {
     title: 'Administrador',
     description: 'Gestão do ecossistema NeoHub',
@@ -39,6 +47,8 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-slate-100 dark:bg-slate-900/50',
     profiles: ['administrador'],
     route: '/admin-portal',
+    portalKey: 'admin',
+    adminOnly: true,
   },
   academy: {
     title: 'Portal do Aluno',
@@ -48,6 +58,7 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
     profiles: ['aluno'],
     route: '/academy',
+    portalKey: 'academy',
   },
   neolicense: {
     title: 'Portal do Licenciado',
@@ -57,6 +68,17 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-amber-50 dark:bg-amber-950/30',
     profiles: ['licenciado'],
     route: '/home',
+    portalKey: 'neolicense',
+  },
+  hotleads: {
+    title: 'HotLeads',
+    description: 'Marketplace de leads quentes',
+    icon: Flame,
+    gradient: 'from-orange-500 to-red-500',
+    bgColor: 'bg-orange-50 dark:bg-orange-950/30',
+    profiles: ['licenciado'],
+    route: '/neolicense/hotleads',
+    portalKey: 'hotleads',
   },
   neocare: {
     title: 'Portal do Paciente',
@@ -66,6 +88,7 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-rose-50 dark:bg-rose-950/30',
     profiles: ['paciente'],
     route: '/neocare',
+    portalKey: 'neocare',
   },
   neoteam: {
     title: 'Portal do Colaborador',
@@ -75,6 +98,7 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-blue-50 dark:bg-blue-950/30',
     profiles: ['colaborador'],
     route: '/neoteam',
+    portalKey: 'neoteam',
   },
   medico: {
     title: 'Portal do Médico',
@@ -84,6 +108,7 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-teal-50 dark:bg-teal-950/30',
     profiles: ['medico'],
     route: '/neoteam/doctor-view',
+    portalKey: 'medico',
   },
   avivar: {
     title: 'Portal Avivar',
@@ -93,6 +118,7 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-purple-50 dark:bg-purple-950/30',
     profiles: ['cliente_avivar'],
     route: '/avivar',
+    portalKey: 'avivar',
   },
   vision: {
     title: 'Vision',
@@ -102,6 +128,17 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-pink-50 dark:bg-pink-950/30',
     profiles: ['medico', 'colaborador'],
     route: '/vision',
+    portalKey: 'vision',
+  },
+  neopay: {
+    title: 'NeoPay',
+    description: 'Gateway de pagamentos',
+    icon: CreditCard,
+    gradient: 'from-emerald-600 to-teal-600',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+    profiles: ['administrador'],
+    route: '/neopay',
+    portalKey: 'neopay',
   },
 };
 
@@ -110,10 +147,6 @@ export default function PortalSelector() {
   const { user, isLoading, setActiveProfile, logout } = useUnifiedAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Admins também veem o portal selector para escolher qual portal acessar
-  // (O portal Admin agora está incluído na lista de portais)
-
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
       navigate('/login');
@@ -128,35 +161,48 @@ export default function PortalSelector() {
   };
 
   const handleLogout = async () => {
-    // Primeiro deslogar, depois redirecionar após o estado ser limpo
     await logout();
-    // Usar window.location para evitar race condition com React state
     window.location.href = '/login';
   };
 
-  // Get available portals based on user profiles
-  const getAvailablePortals = () => {
-    if (!user?.profiles) return [];
+  // Verificar se o usuário pode acessar um portal
+  const canAccessPortal = (key: string, config: PortalConfig): boolean => {
+    // Admin sempre tem acesso total
+    if (user?.isAdmin) return true;
+    // Portal admin somente para admins
+    if (config.adminOnly) return false;
+
+    // Se allowed_portals está definido e não está vazio, usar como filtro principal
+    const portals = user?.allowedPortals;
+    if (portals && portals.length > 0) {
+      return portals.includes(config.portalKey);
+    }
+
+    // Fallback: verificar por perfis
+    return config.profiles.some(profile => user?.profiles?.includes(profile));
+  };
+
+  // Obter todos os portais com status de acesso
+  const getAllPortals = () => {
+    if (!user) return [];
     
-    // Para admins, incluir o portal Admin + todos os outros que tiverem perfil
-    const portals = Object.entries(PORTAL_CONFIG)
-      .filter(([key, config]) => {
-        // Admin vê o portal Admin se for isAdmin
-        if (key === 'admin' && user.isAdmin) return true;
-        // Outros portais baseados nos perfis do usuário
-        return config.profiles.some(profile => user.profiles.includes(profile));
-      })
-      .map(([key, config]) => ({
+    const portals = Object.entries(PORTAL_CONFIG).map(([key, config]) => {
+      const hasAccess = canAccessPortal(key, config);
+      const matchingProfile = config.profiles.find(p => user.profiles.includes(p)) || config.profiles[0];
+      return {
         key,
         ...config,
-        // Get the first matching profile for this portal
-        matchingProfile: config.profiles.find(p => user.profiles.includes(p)) || config.profiles[0],
-      }));
-    
-    // Ordenar para que Admin apareça primeiro
+        matchingProfile,
+        hasAccess,
+      };
+    });
+
+    // Ordenar: acessíveis primeiro, depois bloqueados
     return portals.sort((a, b) => {
-      if (a.key === 'admin') return -1;
-      if (b.key === 'admin') return 1;
+      if (a.key === 'admin' && a.hasAccess) return -1;
+      if (b.key === 'admin' && b.hasAccess) return 1;
+      if (a.hasAccess && !b.hasAccess) return -1;
+      if (!a.hasAccess && b.hasAccess) return 1;
       return 0;
     });
   };
@@ -178,7 +224,7 @@ export default function PortalSelector() {
     return null;
   }
 
-  const availablePortals = getAvailablePortals();
+  const allPortals = getAllPortals();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
@@ -226,31 +272,64 @@ export default function PortalSelector() {
 
         {/* Portals Grid */}
         <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {availablePortals.map((portal) => {
+          {allPortals.map((portal) => {
             const Icon = portal.icon;
+            const hasAccess = portal.hasAccess;
+
             return (
               <button
                 key={portal.key}
-                onClick={() => handleSelectPortal(portal.key, portal.matchingProfile)}
-                className="group relative overflow-hidden rounded-2xl border-2 border-slate-700 hover:border-primary/50 transition-all duration-300 text-left bg-slate-800/50 backdrop-blur hover:bg-slate-800/80"
+                onClick={() => hasAccess && handleSelectPortal(portal.key, portal.matchingProfile)}
+                disabled={!hasAccess}
+                className={cn(
+                  "group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 text-left backdrop-blur",
+                  hasAccess 
+                    ? "border-slate-700 hover:border-primary/50 bg-slate-800/50 hover:bg-slate-800/80 cursor-pointer"
+                    : "border-slate-700/40 bg-slate-800/20 cursor-not-allowed"
+                )}
               >
-                {/* Gradient overlay on hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${portal.gradient} opacity-0 group-hover:opacity-10 transition-opacity`} />
+                {/* Lock overlay for inaccessible portals */}
+                {!hasAccess && (
+                  <div className="absolute top-3 right-3 z-20">
+                    <div className="bg-slate-900/80 rounded-full p-1.5">
+                      <Lock className="h-4 w-4 text-slate-400" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Gradient overlay on hover (only for accessible) */}
+                {hasAccess && (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${portal.gradient} opacity-0 group-hover:opacity-10 transition-opacity`} />
+                )}
                 
-                <div className="p-5 relative z-10">
+                <div className={cn(
+                  "p-5 relative z-10",
+                  !hasAccess && "opacity-50"
+                )}>
                   <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
+                    <div className={cn(
+                      "p-3 rounded-xl text-white shadow-lg",
+                      `bg-gradient-to-br ${portal.gradient}`
+                    )}>
                       <Icon className="h-6 w-6" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white group-hover:text-primary transition-colors">
+                      <h3 className={cn(
+                        "font-semibold transition-colors",
+                        hasAccess ? "text-white group-hover:text-primary" : "text-slate-400"
+                      )}>
                         {portal.title}
                       </h3>
-                      <p className="text-sm text-slate-400 mt-1 line-clamp-2">
+                      <p className={cn(
+                        "text-sm mt-1 line-clamp-2",
+                        hasAccess ? "text-slate-400" : "text-slate-500"
+                      )}>
                         {portal.description}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-slate-500 group-hover:text-primary group-hover:translate-x-1 transition-all mt-1" />
+                    {hasAccess ? (
+                      <ChevronRight className="h-5 w-5 text-slate-500 group-hover:text-primary group-hover:translate-x-1 transition-all mt-1" />
+                    ) : null}
                   </div>
                 </div>
               </button>
@@ -258,18 +337,11 @@ export default function PortalSelector() {
           })}
         </div>
 
-        {/* Empty state */}
-        {availablePortals.length === 0 && (
-          <div className="text-center py-12">
-            <User className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400">
-              Nenhum portal disponível para seu perfil.
-            </p>
-            <p className="text-sm text-slate-500 mt-2">
-              Entre em contato com o administrador.
-            </p>
-          </div>
-        )}
+        {/* Hint for locked modules */}
+        <p className="text-xs text-slate-500 text-center mt-6 flex items-center gap-1.5 justify-center">
+          <Lock className="h-3 w-3" />
+          Módulos com cadeado requerem permissão adicional
+        </p>
       </main>
 
       {/* Footer */}
