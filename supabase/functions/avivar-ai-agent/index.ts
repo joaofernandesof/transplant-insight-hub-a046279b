@@ -556,6 +556,23 @@ const TOOLS = [
             required: ["step_id"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "preencher_checklist",
+          description: `Preenche campos do checklist/ficha do lead com informações coletadas na conversa. Use SEMPRE que o lead confirmar dados como: data, horário, procedimento, valor, nome completo, etc. Após criar agendamento com create_appointment, preencha automaticamente os campos de data/horário se existirem no checklist. NÃO preencha campos com dados inventados - apenas dados confirmados pelo lead na conversa.`,
+          parameters: {
+            type: "object",
+            properties: {
+              campos: {
+                type: "object",
+                description: "Objeto com field_key -> valor. Ex: { \"data_consulta\": \"2026-02-29\", \"procedimento\": \"Avaliação Capilar\" }"
+              }
+            },
+            required: ["campos"]
+          }
+        }
       }
 ];
 
@@ -2226,6 +2243,140 @@ async function sendFluxoMedia(
 }
 
 // ============================================
+// CHECKLIST AUTO-FILL
+// ============================================
+
+interface ChecklistField {
+  field_key: string;
+  field_label: string;
+  field_type: string;
+  options: string[] | null;
+}
+
+async function loadChecklistFields(
+  supabase: AnySupabaseClient,
+  accountId: string,
+  kanbanId: string | null
+): Promise<ChecklistField[]> {
+  if (!kanbanId) return [];
+
+  // Get all column IDs for this kanban
+  const { data: columns } = await supabase
+    .from("avivar_kanban_columns")
+    .select("id")
+    .eq("kanban_id", kanbanId);
+
+  if (!columns?.length) return [];
+
+  const columnIds = columns.map((c: { id: string }) => c.id);
+
+  // Load checklist fields from all columns of this kanban
+  const { data: fields, error } = await supabase
+    .from("avivar_column_checklists")
+    .select("field_key, field_label, field_type, options")
+    .in("column_id", columnIds)
+    .order("order_index");
+
+  if (error || !fields?.length) return [];
+
+  // Deduplicate by field_key
+  const unique = new Map<string, ChecklistField>();
+  for (const f of fields) {
+    if (!unique.has(f.field_key)) {
+      unique.set(f.field_key, {
+        field_key: f.field_key,
+        field_label: f.field_label,
+        field_type: f.field_type,
+        options: f.options as string[] | null,
+      });
+    }
+  }
+
+  console.log(`[AI Agent] Loaded ${unique.size} checklist fields for kanban ${kanbanId}`);
+  return Array.from(unique.values());
+}
+
+function buildChecklistPromptSection(fields: ChecklistField[]): string {
+  if (fields.length === 0) return "";
+
+  const fieldLines = fields.map(f => {
+    let desc = `- ${f.field_key} (${f.field_type}): "${f.field_label}"`;
+    if (f.options && Array.isArray(f.options) && f.options.length > 0) {
+      desc += ` [opções: ${f.options.join("|")}]`;
+    }
+    return desc;
+  }).join("\n");
+
+  return `
+<checklist_campos>
+## PREENCHIMENTO AUTOMÁTICO DO CHECKLIST DO LEAD
+
+Você pode preencher os seguintes campos do checklist do lead usando a ferramenta "preencher_checklist":
+
+${fieldLines}
+
+REGRAS OBRIGATÓRIAS:
+1. Sempre que o lead confirmar um dado que corresponde a um campo acima, preencha IMEDIATAMENTE usando preencher_checklist
+2. Após create_appointment bem-sucedido, preencha automaticamente os campos de data/horário/procedimento se existirem
+3. NÃO preencha campos com dados inventados - apenas dados CONFIRMADOS pelo lead na conversa
+4. NÃO pergunte informações que já foram preenchidas no checklist
+5. Você pode preencher múltiplos campos de uma vez: preencher_checklist({ campos: { "campo1": "valor1", "campo2": "valor2" } })
+6. Para campos do tipo "select", use EXATAMENTE uma das opções listadas
+7. Para campos do tipo "date", use formato YYYY-MM-DD
+8. Para campos do tipo "checkbox", use true ou false
+</checklist_campos>
+`;
+}
+
+async function preencherChecklist(
+  supabase: AnySupabaseClient,
+  leadPhone: string,
+  campos: Record<string, unknown>
+): Promise<string> {
+  console.log(`[AI Agent] Tool: preencher_checklist(${JSON.stringify(campos)})`);
+
+  if (!campos || Object.keys(campos).length === 0) {
+    return "Nenhum campo fornecido para preencher.";
+  }
+
+  // Find the lead by phone
+  const { data: lead, error: leadError } = await supabase
+    .from("avivar_kanban_leads")
+    .select("id, custom_fields")
+    .eq("phone", leadPhone)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (leadError || !lead) {
+    console.error("[AI Agent] Lead not found for checklist:", leadError);
+    return "Lead não encontrado para preencher checklist.";
+  }
+
+  // Merge with existing custom_fields
+  const existingFields = (lead.custom_fields as Record<string, unknown>) || {};
+  const mergedFields = { ...existingFields, ...campos };
+
+  // Save back
+  const { error: updateError } = await supabase
+    .from("avivar_kanban_leads")
+    .update({
+      custom_fields: mergedFields,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", lead.id);
+
+  if (updateError) {
+    console.error("[AI Agent] Error updating checklist:", updateError);
+    return "Erro ao preencher checklist.";
+  }
+
+  const fieldNames = Object.keys(campos).join(", ");
+  console.log(`[AI Agent] ✅ Checklist updated: ${fieldNames}`);
+  return `Checklist atualizado: ${fieldNames}`;
+}
+
+// ============================================
 // PROCESS TOOL CALLS
 // ============================================
 
@@ -2353,6 +2504,13 @@ async function processToolCall(
       );
       return result.message;
     }
+    
+    case "preencher_checklist":
+      return await preencherChecklist(
+        supabase,
+        patientPhone,
+        toolArgs.campos as Record<string, unknown>
+      );
     
     default:
       return "Ferramenta não reconhecida.";
@@ -2742,7 +2900,8 @@ function buildHybridSystemPrompt(
   agent: RoutedAgent, 
   leadStage: string,
   dynamicMovementInstructions: string,
-  fluxoInstructions: string
+  fluxoInstructions: string,
+  checklistInstructions: string = ""
 ): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
@@ -2808,6 +2967,7 @@ Você tem acesso a:
 - send_fluxo_media: Enviar mídia (áudio, imagem, vídeo, documento) anexada a um passo do fluxo
 - send_image: Enviar imagem da galeria do agente
 - send_video: Enviar vídeo da galeria do agente
+- preencher_checklist: Preencher campos do checklist/ficha do lead com dados confirmados na conversa
 </ferramentas_disponiveis>
 
 <regra_critica_midia_fluxo>
@@ -2925,6 +3085,8 @@ Exemplo correto: "Olá! Tudo bem?"
 </formatacao_obrigatoria>
 
 ${fluxoInstructions}
+
+${checklistInstructions}
 
 ${restrictions ? `<restricoes>\n${restrictions}\n</restricoes>` : ""}`;
 }
@@ -3387,8 +3549,12 @@ serve(async (req) => {
     // 3.5 Build fluxo de atendimento instructions from agent config
     const fluxoInstructions = buildFluxoInstructions(routedAgent.fluxo_atendimento);
 
-    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow)
-    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions);
+    // 3.6 Load checklist fields dynamically for this kanban
+    const checklistFields = await loadChecklistFields(supabase, accountId || userId, kanbanId);
+    const checklistInstructions = buildChecklistPromptSection(checklistFields);
+
+    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist)
+    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions);
 
     // 4. Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);
@@ -3566,7 +3732,7 @@ serve(async (req) => {
 
     // 8. Clean up tool call artifacts, markdown formatting and emojis before sending
     // Remove any raw tool call strings the AI wrote in text (e.g. [send_fluxo_media(step_id="...")])
-    finalResponse = finalResponse.replace(/\[?\b(send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
+    finalResponse = finalResponse.replace(/\[?\b(preencher_checklist|send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
     // Also remove bracket-style tool calls like [tool_name(...)]
     finalResponse = finalResponse.replace(/\[\w+\([^\]]*\)\]/g, "");
     
