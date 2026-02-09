@@ -1158,7 +1158,7 @@ async function checkSlot(
       }
 
       if (periodsText) {
-        return `Nesse dia a agenda não atende às ${normalizedTime} (atendimento: ${periodsText}). Tenho ${suggestionText}. Qual fica melhor para você?`;
+        return `Nesse dia a agenda não atende às ${formatTimeDisplay(normalizedTime)} (atendimento: ${periodsText}). Tenho ${suggestionText}. Qual fica melhor para você?`;
       }
     } catch (e) {
       console.error("[AI Agent] Error building periods text:", e);
