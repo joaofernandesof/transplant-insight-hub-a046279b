@@ -64,6 +64,28 @@ async function getGoogleAccessToken(supabase: AnySupabaseClient, agendaId: strin
 // The AI checks availability solely from CRM's own schedule (avivar_schedule_config/hours/blocks + avivar_appointments).
 // Google Calendar events do NOT block CRM availability.
 
+// Timezone offset map for Google Calendar ISO strings
+const TZ_OFFSETS: Record<string, string> = {
+  "America/Sao_Paulo": "-03:00",
+  "America/Fortaleza": "-03:00",
+  "America/Manaus": "-04:00",
+  "America/Cuiaba": "-04:00",
+};
+
+// Helper: get timezone for an agenda via schedule_config
+async function getTimezoneForAgenda(supabase: AnySupabaseClient, agendaId: string): Promise<string> {
+  try {
+    const { data } = await supabase
+      .from("avivar_schedule_config")
+      .select("timezone")
+      .eq("agenda_id", agendaId)
+      .single();
+    return data?.timezone || "America/Sao_Paulo";
+  } catch {
+    return "America/Sao_Paulo";
+  }
+}
+
 async function createGoogleCalendarEvent(
   supabase: AnySupabaseClient,
   agendaId: string,
@@ -86,12 +108,15 @@ async function createGoogleCalendarEvent(
     const accessToken = await getGoogleAccessToken(supabase, agendaId);
     if (!accessToken) return null;
 
+    const tz = await getTimezoneForAgenda(supabase, agendaId);
+    const offset = TZ_OFFSETS[tz] || "-03:00";
+
     const event = {
       summary,
       description,
       location,
-      start: { dateTime: `${date}T${startTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
-      end: { dateTime: `${date}T${endTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
+      start: { dateTime: `${date}T${startTime}:00${offset}`, timeZone: tz },
+      end: { dateTime: `${date}T${endTime}:00${offset}`, timeZone: tz },
       conferenceData: {
         createRequest: {
           requestId: crypto.randomUUID(),
@@ -146,12 +171,15 @@ async function updateGoogleCalendarEvent(
     const accessToken = await getGoogleAccessToken(supabase, agendaId);
     if (!accessToken) return null;
 
+    const tz = await getTimezoneForAgenda(supabase, agendaId);
+    const offset = TZ_OFFSETS[tz] || "-03:00";
+
     const event = {
       summary,
       description,
       location,
-      start: { dateTime: `${date}T${startTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
-      end: { dateTime: `${date}T${endTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
+      start: { dateTime: `${date}T${startTime}:00${offset}`, timeZone: tz },
+      end: { dateTime: `${date}T${endTime}:00${offset}`, timeZone: tz },
     };
 
     const response = await fetch(
@@ -856,6 +884,22 @@ async function resolveAgendaById(
   return { agendaId: data?.id || null, agendaInfo: data || null };
 }
 
+// Helper: get the configured timezone for an agenda (defaults to America/Sao_Paulo)
+async function getAgendaTimezone(supabase: AnySupabaseClient, userId: string, agendaId: string | null): Promise<string> {
+  try {
+    let query = supabase.from("avivar_schedule_config").select("timezone").eq("user_id", userId);
+    if (agendaId) {
+      query = query.eq("agenda_id", agendaId);
+    } else {
+      query = query.is("agenda_id", null);
+    }
+    const { data } = await query.single();
+    return data?.timezone || "America/Sao_Paulo";
+  } catch {
+    return "America/Sao_Paulo";
+  }
+}
+
 async function getAvailableSlots(
   supabase: AnySupabaseClient,
   userId: string,
@@ -865,15 +909,15 @@ async function getAvailableSlots(
   console.log(`[AI Agent] Tool: get_available_slots(agenda="${agendaName}", date=${dateStr || "próximos dias"})`);
 
   const { agendaId, agendaInfo } = await resolveAgenda(supabase, userId, agendaName);
+  const tz = await getAgendaTimezone(supabase, userId, agendaId);
 
   const dates: string[] = [];
   if (dateStr) {
     dates.push(dateStr);
   } else {
-    // Use São Paulo timezone to get correct "today"
-    const nowSP = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const nowLocal = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
     let count = 0;
-    let d = new Date(nowSP);
+    let d = new Date(nowLocal);
     while (count < 3) {
       d.setDate(d.getDate() + 1);
       const dow = d.getDay();
@@ -904,11 +948,11 @@ async function getAvailableSlots(
     // Availability comes solely from CRM schedule (no Google Calendar filtering)
     let available = (slots || []).filter((s: { is_available: boolean }) => s.is_available);
 
-    // CRITICAL: Filter out past time slots if the date is TODAY
-    const nowSP = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-    const todayStr = `${nowSP.getFullYear()}-${String(nowSP.getMonth() + 1).padStart(2, "0")}-${String(nowSP.getDate()).padStart(2, "0")}`;
+    // CRITICAL: Filter out past time slots if the date is TODAY (using configured timezone)
+    const nowLocal = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
+    const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, "0")}-${String(nowLocal.getDate()).padStart(2, "0")}`;
     if (date === todayStr) {
-      const currentMinutes = nowSP.getHours() * 60 + nowSP.getMinutes();
+      const currentMinutes = nowLocal.getHours() * 60 + nowLocal.getMinutes();
       available = available.filter((s: { slot_start: string }) => {
         const [h, m] = s.slot_start.substring(0, 5).split(":").map(Number);
         return h * 60 + m > currentMinutes;
@@ -979,6 +1023,7 @@ async function checkSlot(
   }
 
   const { agendaId } = await resolveAgenda(supabase, userId, agendaName);
+  const tz = await getAgendaTimezone(supabase, userId, agendaId);
 
   const { data: slots, error } = await supabase.rpc("get_available_slots_flexible", {
     p_user_id: userId,
@@ -992,11 +1037,11 @@ async function checkSlot(
     return "Não consegui verificar a agenda agora. Qual outra data e horário você prefere?";
   }
 
-    // CRITICAL: Filter out past time slots if checking TODAY
-    const nowSP2 = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-    const todayStr2 = `${nowSP2.getFullYear()}-${String(nowSP2.getMonth() + 1).padStart(2, "0")}-${String(nowSP2.getDate()).padStart(2, "0")}`;
+    // CRITICAL: Filter out past time slots if checking TODAY (using configured timezone)
+    const nowLocal2 = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
+    const todayStr2 = `${nowLocal2.getFullYear()}-${String(nowLocal2.getMonth() + 1).padStart(2, "0")}-${String(nowLocal2.getDate()).padStart(2, "0")}`;
     const isToday = normalizedDate === todayStr2;
-    const currentMin = nowSP2.getHours() * 60 + nowSP2.getMinutes();
+    const currentMin = nowLocal2.getHours() * 60 + nowLocal2.getMinutes();
 
     const allTimes = (slots || [])
     .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
