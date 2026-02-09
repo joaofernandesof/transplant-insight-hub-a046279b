@@ -110,7 +110,7 @@ export default function Marketing() {
           <TabsContent value="templates" className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar templates..." className="pl-10" />
+              <Input placeholder="Buscar estáticos..." className="pl-10" />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {templates.map((template) => (
