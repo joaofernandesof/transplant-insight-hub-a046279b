@@ -465,7 +465,8 @@ import { toast } from 'sonner';
      }));
    };
  
-   const selectedKanbanColumns = columns.filter(c => c.kanban_id === formData.target_kanban_id);
+  const selectedKanbanColumns = columns.filter(c => c.kanban_id === formData.target_kanban_id);
+  const scopeColumns = columns.filter(c => formData.applicable_kanban_ids.includes(c.kanban_id));
  
    return (
      <Dialog open={open} onOpenChange={onOpenChange}>
