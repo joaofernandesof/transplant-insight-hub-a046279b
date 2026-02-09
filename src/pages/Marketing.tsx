@@ -194,39 +194,8 @@ export default function Marketing() {
             </div>
           </TabsContent>
 
-          {/* Branding */}
-          <TabsContent value="brand" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Manual de Marca ByNeofolic</CardTitle>
-                <CardDescription>Diretrizes de uso da marca, cores, tipografia e aplicações</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-lg bg-[#1a365d] text-white text-center">
-                    <p className="text-sm font-medium">Primária</p>
-                    <p className="text-xs opacity-70">#1a365d</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-[#c9a962] text-white text-center">
-                    <p className="text-sm font-medium">Dourado</p>
-                    <p className="text-xs opacity-70">#c9a962</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-[#2d3748] text-white text-center">
-                    <p className="text-sm font-medium">Secundária</p>
-                    <p className="text-xs opacity-70">#2d3748</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-[#f7f7f7] text-gray-800 text-center border">
-                    <p className="text-sm font-medium">Background</p>
-                    <p className="text-xs opacity-70">#f7f7f7</p>
-                  </div>
-                </div>
-                <Button className="w-full gap-2">
-                  <Download className="h-4 w-4" />
-                  Baixar Manual Completo
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
+
         </Tabs>
       </div>
     </ModuleLayout>
