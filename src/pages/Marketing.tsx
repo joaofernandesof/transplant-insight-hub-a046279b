@@ -55,7 +55,7 @@ export default function Marketing() {
             <Palette className="h-6 w-6 text-pink-600" />
             Central de Marketing
           </h1>
-          <p className="text-sm text-muted-foreground">Templates, campanhas e banco de mídia</p>
+          <p className="text-sm text-muted-foreground">Estáticos, vídeos, criativos e banco de mídia</p>
         </div>
 
         {/* Quick Stats */}
