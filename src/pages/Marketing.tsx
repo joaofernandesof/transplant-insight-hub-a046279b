@@ -64,7 +64,7 @@ export default function Marketing() {
             <CardContent className="pt-4 text-center">
               <Image className="h-8 w-8 mx-auto text-pink-500 mb-2" />
               <p className="text-2xl font-bold">{templates.length}</p>
-              <p className="text-xs text-muted-foreground">Templates</p>
+              <p className="text-xs text-muted-foreground">Estáticos</p>
             </CardContent>
           </Card>
           <Card>
