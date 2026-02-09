@@ -1093,7 +1093,7 @@ async function checkSlot(
   const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
   if (availableTimes.includes(normalizedTime)) {
-    return `Sim, ${dayName} (${dateFormatted}) às ${normalizedTime} está disponível. Posso confirmar o agendamento?`;
+    return `Sim, ${dayName} (${dateFormatted}) às ${formatTimeDisplay(normalizedTime)} está disponível. Posso confirmar o agendamento?`;
   }
 
   if (availableTimes.length === 0) {
