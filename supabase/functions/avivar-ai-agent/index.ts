@@ -1164,7 +1164,7 @@ async function checkSlot(
       console.error("[AI Agent] Error building periods text:", e);
     }
 
-    return `Nesse dia a agenda não atende às ${normalizedTime}. Tenho ${suggestionText}. Qual fica melhor para você?`;
+    return `Nesse dia a agenda não atende às ${formatTimeDisplay(normalizedTime)}. Tenho ${suggestionText}. Qual fica melhor para você?`;
   }
 
   return `Esse horário já está reservado. Para ${dayName} (${dateFormatted}) tenho ${suggestionText}. Qual fica melhor para você?`;
