@@ -155,6 +155,8 @@ import { toast } from 'sonner';
         video_caption: '',
         document_url: '',
         document_name: '',
+        applicable_kanban_ids: [],
+        applicable_column_ids: [],
       }));
     }
   }, [rule, existingRulesCount, open]);
