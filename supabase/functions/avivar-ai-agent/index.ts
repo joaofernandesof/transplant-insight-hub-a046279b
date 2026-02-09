@@ -589,7 +589,7 @@ const TOOLS = [
       {
         type: "function",
         function: {
-          name: "preencher_checklist",
+      name: "preencher_checklist",
           description: `Preenche campos do checklist/ficha do lead com informações coletadas na conversa. Use SEMPRE que o lead confirmar dados como: data, horário, procedimento, valor, nome completo, etc. Após criar agendamento com create_appointment, preencha automaticamente os campos de data/horário se existirem no checklist. NÃO preencha campos com dados inventados - apenas dados confirmados pelo lead na conversa.`,
           parameters: {
             type: "object",
@@ -600,6 +600,23 @@ const TOOLS = [
               }
             },
             required: ["campos"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "set_lead_language",
+          description: `Salva o idioma detectado do lead. Use na PRIMEIRA mensagem do lead para registrar o idioma em que ele está escrevendo. Exemplos: 'pt-BR' para português, 'en' para inglês, 'es' para espanhol, 'fr' para francês, etc. Use o código ISO 639-1 com região quando aplicável.`,
+          parameters: {
+            type: "object",
+            properties: {
+              language: {
+                type: "string",
+                description: "Código do idioma detectado (ex: 'pt-BR', 'en', 'es', 'fr', 'de', 'it', 'ja', 'zh')"
+              }
+            },
+            required: ["language"]
           }
         }
       }
@@ -2708,6 +2725,23 @@ async function processToolCall(
         toolArgs.campos as Record<string, unknown>
       );
     
+    case "set_lead_language": {
+      const lang = toolArgs.language as string;
+      if (leadId && lang) {
+        const { error: langErr } = await supabase
+          .from("leads")
+          .update({ language: lang })
+          .eq("id", leadId);
+        if (langErr) {
+          console.error("[AI Agent] Error setting lead language:", langErr);
+          return `Erro ao salvar idioma: ${langErr.message}`;
+        }
+        console.log(`[AI Agent] Lead language set to: ${lang}`);
+        return `Idioma do lead salvo como: ${lang}`;
+      }
+      return "Lead não encontrado para salvar idioma.";
+    }
+    
     default:
       return "Ferramenta não reconhecida.";
   }
@@ -3099,7 +3133,8 @@ function buildHybridSystemPrompt(
   leadStage: string,
   dynamicMovementInstructions: string,
   fluxoInstructions: string,
-  checklistInstructions: string = ""
+  checklistInstructions: string = "",
+  leadLanguage: string = "pt-BR"
 ): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
@@ -3166,7 +3201,7 @@ Você tem acesso a:
 - send_image: Enviar imagem da galeria do agente
 - send_video: Enviar vídeo da galeria do agente
 - preencher_checklist: Preencher campos do checklist/ficha do lead com dados confirmados na conversa
-</ferramentas_disponiveis>
+- set_lead_language: Salvar o idioma detectado do lead (use na primeira mensagem)
 
 <regra_critica_midia_fluxo>
 ## PROIBIÇÃO ABSOLUTA SOBRE MÍDIAS DO FLUXO
@@ -3283,12 +3318,12 @@ Exemplo correto: "Olá! Tudo bem?"
 </formatacao_obrigatoria>
 
 <idioma_obrigatorio>
-REGRA ABSOLUTA: Você DEVE responder SEMPRE em Português Brasileiro (pt-BR).
-- NUNCA responda em inglês, espanhol ou qualquer outro idioma, mesmo que o lead escreva em outro idioma.
-- Se o lead escrever em inglês ou outro idioma, responda em português mesmo assim.
-- Todas as confirmações de agendamento, orientações e despedidas DEVEM ser em português.
-- Exemplo errado: "Done, Jhon! Your appointment is successfully confirmed."
-- Exemplo correto: "Pronto, Jhon! Seu agendamento foi confirmado com sucesso."
+${leadLanguage === "pt-BR" ? `REGRA ABSOLUTA: Responda SEMPRE em Português Brasileiro (pt-BR).
+- Se o lead escrever em outro idioma, detecte o idioma e use set_lead_language para salvar. Depois, responda no idioma do lead.` : `REGRA ABSOLUTA: O idioma preferido deste lead é "${leadLanguage}". Responda SEMPRE neste idioma.
+- Todas as mensagens, confirmações de agendamento, orientações e despedidas DEVEM ser no idioma "${leadLanguage}".
+- Se o lead mudar de idioma, use set_lead_language para atualizar e responda no novo idioma.`}
+- Na PRIMEIRA mensagem de qualquer lead, detecte o idioma e use set_lead_language para registrar.
+- Use internamente as ferramentas em português (nomes das ferramentas não mudam), mas responda ao lead no idioma dele.
 </idioma_obrigatorio>
 
 ${fluxoInstructions}
@@ -3760,14 +3795,28 @@ serve(async (req) => {
     const checklistFields = await loadChecklistFields(supabase, accountId || userId, kanbanId);
     const checklistInstructions = buildChecklistPromptSection(checklistFields);
 
-    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist)
-    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions);
-
-    // 4. Get conversation history
-    const conversationHistory = await getConversationHistory(supabase, conversationId);
-
-    // 5. Get lead ID for appointment linking
+    // 4.5 Get lead ID for appointment linking (needed before building prompt for language)
     const leadId = await getLeadId(supabase, conversationId);
+
+    // 4.6 Load lead language preference
+    let leadLanguage = "pt-BR";
+    if (leadId) {
+      const { data: leadLangData } = await supabase
+        .from("leads")
+        .select("language")
+        .eq("id", leadId)
+        .single();
+      if (leadLangData?.language) {
+        leadLanguage = leadLangData.language;
+      }
+    }
+    console.log(`[AI Agent] Lead language: ${leadLanguage}`);
+
+    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist + language)
+    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage);
+
+    // 4.7 Get conversation history
+    const conversationHistory = await getConversationHistory(supabase, conversationId);
 
     // 5.5 CRITICAL: Detect desistência patterns BEFORE calling AI
     // This ensures we move to desqualificado even if AI fails
