@@ -1226,7 +1226,7 @@ async function createAppointment(
     try {
       const googleResult = await createGoogleCalendarEvent(
         supabase, agendaId,
-        `${serviceLabel} - ${patientName}`,
+        `Avaliação com Especialista Capilar - Paciente ${patientName}`,
         normalizedDate, normalizedTime, endTime,
         `Paciente: ${patientName}\nTelefone: ${patientPhone}\n${notes || ""}`,
         agendaInfo?.address || agendaInfo?.city || undefined
