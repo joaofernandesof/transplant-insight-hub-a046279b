@@ -3282,6 +3282,15 @@ Exemplo errado: "Olá! 😊 Tudo bem?"
 Exemplo correto: "Olá! Tudo bem?"
 </formatacao_obrigatoria>
 
+<idioma_obrigatorio>
+REGRA ABSOLUTA: Você DEVE responder SEMPRE em Português Brasileiro (pt-BR).
+- NUNCA responda em inglês, espanhol ou qualquer outro idioma, mesmo que o lead escreva em outro idioma.
+- Se o lead escrever em inglês ou outro idioma, responda em português mesmo assim.
+- Todas as confirmações de agendamento, orientações e despedidas DEVEM ser em português.
+- Exemplo errado: "Done, Jhon! Your appointment is successfully confirmed."
+- Exemplo correto: "Pronto, Jhon! Seu agendamento foi confirmado com sucesso."
+</idioma_obrigatorio>
+
 ${fluxoInstructions}
 
 ${checklistInstructions}
