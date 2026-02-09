@@ -282,7 +282,7 @@ export default function AvivarAgenda() {
   );
 
   const todayAppointments = calendarAppointments.filter(
-    (apt) => apt.appointment_date === format(selectedDate, 'yyyy-MM-dd')
+    (apt) => apt.appointment_date === format(selectedDate, 'yyyy-MM-dd') && apt.status !== 'cancelled'
   );
 
   const getStatusColor = (status: string) => {
@@ -827,7 +827,7 @@ export default function AvivarAgenda() {
                 <div className="grid grid-cols-7 gap-2">
                   {weekDays.map((day, index) => {
                     const dayAppointments = calendarAppointments.filter(
-                      (apt) => apt.appointment_date === format(day, 'yyyy-MM-dd')
+                      (apt) => apt.appointment_date === format(day, 'yyyy-MM-dd') && apt.status !== 'cancelled'
                     );
                     const dayBlockStatus = isDayBlocked(day);
                     
