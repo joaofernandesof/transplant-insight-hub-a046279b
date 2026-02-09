@@ -1533,7 +1533,7 @@ async function rescheduleAppointment(
   return `✅ Agendamento reagendado com sucesso!
 
 📅 Nova data: ${dayName}, ${dateFormatted}
-⏰ Novo horário: ${normalizedTime}
+⏰ Novo horário: ${formatTimeDisplay(normalizedTime)}
 👤 Paciente: ${existing.patient_name}
 📋 Tipo: ${existing.service_type || "Avaliação Capilar"}
 
