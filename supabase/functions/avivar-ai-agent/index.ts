@@ -444,6 +444,23 @@ const TOOLS = [
       {
         type: "function",
         function: {
+          name: "cancel_appointment",
+          description: "Cancela/remove o agendamento ativo do lead. Use quando o lead desistir, cancelar, ou informar que não vai mais comparecer. Remove o agendamento do CRM e do Google Calendar.",
+          parameters: {
+            type: "object",
+            properties: {
+              reason: {
+                type: "string",
+                description: "Motivo do cancelamento informado pelo lead"
+              }
+            },
+            required: ["reason"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
           name: "transfer_to_human",
           description: "Transfere a conversa para um atendente humano. Use quando: 1) Paciente pedir explicitamente, 2) Questão muito complexa, 3) Negociação de preço",
           parameters: {
@@ -1285,6 +1302,82 @@ async function rescheduleAppointment(
 📋 Tipo: ${existing.service_type || "Avaliação Capilar"}
 
 O agendamento anterior foi atualizado. Aguardamos você!`;
+}
+
+// ============================================
+// CANCEL APPOINTMENT - Removes from CRM + Google
+// ============================================
+
+async function cancelAppointment(
+  supabase: AnySupabaseClient,
+  accountId: string,
+  leadId: string | null,
+  patientPhone: string,
+  reason: string
+): Promise<string> {
+  console.log(`[AI Agent] Tool: cancel_appointment(${patientPhone}, reason: ${reason})`);
+
+  // Find the existing active appointment
+  let query = supabase
+    .from("avivar_appointments")
+    .select("*")
+    .eq("account_id", accountId)
+    .in("status", ["scheduled", "confirmed"])
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (leadId) {
+    query = query.eq("lead_id", leadId);
+  } else {
+    query = query.eq("patient_phone", patientPhone);
+  }
+
+  const { data: appts } = await query;
+  const existing = appts?.[0];
+
+  if (!existing) {
+    return "Não encontrei nenhum agendamento ativo para cancelar.";
+  }
+
+  // Delete from Google Calendar first
+  if (existing.google_event_id && existing.agenda_id) {
+    try {
+      await deleteGoogleCalendarEvent(supabase, existing.agenda_id, existing.google_event_id);
+      console.log(`[AI Agent] Google Calendar event ${existing.google_event_id} deleted`);
+    } catch (e) {
+      console.error("[AI Agent] Error deleting Google Calendar event:", e);
+    }
+  }
+
+  // Update status to cancelled in CRM
+  const { error } = await supabase
+    .from("avivar_appointments")
+    .update({
+      status: "cancelled",
+      cancellation_reason: reason,
+      cancelled_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", existing.id);
+
+  if (error) {
+    console.error("[AI Agent] Error cancelling appointment:", error);
+    return "❌ Ocorreu um erro ao cancelar o agendamento. Por favor, tente novamente.";
+  }
+
+  const dateObj = new Date(existing.appointment_date + "T12:00:00");
+  const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  console.log(`[AI Agent] Appointment ${existing.id} cancelled successfully`);
+
+  return `✅ Agendamento cancelado com sucesso!
+
+📅 Data: ${dateFormatted}
+⏰ Horário: ${existing.start_time?.substring(0, 5)}
+👤 Paciente: ${existing.patient_name}
+📋 Motivo: ${reason}
+
+O agendamento foi removido do sistema e do calendário.`;
 }
 
 async function transferToHuman(
@@ -2203,6 +2296,15 @@ async function processToolCall(
         toolArgs.agenda_name as string | undefined
       );
 
+    case "cancel_appointment":
+      return await cancelAppointment(
+        supabase,
+        accountId,
+        leadId,
+        patientPhone,
+        toolArgs.reason as string
+      );
+
     case "transfer_to_human":
       return await transferToHuman(supabase, conversationId, toolArgs.reason as string);
     
@@ -2700,6 +2802,7 @@ Você tem acesso a:
 - check_slot: Verificar se uma data/horário específico está disponível
 - create_appointment: Agendar em qualquer agenda (APENAS para NOVO agendamento)
 - reschedule_appointment: Reagendar um agendamento existente (SEMPRE use quando o lead já tem agendamento ativo)
+- cancel_appointment: Cancelar/remover agendamento ativo do lead (remove do CRM e do Google Calendar)
 - transfer_to_human: Transferir para humano
 - mover_lead_para_etapa: Mover o lead no funil de vendas conforme o progresso da conversa
 - send_fluxo_media: Enviar mídia (áudio, imagem, vídeo, documento) anexada a um passo do fluxo
@@ -2800,6 +2903,13 @@ Se o lead sugerir apenas UMA DATA (sem horário), use get_available_slots com es
   - reschedule_appointment ATUALIZA o agendamento existente (mesma entrada no banco e no Google Calendar)
   - NUNCA crie um novo agendamento quando o lead já tem um ativo — sempre reagende!
   - Se o lead não tiver agendamento ativo, aí sim use create_appointment normalmente
+
+### CANCELAMENTO (REGRA CRÍTICA):
+- Se o lead pedir para CANCELAR, DESMARCAR, ou informar que NÃO VAI MAIS (ex: "fechei com outra clínica", "não quero mais", "desisto"):
+  - Use OBRIGATORIAMENTE cancel_appointment com o motivo informado
+  - cancel_appointment CANCELA o agendamento no CRM e REMOVE do Google Calendar automaticamente
+  - SEMPRE use cancel_appointment antes de se despedir — nunca apenas diga que vai cancelar sem executar a ferramenta!
+  - Após cancelar, mova o lead para a etapa apropriada (ex: desqualificado, perdido, etc.)
 </fluxo_agendamento>
 
 <movimentacao_funil>
@@ -3456,7 +3566,7 @@ serve(async (req) => {
 
     // 8. Clean up tool call artifacts, markdown formatting and emojis before sending
     // Remove any raw tool call strings the AI wrote in text (e.g. [send_fluxo_media(step_id="...")])
-    finalResponse = finalResponse.replace(/\[?\b(send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
+    finalResponse = finalResponse.replace(/\[?\b(send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
     // Also remove bracket-style tool calls like [tool_name(...)]
     finalResponse = finalResponse.replace(/\[\w+\([^\]]*\)\]/g, "");
     
