@@ -196,9 +196,11 @@ export function useKanbanLeads(kanbanId: string | undefined) {
       return result;
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
+      // Invalidate ALL related caches so lead disappears from every page
+      queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads'] });
       queryClient.invalidateQueries({ queryKey: ['crm-conversations'] });
       queryClient.invalidateQueries({ queryKey: ['avivar-contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
       
       const deleted = result?.deleted;
       toast.success(

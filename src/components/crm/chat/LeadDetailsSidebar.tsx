@@ -113,6 +113,9 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
     setIsDeleting(false);
     
     if (success) {
+      // Invalidate kanban caches so deleted lead disappears from all views
+      queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['crm-conversations'] });
       // Navigate back to inbox after deletion
       navigate('/avivar/inbox');
     }
