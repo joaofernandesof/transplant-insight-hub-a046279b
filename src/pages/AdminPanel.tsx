@@ -121,7 +121,7 @@ const SYSTEM_MODULES = [
   { code: 'achievements', name: 'Conquistas', category: 'Dados' },
   { code: 'surgery_schedule', name: 'Agenda de Cirurgias', category: 'Dados' },
   { code: 'sala_tecnica', name: 'Sala Técnica', category: 'Dados' },
-  { code: 'university', name: 'Universidade ByNeofolic', category: 'Formação' },
+  { code: 'university', name: 'Academia ByNeofolic', category: 'Formação' },
   { code: 'certificates', name: 'Certificados', category: 'Formação' },
   { code: 'regularization', name: 'Regularização da Clínica', category: 'Formação' },
   { code: 'materials', name: 'Central de Materiais', category: 'Recursos' },
