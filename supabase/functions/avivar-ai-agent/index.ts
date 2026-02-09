@@ -2725,6 +2725,23 @@ async function processToolCall(
         toolArgs.campos as Record<string, unknown>
       );
     
+    case "set_lead_language": {
+      const lang = toolArgs.language as string;
+      if (leadId && lang) {
+        const { error: langErr } = await supabase
+          .from("leads")
+          .update({ language: lang })
+          .eq("id", leadId);
+        if (langErr) {
+          console.error("[AI Agent] Error setting lead language:", langErr);
+          return `Erro ao salvar idioma: ${langErr.message}`;
+        }
+        console.log(`[AI Agent] Lead language set to: ${lang}`);
+        return `Idioma do lead salvo como: ${lang}`;
+      }
+      return "Lead não encontrado para salvar idioma.";
+    }
+    
     default:
       return "Ferramenta não reconhecida.";
   }
