@@ -3133,7 +3133,8 @@ function buildHybridSystemPrompt(
   leadStage: string,
   dynamicMovementInstructions: string,
   fluxoInstructions: string,
-  checklistInstructions: string = ""
+  checklistInstructions: string = "",
+  leadLanguage: string = "pt-BR"
 ): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
