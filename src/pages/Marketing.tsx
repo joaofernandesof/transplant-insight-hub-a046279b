@@ -78,7 +78,7 @@ export default function Marketing() {
             <CardContent className="pt-4 text-center">
               <Megaphone className="h-8 w-8 mx-auto text-blue-500 mb-2" />
               <p className="text-2xl font-bold">{campaigns.length}</p>
-              <p className="text-xs text-muted-foreground">Campanhas</p>
+              <p className="text-xs text-muted-foreground">Criativos</p>
             </CardContent>
           </Card>
           <Card>
