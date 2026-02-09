@@ -488,22 +488,30 @@
              .limit(1)
              .single();
  
-           if (nextRule) {
-             const nextScheduledFor = new Date(Date.now() + nextRule.delay_minutes * 60 * 1000);
- 
-             await supabase.from('avivar_followup_executions').insert({
-               user_id: execution.user_id,
-               rule_id: nextRule.id,
-               conversation_id: conversation.id,
-               lead_id: lead.id,
-               lead_name: lead.name,
-               lead_phone: lead.phone,
-               attempt_number: execution.attempt_number + 1,
-               scheduled_for: nextScheduledFor.toISOString(),
-               original_message: nextRule.message_template,
-               ai_generated: nextRule.use_ai_generation,
-             });
-           }
+            if (nextRule) {
+              const nextScheduledFor = new Date(Date.now() + nextRule.delay_minutes * 60 * 1000);
+
+              const { error: nextInsertError } = await supabase.from('avivar_followup_executions').insert({
+                account_id: execution.account_id,
+                user_id: execution.user_id,
+                rule_id: nextRule.id,
+                conversation_id: conversation.id,
+                lead_id: lead.id,
+                lead_name: lead.name,
+                lead_phone: lead.phone,
+                attempt_number: execution.attempt_number + 1,
+                scheduled_for: nextScheduledFor.toISOString(),
+                original_message: nextRule.message_template,
+                ai_generated: nextRule.use_ai_generation,
+                channel: 'whatsapp',
+              });
+
+              if (nextInsertError) {
+                console.error(`[Followup] Error scheduling next follow-up (attempt ${execution.attempt_number + 1}):`, nextInsertError);
+              } else {
+                console.log(`[Followup] Scheduled next follow-up (attempt ${execution.attempt_number + 1}) for ${nextScheduledFor.toISOString()}`);
+              }
+            }
          }
  
          results.push({ id: execution.id, status: 'sent', message: finalMessage });
