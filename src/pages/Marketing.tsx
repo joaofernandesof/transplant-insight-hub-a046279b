@@ -13,7 +13,6 @@ import {
   Instagram,
   Facebook,
   Megaphone,
-  Sparkles,
   Play
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
@@ -55,7 +54,7 @@ export default function Marketing() {
             <Palette className="h-6 w-6 text-pink-600" />
             Central de Marketing
           </h1>
-          <p className="text-sm text-muted-foreground">Templates, campanhas e banco de mídia</p>
+          <p className="text-sm text-muted-foreground">Estáticos, vídeos, criativos e banco de mídia</p>
         </div>
 
         {/* Quick Stats */}
@@ -64,7 +63,7 @@ export default function Marketing() {
             <CardContent className="pt-4 text-center">
               <Image className="h-8 w-8 mx-auto text-pink-500 mb-2" />
               <p className="text-2xl font-bold">{templates.length}</p>
-              <p className="text-xs text-muted-foreground">Templates</p>
+              <p className="text-xs text-muted-foreground">Estáticos</p>
             </CardContent>
           </Card>
           <Card>
@@ -78,12 +77,12 @@ export default function Marketing() {
             <CardContent className="pt-4 text-center">
               <Megaphone className="h-8 w-8 mx-auto text-blue-500 mb-2" />
               <p className="text-2xl font-bold">{campaigns.length}</p>
-              <p className="text-xs text-muted-foreground">Campanhas</p>
+              <p className="text-xs text-muted-foreground">Criativos</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 text-center">
-              <Sparkles className="h-8 w-8 mx-auto text-amber-500 mb-2" />
+              <Download className="h-8 w-8 mx-auto text-amber-500 mb-2" />
               <p className="text-2xl font-bold">+500</p>
               <p className="text-xs text-muted-foreground">Downloads</p>
             </CardContent>
@@ -94,19 +93,15 @@ export default function Marketing() {
           <TabsList>
             <TabsTrigger value="templates" className="gap-2">
               <Image className="h-4 w-4" />
-              Templates
+              Estáticos para Redes Sociais
             </TabsTrigger>
             <TabsTrigger value="videos" className="gap-2">
               <Video className="h-4 w-4" />
-              Vídeos
+              Vídeos para Redes Sociais
             </TabsTrigger>
             <TabsTrigger value="campaigns" className="gap-2">
               <Megaphone className="h-4 w-4" />
-              Campanhas
-            </TabsTrigger>
-            <TabsTrigger value="brand" className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Branding
+              Criativos Campeões de Tráfego Pago
             </TabsTrigger>
           </TabsList>
 
@@ -114,7 +109,7 @@ export default function Marketing() {
           <TabsContent value="templates" className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar templates..." className="pl-10" />
+              <Input placeholder="Buscar estáticos..." className="pl-10" />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {templates.map((template) => (
@@ -198,39 +193,8 @@ export default function Marketing() {
             </div>
           </TabsContent>
 
-          {/* Branding */}
-          <TabsContent value="brand" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Manual de Marca ByNeofolic</CardTitle>
-                <CardDescription>Diretrizes de uso da marca, cores, tipografia e aplicações</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-lg bg-[#1a365d] text-white text-center">
-                    <p className="text-sm font-medium">Primária</p>
-                    <p className="text-xs opacity-70">#1a365d</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-[#c9a962] text-white text-center">
-                    <p className="text-sm font-medium">Dourado</p>
-                    <p className="text-xs opacity-70">#c9a962</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-[#2d3748] text-white text-center">
-                    <p className="text-sm font-medium">Secundária</p>
-                    <p className="text-xs opacity-70">#2d3748</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-[#f7f7f7] text-gray-800 text-center border">
-                    <p className="text-sm font-medium">Background</p>
-                    <p className="text-xs opacity-70">#f7f7f7</p>
-                  </div>
-                </div>
-                <Button className="w-full gap-2">
-                  <Download className="h-4 w-4" />
-                  Baixar Manual Completo
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
+
         </Tabs>
       </div>
     </ModuleLayout>
