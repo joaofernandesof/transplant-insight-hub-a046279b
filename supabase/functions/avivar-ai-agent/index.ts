@@ -1383,11 +1383,11 @@ async function createAppointment(
   return `✅ AGENDAMENTO CRIADO COM SUCESSO — NÃO RE-VERIFIQUE DISPONIBILIDADE!
 
 📅 Data: ${dayName}, ${dateFormatted}
-⏰ Horário: ${normalizedTime}
+⏰ Horário: ${formatTimeDisplay(normalizedTime)}
 👤 Paciente: ${patientName}
 📋 Tipo: ${serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar"}${locationInfo}
 
-INSTRUÇÃO INTERNA: O agendamento JÁ FOI SALVO no sistema. O horário ${normalizedTime} agora aparecerá como OCUPADO porque foi reservado com sucesso. NÃO use check_slot nem get_available_slots — apenas confirme ao lead com os dados acima e mova para a etapa "agendado".`;
+INSTRUÇÃO INTERNA: O agendamento JÁ FOI SALVO no sistema. O horário ${formatTimeDisplay(normalizedTime)} agora aparecerá como OCUPADO porque foi reservado com sucesso. NÃO use check_slot nem get_available_slots — apenas confirme ao lead com os dados acima e mova para a etapa "agendado".`;
 }
 
 // ============================================
