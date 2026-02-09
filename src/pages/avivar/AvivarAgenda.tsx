@@ -847,63 +847,85 @@ export default function AvivarAgenda() {
                   })}
                 </div>
               ) : (
-                <div className="grid grid-cols-7 gap-2">
-                  {weekDays.map((day, index) => {
-                    const dayAppointments = calendarAppointments.filter(
-                      (apt) => apt.appointment_date === format(day, 'yyyy-MM-dd') && apt.status !== 'cancelled'
-                    );
-                    const dayBlockStatus = isDayBlocked(day);
-                    
-                    return (
-                      <div
-                        key={index}
-                        className={`p-3 rounded-lg border text-center cursor-pointer transition-colors ${
-                          dayBlockStatus.blocked
-                            ? "border-red-500/30 bg-red-500/10 opacity-60"
-                            : isSameDay(day, selectedDate)
-                            ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)]"
-                            : "border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.5)]"
-                        }`}
-                        onClick={() => {
-                          setSelectedDate(day);
-                          setView("day");
-                        }}
-                      >
-                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                          {format(day, "EEE", { locale: ptBR })}
-                        </p>
-                        <p className={`text-lg font-semibold ${dayBlockStatus.blocked ? 'text-red-400' : 'text-[hsl(var(--avivar-foreground))]'}`}>
-                          {format(day, "dd")}
-                        </p>
-                        {dayBlockStatus.blocked && (
-                          <div className="mt-1">
-                            <Badge className="text-xs bg-red-500/20 text-red-400 border-red-500/30">
-                              <Lock className="h-3 w-3 mr-1" />
-                              Bloqueado
-                            </Badge>
+                <div className="space-y-4">
+                  {/* Week header with day columns */}
+                  <div className="grid grid-cols-7 gap-2">
+                    {weekDays.map((day, index) => {
+                      const dayAppointments = calendarAppointments.filter(
+                        (apt) => apt.appointment_date === format(day, 'yyyy-MM-dd') && apt.status !== 'cancelled'
+                      );
+                      const dayBlockStatus = isDayBlocked(day);
+                      const isSelected = isSameDay(day, selectedDate);
+                      const isCurrentDay = isToday(day);
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`flex flex-col rounded-lg border cursor-pointer transition-colors overflow-hidden ${
+                            dayBlockStatus.blocked
+                              ? "border-red-500/30 bg-red-500/10 opacity-60"
+                              : isSelected
+                              ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)]"
+                              : "border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.5)]"
+                          }`}
+                          onClick={() => {
+                            setSelectedDate(day);
+                            setView("day");
+                          }}
+                        >
+                          {/* Day header */}
+                          <div className={`px-2 py-2 text-center ${isCurrentDay ? 'bg-[hsl(var(--avivar-primary)/0.15)]' : ''}`}>
+                            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] capitalize">
+                              {format(day, "EEEE", { locale: ptBR })}
+                            </p>
+                            <p className={`text-xl font-bold ${
+                              isCurrentDay 
+                                ? 'text-[hsl(var(--avivar-primary))]' 
+                                : dayBlockStatus.blocked 
+                                  ? 'text-red-400' 
+                                  : 'text-[hsl(var(--avivar-foreground))]'
+                            }`}>
+                              {format(day, "dd")}
+                            </p>
                           </div>
-                        )}
-                        {!dayBlockStatus.blocked && dayAppointments.length > 0 && (
-                          <div className="mt-1 space-y-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {dayAppointments.length} ag.
-                            </Badge>
-                            {agendas.length > 1 && !selectedAgenda && (
-                              <div className="flex justify-center gap-1 flex-wrap">
-                                {[...new Set(dayAppointments.map(a => a.agenda_id))].map((agendaId) => (
-                                  <div 
-                                    key={agendaId || 'none'} 
-                                    className="w-2 h-2 rounded-full"
-                                    style={{ backgroundColor: getAgendaColor(agendaId) }}
-                                  />
-                                ))}
+
+                          {/* Day content */}
+                          <div className="flex-1 px-2 pb-2 min-h-[80px]">
+                            {dayBlockStatus.blocked ? (
+                              <div className="mt-1 text-center">
+                                <Badge className="text-xs bg-red-500/20 text-red-400 border-red-500/30">
+                                  <Lock className="h-3 w-3 mr-1" />
+                                  Bloqueado
+                                </Badge>
                               </div>
+                            ) : dayAppointments.length > 0 ? (
+                              <div className="space-y-1 mt-1">
+                                {dayAppointments.slice(0, 3).map((apt) => (
+                                  <div 
+                                    key={apt.id} 
+                                    className={`text-xs p-1.5 rounded border truncate ${getStatusColor(apt.status)}`}
+                                    title={`${apt.start_time.slice(0,5)} - ${apt.patient_name}`}
+                                  >
+                                    <span className="font-medium">{apt.start_time.slice(0,5)}</span>
+                                    <span className="ml-1 opacity-80">{apt.patient_name.split(' ')[0]}</span>
+                                  </div>
+                                ))}
+                                {dayAppointments.length > 3 && (
+                                  <p className="text-xs text-center text-[hsl(var(--avivar-muted-foreground))]">
+                                    +{dayAppointments.length - 3} mais
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-center text-[hsl(var(--avivar-muted-foreground))] mt-3 opacity-50">
+                                Sem agendamentos
+                              </p>
                             )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </CardContent>
