@@ -82,6 +82,58 @@ serve(async (req) => {
           continue;
         }
 
+        // Load lead language for translation
+        let leadLanguage = "pt-BR";
+        if (appointment.lead_id) {
+          const { data: leadData } = await supabase
+            .from("leads")
+            .select("language")
+            .eq("id", appointment.lead_id)
+            .single();
+          if (leadData?.language) {
+            leadLanguage = leadData.language;
+          }
+        }
+
+        // Translate reminder message if lead's language is not pt-BR
+        let messageToSend = reminder.message;
+        if (leadLanguage !== "pt-BR" && messageToSend && messageToSend.length > 0) {
+          try {
+            console.log(`[Reminders] Translating message to ${leadLanguage} for ${appointment.patient_name}`);
+            const translateResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-3-flash-preview",
+                messages: [
+                  {
+                    role: "system",
+                    content: `Traduza a seguinte mensagem de lembrete de consulta para o idioma "${leadLanguage}". Mantenha o tom profissional e amigável. Mantenha nomes próprios, datas e horários inalterados. Responda APENAS com a tradução, sem explicações.`,
+                  },
+                  { role: "user", content: messageToSend },
+                ],
+                max_tokens: 300,
+                temperature: 0.1,
+              }),
+            });
+
+            if (translateResponse.ok) {
+              const translateData = await translateResponse.json();
+              const translated = translateData.choices?.[0]?.message?.content;
+              if (translated && translated.trim()) {
+                messageToSend = translated.trim().replace(/^["']|["']$/g, "");
+                console.log(`[Reminders] Message translated successfully to ${leadLanguage}`);
+              }
+            }
+          } catch (translateError) {
+            console.error("[Reminders] Translation error, sending in Portuguese:", translateError);
+            // Fallback: send in Portuguese (current behavior)
+          }
+        }
+
         // Get conversation_id (from reminder or appointment)
         const conversationId = reminder.conversation_id || appointment.conversation_id;
 
