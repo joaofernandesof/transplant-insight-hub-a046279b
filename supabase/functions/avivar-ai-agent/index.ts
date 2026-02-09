@@ -1241,6 +1241,71 @@ async function createAppointment(
     }
   }
 
+  // Auto-fill checklist fields after successful appointment creation
+  try {
+    const checklistCampos: Record<string, string> = {};
+    // Map common checklist field keys to appointment data
+    const dateFormatISO = normalizedDate; // YYYY-MM-DD
+    const possibleDateKeys = ["data_e_hora", "data_hora", "data", "data_agendamento", "data_consulta"];
+    const possibleTypeKeys = ["tipo_de_consulta", "tipo_consulta", "procedimento", "tipo"];
+    
+    // Find matching fields in lead's kanban checklist config
+    const { data: leadKanban } = await supabase
+      .from("avivar_kanban_leads")
+      .select("id, kanban_id, custom_fields")
+      .eq("phone", patientPhone)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (leadKanban) {
+      const { data: checklistFields } = await supabase
+        .from("avivar_column_checklists")
+        .select("field_key, field_type")
+        .eq("account_id", accountId);
+
+      if (checklistFields && checklistFields.length > 0) {
+        const fieldKeys = checklistFields.map(f => f.field_key.toLowerCase());
+        
+        // Auto-fill date/time
+        for (const dk of possibleDateKeys) {
+          if (fieldKeys.includes(dk)) {
+            const matchField = checklistFields.find(f => f.field_key.toLowerCase() === dk);
+            if (matchField) {
+              checklistCampos[matchField.field_key] = matchField.field_type === "date" 
+                ? dateFormatISO 
+                : `${dateFormatISO} ${normalizedTime}`;
+            }
+            break;
+          }
+        }
+        
+        // Auto-fill consultation type
+        for (const tk of possibleTypeKeys) {
+          if (fieldKeys.includes(tk)) {
+            const matchField = checklistFields.find(f => f.field_key.toLowerCase() === tk);
+            if (matchField) {
+              checklistCampos[matchField.field_key] = serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar";
+            }
+            break;
+          }
+        }
+      }
+
+      if (Object.keys(checklistCampos).length > 0) {
+        const existingFields = (leadKanban.custom_fields as Record<string, unknown>) || {};
+        const mergedFields = { ...existingFields, ...checklistCampos };
+        await supabase
+          .from("avivar_kanban_leads")
+          .update({ custom_fields: mergedFields, updated_at: new Date().toISOString() })
+          .eq("id", leadKanban.id);
+        console.log(`[AI Agent] ✅ Auto-filled checklist after appointment: ${Object.keys(checklistCampos).join(", ")}`);
+      }
+    }
+  } catch (e) {
+    console.error("[AI Agent] Error auto-filling checklist:", e);
+  }
+
   const dateObj = new Date(normalizedDate + "T12:00:00");
   const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
   const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
