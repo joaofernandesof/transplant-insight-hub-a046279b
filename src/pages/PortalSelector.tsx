@@ -186,21 +186,25 @@ export default function PortalSelector() {
   const getAllPortals = () => {
     if (!user) return [];
     
-    const portals = Object.entries(PORTAL_CONFIG).map(([key, config]) => {
-      const hasAccess = canAccessPortal(key, config);
-      const matchingProfile = config.profiles.find(p => user.profiles.includes(p)) || config.profiles[0];
-      return {
-        key,
-        ...config,
-        matchingProfile,
-        hasAccess,
-      };
-    });
+    const portals = Object.entries(PORTAL_CONFIG)
+      // Ocultar portal admin para não-admins
+      .filter(([key, config]) => {
+        if (config.adminOnly && !user.isAdmin) return false;
+        return true;
+      })
+      .map(([key, config]) => {
+        const hasAccess = canAccessPortal(key, config);
+        const matchingProfile = config.profiles.find(p => user.profiles.includes(p)) || config.profiles[0];
+        return {
+          key,
+          ...config,
+          matchingProfile,
+          hasAccess,
+        };
+      });
 
     // Ordenar: acessíveis primeiro, depois bloqueados
     return portals.sort((a, b) => {
-      if (a.key === 'admin' && a.hasAccess) return -1;
-      if (b.key === 'admin' && b.hasAccess) return 1;
       if (a.hasAccess && !b.hasAccess) return -1;
       if (!a.hasAccess && b.hasAccess) return 1;
       return 0;
