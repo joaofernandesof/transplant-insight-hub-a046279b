@@ -496,6 +496,90 @@ export type Database = {
           },
         ]
       }
+      avivar_appointment_reminders: {
+        Row: {
+          account_id: string
+          appointment_id: string
+          conversation_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          message: string
+          rule_id: string | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          appointment_id: string
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          message: string
+          rule_id?: string | null
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          appointment_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          message?: string
+          rule_id?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_appointment_reminders_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_appointment_reminders_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_appointment_reminders_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "crm_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_appointment_reminders_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_appointment_reminders_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_reminder_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_appointments: {
         Row: {
           account_id: string
@@ -1588,6 +1672,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "avivar_products_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_reminder_rules: {
+        Row: {
+          account_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          message_template: string
+          name: string
+          order_index: number | null
+          time_before_minutes: number
+          time_before_type: string
+          time_before_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message_template?: string
+          name?: string
+          order_index?: number | null
+          time_before_minutes?: number
+          time_before_type?: string
+          time_before_value?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message_template?: string
+          name?: string
+          order_index?: number | null
+          time_before_minutes?: number
+          time_before_type?: string
+          time_before_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_reminder_rules_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "avivar_accounts"

@@ -50,6 +50,7 @@ import { NewAppointmentDialog } from "@/components/avivar/NewAppointmentDialog";
 import { EditAppointmentDialog } from "@/components/avivar/EditAppointmentDialog";
 import { CreateAvivarAgendaDialog } from "@/components/avivar/CreateAvivarAgendaDialog";
 import { useAvivarScheduleConfig, generateTimeSlotsForDay, generateDefaultTimeSlots } from "@/hooks/useAvivarScheduleConfig";
+import { RemindersTab } from "@/pages/avivar/agenda/RemindersTab";
 
 interface Appointment {
   id: string;
@@ -119,7 +120,8 @@ type ControlTabStatus = 'all' | 'confirmed' | 'pending' | 'cancelled' | 'alerts'
 export default function AvivarAgenda() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const mainView = searchParams.get('view') === 'control' ? 'control' : 'calendar';
+  const viewParam = searchParams.get('view');
+  const mainView = viewParam === 'control' ? 'control' : viewParam === 'reminders' ? 'reminders' : 'calendar';
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [view, setView] = useState<"day" | "week">("day");
@@ -471,11 +473,11 @@ export default function AvivarAgenda() {
     }
   };
 
-  const setMainView = (newView: 'calendar' | 'control') => {
-    if (newView === 'control') {
-      setSearchParams({ view: 'control' });
-    } else {
+  const setMainView = (newView: 'calendar' | 'control' | 'reminders') => {
+    if (newView === 'calendar') {
       setSearchParams({});
+    } else {
+      setSearchParams({ view: newView });
     }
   };
 
@@ -568,6 +570,14 @@ export default function AvivarAgenda() {
             >
               <CalendarCheck className="h-4 w-4 mr-1" />
               Controle
+            </Button>
+            <Button
+              variant={mainView === "reminders" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setMainView("reminders")}
+            >
+              <Bell className="h-4 w-4 mr-1" />
+              Lembretes
             </Button>
           </div>
 
@@ -1052,6 +1062,11 @@ export default function AvivarAgenda() {
             </Tabs>
           </div>
         </div>
+      )}
+
+      {/* Reminders View */}
+      {mainView === 'reminders' && (
+        <RemindersTab />
       )}
 
       {/* Confirm Dialog */}
