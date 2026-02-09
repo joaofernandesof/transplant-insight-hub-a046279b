@@ -15,6 +15,7 @@ interface SortableColumnProps {
   onDelete: () => void;
   onDeleteLead?: (leadId: string) => void;
   onLeadClick?: (lead: KanbanLead) => void;
+  onAddColumnAfter?: () => void;
 }
 
 export function SortableColumn({ 
@@ -24,6 +25,7 @@ export function SortableColumn({
   onDelete,
   onDeleteLead,
   onLeadClick,
+  onAddColumnAfter,
 }: SortableColumnProps) {
   const {
     attributes,
@@ -49,6 +51,7 @@ export function SortableColumn({
         onDelete={onDelete}
         onDeleteLead={onDeleteLead}
         onLeadClick={onLeadClick}
+        onAddColumnAfter={onAddColumnAfter}
         dragHandleProps={{ ...attributes, ...listeners }}
       />
     </div>

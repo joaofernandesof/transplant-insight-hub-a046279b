@@ -72,6 +72,7 @@ export default function AvivarKanbanPage() {
   const [activeLead, setActiveLead] = useState<KanbanLead | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleColumns, setVisibleColumns] = useState<string[]>([]);
+  const [insertAfterOrderIndex, setInsertAfterOrderIndex] = useState<number | null>(null);
 
   // Fetch leads for this kanban
   const { leads, leadsByColumn, deleteLead, moveLead, isLoading: isLoadingLeads, refetch } = useKanbanLeads(kanbanId);
@@ -127,7 +128,25 @@ export default function AvivarKanbanPage() {
         .eq('user_id', user!.id)
         .eq('is_active', true)
         .single();
-      
+
+      let newOrderIndex = columns.length;
+
+      if (insertAfterOrderIndex !== null) {
+        // Shift all columns after the insertion point
+        const columnsToShift = columns.filter(c => c.order_index > insertAfterOrderIndex);
+        if (columnsToShift.length > 0) {
+          await Promise.all(
+            columnsToShift.map(c =>
+              supabase
+                .from('avivar_kanban_columns')
+                .update({ order_index: c.order_index + 1 })
+                .eq('id', c.id)
+            )
+          );
+        }
+        newOrderIndex = insertAfterOrderIndex + 1;
+      }
+
       const { data, error } = await supabase
         .from('avivar_kanban_columns')
         .insert({
@@ -135,7 +154,7 @@ export default function AvivarKanbanPage() {
           account_id: memberData!.account_id,
           name: columnData.name,
           color: columnData.color,
-          order_index: columns.length,
+          order_index: newOrderIndex,
         })
         .select()
         .single();
@@ -145,12 +164,14 @@ export default function AvivarKanbanPage() {
     },
     onSuccess: (newColumn) => {
       setVisibleColumns(prev => [...prev, newColumn.id]);
+      setInsertAfterOrderIndex(null);
       queryClient.invalidateQueries({ queryKey: ['avivar-kanban-columns', kanbanId] });
       setIsColumnDialogOpen(false);
       toast.success('Coluna criada com sucesso!');
     },
     onError: (error) => {
       console.error('Error creating column:', error);
+      setInsertAfterOrderIndex(null);
       toast.error('Erro ao criar coluna');
     },
   });
@@ -341,10 +362,6 @@ export default function AvivarKanbanPage() {
         columns={columns}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        onAddColumn={() => {
-          setEditingColumn(null);
-          setIsColumnDialogOpen(true);
-        }}
         onAddLead={() => setIsAddLeadDialogOpen(true)}
         onImport={() => setIsImportDialogOpen(true)}
         onExport={() => setIsExportDialogOpen(true)}
@@ -409,6 +426,11 @@ export default function AvivarKanbanPage() {
                       }}
                       onDelete={() => deleteColumn.mutate(column.id)}
                       onDeleteLead={deleteLead}
+                      onAddColumnAfter={() => {
+                        setEditingColumn(null);
+                        setInsertAfterOrderIndex(column.order_index);
+                        setIsColumnDialogOpen(true);
+                      }}
                       onLeadClick={(lead) => {
                         if (lead.phone) {
                           navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);

@@ -34,7 +34,6 @@ interface KanbanHeaderProps {
   columns: KanbanColumnData[];
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  onAddColumn: () => void;
   onAddLead: () => void;
   onImport: () => void;
   onExport: () => void;
@@ -63,7 +62,6 @@ export function KanbanHeader({
   columns,
   viewMode,
   onViewModeChange,
-  onAddColumn,
   onAddLead,
   onImport,
   onExport,
@@ -134,17 +132,6 @@ export function KanbanHeader({
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Lead
           </Button>
-          
-          {viewMode === 'kanban' && (
-            <Button
-              variant="outline"
-              onClick={onAddColumn}
-              className="border-[hsl(var(--avivar-border))]"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Coluna
-            </Button>
-          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
