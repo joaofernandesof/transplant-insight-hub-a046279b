@@ -1108,8 +1108,8 @@ async function checkSlot(
     .map((x: { t: string }) => x.t);
 
   const suggestionText = suggestions.length === 1
-    ? suggestions[0]
-    : `${suggestions[0]} ou ${suggestions[1]}`;
+    ? formatTimeDisplay(suggestions[0])
+    : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
 
   // Diferenciar: (1) horário existe na grade mas está ocupado/bloqueado vs (2) horário fora do expediente/turno
   const existsInGrid = allTimes.includes(normalizedTime);
