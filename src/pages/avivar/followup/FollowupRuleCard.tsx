@@ -121,6 +121,12 @@ export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupR
                     <FileText className="h-3 w-3 mr-1" />Arquivo
                   </Badge>
                 )}
+                {scopeBoardNames.length > 0 && (
+                  <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))]">
+                    <Filter className="h-3 w-3 mr-1" />
+                    {scopeBoardNames.length === 1 ? scopeBoardNames[0] : `${scopeBoardNames.length} funis`}
+                  </Badge>
+                )}
              </div>
              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] mt-1">
                <Clock className="h-3 w-3 inline mr-1" />
