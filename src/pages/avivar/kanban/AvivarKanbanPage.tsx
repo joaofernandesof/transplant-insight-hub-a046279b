@@ -482,6 +482,8 @@ export default function AvivarKanbanPage() {
           onSearchChange={setSearchQuery}
           onAddLead={() => setIsAddLeadDialogOpen(true)}
           onRefresh={refetch}
+          onDeleteLead={deleteLead}
+          onMoveLead={moveLead}
           kanbanId={kanbanId || ''}
         />
       )}
