@@ -589,7 +589,7 @@ const TOOLS = [
       {
         type: "function",
         function: {
-          name: "preencher_checklist",
+      name: "preencher_checklist",
           description: `Preenche campos do checklist/ficha do lead com informações coletadas na conversa. Use SEMPRE que o lead confirmar dados como: data, horário, procedimento, valor, nome completo, etc. Após criar agendamento com create_appointment, preencha automaticamente os campos de data/horário se existirem no checklist. NÃO preencha campos com dados inventados - apenas dados confirmados pelo lead na conversa.`,
           parameters: {
             type: "object",
@@ -600,6 +600,23 @@ const TOOLS = [
               }
             },
             required: ["campos"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "set_lead_language",
+          description: `Salva o idioma detectado do lead. Use na PRIMEIRA mensagem do lead para registrar o idioma em que ele está escrevendo. Exemplos: 'pt-BR' para português, 'en' para inglês, 'es' para espanhol, 'fr' para francês, etc. Use o código ISO 639-1 com região quando aplicável.`,
+          parameters: {
+            type: "object",
+            properties: {
+              language: {
+                type: "string",
+                description: "Código do idioma detectado (ex: 'pt-BR', 'en', 'es', 'fr', 'de', 'it', 'ja', 'zh')"
+              }
+            },
+            required: ["language"]
           }
         }
       }
