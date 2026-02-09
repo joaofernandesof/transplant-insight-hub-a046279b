@@ -1211,7 +1211,7 @@ async function createAppointment(
   );
 
   if (!slotAvailable) {
-    return `Infelizmente o horário ${normalizedTime} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
+    return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
   }
 
   const { data: appointment, error } = await supabase
