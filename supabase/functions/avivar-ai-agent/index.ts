@@ -3887,11 +3887,42 @@ serve(async (req) => {
       }
     }
 
-    if (toolRound >= MAX_TOOL_ROUNDS) {
-      console.warn(`[AI Agent] Reached max tool rounds (${MAX_TOOL_ROUNDS})`);
+    if (toolRound >= MAX_TOOL_ROUNDS && (!finalResponse || finalResponse.trim() === "")) {
+      console.warn(`[AI Agent] Reached max tool rounds (${MAX_TOOL_ROUNDS}) without text response. Making final call WITHOUT tools...`);
+      
+      // Make one final AI call WITHOUT tools to force a text response
+      try {
+        const finalCallResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3-flash-preview",
+            messages: [
+              { role: "system", content: systemPrompt + "\n\nIMPORTANTE: Responda ao cliente agora com uma mensagem de texto. NÃO chame nenhuma ferramenta. Use as informações que já foram coletadas para dar uma resposta útil." },
+              ...accumulatedMessages.map(m => ({ role: m.role === "tool" ? "user" : m.role, content: m.content }))
+            ],
+            max_tokens: 500,
+            temperature: 0.7,
+          }),
+        });
+        
+        if (finalCallResponse.ok) {
+          const finalCallData = await finalCallResponse.json();
+          const forcedContent = finalCallData.choices?.[0]?.message?.content;
+          if (forcedContent && forcedContent.trim()) {
+            finalResponse = forcedContent;
+            console.log(`[AI Agent] Forced text response obtained: ${finalResponse.substring(0, 80)}...`);
+          }
+        }
+      } catch (e) {
+        console.error(`[AI Agent] Final forced call failed:`, e);
+      }
     }
 
-    if (!finalResponse) {
+    if (!finalResponse || finalResponse.trim() === "") {
       finalResponse = "Desculpe, não consegui processar sua mensagem. Pode repetir?";
     }
 
