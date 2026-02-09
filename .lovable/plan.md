@@ -1,65 +1,94 @@
 
 
-## Permissionamento HotLeads + Reset de Senhas + Planilha XLSX
+# IA Multilingual: Responder no Idioma do Lead
 
-### Resumo
-Configurar os 16 usuarios para acessar **apenas o HotLeads**, atualizar suas senhas para o padrao "Primeironome@2026!" e criar uma pagina para download da planilha XLSX com os dados.
+## Resumo
 
-### O que sera feito
+Fazer a IA detectar automaticamente o idioma do lead e responder nesse idioma. A detecao sera feita a partir das mensagens do lead (sem necessidade de campo manual). A mudanca e segura e nao quebra o que ja funciona.
 
-**1. Atualizar `allowed_portals` no banco de dados**
-- Atualizar a coluna `allowed_portals` dos 16 usuarios na tabela `neohub_users` para `["hotleads"]`
-- Isso garante que ao fazer login, apenas o portal HotLeads estara acessivel
+## Como funciona hoje
 
-**2. Garantir perfil `licenciado` para todos**
-- O portal HotLeads exige o perfil `licenciado` (conforme mapeamento em `permissions.ts`)
-- Verificacao: Cintia de Andrade e Regia Debora so possuem perfil `aluno` - sera necessario adicionar o perfil `licenciado` para elas
-- Os demais 14 usuarios ja possuem o perfil `licenciado`
+- A IA tem uma regra fixa: "Responda SEMPRE em Portugues Brasileiro"
+- Follow-ups e lembretes usam templates escritos manualmente em portugues
+- Nao existe nenhum campo de idioma na tabela de leads
 
-**3. Garantir permissao do modulo `neolicense_hotleads`**
-- O modulo `neolicense_hotleads` ja existe com permissao para o perfil `licenciado` (can_read = true)
-- Nao e necessaria alteracao adicional na tabela de permissoes de modulo
+## O que sera feito
 
-**4. Reset de senhas via Edge Function**
-- Usar a edge function `bulk-reset-passwords` ja existente para atualizar as senhas de todos os 16 usuarios
-- Senhas no padrao "Primeironome@2026!":
+### 1. Adicionar campo `language` na tabela `leads`
+- Novo campo `language TEXT DEFAULT 'pt-BR'`
+- Valor padrao portugues, garantindo que nada quebra para leads existentes
 
-| Nome | Email | Senha |
-|------|-------|-------|
-| Ana Flavia Pierazo Rodrigues | anapierazor@gmail.com | Ana@2026! |
-| Andre Luis Chaves Valente | andrevalente1974@gmail.com | André@2026! |
-| Cintia de Andrade | dracintia@outlook.com | Cíntia@2026! |
-| Deibson Santos Lisboa | deibsonlisboa1995@gmail.com | Deibson@2026! |
-| Eder Eiji Yanagitani | yanagitani@hotmail.com | Eder@2026! |
-| Erika Alves Coimbra | erikaalvescoimbra@gmail.com | Erika@2026! |
-| Fabio Branaro | fabiobranaro@hotmail.com | Fabio@2026! |
-| Felipe Teles de Arruda | ftarruda@hotmail.com | Felipe@2026! |
-| Flavio Henrique Nogueira Machado | flavioau@outlook.com | Flavio@2026! |
-| Gleyldes Goncalves Guimaraes Leao | gleleao@gmail.com | Gleyldes@2026! |
-| Jean Carlos Romao de Sousa | jeancarlosromaodesousa@gmail.com | Jean@2026! |
-| Joselio Alves Sousa | joselio0611@gmail.com | Joselio@2026! |
-| Livia Alana Silva de Souza Gomes | contato@draliviaalana.com.br | Livia@2026! |
-| Paulo Batista da Costa Neto | paulob.costaneto@hotmail.com | Paulo@2026! |
-| Regia Debora Cardoso da Silva Reis | regiareis103100@outlook.com | Régia@2026! |
-| Robister Moreno de Oliveira Mac Cornick | mrobister@gmail.com | Robister@2026! |
+### 2. IA do Agente: detectar e responder no idioma do lead
+- Remover a regra fixa de "sempre portugues"
+- Substituir por: "Detecte o idioma do lead pelas mensagens e responda no MESMO idioma"
+- Na primeira interacao, a IA detecta o idioma e salva no campo `language` do lead (via uma nova tool `set_lead_language`)
+- Nas interacoes seguintes, o sistema ja carrega o idioma salvo e instrui a IA
 
-**5. Gerar planilha XLSX para download**
-criar um arquivo em /docs com o nome "loginhotleads"
+### 3. Follow-ups: traduzir automaticamente
+- Quando a IA gera/personaliza follow-ups, incluir no prompt: "Responda no idioma: {language}"
+- Para templates fixos (sem IA), a traducao tambem sera feita via IA antes do envio, usando o idioma salvo do lead
+- Fallback: se nao houver idioma salvo, manter portugues
 
-### Detalhes Tecnicos
+### 4. Lembretes de consulta: traduzir automaticamente
+- No `avivar-process-reminders`, antes de enviar, verificar o idioma do lead
+- Se nao for pt-BR, usar IA para traduzir a mensagem do lembrete
+- Operacao rapida (traducao simples) que nao impacta performance
 
-**Alteracoes no banco de dados:**
-- UPDATE em `neohub_users` para definir `allowed_portals = ['hotleads']` nos 16 registros
-- INSERT em `neohub_user_profiles` para adicionar perfil `licenciado` para Cintia de Andrade e Regia Debora (que so possuem `aluno`)
+## Riscos e seguranca
 
-**Chamada a Edge Function:**
-- Chamar `bulk-reset-passwords` com os 16 emails e senha individual para cada um (sera necessario chamar individualmente via `admin-reset-password` ou adaptar para enviar senha por usuario)
-- Como a funcao `bulk-reset-passwords` aceita uma unica senha para todos, e as senhas sao diferentes por usuario, sera usado `admin-reset-password` individualmente para cada usuario
+| Preocupacao | Solucao |
+|---|---|
+| Leads existentes sem idioma | Campo tem default `pt-BR`, nada muda |
+| Templates em portugues para lead estrangeiro | IA traduz antes de enviar |
+| Erro na traducao | Fallback: envia em portugues (comportamento atual) |
+| Performance | Apenas 1 chamada extra de IA para traducao, so quando idioma != pt-BR |
+| Agendamentos e ferramentas internas | Continuam funcionando normalmente, so a mensagem ao lead muda |
 
-**Componente XLSX:**
-- Criar um componente React simples usando a biblioteca `xlsx` (ja instalada) que gera e faz download automatico da planilha com os dados dos 16 usuarios
+## Detalhes Tecnicos
 
-### Arquivos a serem modificados/criados
-1. Banco de dados: 2 SQL updates (allowed_portals + perfis)
-2. Edge function calls: 16 chamadas ao `admin-reset-password`
-3. Novo componente: `src/pages/admin/HotleadsUserExport.tsx` - pagina com download XLSX
+### Migracao SQL
+```sql
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'pt-BR';
+```
+
+### Edge Function `avivar-ai-agent/index.ts`
+- Na funcao `buildHybridSystemPrompt`: substituir bloco `<idioma_obrigatorio>` por instrucao dinamica baseada no campo `language` do lead
+- Adicionar tool `set_lead_language` para a IA salvar o idioma detectado
+- Carregar `language` do lead no inicio do fluxo e passar ao prompt
+
+### Edge Function `avivar-process-followups/index.ts`
+- Carregar `language` do lead junto com os dados existentes
+- Se `language != 'pt-BR'` e mensagem esta em portugues, adicionar etapa de traducao via IA antes do envio
+- Aplicar tanto para mensagens geradas por IA quanto para templates fixos
+
+### Edge Function `avivar-process-reminders/index.ts`
+- Carregar `language` do lead (via appointment -> lead)
+- Se `language != 'pt-BR'`, traduzir mensagem do lembrete via IA antes do envio
+
+### Fluxo de deteccao
+
+```text
+Lead envia mensagem
+       |
+       v
+IA detecta idioma da mensagem
+       |
+       v
+Salva idioma no campo leads.language
+       |
+       v
+Responde no mesmo idioma
+       |
+       v
+Follow-ups e lembretes futuros
+usam o idioma salvo para traduzir
+```
+
+## Estimativa de impacto
+
+- **3 arquivos** editados (agent, process-followups, process-reminders)
+- **1 migracao** SQL (adicionar coluna)
+- **Zero risco** para funcionalidades existentes (default pt-BR)
+- Leads em portugues: comportamento identico ao atual
+- Leads em outros idiomas: experiencia significativamente melhor
+
