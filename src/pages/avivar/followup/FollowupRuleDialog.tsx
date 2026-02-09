@@ -446,6 +446,9 @@ import { toast } from 'sonner';
       // Document fields
       document_url: formData.document_url || null,
       document_name: formData.document_name || null,
+      // Scope fields
+      applicable_kanban_ids: formData.applicable_kanban_ids.length > 0 ? formData.applicable_kanban_ids : null,
+      applicable_column_ids: formData.applicable_column_ids.length > 0 ? formData.applicable_column_ids : null,
     };
 
     if (isEditing && rule) {
