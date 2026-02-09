@@ -820,14 +820,18 @@ async function getAvailableSlots(
   if (dateStr) {
     dates.push(dateStr);
   } else {
-    const today = new Date();
+    // Use São Paulo timezone to get correct "today"
+    const nowSP = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
     let count = 0;
-    let d = new Date(today);
+    let d = new Date(nowSP);
     while (count < 3) {
       d.setDate(d.getDate() + 1);
       const dow = d.getDay();
       if (dow !== 0) {
-        dates.push(d.toISOString().split("T")[0]);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        dates.push(`${yyyy}-${mm}-${dd}`);
         count++;
       }
     }
@@ -2643,7 +2647,8 @@ function buildHybridSystemPrompt(
     weekday: "long", 
     day: "2-digit", 
     month: "long", 
-    year: "numeric" 
+    year: "numeric",
+    timeZone: "America/Sao_Paulo"
   });
 
   // Agent identity
