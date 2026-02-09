@@ -5,7 +5,7 @@
 
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { GripVertical, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react';
+import { GripVertical, MoreHorizontal, Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -27,6 +27,7 @@ interface KanbanColumnProps {
   onDelete?: () => void;
   onDeleteLead?: (leadId: string) => void;
   onLeadClick?: (lead: KanbanLead) => void;
+  onAddColumnAfter?: () => void;
   isDragging?: boolean;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 }
@@ -38,6 +39,7 @@ export function KanbanColumn({
   onDelete,
   onDeleteLead,
   onLeadClick,
+  onAddColumnAfter,
   isDragging,
   dragHandleProps,
 }: KanbanColumnProps) {
@@ -83,6 +85,19 @@ export function KanbanColumn({
             <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs">
               {leads.length}
             </Badge>
+          )}
+
+          {/* Add Column After Button */}
+          {onAddColumnAfter && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onAddColumnAfter}
+              className="h-7 w-7 hover:bg-white/20 text-white"
+              title="Adicionar coluna à direita"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           )}
 
           {/* Actions Menu */}
