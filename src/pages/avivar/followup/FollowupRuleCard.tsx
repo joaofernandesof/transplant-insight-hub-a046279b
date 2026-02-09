@@ -30,7 +30,11 @@ import type { FollowupRule } from '@/hooks/useFollowupRules';
    onDelete: (id: string) => void;
  }
  
- export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupRuleCardProps) {
+export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupRuleCardProps) {
+  const { boards } = useKanbanBoards();
+  const scopeBoardNames = (rule.applicable_kanban_ids || [])
+    .map(id => boards.find(b => b.id === id)?.name)
+    .filter(Boolean);
    const getDelayLabel = () => {
      const value = rule.delay_minutes;
      if (rule.delay_type === 'hours') return `${value / 60} hora${value / 60 > 1 ? 's' : ''}`;
