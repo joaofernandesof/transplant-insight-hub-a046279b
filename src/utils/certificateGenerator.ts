@@ -136,7 +136,7 @@ export function generateCertificatePDF(data: CertificateData): jsPDF {
   doc.setTextColor(99, 102, 241);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('Universidade ByNeofolic', centerX, pageHeight - 12, { align: 'center' });
+  doc.text('Academia ByNeofolic', centerX, pageHeight - 12, { align: 'center' });
 
   return doc;
 }

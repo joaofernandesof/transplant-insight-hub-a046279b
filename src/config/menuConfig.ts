@@ -140,7 +140,7 @@ export const DATA_MENU_ITEMS: MenuItem[] = [
 ];
 
 export const TRAINING_MENU_ITEMS: MenuItem[] = [
-  { id: 'university', code: 'university', title: 'Universidade ByNeofolic', icon: GraduationCap, route: '/university' },
+  { id: 'university', code: 'university', title: 'Academia ByNeofolic', icon: GraduationCap, route: '/university' },
   { id: 'certificates', code: 'certificates', title: 'Certificados', icon: Award, route: '/certificates' },
   { id: 'regularization', code: 'regularization', title: 'Regularização da Clínica', icon: FileCheck, route: '/regularization' },
 ];

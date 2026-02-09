@@ -73,8 +73,8 @@ export const tourSteps: TourStep[] = [
   },
   {
     id: "university",
-    title: "Universidade ByNeofolic",
-    message: "Na Universidade você encontra trilhas de capacitação, aulas gravadas e imersões exclusivas. Tudo para dominar as técnicas!",
+    title: "Academia ByNeofolic",
+    message: "Na Academia você encontra trilhas de capacitação, aulas gravadas e imersões exclusivas. Tudo para dominar as técnicas!",
     icon: <Video className="h-5 w-5" />,
     iconColor: "text-purple-600",
     bgColor: "bg-purple-100",

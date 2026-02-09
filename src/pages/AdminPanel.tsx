@@ -155,7 +155,7 @@ const ACCESS_PROFILES = [
 ];
 
 const pageLabels: Record<keyof PageVisibility, string> = {
-  university: 'Universidade ByNeofolic',
+  university: 'Academia ByNeofolic',
   regularization: 'Regularização da Clínica',
   materials: 'Central de Materiais',
   marketing: 'Central de Marketing',

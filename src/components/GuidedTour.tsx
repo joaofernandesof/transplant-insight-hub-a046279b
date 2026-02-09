@@ -56,8 +56,8 @@ const tourSteps: TourStep[] = [
   },
   {
     id: "university",
-    title: "Universidade ByNeofolic",
-    jonJobsMessage: "Na Universidade você encontra trilhas de capacitação, aulas gravadas e imersões exclusivas. Tudo que precisa para dominar as técnicas de transplante capilar!",
+    title: "Academia ByNeofolic",
+    jonJobsMessage: "Na Academia você encontra trilhas de capacitação, aulas gravadas e imersões exclusivas. Tudo que precisa para dominar as técnicas de transplante capilar!",
     icon: <Video className="h-6 w-6" />,
     route: "/university",
     color: "text-purple-600",

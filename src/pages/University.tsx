@@ -95,7 +95,7 @@ export default function University() {
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-purple-600" />
-                Universidade ByNeofolic
+                Academia ByNeofolic
               </h1>
               <p className="text-sm text-muted-foreground">Cursos presenciais e trilhas online</p>
             </div>

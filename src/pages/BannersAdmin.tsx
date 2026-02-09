@@ -423,7 +423,7 @@ export default function BannersAdmin() {
                       id="highlight"
                       value={formData.highlight || ''}
                       onChange={(e) => setFormData({ ...formData, highlight: e.target.value })}
-                      placeholder="Ex: Universidade ByNeofolic"
+                      placeholder="Ex: Academia ByNeofolic"
                     />
                   </div>
                   <div>
