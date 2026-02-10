@@ -113,7 +113,7 @@ import { toast } from 'sonner';
         delay_value: delayValue,
         delay_type: delayType,
         message_template: rule.message_template,
-        urgency_level: rule.urgency_level,
+        
         use_ai_generation: rule.use_ai_generation,
         ai_context: rule.ai_context || '',
         respect_business_hours: rule.respect_business_hours,
