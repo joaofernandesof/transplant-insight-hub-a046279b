@@ -82,9 +82,6 @@ export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupR
                <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                  {rule.name || `Tentativa ${rule.attempt_number}`}
                </p>
-               <Badge className={cn("text-xs", getUrgencyColor())}>
-                 {getUrgencyLabel()}
-               </Badge>
                {rule.use_ai_generation && (
                  <Badge className="text-xs bg-purple-500/20 text-purple-500 border-purple-500/30">
                    <Brain className="h-3 w-3 mr-1" />
