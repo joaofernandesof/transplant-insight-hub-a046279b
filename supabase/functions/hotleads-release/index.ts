@@ -129,21 +129,34 @@ serve(async (req) => {
   }
 });
 
+// Helper: get current BRT date as YYYY-MM-DD string
+function getBrtDate(): { dateStr: string; brtHour: number; brtMinutes: number } {
+  const now = new Date();
+  // Convert to BRT (UTC-3) using Intl
+  const brtString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+  const brt = new Date(brtString);
+  const year = brt.getFullYear();
+  const month = String(brt.getMonth() + 1).padStart(2, "0");
+  const day = String(brt.getDate()).padStart(2, "0");
+  return {
+    dateStr: `${year}-${month}-${day}`,
+    brtHour: brt.getHours(),
+    brtMinutes: brt.getMinutes(),
+  };
+}
+
 // Probabilistic release: decides randomly whether to release NOW
 // With 50 leads/day and 1440 minutes, probability per minute ≈ 50/1440 ≈ 3.5%
 // We adjust based on remaining leads and remaining time in the day
 async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reason: string }> {
-  const now = new Date();
-  const hour = now.getUTCHours() - 3; // BRT = UTC-3
-  const brtHour = hour < 0 ? hour + 24 : hour;
+  const { dateStr, brtHour, brtMinutes } = getBrtDate();
 
   // Active 24 hours - no time restriction
 
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const { data: daily } = await supabase
     .from("lead_release_daily")
     .select("*")
-    .eq("release_date", today.toISOString().split("T")[0])
+    .eq("release_date", dateStr)
     .single();
 
   const released = daily?.released_count || 0;
@@ -155,7 +168,7 @@ async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reas
   }
 
   // Calculate remaining minutes until midnight BRT
-  const minutesLeft = Math.max(1, (24 - brtHour) * 60 - now.getMinutes());
+  const minutesLeft = Math.max(1, (24 - brtHour) * 60 - brtMinutes);
 
   // Probability = remaining leads / remaining minutes
   // This naturally increases urgency as the day progresses
@@ -165,7 +178,7 @@ async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reas
   const roll = Math.random();
   const shouldRelease = roll < probability;
 
-  console.log(`[HotLeads Cron] hour=${brtHour} released=${released}/${target} remaining=${remaining} minutesLeft=${minutesLeft} prob=${(probability*100).toFixed(1)}% roll=${roll.toFixed(3)} => ${shouldRelease ? 'RELEASE' : 'SKIP'}`);
+  console.log(`[HotLeads Cron] brtDate=${dateStr} hour=${brtHour} released=${released}/${target} remaining=${remaining} minutesLeft=${minutesLeft} prob=${(probability*100).toFixed(1)}% roll=${roll.toFixed(3)} => ${shouldRelease ? 'RELEASE' : 'SKIP'}`);
 
   return { 
     release: shouldRelease, 
@@ -175,14 +188,13 @@ async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reas
 
 async function calculateNextRelease(supabase: any) {
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfDay = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+  const { dateStr, brtHour, brtMinutes } = getBrtDate();
   
-  // Get current daily info
+  // Get current daily info (BRT date)
   const { data: daily } = await supabase
     .from("lead_release_daily")
     .select("*")
-    .eq("release_date", today.toISOString().split("T")[0])
+    .eq("release_date", dateStr)
     .single();
 
   const released = daily?.released_count || 0;
@@ -193,8 +205,9 @@ async function calculateNextRelease(supabase: any) {
     return { next_release_at: null, remaining: 0 };
   }
 
-  // Distribute remaining releases across remaining hours with jitter
-  const msRemaining = endOfDay.getTime() - now.getTime();
+  // Calculate remaining minutes until midnight BRT
+  const minutesLeftInDay = Math.max(1, (24 - brtHour) * 60 - brtMinutes);
+  const msRemaining = minutesLeftInDay * 60 * 1000;
   const intervalMs = msRemaining / remaining;
   // Add random jitter: 30%-70% of interval
   const jitter = intervalMs * (0.3 + Math.random() * 0.4);
@@ -204,7 +217,7 @@ async function calculateNextRelease(supabase: any) {
   await supabase
     .from("lead_release_daily")
     .upsert({
-      release_date: today.toISOString().split("T")[0],
+      release_date: dateStr,
       released_count: released,
       target_count: target,
       next_release_at: nextReleaseAt.toISOString(),
