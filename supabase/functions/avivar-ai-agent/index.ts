@@ -3963,10 +3963,16 @@ serve(async (req) => {
           body: JSON.stringify({
             model: "google/gemini-3-flash-preview",
             messages: [
-              { role: "system", content: systemPrompt },
+              { role: "system", content: appointmentJustCreated 
+                ? systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: O agendamento ACABOU DE SER CRIADO COM SUCESSO nesta conversa. O horário JÁ ESTÁ RESERVADO para este paciente. NÃO use check_slot, get_available_slots ou qualquer ferramenta de verificação. Apenas confirme os detalhes ao paciente de forma amigável."
+                : systemPrompt },
               ...followUpMessages.map(m => ({ role: m.role === "tool" ? "user" : m.role, content: m.content }))
             ],
-            tools: TOOLS,
+            // CRITICAL: When appointment was just created, remove scheduling tools entirely
+            // to prevent the AI from re-checking the slot it just booked
+            tools: appointmentJustCreated 
+              ? TOOLS.filter((t: { function: { name: string } }) => !["check_slot", "get_available_slots", "create_appointment"].includes(t.function.name))
+              : TOOLS,
             tool_choice: "auto",
             max_tokens: 500,
             temperature: 0.7,
