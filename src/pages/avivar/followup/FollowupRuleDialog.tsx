@@ -422,7 +422,7 @@ import { toast } from 'sonner';
       delay_minutes: delayMinutes,
       delay_type: formData.delay_type,
       message_template: formData.message_template,
-      urgency_level: formData.urgency_level,
+      
       use_ai_generation: formData.use_ai_generation,
       ai_context: formData.ai_context || null,
       respect_business_hours: formData.respect_business_hours,
