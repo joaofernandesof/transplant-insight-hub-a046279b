@@ -193,16 +193,16 @@ export default function AvivarTeamPage() {
       const userIds = data.map(m => m.user_id);
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, email, avatar_url, phone')
-        .in('id', userIds);
+        .select('user_id, name, email, avatar_url, phone')
+        .in('user_id', userIds);
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
       return data.map(m => {
         const profile = profileMap.get(m.user_id);
         return {
           ...m,
-          name: profile?.full_name || (m.user_id === user?.authUserId ? 'Eu (Proprietário)' : `Membro (${m.role})`),
+          name: profile?.name || (m.user_id === user?.authUserId ? 'Eu (Proprietário)' : `Membro (${m.role})`),
           email: profile?.email || '',
           phone: profile?.phone || null,
           avatar_url: profile?.avatar_url || null,
