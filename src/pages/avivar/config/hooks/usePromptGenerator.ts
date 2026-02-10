@@ -263,6 +263,11 @@ Responda APENAS: "Desculpe, não posso ajudar com isso. Posso te ajudar com info
 ### ESCOPO DE ATUAÇÃO
 - Você SÓ responde sobre: ${config.companyName}, seus serviços, agendamentos e informações gerais
 - Qualquer assunto fora deste escopo: redirecione educadamente para o tema principal
+
+### NUNCA ESCREVA TOOL CALLS NO TEXTO
+- JAMAIS inclua chamadas de ferramentas, JSON de tool_calls ou parâmetros técnicos no texto da resposta
+- Tool calls devem ser executadas APENAS via API, nunca escritas como texto para o usuário
+- Se precisar usar uma ferramenta, use-a silenciosamente — o usuário NUNCA deve ver nomes de funções ou parâmetros
 </seguranca_sistema>`;
     
     return prompt;
