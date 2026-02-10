@@ -24,11 +24,12 @@ interface ChecklistItem {
   category: string;
   completed: boolean;
   required: boolean;
+  templateUrl?: string;
 }
 
 const initialChecklist: ChecklistItem[] = [
   { id: '1', title: 'CNPJ Ativo', description: 'Cadastro Nacional de Pessoa Jurídica', category: 'documentacao', completed: true, required: true },
-  { id: '2', title: 'Contrato Social', description: 'Registrado na Junta Comercial', category: 'documentacao', completed: true, required: true },
+  { id: '2', title: 'Contrato Social', description: 'Registrado na Junta Comercial', category: 'documentacao', completed: true, required: true, templateUrl: '#' },
   { id: '3', title: 'Inscrição Estadual', description: 'Se aplicável ao seu estado', category: 'documentacao', completed: false, required: false },
   { id: '4', title: 'Inscrição Municipal', description: 'Cadastro no município', category: 'documentacao', completed: true, required: true },
   { id: '5', title: 'Alvará de Funcionamento', description: 'Emitido pela prefeitura local', category: 'alvaras', completed: true, required: true },
@@ -37,12 +38,12 @@ const initialChecklist: ChecklistItem[] = [
   { id: '8', title: 'Licença Ambiental', description: 'Se aplicável à sua região', category: 'alvaras', completed: true, required: false },
   { id: '9', title: 'CRM do Responsável Técnico', description: 'Registro ativo no Conselho Regional', category: 'medico', completed: true, required: true },
   { id: '10', title: 'Registro no CRM como PJ', description: 'Clínica registrada no conselho', category: 'medico', completed: true, required: true },
-  { id: '11', title: 'Protocolos de Esterilização', description: 'Documentados e validados', category: 'medico', completed: false, required: true },
-  { id: '12', title: 'PGRSS', description: 'Plano de Gerenciamento de Resíduos', category: 'medico', completed: false, required: true },
-  { id: '13', title: 'Política de Privacidade', description: 'Conforme LGPD', category: 'juridico', completed: true, required: true },
-  { id: '14', title: 'Termos de Consentimento', description: 'TCLE atualizados', category: 'juridico', completed: true, required: true },
-  { id: '15', title: 'Contrato de Prestação de Serviços', description: 'Modelo validado juridicamente', category: 'juridico', completed: true, required: true },
-  { id: '16', title: 'Autorização de Uso de Imagem', description: 'Para marketing e documentação', category: 'juridico', completed: false, required: false },
+  { id: '11', title: 'Protocolos de Esterilização', description: 'Documentados e validados', category: 'medico', completed: false, required: true, templateUrl: '#' },
+  { id: '12', title: 'PGRSS', description: 'Plano de Gerenciamento de Resíduos', category: 'medico', completed: false, required: true, templateUrl: '#' },
+  { id: '13', title: 'Política de Privacidade', description: 'Conforme LGPD', category: 'juridico', completed: true, required: true, templateUrl: '#' },
+  { id: '14', title: 'Termos de Consentimento', description: 'TCLE atualizados', category: 'juridico', completed: true, required: true, templateUrl: '#' },
+  { id: '15', title: 'Contrato de Prestação de Serviços', description: 'Modelo validado juridicamente', category: 'juridico', completed: true, required: true, templateUrl: '#' },
+  { id: '16', title: 'Autorização de Uso de Imagem', description: 'Para marketing e documentação', category: 'juridico', completed: false, required: false, templateUrl: '#' },
 ];
 
 const categories = [
@@ -151,13 +152,26 @@ export default function Regularization() {
                       </div>
                       <p className="text-xs text-muted-foreground">{item.description}</p>
                     </div>
-                    {item.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    ) : item.required ? (
-                      <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
-                    ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {item.templateUrl && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-primary"
+                          onClick={(e) => { e.stopPropagation(); }}
+                          title="Baixar modelo"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {item.completed ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      ) : item.required ? (
+                        <AlertTriangle className="h-5 w-5 text-amber-500" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
                   </div>
                 ))}
               </CardContent>
@@ -165,17 +179,6 @@ export default function Regularization() {
           );
         })}
 
-        {/* Actions */}
-        <div className="flex gap-3 mt-6">
-          <Button className="flex-1 gap-2">
-            <Download className="h-4 w-4" />
-            Exportar Relatório
-          </Button>
-          <Button variant="outline" className="flex-1 gap-2">
-            <FileText className="h-4 w-4" />
-            Ver Modelos de Documentos
-          </Button>
-        </div>
       </div>
     </ModuleLayout>
   );
