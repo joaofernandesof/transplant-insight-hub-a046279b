@@ -179,17 +179,6 @@ export default function Regularization() {
           );
         })}
 
-        {/* Actions */}
-        <div className="flex gap-3 mt-6">
-          <Button className="flex-1 gap-2">
-            <Download className="h-4 w-4" />
-            Exportar Relatório
-          </Button>
-          <Button variant="outline" className="flex-1 gap-2">
-            <FileText className="h-4 w-4" />
-            Ver Modelos de Documentos
-          </Button>
-        </div>
       </div>
     </ModuleLayout>
   );
