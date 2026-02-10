@@ -63,15 +63,15 @@ export function NewAppointmentDialog({
     location: "",
   });
 
-  // Keep agenda_id aligned with the currently selected agenda when opening the dialog
+  // Sync selectedTime and agenda_id when dialog opens
   useEffect(() => {
     if (!open) return;
-    if (!selectedAgenda?.id) return;
     setFormData((prev) => ({
       ...prev,
-      agenda_id: prev.agenda_id || selectedAgenda.id,
+      start_time: selectedTime || prev.start_time,
+      agenda_id: prev.agenda_id || selectedAgenda?.id || "",
     }));
-  }, [open, selectedAgenda?.id]);
+  }, [open, selectedTime, selectedAgenda?.id]);
 
   // Reset form when dialog opens
   const handleOpenChange = (open: boolean) => {
