@@ -42,21 +42,6 @@ export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupR
      return `${value} minuto${value > 1 ? 's' : ''}`;
    };
  
-   const getUrgencyColor = () => {
-     switch (rule.urgency_level) {
-       case 'urgent': return 'text-red-500 bg-red-500/20 border-red-500/30';
-       case 'medium': return 'text-amber-500 bg-amber-500/20 border-amber-500/30';
-       default: return 'text-emerald-500 bg-emerald-500/20 border-emerald-500/30';
-     }
-   };
- 
-   const getUrgencyLabel = () => {
-     switch (rule.urgency_level) {
-       case 'urgent': return 'Urgente';
-       case 'medium': return 'Médio';
-       default: return 'Suave';
-     }
-   };
  
    return (
      <div 

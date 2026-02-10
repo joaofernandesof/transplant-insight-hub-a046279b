@@ -540,22 +540,6 @@ import { toast } from 'sonner';
                    </Select>
                  </div>
                </div>
-               <div className="space-y-2">
-                 <Label className="text-[hsl(var(--avivar-foreground))]">Nível de Urgência</Label>
-                 <Select
-                   value={formData.urgency_level}
-                   onValueChange={(value: 'soft' | 'medium' | 'urgent') => setFormData(prev => ({ ...prev, urgency_level: value }))}
-                 >
-                   <SelectTrigger className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]">
-                     <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="soft">🌱 Suave</SelectItem>
-                     <SelectItem value="medium">⚡ Médio</SelectItem>
-                     <SelectItem value="urgent">🔥 Urgente</SelectItem>
-                   </SelectContent>
-                 </Select>
-               </div>
              </div>
  
             <div className="space-y-2">
