@@ -152,13 +152,26 @@ export default function Regularization() {
                       </div>
                       <p className="text-xs text-muted-foreground">{item.description}</p>
                     </div>
-                    {item.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    ) : item.required ? (
-                      <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
-                    ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {item.templateUrl && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-primary"
+                          onClick={(e) => { e.stopPropagation(); }}
+                          title="Baixar modelo"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {item.completed ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      ) : item.required ? (
+                        <AlertTriangle className="h-5 w-5 text-amber-500" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
                   </div>
                 ))}
               </CardContent>
