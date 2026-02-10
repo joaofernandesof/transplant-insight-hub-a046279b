@@ -3846,11 +3846,37 @@ serve(async (req) => {
       desistenciaHandled = true;
     }
 
-    // 6. Call AI with tools
+    // 5.8 CRITICAL: Check for recent appointment in this conversation (cross-invocation guard)
+    let appointmentJustCreated = false;
+    if (conversationId) {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recentAppointment } = await supabase
+        .from("avivar_appointments")
+        .select("id, created_at, patient_name, start_time, appointment_date")
+        .eq("conversation_id", conversationId)
+        .gte("created_at", fiveMinutesAgo)
+        .neq("status", "cancelled")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      
+      if (recentAppointment && recentAppointment.length > 0) {
+        appointmentJustCreated = true;
+        console.log(`[AI Agent] 🔒 CROSS-INVOCATION GUARD: Recent appointment (${recentAppointment[0].id}) found for conversation ${conversationId}. Blocking scheduling tools from first call.`);
+      }
+    }
+
+    // 6. Call AI with tools (with scheduling tools removed if appointment was recently created)
+    const effectiveSystemPrompt = appointmentJustCreated
+      ? systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: O agendamento ACABOU DE SER CRIADO COM SUCESSO nesta conversa. O horário JÁ ESTÁ RESERVADO para este paciente. NÃO use check_slot, get_available_slots, create_appointment ou qualquer ferramenta de verificação de disponibilidade. O paciente está apenas CONFIRMANDO. Responda de forma amigável confirmando os detalhes."
+      : systemPrompt;
+    const effectiveTools = appointmentJustCreated
+      ? TOOLS.filter((t: { function: { name: string } }) => !["check_slot", "get_available_slots", "create_appointment"].includes(t.function.name))
+      : TOOLS;
+
     let aiResult: { content: string | null; toolCalls: Array<{ name: string; arguments: Record<string, unknown> }> };
     
     try {
-      aiResult = await callAIWithTools(systemPrompt, conversationHistory, TOOLS);
+      aiResult = await callAIWithTools(effectiveSystemPrompt, conversationHistory, effectiveTools);
     } catch (aiError) {
       console.error("[AI Agent] AI call failed:", aiError);
       
@@ -3885,7 +3911,7 @@ serve(async (req) => {
     const MAX_TOOL_ROUNDS = 5;
     let toolRound = 0;
     let fluxoMediaSentCount = 0; // Guard: max 1 send_fluxo_media per response
-    let appointmentJustCreated = false; // Guard: prevent re-checking slots after successful booking
+    // appointmentJustCreated is already set above (section 5.8)
 
     while (currentToolCalls.length > 0 && toolRound < MAX_TOOL_ROUNDS) {
       toolRound++;
@@ -3963,16 +3989,10 @@ serve(async (req) => {
           body: JSON.stringify({
             model: "google/gemini-3-flash-preview",
             messages: [
-              { role: "system", content: appointmentJustCreated 
-                ? systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: O agendamento ACABOU DE SER CRIADO COM SUCESSO nesta conversa. O horário JÁ ESTÁ RESERVADO para este paciente. NÃO use check_slot, get_available_slots ou qualquer ferramenta de verificação. Apenas confirme os detalhes ao paciente de forma amigável."
-                : systemPrompt },
+              { role: "system", content: effectiveSystemPrompt },
               ...followUpMessages.map(m => ({ role: m.role === "tool" ? "user" : m.role, content: m.content }))
             ],
-            // CRITICAL: When appointment was just created, remove scheduling tools entirely
-            // to prevent the AI from re-checking the slot it just booked
-            tools: appointmentJustCreated 
-              ? TOOLS.filter((t: { function: { name: string } }) => !["check_slot", "get_available_slots", "create_appointment"].includes(t.function.name))
-              : TOOLS,
+            tools: effectiveTools,
             tool_choice: "auto",
             max_tokens: 500,
             temperature: 0.7,
