@@ -4044,6 +4044,10 @@ serve(async (req) => {
     finalResponse = finalResponse.replace(/\[?\b(preencher_checklist|send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
     // Also remove bracket-style tool calls like [tool_name(...)]
     finalResponse = finalResponse.replace(/\[\w+\([^\]]*\)\]/g, "");
+    // Remove bracket-colon-JSON format: [tool_name]: { ... }
+    finalResponse = finalResponse.replace(/\[\w+\]\s*:\s*\{[^}]*\}/g, "");
+    // Remove bracket tool name with any trailing content on same line: [tool_name]...
+    finalResponse = finalResponse.replace(/\[(?:preencher_checklist|send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products|check_slot)\][^\n]*/g, "");
 
     // Layer 1: Remove JSON-style tool_calls blocks
     finalResponse = finalResponse.replace(
