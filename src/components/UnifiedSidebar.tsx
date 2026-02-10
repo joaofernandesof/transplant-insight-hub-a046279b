@@ -506,24 +506,23 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                 )}
               </div>
             ))}
-            
-            {/* Separator before footer actions */}
-            <div className="my-3 border-t border-border" />
-            
-            {/* Logout Button */}
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-3 h-9 text-destructive hover:text-destructive hover:bg-destructive/10",
-                isCollapsed && "justify-center px-2"
-              )}
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span className="truncate text-sm">Sair</span>}
-            </Button>
           </nav>
         </ScrollArea>
+
+        {/* Fixed Footer - Logout */}
+        <div className="border-t border-border p-2 flex-shrink-0">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 h-9 text-destructive hover:text-destructive hover:bg-destructive/10",
+              isCollapsed && "justify-center px-2"
+            )}
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && <span className="truncate text-sm">Sair</span>}
+          </Button>
+        </div>
       </aside>
 
       {/* Main Content */}
