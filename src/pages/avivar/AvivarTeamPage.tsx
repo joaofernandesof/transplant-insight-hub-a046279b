@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -62,6 +63,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import PermissionsMatrix from './PermissionsMatrix';
 
 type TeamRole = 'owner' | 'admin' | 'coordenador' | 'sdr' | 'atendente';
 
@@ -71,7 +73,6 @@ interface TeamMember {
   role: TeamRole;
   is_active: boolean;
   created_at: string | null;
-  // Derived from profiles or auth
   name: string;
   email: string;
   phone: string | null;
@@ -121,7 +122,6 @@ export default function AvivarTeamPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -152,18 +152,15 @@ export default function AvivarTeamPage() {
     }
   };
 
-  // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Por favor, selecione uma imagem');
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('A imagem deve ter no máximo 5MB');
       return;
@@ -177,7 +174,7 @@ export default function AvivarTeamPage() {
     reader.readAsDataURL(file);
   };
 
-  // Fetch team members
+  // Fetch team members with profile email
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ['avivar-team-members', accountId],
     queryFn: async () => {
@@ -187,16 +184,30 @@ export default function AvivarTeamPage() {
         .from('avivar_account_members')
         .select('id, user_id, role, is_active, created_at')
         .eq('account_id', accountId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return (data || []).map(m => ({
-        ...m,
-        name: m.user_id === user?.authUserId ? 'Eu (Proprietário)' : `Membro (${m.role})`,
-        email: '',
-        phone: null,
-        avatar_url: null,
-      })) as TeamMember[];
+      if (!data || data.length === 0) return [];
+
+      // Fetch profiles for all member user_ids
+      const userIds = data.map(m => m.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url, phone')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      return data.map(m => {
+        const profile = profileMap.get(m.user_id);
+        return {
+          ...m,
+          name: profile?.full_name || (m.user_id === user?.authUserId ? 'Eu (Proprietário)' : `Membro (${m.role})`),
+          email: profile?.email || '',
+          phone: profile?.phone || null,
+          avatar_url: profile?.avatar_url || null,
+        };
+      }) as TeamMember[];
     },
     enabled: !!accountId,
   });
@@ -205,10 +216,7 @@ export default function AvivarTeamPage() {
   const addMemberMutation = useMutation({
     mutationFn: async (data: typeof formData & { avatarFile?: File | null }) => {
       if (!accountId) throw new Error('Conta não encontrada');
-
-      // For now, create a placeholder member (real user invitation can be added later)
       const tempUserId = crypto.randomUUID();
-
       const { error } = await supabase
         .from('avivar_account_members')
         .insert({
@@ -217,7 +225,6 @@ export default function AvivarTeamPage() {
           role: data.role as any,
           is_active: true,
         });
-
       if (error) throw error;
     },
     onSuccess: () => {
@@ -235,16 +242,12 @@ export default function AvivarTeamPage() {
     },
   });
 
-  // Update team member mutation
   const updateMemberMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
       const { error } = await supabase
         .from('avivar_account_members')
-        .update({
-          role: data.role as any,
-        })
+        .update({ role: data.role as any })
         .eq('id', id);
-
       if (error) throw error;
     },
     onSuccess: () => {
@@ -258,14 +261,12 @@ export default function AvivarTeamPage() {
     },
   });
 
-  // Toggle active status mutation
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
       const { error } = await supabase
         .from('avivar_account_members')
         .update({ is_active: isActive })
         .eq('id', id);
-
       if (error) throw error;
     },
     onSuccess: (_, { isActive }) => {
@@ -283,7 +284,6 @@ export default function AvivarTeamPage() {
         .from('avivar_account_members')
         .delete()
         .eq('id', id);
-
       if (error) throw error;
     },
     onSuccess: () => {
@@ -346,323 +346,350 @@ export default function AvivarTeamPage() {
             Equipe
           </h1>
           <p className="text-[hsl(var(--avivar-muted-foreground))]">
-            Gerencie os atendentes da sua empresa
+            Gerencie os membros da sua empresa
           </p>
         </div>
+      </div>
 
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Adicionar Atendente
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Novo Atendente</DialogTitle>
-              <DialogDescription>
-                Adicione um novo membro à sua equipe
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {/* Avatar Upload */}
-              <div className="flex flex-col items-center gap-3">
-                <div className="relative">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={avatarPreview || undefined} />
-                    <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.1)] text-[hsl(var(--avivar-primary))] text-xl">
-                      {formData.name ? getInitials(formData.name) : <Camera className="h-6 w-6" />}
-                    </AvatarFallback>
-                  </Avatar>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-[hsl(var(--avivar-primary))] text-white shadow-lg hover:bg-[hsl(var(--avivar-accent))] transition-colors"
-                  >
-                    <Upload className="h-3 w-3" />
-                  </button>
+      {/* Tabs: Usuários / Permissões */}
+      <Tabs defaultValue="usuarios" className="space-y-6">
+        <TabsList className="bg-[hsl(var(--avivar-muted))]">
+          <TabsTrigger value="usuarios" className="data-[state=active]:bg-[hsl(var(--avivar-card))]">
+            <Users className="h-4 w-4 mr-2" />
+            Usuários
+          </TabsTrigger>
+          <TabsTrigger value="permissoes" className="data-[state=active]:bg-[hsl(var(--avivar-card))]">
+            <Shield className="h-4 w-4 mr-2" />
+            Permissões
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ====== ABA USUÁRIOS ====== */}
+        <TabsContent value="usuarios" className="space-y-6">
+          {/* Add Button */}
+          <div className="flex justify-end">
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  + Novo Usuário
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Novo Usuário</DialogTitle>
+                  <DialogDescription>
+                    Adicione um novo membro à sua equipe
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  {/* Avatar Upload */}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative">
+                      <Avatar className="h-20 w-20">
+                        <AvatarImage src={avatarPreview || undefined} />
+                        <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.1)] text-[hsl(var(--avivar-primary))] text-xl">
+                          {formData.name ? getInitials(formData.name) : <Camera className="h-6 w-6" />}
+                        </AvatarFallback>
+                      </Avatar>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-[hsl(var(--avivar-primary))] text-white shadow-lg hover:bg-[hsl(var(--avivar-accent))] transition-colors"
+                      >
+                        <Upload className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileSelect(e)}
+                      className="hidden"
+                    />
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                      Clique para adicionar foto
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome completo</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="João Silva"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="joao@empresa.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefone (opcional)</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Função</Label>
+                    <Select
+                      value={formData.role}
+                      onValueChange={(value: TeamRole) => setFormData({ ...formData, role: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(ROLE_INFO).map(([key, info]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex flex-col">
+                              <span>{info.label}</span>
+                              <span className="text-xs text-muted-foreground">{info.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileSelect(e)}
-                  className="hidden"
-                />
-                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                  Clique para adicionar foto
-                </p>
-              </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => addMemberMutation.mutate({ ...formData, avatarFile })}
+                    disabled={!formData.name || !formData.email || addMemberMutation.isPending || isUploading}
+                    className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]"
+                  >
+                    {isUploading ? 'Enviando foto...' : addMemberMutation.isPending ? 'Adicionando...' : 'Adicionar'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome completo</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="João Silva"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="joao@empresa.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone (opcional)</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Função</Label>
-                <Select
-                  value={formData.role}
-                  onValueChange={(value: TeamRole) => setFormData({ ...formData, role: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(ROLE_INFO).map(([key, info]) => (
-                      <SelectItem key={key} value={key}>
-                        <div className="flex flex-col">
-                          <span>{info.label}</span>
-                          <span className="text-xs text-muted-foreground">{info.description}</span>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-[hsl(var(--avivar-primary)/0.1)]">
+                    <Users className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
+                      {teamMembers.length}
+                    </p>
+                    <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Total de membros</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
+                      {activeMembers.length}
+                    </p>
+                    <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Ativos</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10">
+                    <Clock className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
+                      {teamMembers.filter(m => !m.is_active).length}
+                    </p>
+                    <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Pendentes</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+            <Input
+              placeholder="Buscar colaborador..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
+            />
+          </div>
+
+          {/* Team Members List */}
+          <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+            <CardHeader>
+              <CardTitle className="text-lg text-[hsl(var(--avivar-foreground))]">
+                Colaboradores Ativos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8 text-[hsl(var(--avivar-muted-foreground))]">
+                  Carregando...
+                </div>
+              ) : activeMembers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto text-[hsl(var(--avivar-muted-foreground))] mb-3" />
+                  <p className="text-[hsl(var(--avivar-muted-foreground))]">
+                    Nenhum colaborador encontrado
+                  </p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                    Adicione seu primeiro colaborador
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {activeMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] hover:bg-[hsl(var(--avivar-primary)/0.05)] transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={member.avatar_url || undefined} />
+                          <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.1)] text-[hsl(var(--avivar-primary))]">
+                            {getInitials(member.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                            {member.name}
+                          </p>
+                          <div className="flex items-center gap-3 text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                            {member.email && (
+                              <span className="flex items-center gap-1">
+                                <Mail className="h-3 w-3" />
+                                {member.email}
+                              </span>
+                            )}
+                            {member.phone && (
+                              <span className="flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                {member.phone}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => addMemberMutation.mutate({ ...formData, avatarFile })}
-                disabled={!formData.name || !formData.email || addMemberMutation.isPending || isUploading}
-                className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]"
-              >
-                {isUploading ? 'Enviando foto...' : addMemberMutation.isPending ? 'Adicionando...' : 'Adicionar'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-[hsl(var(--avivar-primary)/0.1)]">
-                <Users className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-                  {teamMembers.length}
-                </p>
-                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Total de atendentes</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-                  {activeMembers.length}
-                </p>
-                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Ativos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <Clock className="h-5 w-5 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-                  {teamMembers.filter(m => !m.is_active).length}
-                </p>
-                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Pendentes</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-        <Input
-          placeholder="Buscar colaborador..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
-        />
-      </div>
-
-      {/* Team Members List */}
-      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-        <CardHeader>
-          <CardTitle className="text-lg text-[hsl(var(--avivar-foreground))]">
-            Colaboradores Ativos
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8 text-[hsl(var(--avivar-muted-foreground))]">
-              Carregando...
-            </div>
-          ) : activeMembers.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-[hsl(var(--avivar-muted-foreground))] mb-3" />
-              <p className="text-[hsl(var(--avivar-muted-foreground))]">
-                Nenhum colaborador encontrado
-              </p>
-              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                Adicione seu primeiro colaborador
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {activeMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] hover:bg-[hsl(var(--avivar-primary)/0.05)] transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={member.avatar_url || undefined} />
-                      <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.1)] text-[hsl(var(--avivar-primary))]">
-                        {getInitials(member.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                        {member.name}
-                      </p>
-                      <div className="flex items-center gap-3 text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                        <span className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {member.email}
-                        </span>
-                        {member.phone && (
-                          <span className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
-                            {member.phone}
-                          </span>
-                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge 
+                          variant="outline" 
+                          className={ROLE_INFO[member.role].color}
+                        >
+                          <Shield className="h-3 w-3 mr-1" />
+                          {ROLE_INFO[member.role].label}
+                        </Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(member)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => toggleActiveMutation.mutate({ id: member.id, isActive: false })}
+                            >
+                              <Clock className="h-4 w-4 mr-2" />
+                              Desativar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDelete(member)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remover
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge 
-                      variant="outline" 
-                      className={ROLE_INFO[member.role].color}
-                    >
-                      <Shield className="h-3 w-3 mr-1" />
-                      {ROLE_INFO[member.role].label}
-                    </Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(member)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => toggleActiveMutation.mutate({ id: member.id, isActive: false })}
-                        >
-                          <Clock className="h-4 w-4 mr-2" />
-                          Desativar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDelete(member)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remover
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
 
-      {/* Inactive Members */}
-      {inactiveMembers.length > 0 && (
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] opacity-75">
-          <CardHeader>
-            <CardTitle className="text-lg text-[hsl(var(--avivar-foreground))]">
-              Colaboradores Inativos
-            </CardTitle>
-            <CardDescription>
-              Colaboradores que foram desativados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {inactiveMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))]"
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-10 w-10 grayscale">
-                      <AvatarImage src={member.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gray-200 text-gray-500">
-                        {getInitials(member.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium text-[hsl(var(--avivar-muted-foreground))]">
-                        {member.name}
-                      </p>
-                      <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                        {member.email}
-                      </p>
+          {/* Inactive Members */}
+          {inactiveMembers.length > 0 && (
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] opacity-75">
+              <CardHeader>
+                <CardTitle className="text-lg text-[hsl(var(--avivar-foreground))]">
+                  Colaboradores Inativos
+                </CardTitle>
+                <CardDescription>
+                  Colaboradores que foram desativados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {inactiveMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))]"
+                    >
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-10 w-10 grayscale">
+                          <AvatarImage src={member.avatar_url || undefined} />
+                          <AvatarFallback className="bg-gray-200 text-gray-500">
+                            {getInitials(member.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-[hsl(var(--avivar-muted-foreground))]">
+                            {member.name}
+                          </p>
+                          <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                            {member.email}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleActiveMutation.mutate({ id: member.id, isActive: true })}
+                      >
+                        Reativar
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleActiveMutation.mutate({ id: member.id, isActive: true })}
-                  >
-                    Reativar
-                  </Button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* ====== ABA PERMISSÕES ====== */}
+        <TabsContent value="permissoes">
+          <PermissionsMatrix />
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
