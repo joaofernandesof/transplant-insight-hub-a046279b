@@ -230,7 +230,7 @@ export default function AvivarDashboard() {
     queryFn: async () => {
       const { data: conversations, error } = await supabase
         .from('crm_conversations')
-        .select('id, lead_id, last_message, last_message_at, unread_count')
+        .select('id, lead_id, last_message_at, unread_count')
         .gt('unread_count', 0)
         .order('last_message_at', { ascending: false })
         .limit(5);
@@ -249,6 +249,23 @@ export default function AvivarDashboard() {
         }
       }
 
+      // Get last message per conversation
+      const convIds = (conversations || []).map(c => c.id);
+      let lastMessages: Record<string, string> = {};
+      if (convIds.length > 0) {
+        for (const convId of convIds) {
+          const { data: msgs } = await supabase
+            .from('crm_messages')
+            .select('content')
+            .eq('conversation_id', convId)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (msgs && msgs[0]) {
+            lastMessages[convId] = msgs[0].content || 'Nova mensagem';
+          }
+        }
+      }
+
       const recentConversations = (conversations || []).map(c => {
         const timeDiff = c.last_message_at 
           ? Math.floor((now.getTime() - new Date(c.last_message_at).getTime()) / 60000)
@@ -258,11 +275,9 @@ export default function AvivarDashboard() {
         return {
           id: c.id,
           lead: c.lead_id ? (leadNames[c.lead_id] || 'Lead') : 'Desconhecido',
-          message: c.last_message || 'Nova mensagem',
+          message: lastMessages[c.id] || 'Nova mensagem',
           time: timeLabel,
           unread: (c.unread_count || 0) > 0,
-          leadId: c.lead_id,
-          phone: null as string | null,
         };
       });
 
