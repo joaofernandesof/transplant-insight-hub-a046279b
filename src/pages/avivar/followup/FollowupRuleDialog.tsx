@@ -56,7 +56,7 @@ import { toast } from 'sonner';
     delay_value: 30,
     delay_type: 'minutes' as 'minutes' | 'hours' | 'days',
     message_template: '',
-    urgency_level: 'soft' as 'soft' | 'medium' | 'urgent',
+    
     use_ai_generation: false,
     ai_context: '',
     respect_business_hours: true,
