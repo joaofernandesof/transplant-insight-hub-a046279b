@@ -24,6 +24,7 @@ interface ChecklistItem {
   category: string;
   completed: boolean;
   required: boolean;
+  templateUrl?: string;
 }
 
 const initialChecklist: ChecklistItem[] = [
