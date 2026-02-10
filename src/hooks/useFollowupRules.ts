@@ -12,7 +12,7 @@ export interface FollowupRule {
   delay_minutes: number;
   delay_type: 'minutes' | 'hours' | 'days';
   message_template: string;
-  urgency_level: 'soft' | 'medium' | 'urgent';
+  urgency_level?: 'soft' | 'medium' | 'urgent';
   use_ai_generation: boolean;
   ai_context: string | null;
   is_active: boolean;
@@ -51,8 +51,7 @@ export interface CreateFollowupRuleInput {
   delay_minutes: number;
   delay_type?: 'minutes' | 'hours' | 'days';
   message_template: string;
-  urgency_level?: 'soft' | 'medium' | 'urgent';
-  use_ai_generation?: boolean;
+   use_ai_generation?: boolean;
   ai_context?: string;
   is_active?: boolean;
   target_kanban_id?: string;

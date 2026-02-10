@@ -382,18 +382,6 @@
                      >
                        <div className="flex items-center justify-between mb-2">
                          <h4 className="font-medium text-[hsl(var(--avivar-foreground))]">{template.name}</h4>
-                         <Badge 
-                           variant="outline" 
-                           className={
-                             template.urgency_level === 'urgent' 
-                               ? 'text-red-500 border-red-500/30' 
-                               : template.urgency_level === 'medium'
-                                 ? 'text-amber-500 border-amber-500/30'
-                                 : 'text-emerald-500 border-emerald-500/30'
-                           }
-                         >
-                           {template.urgency_level === 'urgent' ? '🔥 Urgente' : template.urgency_level === 'medium' ? '⚡ Médio' : '🌱 Suave'}
-                         </Badge>
                        </div>
                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">{template.message_template}</p>
                        <div className="flex gap-2 mt-3">

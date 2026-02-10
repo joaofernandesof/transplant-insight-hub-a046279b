@@ -42,21 +42,6 @@ export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupR
      return `${value} minuto${value > 1 ? 's' : ''}`;
    };
  
-   const getUrgencyColor = () => {
-     switch (rule.urgency_level) {
-       case 'urgent': return 'text-red-500 bg-red-500/20 border-red-500/30';
-       case 'medium': return 'text-amber-500 bg-amber-500/20 border-amber-500/30';
-       default: return 'text-emerald-500 bg-emerald-500/20 border-emerald-500/30';
-     }
-   };
- 
-   const getUrgencyLabel = () => {
-     switch (rule.urgency_level) {
-       case 'urgent': return 'Urgente';
-       case 'medium': return 'Médio';
-       default: return 'Suave';
-     }
-   };
  
    return (
      <div 
@@ -82,9 +67,6 @@ export function FollowupRuleCard({ rule, onToggle, onEdit, onDelete }: FollowupR
                <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                  {rule.name || `Tentativa ${rule.attempt_number}`}
                </p>
-               <Badge className={cn("text-xs", getUrgencyColor())}>
-                 {getUrgencyLabel()}
-               </Badge>
                {rule.use_ai_generation && (
                  <Badge className="text-xs bg-purple-500/20 text-purple-500 border-purple-500/30">
                    <Brain className="h-3 w-3 mr-1" />

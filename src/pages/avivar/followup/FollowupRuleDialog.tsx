@@ -56,7 +56,7 @@ import { toast } from 'sonner';
     delay_value: 30,
     delay_type: 'minutes' as 'minutes' | 'hours' | 'days',
     message_template: '',
-    urgency_level: 'soft' as 'soft' | 'medium' | 'urgent',
+    
     use_ai_generation: false,
     ai_context: '',
     respect_business_hours: true,
@@ -113,7 +113,7 @@ import { toast } from 'sonner';
         delay_value: delayValue,
         delay_type: delayType,
         message_template: rule.message_template,
-        urgency_level: rule.urgency_level,
+        
         use_ai_generation: rule.use_ai_generation,
         ai_context: rule.ai_context || '',
         respect_business_hours: rule.respect_business_hours,
@@ -422,7 +422,7 @@ import { toast } from 'sonner';
       delay_minutes: delayMinutes,
       delay_type: formData.delay_type,
       message_template: formData.message_template,
-      urgency_level: formData.urgency_level,
+      
       use_ai_generation: formData.use_ai_generation,
       ai_context: formData.ai_context || null,
       respect_business_hours: formData.respect_business_hours,
@@ -539,22 +539,6 @@ import { toast } from 'sonner';
                      </SelectContent>
                    </Select>
                  </div>
-               </div>
-               <div className="space-y-2">
-                 <Label className="text-[hsl(var(--avivar-foreground))]">Nível de Urgência</Label>
-                 <Select
-                   value={formData.urgency_level}
-                   onValueChange={(value: 'soft' | 'medium' | 'urgent') => setFormData(prev => ({ ...prev, urgency_level: value }))}
-                 >
-                   <SelectTrigger className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]">
-                     <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="soft">🌱 Suave</SelectItem>
-                     <SelectItem value="medium">⚡ Médio</SelectItem>
-                     <SelectItem value="urgent">🔥 Urgente</SelectItem>
-                   </SelectContent>
-                 </Select>
                </div>
              </div>
  
