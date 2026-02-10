@@ -29,7 +29,7 @@ interface ChecklistItem {
 
 const initialChecklist: ChecklistItem[] = [
   { id: '1', title: 'CNPJ Ativo', description: 'Cadastro Nacional de Pessoa Jurídica', category: 'documentacao', completed: true, required: true },
-  { id: '2', title: 'Contrato Social', description: 'Registrado na Junta Comercial', category: 'documentacao', completed: true, required: true },
+  { id: '2', title: 'Contrato Social', description: 'Registrado na Junta Comercial', category: 'documentacao', completed: true, required: true, templateUrl: '#' },
   { id: '3', title: 'Inscrição Estadual', description: 'Se aplicável ao seu estado', category: 'documentacao', completed: false, required: false },
   { id: '4', title: 'Inscrição Municipal', description: 'Cadastro no município', category: 'documentacao', completed: true, required: true },
   { id: '5', title: 'Alvará de Funcionamento', description: 'Emitido pela prefeitura local', category: 'alvaras', completed: true, required: true },
@@ -38,12 +38,12 @@ const initialChecklist: ChecklistItem[] = [
   { id: '8', title: 'Licença Ambiental', description: 'Se aplicável à sua região', category: 'alvaras', completed: true, required: false },
   { id: '9', title: 'CRM do Responsável Técnico', description: 'Registro ativo no Conselho Regional', category: 'medico', completed: true, required: true },
   { id: '10', title: 'Registro no CRM como PJ', description: 'Clínica registrada no conselho', category: 'medico', completed: true, required: true },
-  { id: '11', title: 'Protocolos de Esterilização', description: 'Documentados e validados', category: 'medico', completed: false, required: true },
-  { id: '12', title: 'PGRSS', description: 'Plano de Gerenciamento de Resíduos', category: 'medico', completed: false, required: true },
-  { id: '13', title: 'Política de Privacidade', description: 'Conforme LGPD', category: 'juridico', completed: true, required: true },
-  { id: '14', title: 'Termos de Consentimento', description: 'TCLE atualizados', category: 'juridico', completed: true, required: true },
-  { id: '15', title: 'Contrato de Prestação de Serviços', description: 'Modelo validado juridicamente', category: 'juridico', completed: true, required: true },
-  { id: '16', title: 'Autorização de Uso de Imagem', description: 'Para marketing e documentação', category: 'juridico', completed: false, required: false },
+  { id: '11', title: 'Protocolos de Esterilização', description: 'Documentados e validados', category: 'medico', completed: false, required: true, templateUrl: '#' },
+  { id: '12', title: 'PGRSS', description: 'Plano de Gerenciamento de Resíduos', category: 'medico', completed: false, required: true, templateUrl: '#' },
+  { id: '13', title: 'Política de Privacidade', description: 'Conforme LGPD', category: 'juridico', completed: true, required: true, templateUrl: '#' },
+  { id: '14', title: 'Termos de Consentimento', description: 'TCLE atualizados', category: 'juridico', completed: true, required: true, templateUrl: '#' },
+  { id: '15', title: 'Contrato de Prestação de Serviços', description: 'Modelo validado juridicamente', category: 'juridico', completed: true, required: true, templateUrl: '#' },
+  { id: '16', title: 'Autorização de Uso de Imagem', description: 'Para marketing e documentação', category: 'juridico', completed: false, required: false, templateUrl: '#' },
 ];
 
 const categories = [
