@@ -623,8 +623,8 @@ const TOOLS = [
       {
         type: "function",
         function: {
-          name: "reserve_slot",
-          description: "RESERVA TEMPORÁRIA (10 min) de um horário. Use SEMPRE em vez de create_appointment quando o lead aceitar um horário. A reserva bloqueia o horário mas NÃO é um agendamento definitivo. Após reservar, apresente os detalhes ao lead e pergunte se pode confirmar. Só use confirm_reservation quando o lead disser 'sim'.",
+          name: "propose_slot",
+          description: "Valida um horário e retorna os detalhes formatados para apresentar ao lead. NÃO cria nenhum registro no banco — apenas verifica disponibilidade e formata a proposta. Use SEMPRE antes de create_appointment. Após chamar propose_slot, apresente os detalhes ao lead e pergunte 'Posso confirmar?'. Só use create_appointment quando o lead responder 'sim' na PRÓXIMA mensagem.",
           parameters: {
             type: "object",
             properties: {
@@ -647,47 +647,9 @@ const TOOLS = [
               service_type: {
                 type: "string",
                 description: "Tipo de serviço: 'avaliacao' ou 'transplante'"
-              },
-              notes: {
-                type: "string",
-                description: "Observações adicionais (opcional)"
               }
             },
             required: ["agenda_name", "patient_name", "date", "time", "service_type"]
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "confirm_reservation",
-          description: "CONFIRMA uma reserva temporária, transformando-a em agendamento definitivo. Use SOMENTE após o lead confirmar explicitamente ('sim', 'confirma', 'pode marcar'). NUNCA use no mesmo turno que reserve_slot — SEMPRE aguarde a resposta do lead.",
-          parameters: {
-            type: "object",
-            properties: {
-              reservation_id: {
-                type: "string",
-                description: "ID da reserva retornado por reserve_slot (opcional - se não informado, busca a reserva pendente mais recente da conversa)"
-              }
-            },
-            required: []
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "cancel_reservation",
-          description: "Cancela uma reserva temporária pendente. Use quando o lead disser 'não' ou quiser outro horário após um reserve_slot.",
-          parameters: {
-            type: "object",
-            properties: {
-              reservation_id: {
-                type: "string",
-                description: "ID da reserva retornado por reserve_slot (opcional)"
-              }
-            },
-            required: []
           }
         }
       }
@@ -1462,24 +1424,20 @@ INSTRUÇÃO INTERNA: O agendamento JÁ FOI SALVO no sistema. O horário ${format
 }
 
 // ============================================
-// RESERVE SLOT - 2-Step Booking (Step 1)
+// PROPOSE SLOT - Validate & Format (NO DB write)
 // ============================================
 
-async function reserveSlot(
+async function proposeSlot(
   supabase: AnySupabaseClient,
   accountId: string,
   userId: string,
-  leadId: string | null,
-  conversationId: string,
   agendaName: string,
   patientName: string,
-  patientPhone: string,
   date: string,
   time: string,
-  serviceType: string,
-  notes?: string
+  serviceType: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: reserve_slot(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
+  console.log(`[AI Agent] Tool: propose_slot(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
 
   const { agendaId, agendaInfo } = await resolveAgenda(supabase, accountId, agendaName);
 
@@ -1489,12 +1447,7 @@ async function reserveSlot(
     return "Não consegui entender a data/horário. Você pode confirmar no formato 2026-02-09 às 09:30?";
   }
 
-  const [hours, minutes] = normalizedTime.split(":").map(Number);
-  const endHours = Math.floor((hours * 60 + minutes + 30) / 60);
-  const endMinutes = (hours * 60 + minutes + 30) % 60;
-  const endTime = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
-
-  // Check availability
+  // Check availability (NO INSERT)
   const { data: slots } = await supabase.rpc("get_available_slots_flexible", {
     p_user_id: userId,
     p_agenda_id: agendaId,
@@ -1510,38 +1463,6 @@ async function reserveSlot(
     return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
   }
 
-  // Create reservation with pending_confirmation status and 10-min expiry
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-  const { data: reservation, error } = await supabase
-    .from("avivar_appointments")
-    .insert({
-      account_id: accountId,
-      user_id: userId,
-      agenda_id: agendaId,
-      lead_id: leadId,
-      conversation_id: conversationId,
-      patient_name: patientName,
-      patient_phone: patientPhone,
-      appointment_date: normalizedDate,
-      start_time: normalizedTime + ":00",
-      end_time: endTime + ":00",
-      service_type: serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar",
-      location: agendaInfo?.city || null,
-      professional_name: agendaInfo?.professional_name || null,
-      notes: notes || null,
-      status: "pending_confirmation",
-      expires_at: expiresAt,
-      created_by: "ai"
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("[AI Agent] Error creating reservation:", error);
-    return "Ocorreu um erro ao reservar o horário. Por favor, tente novamente.";
-  }
-
   const dateObj = new Date(normalizedDate + "T12:00:00");
   const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
   const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -1550,249 +1471,16 @@ async function reserveSlot(
     ? `\n📍 Local: ${agendaInfo.name}${agendaInfo.address ? ` - ${agendaInfo.address}` : ""}`
     : "";
 
-  console.log(`[AI Agent] ✅ Reservation ${reservation.id} created (expires: ${expiresAt})`);
+  console.log(`[AI Agent] ✅ Slot validated (NO DB write): ${normalizedDate} ${normalizedTime}`);
 
-  return `RESERVA_TEMPORARIA_CRIADA (ID: ${reservation.id})
+  return `PROPOSTA_VALIDADA (SEM registro no banco)
 
 📅 Data: ${dayName}, ${dateFormatted}
 ⏰ Horário: ${formatTimeDisplay(normalizedTime)}
 👤 Paciente: ${patientName}
 📋 Tipo: ${serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar"}${locationInfo}
 
-INSTRUÇÃO INTERNA: O horário foi RESERVADO temporariamente (expira em 10 minutos). Agora APRESENTE os detalhes ao lead e PERGUNTE se pode confirmar. SOMENTE quando o lead confirmar, use confirm_reservation. NUNCA use confirm_reservation neste mesmo turno — AGUARDE a próxima mensagem do lead.`;
-}
-
-// ============================================
-// CONFIRM RESERVATION - 2-Step Booking (Step 2)
-// ============================================
-
-async function confirmReservation(
-  supabase: AnySupabaseClient,
-  accountId: string,
-  conversationId: string,
-  leadId: string | null,
-  patientPhone: string,
-  reservationId?: string
-): Promise<string> {
-  console.log(`[AI Agent] Tool: confirm_reservation(id=${reservationId || "auto-detect"})`);
-
-  // Find the pending reservation
-  let reservation;
-  if (reservationId) {
-    const { data } = await supabase
-      .from("avivar_appointments")
-      .select("*")
-      .eq("id", reservationId)
-      .eq("status", "pending_confirmation")
-      .single();
-    reservation = data;
-  } else {
-    // Auto-detect: find the most recent pending reservation for this conversation
-    const { data } = await supabase
-      .from("avivar_appointments")
-      .select("*")
-      .eq("conversation_id", conversationId)
-      .eq("status", "pending_confirmation")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    reservation = data;
-  }
-
-  if (!reservation) {
-    return "Não encontrei nenhuma reserva pendente para confirmar. Vamos buscar um novo horário?";
-  }
-
-  // Check if reservation expired
-  if (reservation.expires_at && new Date(reservation.expires_at) < new Date()) {
-    // Clean up expired reservation
-    await supabase
-      .from("avivar_appointments")
-      .update({ status: "cancelled", cancellation_reason: "Reserva expirada (sem confirmação em 10 minutos)" })
-      .eq("id", reservation.id);
-    return "A reserva temporária expirou (10 minutos sem confirmação). Vamos buscar um novo horário?";
-  }
-
-  // Confirm: update status to scheduled
-  const { error } = await supabase
-    .from("avivar_appointments")
-    .update({
-      status: "scheduled",
-      confirmed_at: new Date().toISOString(),
-      expires_at: null // Clear expiry
-    })
-    .eq("id", reservation.id);
-
-  if (error) {
-    console.error("[AI Agent] Error confirming reservation:", error);
-    return "Ocorreu um erro ao confirmar o agendamento. Por favor, tente novamente.";
-  }
-
-  // Sync to Google Calendar NOW (only on confirmation)
-  let meetLink: string | null = null;
-  if (reservation.agenda_id) {
-    try {
-      const googleResult = await createGoogleCalendarEvent(
-        supabase, reservation.agenda_id,
-        `Avaliação com Especialista Capilar - Paciente ${reservation.patient_name}`,
-        reservation.appointment_date,
-        reservation.start_time.substring(0, 5),
-        reservation.end_time.substring(0, 5),
-        `Paciente: ${reservation.patient_name}\nTelefone: ${reservation.patient_phone}\n${reservation.notes || ""}`,
-        reservation.location || undefined
-      );
-      if (googleResult) {
-        try {
-          const parsed = JSON.parse(googleResult);
-          const googleEventId = parsed.eventId;
-          meetLink = parsed.meetLink;
-          if (googleEventId) {
-            await supabase
-              .from("avivar_appointments")
-              .update({ google_event_id: googleEventId })
-              .eq("id", reservation.id);
-            console.log(`[AI Agent] Stored google_event_id=${googleEventId} for confirmed appointment ${reservation.id}`);
-          }
-        } catch {
-          await supabase
-            .from("avivar_appointments")
-            .update({ google_event_id: googleResult })
-            .eq("id", reservation.id);
-        }
-      }
-    } catch (e) {
-      console.error("[AI Agent] Google Calendar sync error on confirmation:", e);
-    }
-  }
-
-  // Fallback meet link
-  if (!meetLink) {
-    meetLink = `https://meet.jit.si/avivar-${reservation.id}`;
-  }
-
-  // Auto-fill checklist fields
-  try {
-    const { data: leadKanban } = await supabase
-      .from("avivar_kanban_leads")
-      .select("id, kanban_id, custom_fields")
-      .eq("phone", patientPhone)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (leadKanban) {
-      const { data: checklistFields } = await supabase
-        .from("avivar_column_checklists")
-        .select("field_key, field_type, options")
-        .eq("account_id", accountId);
-
-      if (checklistFields?.length) {
-        const checklistCampos: Record<string, string> = {};
-        const fieldKeys = checklistFields.map(f => f.field_key.toLowerCase());
-        const normalizedDate = reservation.appointment_date;
-        const normalizedTime = reservation.start_time.substring(0, 5);
-
-        const possibleDateKeys = ["data_e_hora", "data_hora", "data", "data_agendamento", "data_consulta"];
-        for (const dk of possibleDateKeys) {
-          if (fieldKeys.includes(dk)) {
-            const matchField = checklistFields.find(f => f.field_key.toLowerCase() === dk);
-            if (matchField) {
-              checklistCampos[matchField.field_key] = matchField.field_type === "date"
-                ? normalizedDate
-                : `${normalizedDate} ${normalizedTime}`;
-            }
-            break;
-          }
-        }
-
-        const possibleLinkKeys = ["link_da_call", "link_meet", "link_videochamada", "link_call", "meet_link"];
-        if (meetLink) {
-          for (const lk of possibleLinkKeys) {
-            if (fieldKeys.includes(lk)) {
-              const matchField = checklistFields.find(f => f.field_key.toLowerCase() === lk);
-              if (matchField) {
-                checklistCampos[matchField.field_key] = meetLink;
-              }
-              break;
-            }
-          }
-        }
-
-        if (Object.keys(checklistCampos).length > 0) {
-          const existingFields = (leadKanban.custom_fields as Record<string, unknown>) || {};
-          const mergedFields = { ...existingFields, ...checklistCampos };
-          await supabase
-            .from("avivar_kanban_leads")
-            .update({ custom_fields: mergedFields, updated_at: new Date().toISOString() })
-            .eq("id", leadKanban.id);
-          console.log(`[AI Agent] ✅ Auto-filled checklist after confirmation: ${Object.keys(checklistCampos).join(", ")}`);
-        }
-      }
-    }
-  } catch (e) {
-    console.error("[AI Agent] Error auto-filling checklist on confirmation:", e);
-  }
-
-  const dateObj = new Date(reservation.appointment_date + "T12:00:00");
-  const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
-  const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const timeDisplay = formatTimeDisplay(reservation.start_time.substring(0, 5));
-
-  console.log(`[AI Agent] ✅ Reservation ${reservation.id} CONFIRMED as scheduled appointment`);
-
-  return `✅ AGENDAMENTO CONFIRMADO COM SUCESSO!
-
-📅 Data: ${dayName}, ${dateFormatted}
-⏰ Horário: ${timeDisplay}
-👤 Paciente: ${reservation.patient_name}
-📋 Tipo: ${reservation.service_type}
-
-INSTRUÇÃO INTERNA: O agendamento foi CONFIRMADO DEFINITIVAMENTE. Apresente os dados ao lead como fato consumado. Mova o lead para a etapa "agendado". NÃO re-verifique disponibilidade.`;
-}
-
-// ============================================
-// CANCEL RESERVATION - Cancel pending reservation
-// ============================================
-
-async function cancelReservation(
-  supabase: AnySupabaseClient,
-  conversationId: string,
-  reservationId?: string
-): Promise<string> {
-  console.log(`[AI Agent] Tool: cancel_reservation(id=${reservationId || "auto-detect"})`);
-
-  let reservation;
-  if (reservationId) {
-    const { data } = await supabase
-      .from("avivar_appointments")
-      .select("id")
-      .eq("id", reservationId)
-      .eq("status", "pending_confirmation")
-      .single();
-    reservation = data;
-  } else {
-    const { data } = await supabase
-      .from("avivar_appointments")
-      .select("id")
-      .eq("conversation_id", conversationId)
-      .eq("status", "pending_confirmation")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    reservation = data;
-  }
-
-  if (!reservation) {
-    return "Não encontrei reserva pendente para cancelar.";
-  }
-
-  await supabase
-    .from("avivar_appointments")
-    .update({ status: "cancelled", cancellation_reason: "Lead recusou o horário" })
-    .eq("id", reservation.id);
-
-  console.log(`[AI Agent] Reservation ${reservation.id} cancelled by lead`);
-  return "Reserva cancelada. Vamos buscar outro horário que fique melhor para você?";
+INSTRUÇÃO INTERNA: O horário foi VALIDADO como disponível mas NADA foi salvo no banco. Agora APRESENTE os detalhes ao lead e PERGUNTE se pode confirmar. SOMENTE quando o lead confirmar (na PRÓXIMA mensagem), use create_appointment com os mesmos dados. NUNCA use create_appointment neste mesmo turno — AGUARDE a próxima mensagem do lead.`;
 }
 
 // ============================================
@@ -3153,37 +2841,16 @@ async function processToolCall(
       return "Lead não encontrado para salvar idioma.";
     }
     
-    case "reserve_slot":
-      return await reserveSlot(
+    case "propose_slot":
+      return await proposeSlot(
         supabase,
         accountId,
         userId,
-        leadId,
-        conversationId,
         toolArgs.agenda_name as string,
         toolArgs.patient_name as string,
-        patientPhone,
         toolArgs.date as string,
         toolArgs.time as string,
-        toolArgs.service_type as string,
-        toolArgs.notes as string | undefined
-      );
-
-    case "confirm_reservation":
-      return await confirmReservation(
-        supabase,
-        accountId,
-        conversationId,
-        leadId,
-        patientPhone,
-        toolArgs.reservation_id as string | undefined
-      );
-
-    case "cancel_reservation":
-      return await cancelReservation(
-        supabase,
-        conversationId,
-        toolArgs.reservation_id as string | undefined
+        toolArgs.service_type as string
       );
 
     default:
@@ -3550,24 +3217,25 @@ Você TEM QUE usar "mover_lead_para_etapa" para atualizar o funil. NÃO É OPCIO
 
   instructions += `### IMPORTANTE - SEMPRE MOVA APÓS TOOL CALLS:
 - Após get_available_slots → mova para "${tentandoAgendarKey || "tentando_agendar"}"
-- Após confirm_reservation (com ✅) → mova para "${agendadoKey || "agendado"}"
-- NUNCA mova para "${agendadoKey || "agendado"}" após reserve_slot — só após confirm_reservation!
+- Após create_appointment (com ✅) → mova para "${agendadoKey || "agendado"}"
+- NUNCA mova para "${agendadoKey || "agendado"}" após propose_slot — só após create_appointment!
 - NUNCA deixe de mover o lead quando usar essas ferramentas!
 
 ### REGRA CRÍTICA PÓS-CONFIRMAÇÃO (PRIORIDADE MÁXIMA):
-- Quando confirm_reservation retornar "✅" (sucesso), o agendamento JÁ ESTÁ 100% CONFIRMADO E SALVO no sistema.
+- Quando create_appointment retornar "✅" (sucesso), o agendamento JÁ ESTÁ 100% CONFIRMADO E SALVO no sistema.
 - ABSOLUTAMENTE PROIBIDO usar check_slot, get_available_slots ou qualquer verificação de disponibilidade após uma confirmação bem-sucedida.
 - O horário reservado VAI APARECER COMO OCUPADO — isso é CORRETO e ESPERADO, pois acabou de ser reservado pelo próprio lead.
 - Sua ÚNICA ação após o ✅: confirmar ao lead com os detalhes (data, horário, local) e mover para "${agendadoKey || "agendado"}".
 - Se você re-verificar disponibilidade e disser ao lead que o horário está ocupado, você COMETEU UM ERRO GRAVE.
-- NUNCA diga "o horário acabou de ser preenchido" ou "não está mais disponível" após um confirm_reservation bem-sucedido.
-- NUNCA pergunte "Posso confirmar o agendamento?" após confirm_reservation — o agendamento JÁ ESTÁ CONFIRMADO.
+- NUNCA diga "o horário acabou de ser preenchido" ou "não está mais disponível" após um create_appointment bem-sucedido.
+- NUNCA pergunte "Posso confirmar o agendamento?" após create_appointment — o agendamento JÁ ESTÁ CONFIRMADO.
 - Se o lead responder "sim" ou "confirma" após o agendamento já ter sido confirmado, apenas agradeça e reforce os detalhes — NÃO tente criar outro agendamento.
 
 ### REGRA CRÍTICA DE REAGENDAMENTO:
 - Se o lead pedir para REMARCAR, MUDAR ou REAGENDAR um agendamento existente, use SEMPRE reschedule_appointment.
-- NUNCA use reserve_slot ou create_appointment para reagendamento — isso cria duplicatas!
-- reschedule_appointment encontra automaticamente o agendamento ativo do lead e atualiza a data/horário.`;
+- NUNCA use create_appointment para reagendamento — isso cria duplicatas!
+- reschedule_appointment ATUALIZA o agendamento existente (mesma entrada no banco e no Google Calendar)
+- NUNCA crie um novo agendamento quando o lead já tem um ativo — sempre reagende!`;
   return instructions;
 }
 
@@ -3639,10 +3307,8 @@ Você tem acesso a:
 - search_knowledge_base: Consultar base de conhecimento COMPLETA (pré-op, pós-op, comercial, tudo!)
 - get_available_slots: Ver horários disponíveis em qualquer agenda
 - check_slot: Verificar se uma data/horário específico está disponível
-- reserve_slot: RESERVAR temporariamente um horário (10 min) — use SEMPRE em vez de create_appointment
-- confirm_reservation: CONFIRMAR reserva após lead dizer "sim" — transforma em agendamento definitivo
-- cancel_reservation: CANCELAR reserva se lead disser "não" ou quiser outro horário
-- create_appointment: [LEGADO] Agendar direto — EVITE usar, prefira reserve_slot + confirm_reservation
+- propose_slot: VALIDAR um horário (SEM criar registro no banco) — use SEMPRE antes de create_appointment
+- create_appointment: Criar agendamento DEFINITIVO — use SOMENTE após o lead confirmar a proposta do propose_slot
 - reschedule_appointment: Reagendar um agendamento existente (SEMPRE use quando o lead já tem agendamento ativo)
 - cancel_appointment: Cancelar/remover agendamento ativo do lead (remove do CRM e do Google Calendar)
 - transfer_to_human: Transferir para humano
@@ -3736,15 +3402,14 @@ Se o lead sugerir UMA DATA E UM HORÁRIO específico (ex: "segunda da próxima s
 
 Se o lead sugerir apenas UMA DATA (sem horário), use get_available_slots com essa data e ofereça 2 horários (ou/ou).
 
-### CONFIRMAÇÃO FINAL (FLUXO OBRIGATÓRIO DE 2 ETAPAS):
-1. Quando o lead aceitar um horário, use reserve_slot para RESERVAR temporariamente (10 min)
+### CONFIRMAÇÃO FINAL (FLUXO OBRIGATÓRIO DE 2 ETAPAS — SEM PRÉ-RESERVA):
+1. Quando o lead aceitar um horário, use propose_slot para VALIDAR (SEM criar registro no banco)
 2. Apresente os detalhes e pergunte: "Posso confirmar sua avaliação para [data] às [horário]?"
-3. SOMENTE quando o lead disser "sim/confirma/pode marcar" na PRÓXIMA MENSAGEM → use confirm_reservation
-4. Se o lead disser "não" ou quiser outro horário → use cancel_reservation e busque novo horário
-5. Se o lead não responder em 10 min → a reserva expira sozinha
-6. NUNCA use create_appointment diretamente — SEMPRE passe por reserve_slot + confirm_reservation
-7. NUNCA use reserve_slot E confirm_reservation no MESMO turno — são SEMPRE em turnos separados
-8. Após confirm_reservation retornar "✅", o agendamento está DEFINITIVAMENTE confirmado — apresente como fato consumado
+3. SOMENTE quando o lead disser "sim/confirma/pode marcar" na PRÓXIMA MENSAGEM → use create_appointment
+4. Se o lead disser "não" ou quiser outro horário → busque novo horário com get_available_slots (nada no banco para cancelar)
+5. NUNCA use create_appointment diretamente sem propose_slot primeiro
+6. NUNCA use propose_slot E create_appointment no MESMO turno — são SEMPRE em turnos separados
+7. Após create_appointment retornar "✅", o agendamento está DEFINITIVAMENTE confirmado — apresente como fato consumado
 
 ### REAGENDAMENTO (REGRA CRÍTICA):
 - Se o lead JÁ TEM um agendamento ativo (status scheduled ou confirmed) e pede para REMARCAR/REAGENDAR para outra data ou horário:
@@ -4295,9 +3960,8 @@ serve(async (req) => {
       desistenciaHandled = true;
     }
 
-    // 5.8 CRITICAL: Check for recent confirmed appointment OR pending reservation in this conversation
+    // 5.8 CRITICAL: Check for recent confirmed appointment in this conversation
     let appointmentJustCreated = false;
-    let hasPendingReservation = false;
     if (conversationId) {
       const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
       
@@ -4315,30 +3979,6 @@ serve(async (req) => {
         appointmentJustCreated = true;
         console.log(`[AI Agent] 🔒 CROSS-INVOCATION GUARD: Recent confirmed appointment (${recentAppointment[0].id}) found. Blocking scheduling tools.`);
       }
-
-      // Check for pending reservations (need confirm_reservation)
-      const { data: pendingReservation } = await supabase
-        .from("avivar_appointments")
-        .select("id, created_at, expires_at, patient_name, start_time, appointment_date")
-        .eq("conversation_id", conversationId)
-        .eq("status", "pending_confirmation")
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (pendingReservation && pendingReservation.length > 0) {
-        const isExpired = pendingReservation[0].expires_at && new Date(pendingReservation[0].expires_at) < new Date();
-        if (!isExpired) {
-          hasPendingReservation = true;
-          console.log(`[AI Agent] 📋 PENDING RESERVATION found (${pendingReservation[0].id}). Lead needs to confirm or deny.`);
-        } else {
-          // Clean up expired reservation
-          await supabase
-            .from("avivar_appointments")
-            .update({ status: "cancelled", cancellation_reason: "Reserva expirada automaticamente" })
-            .eq("id", pendingReservation[0].id);
-          console.log(`[AI Agent] 🗑️ Expired reservation ${pendingReservation[0].id} cleaned up.`);
-        }
-      }
     }
 
     // 6. Call AI with tools (context-aware tool filtering)
@@ -4347,12 +3987,8 @@ serve(async (req) => {
 
     if (appointmentJustCreated) {
       // Confirmed appointment exists — block all scheduling tools
-      effectiveSystemPrompt = systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: O agendamento ACABOU DE SER CONFIRMADO COM SUCESSO nesta conversa. O horário JÁ ESTÁ RESERVADO para este paciente. NÃO use check_slot, get_available_slots, reserve_slot, create_appointment ou qualquer ferramenta de verificação/criação. Responda de forma amigável confirmando os detalhes.";
-      effectiveTools = TOOLS.filter((t: { function: { name: string } }) => !["check_slot", "get_available_slots", "create_appointment", "reserve_slot"].includes(t.function.name));
-    } else if (hasPendingReservation) {
-      // Pending reservation — only allow confirm_reservation, cancel_reservation, and non-scheduling tools
-      effectiveSystemPrompt = systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: Existe uma RESERVA TEMPORÁRIA pendente nesta conversa. O lead precisa confirmar ou negar. Se o lead disse 'sim/confirma/pode marcar', use confirm_reservation. Se disse 'não' ou quer outro horário, use cancel_reservation. NÃO crie nova reserva nem verifique disponibilidade — resolva a reserva pendente primeiro.";
-      effectiveTools = TOOLS.filter((t: { function: { name: string } }) => !["check_slot", "get_available_slots", "create_appointment", "reserve_slot"].includes(t.function.name));
+      effectiveSystemPrompt = systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: O agendamento ACABOU DE SER CONFIRMADO COM SUCESSO nesta conversa. O horário JÁ ESTÁ RESERVADO para este paciente. NÃO use check_slot, get_available_slots, propose_slot, create_appointment ou qualquer ferramenta de verificação/criação. Responda de forma amigável confirmando os detalhes.";
+      effectiveTools = TOOLS.filter((t: { function: { name: string } }) => !["check_slot", "get_available_slots", "create_appointment", "propose_slot"].includes(t.function.name));
     }
 
     let aiResult: { content: string | null; toolCalls: Array<{ name: string; arguments: Record<string, unknown> }> };
@@ -4393,6 +4029,7 @@ serve(async (req) => {
     const MAX_TOOL_ROUNDS = 5;
     let toolRound = 0;
     let fluxoMediaSentCount = 0; // Guard: max 1 send_fluxo_media per response
+    let proposeSlotCalledThisTurn = false; // Guard: block create_appointment if propose_slot called same turn
     // appointmentJustCreated is already set above (section 5.8)
 
     while (currentToolCalls.length > 0 && toolRound < MAX_TOOL_ROUNDS) {
@@ -4411,6 +4048,15 @@ serve(async (req) => {
         if (appointmentJustCreated && (tc.name === "check_slot" || tc.name === "get_available_slots")) {
           console.log(`[AI Agent] ⚠️ BLOCKED ${tc.name} after successful create_appointment — slot was just booked`);
           return false;
+        }
+        // CRITICAL: Block create_appointment if propose_slot was called in same turn
+        if (proposeSlotCalledThisTurn && tc.name === "create_appointment") {
+          console.log(`[AI Agent] ⚠️ BLOCKED create_appointment in same turn as propose_slot — must wait for lead confirmation`);
+          return false;
+        }
+        // Track propose_slot calls
+        if (tc.name === "propose_slot") {
+          proposeSlotCalledThisTurn = true;
         }
         return true;
       });
@@ -4434,8 +4080,8 @@ serve(async (req) => {
         
         console.log(`[AI Agent] Tool ${toolCall.name} result: ${result.substring(0, 100)}...`);
         
-        // Mark that appointment was successfully created/confirmed to prevent re-checking slots
-        if ((toolCall.name === "confirm_reservation" || toolCall.name === "create_appointment" || toolCall.name === "reschedule_appointment") && result.includes("✅")) {
+        // Mark that appointment was successfully created to prevent re-checking slots
+        if ((toolCall.name === "create_appointment" || toolCall.name === "reschedule_appointment") && result.includes("✅")) {
           appointmentJustCreated = true;
           console.log(`[AI Agent] 🔒 Appointment confirmed/created/rescheduled — blocking future slot re-checks in this response`);
         }
@@ -4549,13 +4195,13 @@ serve(async (req) => {
     finalResponse = finalResponse.replace(/INSTRUÇÃO INTERNA:.*$/gm, "");
     finalResponse = finalResponse.replace(/AGENDAMENTO CRIADO COM SUCESSO.*?!/g, "");
     finalResponse = finalResponse.replace(/NÃO RE-VERIFIQUE DISPONIBILIDADE!?/g, "");
-    finalResponse = finalResponse.replace(/\[?\b(preencher_checklist|send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products)\s*\([^\)]*\)\]?/g, "");
+    finalResponse = finalResponse.replace(/\[?\b(preencher_checklist|send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products|propose_slot)\s*\([^\)]*\)\]?/g, "");
     // Also remove bracket-style tool calls like [tool_name(...)]
     finalResponse = finalResponse.replace(/\[\w+\([^\]]*\)\]/g, "");
     // Remove bracket-colon-JSON format: [tool_name]: { ... }
     finalResponse = finalResponse.replace(/\[\w+\]\s*:\s*\{[^}]*\}/g, "");
     // Remove bracket tool name with any trailing content on same line: [tool_name]...
-    finalResponse = finalResponse.replace(/\[(?:preencher_checklist|send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products|check_slot)\][^\n]*/g, "");
+    finalResponse = finalResponse.replace(/\[(?:preencher_checklist|send_fluxo_media|send_image|send_video|mover_lead_para_etapa|transfer_to_human|get_available_slots|create_appointment|reschedule_appointment|cancel_appointment|list_agendas|search_knowledge_base|list_products|check_slot|propose_slot)\][^\n]*/g, "");
 
     // Layer 1: Remove JSON-style tool_calls blocks
     finalResponse = finalResponse.replace(
@@ -4571,7 +4217,8 @@ serve(async (req) => {
       'preencher_checklist', 'send_fluxo_media', 'send_image', 'send_video',
       'mover_lead_para_etapa', 'transfer_to_human', 'get_available_slots',
       'create_appointment', 'reschedule_appointment', 'cancel_appointment',
-      'list_agendas', 'search_knowledge_base', 'list_products', 'check_slot'
+      'list_agendas', 'search_knowledge_base', 'list_products', 'check_slot',
+      'propose_slot'
     ];
     const toolPattern = toolNames.join('|');
     const jsonToolRegex = new RegExp(
