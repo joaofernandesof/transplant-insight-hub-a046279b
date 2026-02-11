@@ -206,9 +206,15 @@ ${formatPaymentMethods()}
 ### FLUXO CORRETO (OBRIGATÓRIO):
 1. Lead aceita horário → use propose_slot (apenas valida disponibilidade, SEM escrita no banco)
 2. Apresente os detalhes e pergunte: "Posso confirmar?"
-3. Lead diz "sim" → use create_appointment (agendamento definitivo + Google Calendar)
+3. Lead diz "sim" → use create_appointment COM OS MESMOS DADOS da proposta (agendamento definitivo + Google Calendar)
 4. Lead diz "não" → busque novo horário com get_available_slots (nada no banco para cancelar)
 5. NUNCA use create_appointment e propose_slot no MESMO turno
+
+### REGRA CRÍTICA — QUANDO O LEAD CONFIRMA:
+- Se o lead responder "sim", "pode", "confirma", "ok" ou similar APÓS você ter apresentado detalhes de agendamento:
+  → Você DEVE chamar create_appointment IMEDIATAMENTE com os dados da proposta
+  → NÃO responda "confirmado" sem chamar a ferramenta — o agendamento NÃO EXISTE até create_appointment ser executado
+  → NÃO use propose_slot novamente — a proposta já foi feita e aceita
 
 ### VERIFICAÇÃO DE DISPONIBILIDADE:
 - SEMPRE execute check_slot(agenda, data, horário) ANTES de oferecer um horário

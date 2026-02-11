@@ -3405,11 +3405,18 @@ Se o lead sugerir apenas UMA DATA (sem horário), use get_available_slots com es
 ### CONFIRMAÇÃO FINAL (FLUXO OBRIGATÓRIO DE 2 ETAPAS — SEM PRÉ-RESERVA):
 1. Quando o lead aceitar um horário, use propose_slot para VALIDAR (SEM criar registro no banco)
 2. Apresente os detalhes e pergunte: "Posso confirmar sua avaliação para [data] às [horário]?"
-3. SOMENTE quando o lead disser "sim/confirma/pode marcar" na PRÓXIMA MENSAGEM → use create_appointment
+3. SOMENTE quando o lead disser "sim/confirma/pode marcar" na PRÓXIMA MENSAGEM → use create_appointment COM OS MESMOS DADOS da proposta
 4. Se o lead disser "não" ou quiser outro horário → busque novo horário com get_available_slots (nada no banco para cancelar)
 5. NUNCA use create_appointment diretamente sem propose_slot primeiro
 6. NUNCA use propose_slot E create_appointment no MESMO turno — são SEMPRE em turnos separados
 7. Após create_appointment retornar "✅", o agendamento está DEFINITIVAMENTE confirmado — apresente como fato consumado
+
+### REGRA CRÍTICA — QUANDO O LEAD CONFIRMA:
+- Se o lead responder "sim", "pode", "confirma", "ok" ou similar APÓS você ter apresentado detalhes de agendamento (Data/Horário/Local):
+  → Você DEVE chamar create_appointment IMEDIATAMENTE com os dados da proposta
+  → NÃO responda "confirmado" sem chamar a ferramenta — o agendamento NÃO EXISTE até create_appointment ser executado
+  → NÃO use propose_slot novamente — a proposta já foi apresentada e aceita
+  → Se responder sem chamar create_appointment, o agendamento NÃO será criado no sistema
 
 ### REAGENDAMENTO (REGRA CRÍTICA):
 - Se o lead JÁ TEM um agendamento ativo (status scheduled ou confirmed) e pede para REMARCAR/REAGENDAR para outra data ou horário:
@@ -3981,6 +3988,38 @@ serve(async (req) => {
       }
     }
 
+    // 5.9 CRITICAL: Detect pending slot proposal — lead may be confirming
+    // If the AI previously asked "Posso confirmar?" and the lead responded affirmatively,
+    // inject a strong instruction to call create_appointment immediately
+    let pendingProposalDetected = false;
+    const confirmPatterns = /^(sim|pode|confirma|confirmar|pode sim|pode marcar|ok|tá bom|ta bom|quero|vamos|bora|marca|por favor|claro|com certeza|isso|positivo|afirmativo|s|ss|sss|pode ser)\s*[!.?]*$/i;
+    const lastUserMessage = messageContent.trim();
+    
+    if (!appointmentJustCreated && confirmPatterns.test(lastUserMessage)) {
+      // Check if recent assistant messages contain a proposal
+      const recentAssistantMessages = conversationHistory
+        .filter(m => m.role === "assistant" && typeof m.content === "string")
+        .slice(-5);
+      
+      const hasProposal = recentAssistantMessages.some(m => {
+        const content = typeof m.content === "string" ? m.content : "";
+        return (
+          content.includes("Posso confirmar") ||
+          content.includes("posso confirmar") ||
+          content.includes("Confirmando os detalhes") ||
+          content.includes("confirmar o agendamento") ||
+          content.includes("confirmar sua avaliação") ||
+          content.includes("confirmar sua consulta") ||
+          (content.includes("Data:") && content.includes("Horário:"))
+        );
+      });
+      
+      if (hasProposal) {
+        pendingProposalDetected = true;
+        console.log(`[AI Agent] 📋 PENDING PROPOSAL DETECTED: Lead confirmed ("${lastUserMessage}") after a proposal was presented. Will instruct AI to call create_appointment.`);
+      }
+    }
+
     // 6. Call AI with tools (context-aware tool filtering)
     let effectiveSystemPrompt = systemPrompt;
     let effectiveTools = TOOLS;
@@ -3989,6 +4028,10 @@ serve(async (req) => {
       // Confirmed appointment exists — block all scheduling tools
       effectiveSystemPrompt = systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: O agendamento ACABOU DE SER CONFIRMADO COM SUCESSO nesta conversa. O horário JÁ ESTÁ RESERVADO para este paciente. NÃO use check_slot, get_available_slots, propose_slot, create_appointment ou qualquer ferramenta de verificação/criação. Responda de forma amigável confirmando os detalhes.";
       effectiveTools = TOOLS.filter((t: { function: { name: string } }) => !["check_slot", "get_available_slots", "create_appointment", "propose_slot"].includes(t.function.name));
+    } else if (pendingProposalDetected) {
+      // Lead just confirmed a proposal — FORCE the AI to call create_appointment
+      effectiveSystemPrompt = systemPrompt + `\n\n⚠️ INSTRUÇÃO CRÍTICA OBRIGATÓRIA: O lead ACABOU DE CONFIRMAR ("${lastUserMessage}") uma proposta de agendamento que você apresentou anteriormente. Você DEVE chamar a ferramenta create_appointment AGORA com os mesmos dados (data, horário, paciente, tipo de consulta) que foram apresentados na proposta. NÃO responda com texto de confirmação sem antes chamar create_appointment. NÃO use propose_slot novamente — a proposta já foi feita e aceita. Use create_appointment IMEDIATAMENTE.`;
+      console.log(`[AI Agent] 🎯 Injected FORCE create_appointment instruction into system prompt`);
     }
 
     let aiResult: { content: string | null; toolCalls: Array<{ name: string; arguments: Record<string, unknown> }> };
