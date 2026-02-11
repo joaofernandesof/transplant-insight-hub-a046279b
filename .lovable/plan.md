@@ -1,75 +1,82 @@
 
 
-# Blindar o Agente Avivar contra vazamento de tool calls
+# Corrigir Agendamento Prematuro: Fluxo de 2 Etapas
 
 ## Problema
 
-A IA esta escrevendo chamadas de ferramentas em formato JSON diretamente no texto enviado ao lead no WhatsApp. Dois exemplos capturados:
+A IA chama `create_appointment` **antes** do lead confirmar. Ela envia "Posso confirmar para dia X as Y?" e simultaneamente ja cria o agendamento. Se o lead responder "nao", o agendamento ja foi criado no banco e no Google Calendar.
 
-1. `{ "tool_calls": [{ "id": "call_1", ... "name": "preencher_checklist", "parameters": { "campos": { "data_e_hora": "2026-02-13 19:00:00", "tipo_de_consulta": "ONLINE" }}}]}`
-2. `{ "tool_calls": [{ ... "name": "search_knowledge_base", "parameters": { "query": "como funciona o transplante capilar tecnica fue" }}]}`
-
-A sanitizacao atual (linha 4044 do `avivar-ai-agent/index.ts`) so captura formatos de funcao como `tool_name(...)` e `[tool_name(...)]`, mas nao captura o formato JSON estruturado.
+O prompt atual (linha 3298) diz "So use create_appointment apos o lead CONFIRMAR", mas a IA ignora essa instrucao porque o modelo tende a executar tool calls junto com a resposta de texto.
 
 ## Causa Raiz
 
-O modelo as vezes "escreve" tool calls dentro do campo `content` (texto) ao inves de executa-las via API. Isso acontece quando ele tenta responder e chamar ferramentas simultaneamente. O sanitizador atual nao cobre esse padrao.
+Modelos de linguagem com tool calling frequentemente executam a ferramenta no mesmo turno em que fazem a pergunta de confirmacao. Nenhuma quantidade de instrucoes no prompt vai resolver 100% — precisamos de uma **trava no codigo**.
 
-## Solucao: 3 camadas de protecao
+## Solucao: Reserva Temporaria com Confirmacao
 
-### Camada 1 -- Regex para JSON de tool_calls (edge function)
+Substituir o fluxo atual (1 etapa) por um fluxo de 2 etapas com reserva temporaria:
 
-Adicionar na sanitizacao (apos linha 4046 de `avivar-ai-agent/index.ts`):
+```text
+FLUXO ATUAL (problemático):
+  IA oferece horario → IA chama create_appointment + pergunta "Confirma?"
+  Lead diz "sim" → IA tenta criar de novo → "horario ocupado"
+  Lead diz "nao" → agendamento fantasma ja criado
 
-```typescript
-// Remove JSON-style tool calls: { "tool_calls": [...] }
-finalResponse = finalResponse.replace(
-  /\{\s*"tool_calls"\s*:\s*\[[\s\S]*?\]\s*\}/g, ""
-);
-
-// Remove individual function call objects
-finalResponse = finalResponse.replace(
-  /\{\s*"id"\s*:\s*"call_[^"]*"[\s\S]*?"function"\s*:\s*\{[\s\S]*?\}\s*\}/g, ""
-);
+FLUXO NOVO (seguro):
+  IA oferece horario → IA chama reserve_slot (status="pending_confirmation", expira em 10 min)
+  Lead diz "sim" → IA chama confirm_reservation → status vira "scheduled"
+  Lead diz "nao" → reserva expira automaticamente ou IA chama cancel_reservation
 ```
 
-### Camada 2 -- Regex generico por nome de ferramenta (edge function)
+## Mudancas Tecnicas
 
-Como seguranca extra, remover qualquer bloco JSON que contenha nomes de ferramentas conhecidas:
+### 1. Nova ferramenta: `reserve_slot` (edge function)
 
-```typescript
-const toolNames = [
-  'preencher_checklist', 'send_fluxo_media', 'send_image', 'send_video',
-  'mover_lead_para_etapa', 'transfer_to_human', 'get_available_slots',
-  'create_appointment', 'reschedule_appointment', 'cancel_appointment',
-  'list_agendas', 'search_knowledge_base', 'list_products', 'check_slot'
-];
-const toolPattern = toolNames.join('|');
-const jsonToolRegex = new RegExp(
-  `\\{[^{}]*(?:${toolPattern})[^{}]*\\}`, 'g'
-);
-finalResponse = finalResponse.replace(jsonToolRegex, "");
+Cria um registro em `avivar_appointments` com `status = 'pending_confirmation'` e um campo `expires_at` (10 minutos no futuro). Isso **bloqueia o horario** para outros leads, mas nao e um agendamento definitivo.
+
+- Horarios com status `pending_confirmation` sao tratados como ocupados pelo `check_slot` e `get_available_slots` (ja que eles consultam appointments ativos)
+- Se expirar sem confirmacao, o registro e automaticamente ignorado
+
+### 2. Nova ferramenta: `confirm_reservation` (edge function)
+
+Recebe o ID da reserva e muda o status de `pending_confirmation` para `scheduled`. So nesse momento o agendamento e criado no Google Calendar (se integrado).
+
+### 3. Limpeza automatica de reservas expiradas
+
+Adicionar uma verificacao no `get_available_slots` e `check_slot` para ignorar reservas com `pending_confirmation` que ja passaram de `expires_at`. Alternativamente, um trigger no banco que limpa reservas expiradas.
+
+### 4. Atualizar `create_appointment` existente
+
+Manter `create_appointment` funcionando normalmente para retrocompatibilidade, mas o prompt vai instruir a IA a usar `reserve_slot` + `confirm_reservation` em vez de `create_appointment` direto.
+
+### 5. Atualizar prompt do sistema
+
+Reescrever a secao de confirmacao final (linhas 3297-3299) para:
+
+```
+### CONFIRMACAO FINAL (FLUXO OBRIGATORIO DE 2 ETAPAS):
+1. Quando o lead aceitar um horario, use reserve_slot para RESERVAR temporariamente (10 min)
+2. Apresente os detalhes e pergunte: "Posso confirmar sua avaliacao para [data] as [horario]?"
+3. SOMENTE quando o lead disser "sim/confirma/pode marcar" → use confirm_reservation
+4. Se o lead disser "nao" ou nao responder em 10 min → a reserva expira sozinha
+5. NUNCA use create_appointment diretamente — sempre passe por reserve_slot primeiro
 ```
 
-### Camada 3 -- Instrucao explicita no prompt do sistema (usePromptGenerator.ts)
+### 6. Atualizar regra pos-agendamento
 
-Adicionar dentro do bloco `<seguranca_sistema>` do prompt:
-
-```
-### NUNCA ESCREVA TOOL CALLS NO TEXTO
-- JAMAIS inclua chamadas de ferramentas, JSON de tool_calls ou parametros tecnicos no texto da resposta
-- Tool calls devem ser executadas APENAS via API, nunca escritas como texto para o usuario
-- Se precisar usar uma ferramenta, use-a silenciosamente -- o usuario NUNCA deve ver nomes de funcoes ou parametros
-```
+Ajustar as instrucoes para que a movimentacao para "agendado" aconteca apos `confirm_reservation`, nao apos `reserve_slot`.
 
 ## Arquivos a Modificar
 
-| Arquivo | O que muda |
-|---------|------------|
-| `supabase/functions/avivar-ai-agent/index.ts` | 3 novos blocos de regex na sanitizacao (apos linha 4046) |
-| `src/pages/avivar/config/hooks/usePromptGenerator.ts` | Instrucao anti-vazamento no bloco `<seguranca_sistema>` do prompt |
+| Arquivo | Mudanca |
+|---------|---------|
+| `supabase/functions/avivar-ai-agent/index.ts` | Adicionar funcoes `reserveSlot()` e `confirmReservation()`, novas tool definitions, atualizar prompt e logica de tool handling |
+| `src/pages/avivar/config/hooks/usePromptGenerator.ts` | Atualizar instrucoes de agendamento no prompt gerado pelo configurador |
 
-## Resultado
+## Vantagens
 
-Mesmo que a IA cometa o erro de escrever tool calls no texto, a sanitizacao as removera antes do envio ao WhatsApp. A instrucao no prompt reduz a chance de isso acontecer em primeiro lugar. As 3 camadas funcionam de forma independente, garantindo protecao redundante.
+- **Impossivel** criar agendamento fantasma — so confirma com acao explicita do lead
+- Reserva garante que o horario nao seja dado a outro lead enquanto espera confirmacao
+- Expiracao automatica limpa reservas abandonadas
+- Retrocompativel — `create_appointment` continua funcionando para casos manuais
 
