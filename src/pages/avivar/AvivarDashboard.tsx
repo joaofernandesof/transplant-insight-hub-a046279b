@@ -3,7 +3,7 @@
  * Dados reais do Supabase - leads, tarefas, conversas, pipeline
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ import {
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { AddLeadDialog } from '@/pages/avivar/kanban/components/AddLeadDialog';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAvivarAccount } from '@/hooks/useAvivarAccount';
@@ -56,6 +57,7 @@ const DEFAULT_COLOR = '#a855f7';
 
 export default function AvivarDashboard() {
   const navigate = useNavigate();
+  const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
   const { accountId } = useAvivarAccount();
   const now = new Date();
   const currentMonthStart = format(startOfMonth(now), 'yyyy-MM-dd');
@@ -354,11 +356,12 @@ export default function AvivarDashboard() {
           <Button 
             size="sm" 
             className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]"
-            onClick={() => navigate('/avivar/inbox')}
+            onClick={() => setIsAddLeadOpen(true)}
           >
             <Zap className="h-4 w-4 mr-2" />
             Novo Lead
           </Button>
+          <AddLeadDialog open={isAddLeadOpen} onOpenChange={setIsAddLeadOpen} />
         </div>
       </div>
 
