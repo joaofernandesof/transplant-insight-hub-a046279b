@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +31,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Plus,
   Search,
   MoreHorizontal,
@@ -45,6 +50,10 @@ import {
   RefreshCw,
   Download,
   Filter,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -76,29 +85,157 @@ const methodConfig = {
   payment_link: { label: 'Link de Pagamento', icon: Link },
 };
 
+type SortDir = 'asc' | 'desc' | null;
+type ColumnKey = 'id' | 'customer' | 'amount' | 'method' | 'status' | 'dueDate';
+
+interface ColumnSearches {
+  id: string;
+  customer: string;
+  amount: string;
+  method: string;
+  status: string;
+  dueDate: string;
+}
+
+function SortableColumnHead({
+  label,
+  columnKey,
+  sortKey,
+  sortDir,
+  onSort,
+  searchValue,
+  onSearchChange,
+}: {
+  label: string;
+  columnKey: ColumnKey;
+  sortKey: ColumnKey | null;
+  sortDir: SortDir;
+  onSort: (key: ColumnKey) => void;
+  searchValue: string;
+  onSearchChange: (key: ColumnKey, value: string) => void;
+}) {
+  const isActive = sortKey === columnKey;
+  return (
+    <TableHead>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onSort(columnKey)}
+          className="flex items-center gap-1 hover:text-foreground transition-colors font-medium"
+        >
+          {label}
+          {isActive && sortDir === 'asc' && <ArrowUp className="h-3.5 w-3.5" />}
+          {isActive && sortDir === 'desc' && <ArrowDown className="h-3.5 w-3.5" />}
+          {!isActive && <ArrowUpDown className="h-3.5 w-3.5 opacity-30" />}
+        </button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className={`p-0.5 rounded hover:bg-muted transition-colors ${searchValue ? 'text-emerald-600' : 'text-muted-foreground opacity-50 hover:opacity-100'}`}>
+              <Search className="h-3.5 w-3.5" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-2" align="start">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder={`Buscar ${label.toLowerCase()}...`}
+                value={searchValue}
+                onChange={(e) => onSearchChange(columnKey, e.target.value)}
+                className="pl-7 h-8 text-sm"
+                autoFocus
+              />
+              {searchValue && (
+                <button
+                  onClick={() => onSearchChange(columnKey, '')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </TableHead>
+  );
+}
+
 export default function NeoPayCharges() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterMethod, setFilterMethod] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState('all');
+  const [sortKey, setSortKey] = useState<ColumnKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
+  const [columnSearches, setColumnSearches] = useState<ColumnSearches>({
+    id: '', customer: '', amount: '', method: '', status: '', dueDate: '',
+  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  const filteredCharges = mockCharges.filter((charge) => {
-    const matchesSearch = 
-      charge.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      charge.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || charge.status === filterStatus;
-    const matchesMethod = filterMethod === 'all' || charge.method === filterMethod;
-    const matchesTab = selectedTab === 'all' || 
-      (selectedTab === 'pending' && ['pending', 'authorized'].includes(charge.status)) ||
-      (selectedTab === 'paid' && charge.status === 'captured') ||
-      (selectedTab === 'failed' && ['failed', 'cancelled'].includes(charge.status));
-    return matchesSearch && matchesStatus && matchesMethod && matchesTab;
-  });
+  const handleSort = (key: ColumnKey) => {
+    if (sortKey === key) {
+      if (sortDir === 'asc') setSortDir('desc');
+      else if (sortDir === 'desc') { setSortKey(null); setSortDir(null); }
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const handleColumnSearch = (key: ColumnKey, value: string) => {
+    setColumnSearches(prev => ({ ...prev, [key]: value }));
+  };
+
+  const getMethodLabel = (method: string) => methodConfig[method as keyof typeof methodConfig]?.label || method;
+  const getStatusLabel = (status: string) => statusConfig[status as keyof typeof statusConfig]?.label || status;
+
+  const filteredAndSortedCharges = useMemo(() => {
+    let result = mockCharges.filter((charge) => {
+      const matchesSearch =
+        charge.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        charge.id.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = filterStatus === 'all' || charge.status === filterStatus;
+      const matchesMethod = filterMethod === 'all' || charge.method === filterMethod;
+      const matchesTab = selectedTab === 'all' ||
+        (selectedTab === 'pending' && ['pending', 'authorized'].includes(charge.status)) ||
+        (selectedTab === 'paid' && charge.status === 'captured') ||
+        (selectedTab === 'failed' && ['failed', 'cancelled'].includes(charge.status));
+
+      // Column-level searches
+      const matchesColId = !columnSearches.id || charge.id.toLowerCase().includes(columnSearches.id.toLowerCase());
+      const matchesColCustomer = !columnSearches.customer || charge.customer.toLowerCase().includes(columnSearches.customer.toLowerCase()) || charge.email.toLowerCase().includes(columnSearches.customer.toLowerCase());
+      const matchesColAmount = !columnSearches.amount || formatCurrency(charge.amount).includes(columnSearches.amount);
+      const matchesColMethod = !columnSearches.method || getMethodLabel(charge.method).toLowerCase().includes(columnSearches.method.toLowerCase());
+      const matchesColStatus = !columnSearches.status || getStatusLabel(charge.status).toLowerCase().includes(columnSearches.status.toLowerCase());
+      const matchesColDueDate = !columnSearches.dueDate || charge.dueDate.includes(columnSearches.dueDate);
+
+      return matchesSearch && matchesStatus && matchesMethod && matchesTab &&
+        matchesColId && matchesColCustomer && matchesColAmount && matchesColMethod && matchesColStatus && matchesColDueDate;
+    });
+
+    if (sortKey && sortDir) {
+      result = [...result].sort((a, b) => {
+        let aVal: string | number = '';
+        let bVal: string | number = '';
+        switch (sortKey) {
+          case 'id': aVal = a.id; bVal = b.id; break;
+          case 'customer': aVal = a.customer.toLowerCase(); bVal = b.customer.toLowerCase(); break;
+          case 'amount': aVal = a.amount; bVal = b.amount; break;
+          case 'method': aVal = getMethodLabel(a.method); bVal = getMethodLabel(b.method); break;
+          case 'status': aVal = getStatusLabel(a.status); bVal = getStatusLabel(b.status); break;
+          case 'dueDate': aVal = a.dueDate; bVal = b.dueDate; break;
+        }
+        if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [searchTerm, filterStatus, filterMethod, selectedTab, columnSearches, sortKey, sortDir]);
 
   const handleCreateCharge = () => {
     toast.success('Cobrança criada com sucesso!');
@@ -264,17 +401,17 @@ export default function NeoPayCharges() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Método</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Vencimento</TableHead>
+                    <SortableColumnHead label="ID" columnKey="id" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} searchValue={columnSearches.id} onSearchChange={handleColumnSearch} />
+                    <SortableColumnHead label="Cliente" columnKey="customer" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} searchValue={columnSearches.customer} onSearchChange={handleColumnSearch} />
+                    <SortableColumnHead label="Valor" columnKey="amount" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} searchValue={columnSearches.amount} onSearchChange={handleColumnSearch} />
+                    <SortableColumnHead label="Método" columnKey="method" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} searchValue={columnSearches.method} onSearchChange={handleColumnSearch} />
+                    <SortableColumnHead label="Status" columnKey="status" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} searchValue={columnSearches.status} onSearchChange={handleColumnSearch} />
+                    <SortableColumnHead label="Vencimento" columnKey="dueDate" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} searchValue={columnSearches.dueDate} onSearchChange={handleColumnSearch} />
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCharges.map((charge) => {
+                  {filteredAndSortedCharges.map((charge) => {
                     const status = statusConfig[charge.status as keyof typeof statusConfig];
                     const method = methodConfig[charge.method as keyof typeof methodConfig];
                     const MethodIcon = method?.icon || CreditCard;
