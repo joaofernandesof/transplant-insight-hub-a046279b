@@ -3122,6 +3122,8 @@ Você TEM QUE usar "mover_lead_para_etapa" para atualizar o funil. NÃO É OPCIO
 - Sua ÚNICA ação após o ✅: confirmar ao lead com os detalhes (data, horário, local) e mover para "${agendadoKey || "agendado"}".
 - Se você re-verificar disponibilidade e disser ao lead que o horário está ocupado, você COMETEU UM ERRO GRAVE.
 - NUNCA diga "o horário acabou de ser preenchido" ou "não está mais disponível" após um create_appointment bem-sucedido.
+- NUNCA pergunte "Posso confirmar o agendamento?" após create_appointment — o agendamento JÁ ESTÁ CONFIRMADO. Apenas apresente os dados ao lead como fato consumado (ex: "Pronto! Sua avaliação está marcada para...").
+- Se o lead responder "sim" ou "confirma" após o agendamento já ter sido criado, apenas agradeça e reforce os detalhes — NÃO tente criar outro agendamento.
 
 ### REGRA CRÍTICA DE REAGENDAMENTO:
 - Se o lead pedir para REMARCAR, MUDAR ou REAGENDAR um agendamento existente, use SEMPRE reschedule_appointment.
@@ -3849,12 +3851,12 @@ serve(async (req) => {
     // 5.8 CRITICAL: Check for recent appointment in this conversation (cross-invocation guard)
     let appointmentJustCreated = false;
     if (conversationId) {
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
       const { data: recentAppointment } = await supabase
         .from("avivar_appointments")
         .select("id, created_at, patient_name, start_time, appointment_date")
         .eq("conversation_id", conversationId)
-        .gte("created_at", fiveMinutesAgo)
+        .gte("created_at", thirtyMinutesAgo)
         .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(1);
