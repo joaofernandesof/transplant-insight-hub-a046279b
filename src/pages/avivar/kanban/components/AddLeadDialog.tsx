@@ -1,8 +1,9 @@
 /**
  * AddLeadDialog - Dialog for adding new leads to the kanban
+ * Supports both kanban-specific (with kanbanId/columns) and standalone (dashboard) usage
  */
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -25,13 +26,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { useKanbanBoards } from '@/hooks/useKanbanBoards';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import type { KanbanColumnData } from '../AvivarKanbanPage';
 
 interface AddLeadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  kanbanId: string;
-  columns: KanbanColumnData[];
+  kanbanId?: string;
+  columns?: KanbanColumnData[];
 }
 
 const leadSources = [
@@ -46,38 +49,70 @@ const leadSources = [
 
 export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLeadDialogProps) {
   const queryClient = useQueryClient();
+  const { accountId } = useAvivarAccount();
+  const { boards, columns: allColumns } = useKanbanBoards();
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
     source: 'manual',
     notes: '',
+    selectedKanbanId: '',
     columnId: '',
   });
 
-  // Set default column to first one
-  const defaultColumnId = columns[0]?.id || '';
+  // Determine if we need kanban selector (standalone mode)
+  const isStandalone = !kanbanId;
+
+  // Auto-select kanban if only one exists in standalone mode
+  useEffect(() => {
+    if (isStandalone && boards.length === 1 && !formData.selectedKanbanId) {
+      setFormData(prev => ({ ...prev, selectedKanbanId: boards[0].id }));
+    }
+  }, [isStandalone, boards, formData.selectedKanbanId]);
+
+  const effectiveKanbanId = kanbanId || formData.selectedKanbanId;
+
+  // Columns for the selected kanban
+  const effectiveColumns = useMemo(() => {
+    if (columns && columns.length > 0) return columns;
+    if (!effectiveKanbanId) return [];
+    return allColumns
+      .filter(c => c.kanban_id === effectiveKanbanId)
+      .map(c => ({ id: c.id, name: c.name, color: c.color || '', order_index: c.order_index }));
+  }, [columns, effectiveKanbanId, allColumns]);
+
+  const defaultColumnId = effectiveColumns[0]?.id || '';
 
   const createLead = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
+      if (!accountId) throw new Error('Conta não encontrada');
 
       const columnId = formData.columnId || defaultColumnId;
       if (!columnId) throw new Error('Selecione uma coluna');
+      if (!effectiveKanbanId) throw new Error('Selecione um funil');
+
+      // Generate lead_code
+      const { data: leadCode, error: codeError } = await supabase.rpc('generate_lead_code');
+      if (codeError) throw codeError;
 
       const { data, error } = await supabase
         .from('avivar_kanban_leads')
         .insert([{
-          kanban_id: kanbanId,
+          kanban_id: effectiveKanbanId,
           column_id: columnId,
           user_id: user.id,
+          account_id: accountId,
+          lead_code: leadCode,
           name: formData.name,
           phone: formData.phone || null,
           email: formData.email || null,
           source: formData.source,
           notes: formData.notes || null,
-        }] as any)
+        }])
         .select()
         .single();
 
@@ -85,7 +120,8 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
+      queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['avivar-dashboard-leads'] });
       toast.success('Lead adicionado com sucesso!');
       onOpenChange(false);
       setFormData({
@@ -94,6 +130,7 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
         email: '',
         source: 'manual',
         notes: '',
+        selectedKanbanId: isStandalone && boards.length === 1 ? boards[0]?.id || '' : '',
         columnId: '',
       });
     },
@@ -176,6 +213,51 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Kanban selector - only in standalone mode */}
+            {isStandalone && boards.length > 1 ? (
+              <div className="space-y-2">
+                <Label htmlFor="kanban">Funil</Label>
+                <Select
+                  value={formData.selectedKanbanId}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, selectedKanbanId: value, columnId: '' }))}
+                >
+                  <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
+                    <SelectValue placeholder="Selecione o funil..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {boards.map(board => (
+                      <SelectItem key={board.id} value={board.id}>
+                        {board.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="column">Coluna</Label>
+                <Select
+                  value={formData.columnId || defaultColumnId}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, columnId: value }))}
+                >
+                  <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {effectiveColumns.map(col => (
+                      <SelectItem key={col.id} value={col.id}>
+                        {col.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {/* Column selector when kanban is selected in standalone with multiple boards */}
+          {isStandalone && boards.length > 1 && formData.selectedKanbanId && (
             <div className="space-y-2">
               <Label htmlFor="column">Coluna</Label>
               <Select
@@ -186,7 +268,7 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {columns.map(col => (
+                  {effectiveColumns.map(col => (
                     <SelectItem key={col.id} value={col.id}>
                       {col.name}
                     </SelectItem>
@@ -194,7 +276,7 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="notes">Observações</Label>
