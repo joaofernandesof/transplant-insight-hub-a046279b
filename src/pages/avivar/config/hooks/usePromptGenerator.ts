@@ -201,23 +201,24 @@ ${formatPaymentMethods()}
     // Instruções obrigatórias para agentes com objetivo de agendamento
     if (hasSchedulingObjective) {
       prompt += `\n\n<regras_agendamento>
-## REGRAS OBRIGATÓRIAS DE AGENDAMENTO
+## REGRAS OBRIGATÓRIAS DE AGENDAMENTO (FLUXO DE 2 ETAPAS)
 
-### 1. SEMPRE USE check_slot ANTES DE RESPONDER
-Quando o lead sugerir um horário específico (ex: "dia 09 às 09:30", "amanhã às 14h"):
-- OBRIGATORIAMENTE execute check_slot(agenda, data, horário) ANTES de responder
+### FLUXO CORRETO (OBRIGATÓRIO):
+1. Lead aceita horário → use reserve_slot (reserva temporária de 10 min)
+2. Apresente os detalhes e pergunte: "Posso confirmar?"
+3. Lead diz "sim" → use confirm_reservation (agendamento definitivo)
+4. Lead diz "não" → use cancel_reservation e busque novo horário
+5. NUNCA use create_appointment diretamente — SEMPRE passe por reserve_slot + confirm_reservation
+6. NUNCA use reserve_slot E confirm_reservation no MESMO turno
+
+### VERIFICAÇÃO DE DISPONIBILIDADE:
+- SEMPRE execute check_slot(agenda, data, horário) ANTES de oferecer um horário
 - NUNCA responda sobre disponibilidade sem consultar a ferramenta primeiro
-- A verificação deve ser feita em tempo real, não baseada em suposições
 
-### 2. NUNCA AFIRME "OCUPADO" SEM VERIFICAR
-- É PROIBIDO dizer que um horário está "ocupado", "indisponível" ou "reservado" sem ter executado check_slot
-- Se por algum motivo a verificação falhar, pergunte ao lead qual outro horário ele prefere
-- Não invente desculpas sobre disponibilidade - sempre verifique primeiro
-
-### FLUXO CORRETO:
-1. Lead pede horário específico → executar check_slot
-2. Se disponível → confirmar e criar agendamento
-3. Se indisponível → informar E sugerir alternativas próximas
+### APÓS CONFIRMAÇÃO:
+- Quando confirm_reservation retornar "✅", o agendamento está DEFINITIVO
+- NÃO re-verifique disponibilidade — apenas confirme ao lead
+- Mova o lead para etapa "agendado" somente após confirm_reservation (não após reserve_slot)
 </regras_agendamento>`;
     }
 
