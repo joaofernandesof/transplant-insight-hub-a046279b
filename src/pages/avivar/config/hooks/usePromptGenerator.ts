@@ -201,24 +201,23 @@ ${formatPaymentMethods()}
     // Instruções obrigatórias para agentes com objetivo de agendamento
     if (hasSchedulingObjective) {
       prompt += `\n\n<regras_agendamento>
-## REGRAS OBRIGATÓRIAS DE AGENDAMENTO (FLUXO DE 2 ETAPAS)
+## REGRAS OBRIGATÓRIAS DE AGENDAMENTO (FLUXO SEM PRÉ-RESERVA)
 
 ### FLUXO CORRETO (OBRIGATÓRIO):
-1. Lead aceita horário → use reserve_slot (reserva temporária de 10 min)
+1. Lead aceita horário → use propose_slot (apenas valida disponibilidade, SEM escrita no banco)
 2. Apresente os detalhes e pergunte: "Posso confirmar?"
-3. Lead diz "sim" → use confirm_reservation (agendamento definitivo)
-4. Lead diz "não" → use cancel_reservation e busque novo horário
-5. NUNCA use create_appointment diretamente — SEMPRE passe por reserve_slot + confirm_reservation
-6. NUNCA use reserve_slot E confirm_reservation no MESMO turno
+3. Lead diz "sim" → use create_appointment (agendamento definitivo + Google Calendar)
+4. Lead diz "não" → busque novo horário com get_available_slots (nada no banco para cancelar)
+5. NUNCA use create_appointment e propose_slot no MESMO turno
 
 ### VERIFICAÇÃO DE DISPONIBILIDADE:
 - SEMPRE execute check_slot(agenda, data, horário) ANTES de oferecer um horário
 - NUNCA responda sobre disponibilidade sem consultar a ferramenta primeiro
 
 ### APÓS CONFIRMAÇÃO:
-- Quando confirm_reservation retornar "✅", o agendamento está DEFINITIVO
+- Quando create_appointment retornar "✅", o agendamento está DEFINITIVO
 - NÃO re-verifique disponibilidade — apenas confirme ao lead
-- Mova o lead para etapa "agendado" somente após confirm_reservation (não após reserve_slot)
+- Mova o lead para etapa "agendado" somente após create_appointment (não após propose_slot)
 </regras_agendamento>`;
     }
 
