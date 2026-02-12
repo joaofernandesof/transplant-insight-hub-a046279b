@@ -95,8 +95,36 @@ serve(async (req) => {
           }
         }
 
-        // Translate reminder message if lead's language is not pt-BR
+        // Fallback: resolve {{checklist.*}} variables if still present
         let messageToSend = reminder.message;
+        if (messageToSend && messageToSend.includes("{{checklist.")) {
+          try {
+            const { data: kanbanLead } = await supabase
+              .from("avivar_kanban_leads")
+              .select("custom_fields")
+              .eq("phone", appointment.patient_phone)
+              .eq("account_id", reminder.account_id)
+              .not("custom_fields", "is", null)
+              .order("updated_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (kanbanLead?.custom_fields && typeof kanbanLead.custom_fields === "object") {
+              const cf = kanbanLead.custom_fields as Record<string, unknown>;
+              for (const [key, value] of Object.entries(cf)) {
+                messageToSend = messageToSend.replace(
+                  `{{checklist.${key}}}`,
+                  String(value ?? "")
+                );
+              }
+            }
+            // Remove any remaining unresolved checklist placeholders
+            messageToSend = messageToSend.replace(/\{\{checklist\.[^}]+\}\}/g, "");
+          } catch (cfErr) {
+            console.error("[Reminders] Error resolving checklist vars:", cfErr);
+            messageToSend = messageToSend.replace(/\{\{checklist\.[^}]+\}\}/g, "");
+          }
+        }
         if (leadLanguage !== "pt-BR" && messageToSend && messageToSend.length > 0) {
           try {
             console.log(`[Reminders] Translating message to ${leadLanguage} for ${appointment.patient_name}`);
