@@ -129,7 +129,7 @@ export function LeadCard({
           {/* Date */}
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1.5">
             <Calendar className="h-2.5 w-2.5 flex-shrink-0" />
-            <span>{new Date(lead.created_at).toLocaleDateString('pt-BR')}</span>
+            <span>{new Date(lead.available_at || lead.created_at).toLocaleDateString('pt-BR')}</span>
           </div>
 
           {/* Converted Value */}
@@ -252,7 +252,7 @@ export function LeadCard({
                 )}
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {new Date(lead.created_at).toLocaleDateString('pt-BR')}
+                  {new Date(lead.available_at || lead.created_at).toLocaleDateString('pt-BR')}
                 </span>
               </div>
             ) : (
