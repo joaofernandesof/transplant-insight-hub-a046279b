@@ -91,6 +91,11 @@ interface Appointment {
   priority: string;
   created_at: string;
   ipromed_legal_clients?: { name: string } | null;
+  // Deadline check fields
+  doc_elaborated: boolean;
+  doc_delivered: boolean;
+  prazo_done: boolean;
+  prazo_filed: boolean;
 }
 
 // Meeting type configurations with friendly colors
@@ -261,6 +266,10 @@ export default function AstreaStyleAgenda() {
         priority: 'normal',
         created_at: meeting.created_at,
         ipromed_legal_clients: meeting.ipromed_legal_clients,
+        doc_elaborated: false,
+        doc_delivered: false,
+        prazo_done: false,
+        prazo_filed: false,
       }));
 
       // Combine and sort all appointments
@@ -377,6 +386,23 @@ export default function AstreaStyleAgenda() {
     },
     onError: (error) => {
       toast.error('Erro: ' + error.message);
+    },
+  });
+
+  // Toggle deadline check field
+  const toggleDeadlineCheck = useMutation({
+    mutationFn: async ({ id, field, value }: { id: string; field: string; value: boolean }) => {
+      const { error } = await (supabase as any)
+        .from('ipromed_appointments')
+        .update({ [field]: value })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
+    },
+    onError: (error) => {
+      toast.error('Erro ao atualizar: ' + error.message);
     },
   });
 
@@ -542,6 +568,59 @@ export default function AstreaStyleAgenda() {
                   <Users className="h-3 w-3" />
                   {apt.ipromed_legal_clients.name}
                 </p>
+              )}
+              {/* Deadline checks for prazo-type */}
+              {apt.appointment_type === 'prazo' && (
+                <div className="mt-2 space-y-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`doc-elab-${apt.id}`}
+                      checked={apt.doc_elaborated}
+                      onCheckedChange={(checked) => toggleDeadlineCheck.mutate({ id: apt.id, field: 'doc_elaborated', value: !!checked })}
+                      className="h-3.5 w-3.5"
+                    />
+                    <label htmlFor={`doc-elab-${apt.id}`} className={`text-[11px] cursor-pointer ${apt.doc_elaborated ? 'line-through text-muted-foreground' : ''}`}>
+                      Documentação elaborada
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`doc-del-${apt.id}`}
+                      checked={apt.doc_delivered}
+                      onCheckedChange={(checked) => toggleDeadlineCheck.mutate({ id: apt.id, field: 'doc_delivered', value: !!checked })}
+                      className="h-3.5 w-3.5"
+                    />
+                    <label htmlFor={`doc-del-${apt.id}`} className={`text-[11px] cursor-pointer ${apt.doc_delivered ? 'line-through text-muted-foreground' : ''}`}>
+                      Entregue ao cliente
+                    </label>
+                  </div>
+                  {apt.title.toLowerCase().includes('peti') && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`prazo-done-${apt.id}`}
+                          checked={apt.prazo_done}
+                          onCheckedChange={(checked) => toggleDeadlineCheck.mutate({ id: apt.id, field: 'prazo_done', value: !!checked })}
+                          className="h-3.5 w-3.5"
+                        />
+                        <label htmlFor={`prazo-done-${apt.id}`} className={`text-[11px] cursor-pointer ${apt.prazo_done ? 'line-through text-muted-foreground' : ''}`}>
+                          Prazo feito
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`prazo-filed-${apt.id}`}
+                          checked={apt.prazo_filed}
+                          onCheckedChange={(checked) => toggleDeadlineCheck.mutate({ id: apt.id, field: 'prazo_filed', value: !!checked })}
+                          className="h-3.5 w-3.5"
+                        />
+                        <label htmlFor={`prazo-filed-${apt.id}`} className={`text-[11px] cursor-pointer ${apt.prazo_filed ? 'line-through text-muted-foreground' : ''}`}>
+                          Prazo protocolado
+                        </label>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -1025,6 +1104,71 @@ export default function AstreaStyleAgenda() {
                     <div className="pt-2 border-t">
                       <p className="text-sm font-medium mb-1">Descrição</p>
                       <p className="text-sm text-muted-foreground">{selectedAppointment.description}</p>
+                    </div>
+                  )}
+
+                  {/* Deadline Checks for prazo-type */}
+                  {selectedAppointment.appointment_type === 'prazo' && (
+                    <div className="pt-3 border-t space-y-3">
+                      <p className="text-sm font-medium">Checklist do Prazo</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id="detail-doc-elab"
+                            checked={selectedAppointment.doc_elaborated}
+                            onCheckedChange={(checked) => {
+                              toggleDeadlineCheck.mutate({ id: selectedAppointment.id, field: 'doc_elaborated', value: !!checked });
+                              setSelectedAppointment({ ...selectedAppointment, doc_elaborated: !!checked });
+                            }}
+                          />
+                          <Label htmlFor="detail-doc-elab" className={`cursor-pointer ${selectedAppointment.doc_elaborated ? 'line-through text-muted-foreground' : ''}`}>
+                            Documentação elaborada
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id="detail-doc-del"
+                            checked={selectedAppointment.doc_delivered}
+                            onCheckedChange={(checked) => {
+                              toggleDeadlineCheck.mutate({ id: selectedAppointment.id, field: 'doc_delivered', value: !!checked });
+                              setSelectedAppointment({ ...selectedAppointment, doc_delivered: !!checked });
+                            }}
+                          />
+                          <Label htmlFor="detail-doc-del" className={`cursor-pointer ${selectedAppointment.doc_delivered ? 'line-through text-muted-foreground' : ''}`}>
+                            Documentação entregue ao cliente
+                          </Label>
+                        </div>
+                        {selectedAppointment.title.toLowerCase().includes('peti') && (
+                          <>
+                            <div className="flex items-center gap-3">
+                              <Checkbox
+                                id="detail-prazo-done"
+                                checked={selectedAppointment.prazo_done}
+                                onCheckedChange={(checked) => {
+                                  toggleDeadlineCheck.mutate({ id: selectedAppointment.id, field: 'prazo_done', value: !!checked });
+                                  setSelectedAppointment({ ...selectedAppointment, prazo_done: !!checked });
+                                }}
+                              />
+                              <Label htmlFor="detail-prazo-done" className={`cursor-pointer ${selectedAppointment.prazo_done ? 'line-through text-muted-foreground' : ''}`}>
+                                Prazo feito
+                              </Label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Checkbox
+                                id="detail-prazo-filed"
+                                checked={selectedAppointment.prazo_filed}
+                                onCheckedChange={(checked) => {
+                                  toggleDeadlineCheck.mutate({ id: selectedAppointment.id, field: 'prazo_filed', value: !!checked });
+                                  setSelectedAppointment({ ...selectedAppointment, prazo_filed: !!checked });
+                                }}
+                              />
+                              <Label htmlFor="detail-prazo-filed" className={`cursor-pointer ${selectedAppointment.prazo_filed ? 'line-through text-muted-foreground' : ''}`}>
+                                Prazo protocolado
+                              </Label>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
 
