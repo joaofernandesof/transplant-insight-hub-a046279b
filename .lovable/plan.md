@@ -1,43 +1,69 @@
 
 
-# Corrigir Botoes "Novo Lead" (Dashboard) e "Adicionar Lead" (Kanban)
+## Plano: Email do lead no agendamento + convite no Google Calendar
 
-## Problema
+### Objetivo
+Permitir que, ao configurar o fluxo de atendimento do agente, o usuario instrua a IA a pedir o email do lead. A IA usara esse email para:
+1. Salvar no agendamento (`patient_email`)
+2. Adicionar o lead como **participante (attendee)** no evento do Google Calendar, fazendo com que ele receba o convite automaticamente
 
-1. **Dashboard - "Novo Lead"**: O botao navega para `/avivar/inbox` em vez de abrir um dialog para criar lead. O usuario espera que abra um formulario de criacao.
-2. **Kanban - "Adicionar Lead"**: O botao funciona corretamente (abre o `AddLeadDialog`), mas precisa ser verificado se ha algum erro na criacao.
+### O que ja existe
+- A tabela `avivar_appointments` ja possui a coluna `patient_email`
+- A funcao `createGoogleCalendarEvent` ja cria eventos no Google Calendar
+- A tool `create_appointment` aceita parametros do agente, mas **nao inclui `patient_email`**
 
-## Solucao
+---
 
-### 1. Dashboard - Botao "Novo Lead"
+### Mudancas necessarias
 
-Substituir o `onClick={() => navigate('/avivar/inbox')}` por um dialog de criacao de lead. Como o Dashboard nao tem um kanban especifico selecionado, o dialog precisa:
+#### 1. Tool definition: adicionar `patient_email` ao `create_appointment`
+No arquivo `supabase/functions/avivar-ai-agent/index.ts`, adicionar o parametro opcional `patient_email` na definicao da ferramenta `create_appointment` (linhas ~416-446).
 
-- Buscar os kanbans do usuario (usando `useKanbanBoards`)
-- Quando houver apenas 1 kanban, seleciona-lo automaticamente e carregar suas colunas
-- Quando houver multiplos, permitir escolher o kanban primeiro, depois a coluna
-- Reutilizar a logica de insercao do `AddLeadDialog` existente
+#### 2. Funcao `createAppointment`: aceitar e salvar `patient_email`
+- Adicionar parametro `patientEmail?: string` na assinatura da funcao
+- Incluir `patient_email: patientEmail || null` no `insert` do agendamento (~linha 1252)
+- Passar o email para `createGoogleCalendarEvent`
 
-**Mudancas em `src/pages/avivar/AvivarDashboard.tsx`:**
-- Importar `useKanbanBoards` e componentes de dialog
-- Adicionar estado `isAddLeadDialogOpen`
-- Criar um componente `DashboardAddLeadDialog` inline ou reutilizar/adaptar `AddLeadDialog` com seletor de kanban
-- Trocar o `onClick` do botao "Novo Lead" para `() => setIsAddLeadDialogOpen(true)`
+#### 3. Funcao `createGoogleCalendarEvent`: adicionar attendee
+- Adicionar parametro `attendeeEmail?: string`
+- Se o email existir, incluir `attendees: [{ email: attendeeEmail }]` no corpo do evento enviado a API do Google Calendar
+- Isso faz o Google enviar automaticamente um convite ao lead
 
-### 2. Componente `AddLeadDialog` - Tornar mais flexivel
+#### 4. Chamada da tool (`case "create_appointment"`): passar o email
+Na secao de dispatch (~linha 2733), passar `toolArgs.patient_email` como novo argumento.
 
-Adaptar o `AddLeadDialog` para aceitar um `kanbanId` opcional. Quando nao receber, mostrar um seletor de funil/kanban no formulario.
+#### 5. Tool `propose_slot`: tambem aceitar email (opcional)
+Para consistencia, adicionar `patient_email` ao `propose_slot` para que a IA possa coletar o email antes da confirmacao.
 
-**Mudancas em `src/pages/avivar/kanban/components/AddLeadDialog.tsx`:**
-- Tornar `kanbanId` e `columns` opcionais
-- Quando nao fornecidos, buscar kanbans e colunas internamente usando `useKanbanBoards`
-- Adicionar um `Select` de kanban que, ao ser selecionado, filtra as colunas correspondentes
-- Invalidar queries de dashboard alem das de kanban no `onSuccess`
+---
 
-## Arquivos a Modificar
+### Detalhes tecnicos
 
-| Arquivo | Mudanca |
-|---------|---------|
-| `src/pages/avivar/kanban/components/AddLeadDialog.tsx` | Tornar kanbanId/columns opcionais, adicionar seletor de kanban quando nao fornecidos |
-| `src/pages/avivar/AvivarDashboard.tsx` | Trocar navegacao por dialog, importar AddLeadDialog e useKanbanBoards |
+```text
+Fluxo atualizado:
+
+Lead informa email
+       |
+       v
+IA chama propose_slot (com email)
+       |
+       v
+Lead confirma "Sim"
+       |
+       v
+IA chama create_appointment(patient_email="lead@email.com")
+       |
+       v
+createAppointment()
+  ├── INSERT avivar_appointments (patient_email preenchido)
+  └── createGoogleCalendarEvent(attendeeEmail="lead@email.com")
+         └── Google API recebe { attendees: [{ email }] }
+               └── Google envia convite automatico ao lead
+```
+
+### Arquivos modificados
+- `supabase/functions/avivar-ai-agent/index.ts` (unico arquivo, 5 pontos de edicao)
+
+### Nenhuma migracao necessaria
+A coluna `patient_email` ja existe na tabela `avivar_appointments`.
 
