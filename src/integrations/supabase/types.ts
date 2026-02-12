@@ -6278,6 +6278,44 @@ export type Database = {
           },
         ]
       }
+      ipromed_appointment_checks: {
+        Row: {
+          appointment_id: string
+          check_key: string
+          check_label: string
+          created_at: string
+          id: string
+          is_checked: boolean
+          order_index: number
+        }
+        Insert: {
+          appointment_id: string
+          check_key: string
+          check_label: string
+          created_at?: string
+          id?: string
+          is_checked?: boolean
+          order_index?: number
+        }
+        Update: {
+          appointment_id?: string
+          check_key?: string
+          check_label?: string
+          created_at?: string
+          id?: string
+          is_checked?: boolean
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_appointment_checks_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_appointments: {
         Row: {
           all_day: boolean | null
@@ -6287,6 +6325,7 @@ export type Database = {
           client_id: string | null
           created_at: string | null
           created_by: string | null
+          deadline_type_id: string | null
           description: string | null
           doc_delivered: boolean
           doc_elaborated: boolean
@@ -6312,6 +6351,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          deadline_type_id?: string | null
           description?: string | null
           doc_delivered?: boolean
           doc_elaborated?: boolean
@@ -6337,6 +6377,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          deadline_type_id?: string | null
           description?: string | null
           doc_delivered?: boolean
           doc_elaborated?: boolean
@@ -6367,6 +6408,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_appointments_deadline_type_id_fkey"
+            columns: ["deadline_type_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_deadline_types"
             referencedColumns: ["id"]
           },
         ]
@@ -7433,6 +7481,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ipromed_deadline_types: {
+        Row: {
+          checklist_items: Json
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          checklist_items?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          checklist_items?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       ipromed_document_templates: {
         Row: {
