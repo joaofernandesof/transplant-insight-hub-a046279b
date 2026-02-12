@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Shield, ShieldCheck, Crown } from "lucide-react";
+import { Shield, ShieldCheck, Crown, FileText, ClipboardList, CalendarCheck, Camera, FolderOpen, Lock, MonitorSmartphone, Ban, XCircle, Pen, Stethoscope, Heart, ScrollText } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PlanRow {
@@ -166,10 +166,76 @@ export function IpromedPricingTables() {
     setIntegralRows((prev) => prev.map((r, i) => i === rowIdx ? { ...r, [field]: value } : r));
   };
 
+  const documents = [
+    { icon: FileText, label: "Contrato de Prestação de Serviços" },
+    { icon: ClipboardList, label: "Formulário de Anamnese Guiado" },
+    { icon: CalendarCheck, label: "Política de Agendamento" },
+    { icon: Camera, label: "Termo de Uso de Imagem" },
+    { icon: FolderOpen, label: "Política de Prontuário" },
+    { icon: Lock, label: "Termo de Sigilo" },
+    { icon: MonitorSmartphone, label: "TCLE para Teleconsulta" },
+    { icon: Ban, label: "Termo de Recusa de Tratamento" },
+    { icon: XCircle, label: "Notificação de Renúncia" },
+    { icon: Pen, label: "Orientação Pré-Procedimento" },
+    { icon: Stethoscope, label: "Orientação Pós-Procedimento" },
+    { icon: ScrollText, label: "TCLEs Específicos por Procedimento" },
+  ];
+
   return (
-    <div className={isMobile ? "space-y-6" : "grid grid-cols-2 gap-4"}>
-      <PlanTable title="Essencial" rows={essencialRows} onRowChange={handleEssencialChange} variant="essencial" />
-      <PlanTable title="Integral" rows={integralRows} onRowChange={handleIntegralChange} variant="integral" />
+    <div className="space-y-6">
+      <div className={isMobile ? "space-y-6" : "grid grid-cols-2 gap-4"}>
+        <PlanTable title="Essencial" rows={essencialRows} onRowChange={handleEssencialChange} variant="essencial" />
+        <PlanTable title="Integral" rows={integralRows} onRowChange={handleIntegralChange} variant="integral" />
+      </div>
+
+      {/* Documentação Jurídica Preventiva */}
+      <Card className="border-2 border-amber-200 dark:border-amber-800 overflow-hidden">
+        <CardHeader className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800 pb-4">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="p-3 rounded-xl bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400">
+              <FileText className="h-6 w-6" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-bold text-amber-700 dark:text-amber-300">
+                Documentação Jurídica Preventiva
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Todos os documentos personalizados entregues ao médico</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
+            {documents.map((doc, idx) => {
+              const Icon = doc.icon;
+              return (
+                <div key={idx} className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50 border border-border text-center">
+                  <Icon className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-xs font-medium">{doc.label}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Valores */}
+          <div className={`grid gap-3 mt-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
+            <div className="bg-muted/30 border border-border rounded-lg p-4 text-center">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Valor de Mercado</p>
+              <p className="text-xl font-bold text-red-500 line-through">R$ 15.200</p>
+            </div>
+            <div className="bg-muted/30 border border-border rounded-lg p-4 text-center">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Seu Investimento</p>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-sm text-muted-foreground line-through">R$ 4.900</span>
+                <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">R$ 3.900</span>
+              </div>
+            </div>
+            <div className="bg-muted/30 border border-border rounded-lg p-4 text-center">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Você Economiza</p>
+              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">R$ 11.300</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
