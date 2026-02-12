@@ -1,10 +1,12 @@
 /**
- * Tabelas de preços dos planos CPG - Essencial e Integral
+ * Tabelas de preços dos planos CPG - Essencial e Integral (editáveis)
  */
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Diamond } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PlanRow {
   combination: string;
@@ -15,7 +17,7 @@ interface PlanRow {
   discountPercent: string;
 }
 
-const essencialRows: PlanRow[] = [
+const defaultEssencialRows: PlanRow[] = [
   { combination: "Somente CPF", structure: "1 CPF", theoreticalValue: "990", tableValue: "990", discount: "0", discountPercent: "0%" },
   { combination: "Somente CNPJ", structure: "1 CNPJ", theoreticalValue: "1.590", tableValue: "1.590", discount: "0", discountPercent: "0%" },
   { combination: "1 + 1", structure: "1 CNPJ + 1 CPF", theoreticalValue: "2.580", tableValue: "1.900", discount: "680", discountPercent: "26,36%" },
@@ -30,7 +32,7 @@ const essencialRows: PlanRow[] = [
   { combination: "Acima de 3 + 3", structure: "Estrutura personalizada", theoreticalValue: "—", tableValue: "Sob consulta", discount: "—", discountPercent: "—" },
 ];
 
-const integralRows: PlanRow[] = [
+const defaultIntegralRows: PlanRow[] = [
   { combination: "Somente CPF", structure: "1 CPF", theoreticalValue: "1.790", tableValue: "1.790", discount: "0", discountPercent: "0%" },
   { combination: "Somente CNPJ", structure: "1 CNPJ", theoreticalValue: "2.390", tableValue: "2.390", discount: "0", discountPercent: "0%" },
   { combination: "1 + 1", structure: "1 CNPJ + 1 CPF", theoreticalValue: "4.180", tableValue: "2.900", discount: "1.280", discountPercent: "30,62%" },
@@ -45,12 +47,45 @@ const integralRows: PlanRow[] = [
   { combination: "Acima de 3 + 3", structure: "Estrutura personalizada", theoreticalValue: "—", tableValue: "Sob consulta", discount: "—", discountPercent: "—" },
 ];
 
-function PlanTable({ title, rows }: { title: string; rows: PlanRow[] }) {
+type PlanField = keyof PlanRow;
+
+function EditableCell({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
+  const [editing, setEditing] = useState(false);
+  const [local, setLocal] = useState(value);
+
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        value={local}
+        onChange={(e) => setLocal(e.target.value)}
+        onBlur={() => { setEditing(false); if (local !== value) onChange(local); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { setEditing(false); if (local !== value) onChange(local); }
+          if (e.key === "Escape") { setLocal(value); setEditing(false); }
+        }}
+        className="bg-background border border-primary/30 rounded px-1 py-0.5 text-xs outline-none focus:ring-1 focus:ring-primary/30 w-full min-w-[60px]"
+      />
+    );
+  }
+
   return (
-    <Card>
+    <span
+      className={`cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors inline-block ${className || ""}`}
+      onClick={() => { setLocal(value); setEditing(true); }}
+      title="Clique para editar"
+    >
+      {value}
+    </span>
+  );
+}
+
+function PlanTable({ title, rows, onRowChange }: { title: string; rows: PlanRow[]; onRowChange: (rowIdx: number, field: PlanField, value: string) => void }) {
+  return (
+    <Card className="min-w-0">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Diamond className="h-4 w-4 text-primary fill-primary" />
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Diamond className="h-3.5 w-3.5 text-primary fill-primary" />
           PLANO {title}
         </CardTitle>
       </CardHeader>
@@ -59,23 +94,35 @@ function PlanTable({ title, rows }: { title: string; rows: PlanRow[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[160px]">Combinação (CNPJ + CPF)</TableHead>
-                <TableHead className="min-w-[140px]">Estrutura</TableHead>
-                <TableHead className="min-w-[160px]">Valor Teórico Sem Desconto (R$ / mês)</TableHead>
-                <TableHead className="min-w-[140px]">Valor Total Tabela (R$ / mês)</TableHead>
-                <TableHead className="min-w-[140px]">Desconto Total (R$ / mês)</TableHead>
-                <TableHead className="min-w-[100px]">Desconto (%)</TableHead>
+                <TableHead className="text-[11px] min-w-[100px]">Combinação</TableHead>
+                <TableHead className="text-[11px] min-w-[90px]">Estrutura</TableHead>
+                <TableHead className="text-[11px] min-w-[90px]">Valor Teórico (R$/mês)</TableHead>
+                <TableHead className="text-[11px] min-w-[90px]">Valor Tabela (R$/mês)</TableHead>
+                <TableHead className="text-[11px] min-w-[80px]">Desconto (R$/mês)</TableHead>
+                <TableHead className="text-[11px] min-w-[60px]">Desc. (%)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((row, idx) => (
                 <TableRow key={idx}>
-                  <TableCell className="font-medium">{row.combination}</TableCell>
-                  <TableCell>{row.structure}</TableCell>
-                  <TableCell>{row.theoreticalValue === "—" ? "—" : `${row.theoreticalValue} / mês`}</TableCell>
-                  <TableCell className="font-semibold">{row.tableValue === "Sob consulta" ? "Sob consulta" : `${row.tableValue} / mês`}</TableCell>
-                  <TableCell>{row.discount === "—" ? "—" : `${row.discount} / mês`}</TableCell>
-                  <TableCell className="font-medium">{row.discountPercent}</TableCell>
+                  <TableCell className="py-1.5 px-2 text-xs">
+                    <EditableCell value={row.combination} onChange={(v) => onRowChange(idx, "combination", v)} className="font-medium" />
+                  </TableCell>
+                  <TableCell className="py-1.5 px-2 text-xs">
+                    <EditableCell value={row.structure} onChange={(v) => onRowChange(idx, "structure", v)} />
+                  </TableCell>
+                  <TableCell className="py-1.5 px-2 text-xs">
+                    <EditableCell value={row.theoreticalValue} onChange={(v) => onRowChange(idx, "theoreticalValue", v)} />
+                  </TableCell>
+                  <TableCell className="py-1.5 px-2 text-xs">
+                    <EditableCell value={row.tableValue} onChange={(v) => onRowChange(idx, "tableValue", v)} className="font-semibold" />
+                  </TableCell>
+                  <TableCell className="py-1.5 px-2 text-xs">
+                    <EditableCell value={row.discount} onChange={(v) => onRowChange(idx, "discount", v)} />
+                  </TableCell>
+                  <TableCell className="py-1.5 px-2 text-xs">
+                    <EditableCell value={row.discountPercent} onChange={(v) => onRowChange(idx, "discountPercent", v)} className="font-medium" />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -87,10 +134,22 @@ function PlanTable({ title, rows }: { title: string; rows: PlanRow[] }) {
 }
 
 export function IpromedPricingTables() {
+  const isMobile = useIsMobile();
+  const [essencialRows, setEssencialRows] = useState<PlanRow[]>(defaultEssencialRows);
+  const [integralRows, setIntegralRows] = useState<PlanRow[]>(defaultIntegralRows);
+
+  const handleEssencialChange = (rowIdx: number, field: PlanField, value: string) => {
+    setEssencialRows((prev) => prev.map((r, i) => i === rowIdx ? { ...r, [field]: value } : r));
+  };
+
+  const handleIntegralChange = (rowIdx: number, field: PlanField, value: string) => {
+    setIntegralRows((prev) => prev.map((r, i) => i === rowIdx ? { ...r, [field]: value } : r));
+  };
+
   return (
-    <div className="space-y-6">
-      <PlanTable title="ESSENCIAL" rows={essencialRows} />
-      <PlanTable title="INTEGRAL" rows={integralRows} />
+    <div className={isMobile ? "space-y-6" : "grid grid-cols-2 gap-4"}>
+      <PlanTable title="ESSENCIAL" rows={essencialRows} onRowChange={handleEssencialChange} />
+      <PlanTable title="INTEGRAL" rows={integralRows} onRowChange={handleIntegralChange} />
     </div>
   );
 }
