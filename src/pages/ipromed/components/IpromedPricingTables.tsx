@@ -114,7 +114,6 @@ function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows:
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[11px] text-center min-w-[100px]">Combinação</TableHead>
                 <TableHead className="text-[11px] text-center min-w-[90px]">Estrutura</TableHead>
                 <TableHead className="text-[11px] text-center min-w-[90px]">Valor Teórico (R$/mês)</TableHead>
                 <TableHead className="text-[11px] text-center min-w-[90px]">Valor Tabela (R$/mês)</TableHead>
@@ -125,9 +124,6 @@ function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows:
             <TableBody>
               {rows.map((row, idx) => (
                 <TableRow key={idx}>
-                  <TableCell className="py-1.5 px-2 text-xs text-center">
-                    <EditableCell value={row.combination} onChange={(v) => onRowChange(idx, "combination", v)} className="font-medium" />
-                  </TableCell>
                   <TableCell className="py-1.5 px-2 text-xs text-center">
                     <EditableCell value={row.structure} onChange={(v) => onRowChange(idx, "structure", v)} />
                   </TableCell>
