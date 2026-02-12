@@ -37,7 +37,7 @@ import {
   Palette,
   Pencil
 } from 'lucide-react';
-import logoByNeofolic from '@/assets/logo-byneofolic.png';
+
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 
@@ -399,7 +399,7 @@ export default function Profile() {
               <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
+              <span className="text-lg font-semibold">Meu Perfil</span>
             </div>
             <div className="flex items-center gap-2">
               {!isEditing ? (

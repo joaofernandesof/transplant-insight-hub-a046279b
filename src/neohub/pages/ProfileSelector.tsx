@@ -18,7 +18,6 @@ import {
   Flame
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
-import logoNeofolic from '@/assets/logo-byneofolic.png';
 import { cn } from '@/lib/utils';
 
 // Definição dos módulos do sistema
@@ -193,12 +192,7 @@ export default function ProfileSelector() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col">
       {/* Header */}
-      <header className="p-4 flex items-center justify-between">
-        <img 
-          src={logoNeofolic} 
-          alt="NeoHub" 
-          className="h-8 w-auto dark:invert"
-        />
+      <header className="p-4 flex items-center justify-end">
         <Button variant="ghost" size="sm" onClick={handleLogout}>
           <LogOut className="h-4 w-4 mr-2" />
           Sair
