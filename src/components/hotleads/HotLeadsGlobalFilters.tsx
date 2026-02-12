@@ -124,7 +124,7 @@ export function HotLeadsGlobalFilters({
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos estados</SelectItem>
+            <SelectItem value="all">Estado</SelectItem>
             {availableStates.sort().map(state => (
               <SelectItem key={state} value={state}>{state}</SelectItem>
             ))}
@@ -137,7 +137,7 @@ export function HotLeadsGlobalFilters({
             <SelectValue placeholder="Cidade" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas cidades</SelectItem>
+            <SelectItem value="all">Cidade</SelectItem>
             {availableCities.sort().map(city => (
               <SelectItem key={city} value={city}>{city}</SelectItem>
             ))}
