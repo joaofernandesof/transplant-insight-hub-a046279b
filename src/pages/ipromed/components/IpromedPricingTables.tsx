@@ -117,10 +117,10 @@ function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows:
             <TableHeader>
               <TableRow className={accentBg}>
                 <TableHead className="text-[11px] text-center min-w-[90px] font-bold text-foreground">Estrutura</TableHead>
-                <TableHead className="text-[11px] text-center min-w-[90px] font-bold text-muted-foreground">Valor Teórico</TableHead>
-                <TableHead className={`text-[11px] text-center min-w-[90px] font-bold ${accentColor}`}>Valor Tabela</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[90px] font-bold text-muted-foreground">Valor Tabela</TableHead>
                 <TableHead className="text-[11px] text-center min-w-[80px] font-bold text-orange-600 dark:text-orange-400">Desconto</TableHead>
                 <TableHead className="text-[11px] text-center min-w-[60px] font-bold text-emerald-600 dark:text-emerald-400">Desc. (%)</TableHead>
+                <TableHead className={`text-[11px] text-center min-w-[90px] font-bold ${accentColor}`}>Valor Final</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -138,17 +138,17 @@ function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows:
                     </TableCell>
                     <TableCell className="py-2 px-2 text-center">
                       <span className="inline-flex items-center">
-                        <EditableCell value={row.tableValue} onChange={(v) => onRowChange(idx, "tableValue", v)} className={`text-sm font-bold ${accentColor} ${isIntegral ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-blue-50 dark:bg-blue-950/40'} rounded-full px-2.5 py-0.5`} />
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-2 px-2 text-center">
-                      <span className="inline-flex items-center">
                         <EditableCell value={row.discount} onChange={(v) => onRowChange(idx, "discount", v)} className={`text-xs ${hasDiscount ? 'font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 rounded-full px-2 py-0.5' : 'text-muted-foreground bg-muted/40 rounded-full px-2 py-0.5'}`} />
                       </span>
                     </TableCell>
                     <TableCell className="py-2 px-2 text-center">
                       <span className="inline-flex items-center">
                         <EditableCell value={row.discountPercent} onChange={(v) => onRowChange(idx, "discountPercent", v)} className={`text-xs ${hasDiscount ? 'font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 rounded-full px-2 py-0.5' : 'text-muted-foreground bg-muted/40 rounded-full px-2 py-0.5'}`} />
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-2 px-2 text-center">
+                      <span className="inline-flex items-center">
+                        <EditableCell value={row.tableValue} onChange={(v) => onRowChange(idx, "tableValue", v)} className={`text-sm font-bold ${accentColor} ${isIntegral ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-blue-50 dark:bg-blue-950/40'} rounded-full px-2.5 py-0.5`} />
                       </span>
                     </TableCell>
                   </TableRow>
