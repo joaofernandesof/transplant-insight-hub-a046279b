@@ -94,33 +94,33 @@ function PlanTable({ title, rows, onRowChange }: { title: string; rows: PlanRow[
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[11px] min-w-[100px]">Combinação</TableHead>
-                <TableHead className="text-[11px] min-w-[90px]">Estrutura</TableHead>
-                <TableHead className="text-[11px] min-w-[90px]">Valor Teórico (R$/mês)</TableHead>
-                <TableHead className="text-[11px] min-w-[90px]">Valor Tabela (R$/mês)</TableHead>
-                <TableHead className="text-[11px] min-w-[80px]">Desconto (R$/mês)</TableHead>
-                <TableHead className="text-[11px] min-w-[60px]">Desc. (%)</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[100px]">Combinação</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[90px]">Estrutura</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[90px]">Valor Teórico (R$/mês)</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[90px]">Valor Tabela (R$/mês)</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[80px]">Desconto (R$/mês)</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[60px]">Desc. (%)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((row, idx) => (
                 <TableRow key={idx}>
-                  <TableCell className="py-1.5 px-2 text-xs">
+                  <TableCell className="py-1.5 px-2 text-xs text-center">
                     <EditableCell value={row.combination} onChange={(v) => onRowChange(idx, "combination", v)} className="font-medium" />
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs">
+                  <TableCell className="py-1.5 px-2 text-xs text-center">
                     <EditableCell value={row.structure} onChange={(v) => onRowChange(idx, "structure", v)} />
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs">
+                  <TableCell className="py-1.5 px-2 text-xs text-center">
                     <EditableCell value={row.theoreticalValue} onChange={(v) => onRowChange(idx, "theoreticalValue", v)} />
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs">
+                  <TableCell className="py-1.5 px-2 text-xs text-center">
                     <EditableCell value={row.tableValue} onChange={(v) => onRowChange(idx, "tableValue", v)} className="font-semibold" />
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs">
+                  <TableCell className="py-1.5 px-2 text-xs text-center">
                     <EditableCell value={row.discount} onChange={(v) => onRowChange(idx, "discount", v)} />
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs">
+                  <TableCell className="py-1.5 px-2 text-xs text-center">
                     <EditableCell value={row.discountPercent} onChange={(v) => onRowChange(idx, "discountPercent", v)} className="font-medium" />
                   </TableCell>
                 </TableRow>
