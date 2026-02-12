@@ -16,6 +16,7 @@ import {
   HotLeadsGlobalFilters,
   NextLeadReleaseBanner,
 } from '@/components/hotleads';
+import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import type { HotLead } from '@/hooks/useHotLeads';
 
 export default function HotLeads() {
@@ -196,8 +197,18 @@ export default function HotLeads() {
           />
         </div>
 
+        {/* Stats */}
+        <div className="px-4 pt-2">
+          <HotLeadsStats
+            leads={filteredLeads}
+            availableCount={filteredAvailable.length}
+            myLeadsCount={filteredMyLeads.length}
+            acquiredCount={filteredAcquired.length}
+          />
+        </div>
+
         {/* Leads Content */}
-        <div className="flex-1 overflow-hidden px-4 pb-4">
+        <div className="flex-1 overflow-hidden px-4 pb-4 pt-3">
           <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
             <PaginatedLeadColumn

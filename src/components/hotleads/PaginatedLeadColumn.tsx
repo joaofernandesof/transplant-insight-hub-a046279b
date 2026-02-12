@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Pagination,
@@ -43,13 +43,13 @@ export function PaginatedLeadColumn({ title, dotColor, items, emptyMessage, rend
   }, [page, totalPages]);
 
   return (
-    <div className="flex flex-col min-h-0 h-full">
-      <CardHeader className="px-0 pt-0 pb-2">
+    <div className="flex flex-col min-h-0 h-full bg-muted/40 rounded-xl border p-4">
+      <div className="pb-3 border-b mb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <div className={`h-3 w-3 rounded-full ${dotColor}`} />
           {title} ({items.length})
         </CardTitle>
-      </CardHeader>
+      </div>
 
       <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-3 pr-2">
@@ -62,7 +62,7 @@ export function PaginatedLeadColumn({ title, dotColor, items, emptyMessage, rend
       </ScrollArea>
 
       {totalPages > 1 && (
-        <Pagination className="mt-3">
+        <Pagination className="mt-3 pt-3 border-t">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
