@@ -102,6 +102,7 @@ export function ColumnDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* 1. Nome da Coluna */}
           <div className="space-y-2">
             <Label htmlFor="column-name" className="text-[hsl(var(--avivar-foreground))]">
               Nome da Coluna
@@ -115,26 +116,7 @@ export function ColumnDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-[hsl(var(--avivar-foreground))]">Cor</Label>
-            <Select value={color} onValueChange={setColor}>
-              <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {colorOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-4 h-4 rounded ${opt.preview}`} />
-                      {opt.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* AI Instruction - OBRIGATÓRIO */}
+          {/* 2. Instrução para IA - OBRIGATÓRIO */}
           <div className="space-y-2">
             <Label className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
               <Bot className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
@@ -155,7 +137,27 @@ export function ColumnDialog({
             </p>
           </div>
 
-          {/* Preview */}
+          {/* 3. Cor */}
+          <div className="space-y-2">
+            <Label className="text-[hsl(var(--avivar-foreground))]">Cor</Label>
+            <Select value={color} onValueChange={setColor}>
+              <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {colorOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded ${opt.preview}`} />
+                      {opt.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 4. Preview */}
           <div className="space-y-2">
             <Label className="text-[hsl(var(--avivar-foreground))]">Preview</Label>
             <div className={`px-4 py-3 rounded-lg bg-gradient-to-r ${color} text-white`}>
