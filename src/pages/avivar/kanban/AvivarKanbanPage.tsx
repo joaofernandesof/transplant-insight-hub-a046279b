@@ -120,7 +120,7 @@ export default function AvivarKanbanPage() {
   });
   // Create column mutation
   const createColumn = useMutation({
-    mutationFn: async (columnData: { name: string; color: string }) => {
+    mutationFn: async (columnData: { name: string; color: string; ai_instruction?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const { data: memberData } = await supabase
         .from('avivar_account_members')
@@ -154,6 +154,7 @@ export default function AvivarKanbanPage() {
           account_id: memberData!.account_id,
           name: columnData.name,
           color: columnData.color,
+          ai_instruction: columnData.ai_instruction || null,
           order_index: newOrderIndex,
         })
         .select()
@@ -291,7 +292,7 @@ export default function AvivarKanbanPage() {
     reorderColumns.mutate(updates);
   };
 
-  const handleSaveColumn = (data: { name: string; color: string }) => {
+  const handleSaveColumn = (data: { name: string; color: string; ai_instruction?: string }) => {
     if (editingColumn) {
       updateColumn.mutate({ id: editingColumn.id, ...data });
     } else {
