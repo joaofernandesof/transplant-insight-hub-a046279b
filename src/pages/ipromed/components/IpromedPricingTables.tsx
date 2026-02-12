@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Diamond } from "lucide-react";
+import { Shield, ShieldCheck, Crown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PlanRow {
@@ -80,14 +80,34 @@ function EditableCell({ value, onChange, className }: { value: string; onChange:
   );
 }
 
-function PlanTable({ title, rows, onRowChange }: { title: string; rows: PlanRow[]; onRowChange: (rowIdx: number, field: PlanField, value: string) => void }) {
+function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows: PlanRow[]; onRowChange: (rowIdx: number, field: PlanField, value: string) => void; variant: 'essencial' | 'integral' }) {
+  const isIntegral = variant === 'integral';
+  const IconComp = isIntegral ? ShieldCheck : Shield;
+  const headerBg = isIntegral ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-blue-50 dark:bg-blue-950/40';
+  const headerBorder = isIntegral ? 'border-emerald-200 dark:border-emerald-800' : 'border-blue-200 dark:border-blue-800';
+  const iconBg = isIntegral ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400' : 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400';
+  const titleColor = isIntegral ? 'text-emerald-700 dark:text-emerald-300' : 'text-blue-700 dark:text-blue-300';
+  const subtitleText = isIntegral ? 'Proteção completa' : 'Proteção fundamental';
+
   return (
-    <Card className="min-w-0">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Diamond className="h-3.5 w-3.5 text-primary fill-primary" />
-          PLANO {title}
-        </CardTitle>
+    <Card className={`min-w-0 border-2 ${headerBorder} relative overflow-hidden`}>
+      {isIntegral && (
+        <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg flex items-center gap-1 z-10">
+          <Crown className="h-3 w-3" /> Mais completo
+        </div>
+      )}
+      <CardHeader className={`pb-3 ${headerBg} border-b ${headerBorder}`}>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className={`p-3 rounded-xl ${iconBg}`}>
+            <IconComp className="h-6 w-6" />
+          </div>
+          <div>
+            <CardTitle className={`text-lg font-bold ${titleColor}`}>
+              {title}
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">{subtitleText}</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -148,8 +168,8 @@ export function IpromedPricingTables() {
 
   return (
     <div className={isMobile ? "space-y-6" : "grid grid-cols-2 gap-4"}>
-      <PlanTable title="ESSENCIAL" rows={essencialRows} onRowChange={handleEssencialChange} />
-      <PlanTable title="INTEGRAL" rows={integralRows} onRowChange={handleIntegralChange} />
+      <PlanTable title="Essencial" rows={essencialRows} onRowChange={handleEssencialChange} variant="essencial" />
+      <PlanTable title="Integral" rows={integralRows} onRowChange={handleIntegralChange} variant="integral" />
     </div>
   );
 }
