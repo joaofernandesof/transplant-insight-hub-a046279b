@@ -54,6 +54,7 @@ import {
   Gavel,
   Kanban,
   Sparkles,
+  FileBarChart,
 } from 'lucide-react';
 
 // Tipos base
@@ -189,6 +190,7 @@ export const NEOCARE_MENU_ITEMS: MenuItem[] = [
   { id: 'neocare_payments', code: 'neocare_payments', title: 'Pagamentos', icon: CreditCard, route: '/neocare/my-invoices' },
   { id: 'neocare_teleconsultation', code: 'neocare_teleconsultation', title: 'Teleconsulta', icon: Video, route: '/neocare/teleconsultation' },
   { id: 'neocare_support', code: 'neocare_support', title: 'Suporte', icon: HelpCircle, route: '/neocare/support' },
+  { id: 'neocare_reports', code: 'neocare_reports', title: 'Relatórios', icon: FileBarChart, route: '/neocare/reports' },
   { id: 'neocare_settings', code: 'neocare_settings', title: 'Configurações', icon: Settings, route: '/neocare/settings' },
 ];
 
@@ -205,6 +207,7 @@ export const NEOTEAM_MENU_ITEMS: MenuItem[] = [
   { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/galleries', adminOnly: true },
   { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/postvenda' },
   { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Equipe', icon: UserCog, route: '/neoteam/staff', adminOnly: true },
+  { id: 'neoteam_reports', code: 'neoteam_reports', title: 'Relatórios', icon: FileBarChart, route: '/neoteam/reports' },
   { id: 'neoteam_settings', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
 ];
 
@@ -264,7 +267,8 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: false,
     items: [
       { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Equipe', icon: UserCog, route: '/neoteam/staff', adminOnly: true },
-      { id: 'neoteam_settings', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
+      { id: 'neoteam_reports_cat', code: 'neoteam_reports', title: 'Relatórios', icon: FileBarChart, route: '/neoteam/reports' },
+      { id: 'neoteam_settings_cat', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
     ],
   },
 ];
@@ -278,6 +282,7 @@ export const ACADEMY_MENU_ITEMS: MenuItem[] = [
   { id: 'academy_community', code: 'academy_community', title: 'Comunidade', icon: Users, route: '/academy/community' },
   { id: 'academy_career', code: 'academy_career', title: 'Carreira', icon: TrendingUp, route: '/academy/career' },
   { id: 'academy_referral', code: 'academy_referral', title: 'Indique e Ganhe', icon: Gift, route: '/academy/referral' },
+  { id: 'academy_reports', code: 'academy_reports', title: 'Relatórios', icon: FileBarChart, route: '/academy/reports' },
   { id: 'academy_settings', code: 'academy_settings', title: 'Configurações', icon: Settings, route: '/academy/profile' },
 ];
 
@@ -292,6 +297,7 @@ export const NEOLICENSE_MENU_ITEMS: MenuItem[] = [
   { id: 'neolicense_achievements', code: 'neolicense_achievements', title: 'Conquistas', icon: Trophy, route: '/neolicense/achievements' },
   { id: 'neolicense_referral', code: 'neolicense_referral', title: 'Indicações', icon: Users, route: '/neolicense/referral' },
   { id: 'neolicense_structure', code: 'neolicense_structure', title: 'Regularização', icon: Building2, route: '/neolicense/structure' },
+  { id: 'neolicense_reports', code: 'neolicense_reports', title: 'Relatórios', icon: FileBarChart, route: '/neolicense/reports' },
   { id: 'neolicense_profile', code: 'neolicense_profile', title: 'Perfil', icon: Settings, route: '/neolicense/profile' },
 ];
 
@@ -306,6 +312,7 @@ export const AVIVAR_MENU_ITEMS: MenuItem[] = [
   { id: 'avivar_traffic', code: 'avivar_traffic', title: 'Tráfego', icon: TrendingUp, route: '/avivar/traffic' },
   { id: 'avivar_marketing', code: 'avivar_marketing', title: 'Marketing', icon: Megaphone, route: '/avivar/marketing' },
   { id: 'avivar_tutorials', code: 'avivar_tutorials', title: 'Tutoriais', icon: Users, route: '/avivar/tutorials' },
+  { id: 'avivar_reports', code: 'avivar_reports', title: 'Relatórios', icon: FileBarChart, route: '/avivar/reports' },
   { id: 'avivar_settings', code: 'avivar_settings', title: 'Configurações', icon: Settings, route: '/avivar/settings' },
 ];
 
