@@ -88,6 +88,8 @@ function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows:
   const iconBg = isIntegral ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400' : 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400';
   const titleColor = isIntegral ? 'text-emerald-700 dark:text-emerald-300' : 'text-blue-700 dark:text-blue-300';
   const subtitleText = isIntegral ? 'Proteção completa' : 'Proteção fundamental';
+  const accentColor = isIntegral ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400';
+  const accentBg = isIntegral ? 'bg-emerald-50 dark:bg-emerald-950/30' : 'bg-blue-50 dark:bg-blue-950/30';
 
   return (
     <Card className={`min-w-0 border-2 ${headerBorder} relative overflow-hidden`}>
@@ -113,34 +115,43 @@ function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows:
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="text-[11px] text-center min-w-[90px]">Estrutura</TableHead>
-                <TableHead className="text-[11px] text-center min-w-[90px]">Valor Teórico (R$/mês)</TableHead>
-                <TableHead className="text-[11px] text-center min-w-[90px]">Valor Tabela (R$/mês)</TableHead>
-                <TableHead className="text-[11px] text-center min-w-[80px]">Desconto (R$/mês)</TableHead>
-                <TableHead className="text-[11px] text-center min-w-[60px]">Desc. (%)</TableHead>
+              <TableRow className={accentBg}>
+                <TableHead className="text-[11px] text-center min-w-[90px] font-bold text-foreground">Estrutura</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[90px] font-bold text-muted-foreground">Valor Teórico</TableHead>
+                <TableHead className={`text-[11px] text-center min-w-[90px] font-bold ${accentColor}`}>Valor Tabela</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[80px] font-bold text-orange-600 dark:text-orange-400">Desconto</TableHead>
+                <TableHead className="text-[11px] text-center min-w-[60px] font-bold text-emerald-600 dark:text-emerald-400">Desc. (%)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((row, idx) => (
-                <TableRow key={idx}>
-                  <TableCell className="py-1.5 px-2 text-xs text-center">
-                    <EditableCell value={row.structure} onChange={(v) => onRowChange(idx, "structure", v)} />
-                  </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs text-center">
-                    <EditableCell value={row.theoreticalValue} onChange={(v) => onRowChange(idx, "theoreticalValue", v)} />
-                  </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs text-center">
-                    <EditableCell value={row.tableValue} onChange={(v) => onRowChange(idx, "tableValue", v)} className="font-semibold" />
-                  </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs text-center">
-                    <EditableCell value={row.discount} onChange={(v) => onRowChange(idx, "discount", v)} />
-                  </TableCell>
-                  <TableCell className="py-1.5 px-2 text-xs text-center">
-                    <EditableCell value={row.discountPercent} onChange={(v) => onRowChange(idx, "discountPercent", v)} className="font-medium" />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {rows.map((row, idx) => {
+                const hasDiscount = row.discount !== "0" && row.discount !== "—";
+                return (
+                  <TableRow key={idx} className={idx % 2 === 0 ? 'bg-muted/20' : ''}>
+                    <TableCell className="py-2 px-2 text-center">
+                      <EditableCell value={row.structure} onChange={(v) => onRowChange(idx, "structure", v)} className="text-xs font-semibold text-foreground" />
+                    </TableCell>
+                    <TableCell className="py-2 px-2 text-center">
+                      <EditableCell value={row.theoreticalValue} onChange={(v) => onRowChange(idx, "theoreticalValue", v)} className={`text-xs text-muted-foreground ${hasDiscount ? 'line-through' : ''}`} />
+                    </TableCell>
+                    <TableCell className="py-2 px-2 text-center">
+                      <EditableCell value={row.tableValue} onChange={(v) => onRowChange(idx, "tableValue", v)} className={`text-sm font-bold ${accentColor}`} />
+                    </TableCell>
+                    <TableCell className="py-2 px-2 text-center">
+                      <EditableCell value={row.discount} onChange={(v) => onRowChange(idx, "discount", v)} className={`text-xs ${hasDiscount ? 'font-semibold text-orange-600 dark:text-orange-400' : 'text-muted-foreground'}`} />
+                    </TableCell>
+                    <TableCell className="py-2 px-2 text-center">
+                      {hasDiscount ? (
+                        <span className="inline-flex items-center">
+                          <EditableCell value={row.discountPercent} onChange={(v) => onRowChange(idx, "discountPercent", v)} className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 rounded-full px-2 py-0.5" />
+                        </span>
+                      ) : (
+                        <EditableCell value={row.discountPercent} onChange={(v) => onRowChange(idx, "discountPercent", v)} className="text-xs text-muted-foreground" />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
