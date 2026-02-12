@@ -218,7 +218,7 @@ export default function HotLeads() {
                 Meus ({filteredMyLeads.length})
               </TabsTrigger>
               <TabsTrigger value="lost" className="text-xs">
-                <span className="h-2 w-2 rounded-full bg-muted-foreground mr-1.5" />
+                <span className="h-2 w-2 rounded-full bg-red-500 mr-1.5" />
                 Perdidos ({filteredAcquired.length})
               </TabsTrigger>
             </TabsList>
@@ -247,7 +247,7 @@ export default function HotLeads() {
             <TabsContent value="lost" className="flex-1 mt-0 min-h-0">
               <PaginatedLeadColumn
                 title="Oportunidade Perdida"
-                dotColor="bg-muted-foreground"
+                dotColor="bg-red-500"
                 items={acquiredLeads}
                 emptyMessage="Nenhuma oportunidade perdida no momento."
                 renderItem={(lead) => (
@@ -280,7 +280,7 @@ export default function HotLeads() {
           />
           <PaginatedLeadColumn
             title="Oportunidade Perdida"
-            dotColor="bg-muted-foreground"
+            dotColor="bg-red-500"
             items={acquiredLeads}
             emptyMessage="Nenhuma oportunidade perdida no momento."
             renderItem={(lead) => (
