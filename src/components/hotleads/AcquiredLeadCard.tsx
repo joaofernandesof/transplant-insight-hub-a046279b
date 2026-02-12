@@ -52,7 +52,7 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned }: AcquiredLeadCar
   };
 
   return (
-    <Card className={`border-l-4 ${isOwned ? 'border-l-blue-500' : 'border-l-muted opacity-75'}`}>
+    <Card className={`border-l-4 ${isOwned ? 'border-l-blue-500' : 'border-l-red-300 opacity-75'}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
