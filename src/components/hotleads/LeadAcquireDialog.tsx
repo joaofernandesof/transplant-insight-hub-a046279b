@@ -7,6 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Mail, Send } from 'lucide-react';
 import type { HotLead } from '@/hooks/useHotLeads';
 
+function maskName(fullName: string): string {
+  if (!fullName) return '***';
+  const parts = fullName.trim().split(/\s+/);
+  return parts.map((part, i) => {
+    if (i === 0) return part;
+    if (part.length <= 3) return part.charAt(0) + '***';
+    return part.substring(0, 3) + '***';
+  }).join(' ');
+}
+
 interface LeadAcquireDialogProps {
   lead: HotLead | null;
   open: boolean;
@@ -43,7 +53,7 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm }: LeadA
           <DialogDescription>
             {lead && (
               <span>
-                Você está adquirindo o lead <strong>{lead.name}</strong>.
+                Você está adquirindo o lead <strong>{maskName(lead.name)}</strong>.
                 Insira seu e-mail para receber os dados completos.
               </span>
             )}
