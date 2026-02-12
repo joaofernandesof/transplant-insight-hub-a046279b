@@ -85,12 +85,12 @@ export function ImageUpload({ images, onChange, maxImages = 10 }: ImageUploadPro
 
     if (error) throw error;
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    // Get signed URL since bucket is private
+    const { data: signedData } = await supabase.storage
       .from('surgery-photos')
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 86400); // 24-hour expiry
 
-    return publicUrl;
+    return signedData?.signedUrl || fileName;
   };
 
   // Process files (from drop, paste, or select)

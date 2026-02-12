@@ -71,11 +71,8 @@ export default function SurgerySubmissions() {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('surgery-photos')
-          .getPublicUrl(fileName);
-        
-        photoUrls.push(publicUrl);
+        // Store the relative path (not public URL) since bucket is now private
+        photoUrls.push(fileName);
       }
 
       // Create submission
