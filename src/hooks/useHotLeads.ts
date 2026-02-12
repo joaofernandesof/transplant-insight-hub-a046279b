@@ -17,6 +17,7 @@ export interface HotLead {
   created_at: string;
   tags: string[] | null;
   release_status: string | null;
+  available_at: string | null;
 }
 
 export function useHotLeads() {
@@ -37,7 +38,7 @@ export function useHotLeads() {
       // Fetch available/claimed leads (not queued) - these are the ones shown in the UI
       const { data: activeData, error: activeError } = await supabase
         .from('leads')
-        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags')
+        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags, available_at')
         .in('source', ['planilha', 'n8n'])
         .neq('release_status', 'queued')
         .order('created_at', { ascending: false })

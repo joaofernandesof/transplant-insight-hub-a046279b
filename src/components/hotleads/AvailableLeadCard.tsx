@@ -28,9 +28,10 @@ export function AvailableLeadCard({ lead, onAcquire }: AvailableLeadCardProps) {
   const location = [lead.city, lead.state].filter(Boolean).join(' - ');
   const maskedName = maskName(lead.name);
   
-  // Format arrival date
-  const arrivalDate = lead.created_at 
-    ? format(new Date(lead.created_at), "dd/MM/yyyy")
+  // Format arrival date - use available_at (when released to pool) instead of created_at
+  const dateToShow = lead.available_at || lead.created_at;
+  const arrivalDate = dateToShow
+    ? format(new Date(dateToShow), "dd/MM/yyyy")
     : null;
 
   return (
