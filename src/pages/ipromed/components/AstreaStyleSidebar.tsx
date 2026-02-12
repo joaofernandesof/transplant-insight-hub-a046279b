@@ -67,6 +67,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases', tourId: 'sidebar-cases' },
   { id: 'contracts-hub', label: 'Contratos', icon: FileBox, href: '/ipromed/legal?tab=contracts' },
   { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', tourId: 'sidebar-ai' },
+  { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/ipromed/reports' },
   { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/ipromed/logs' },
 ];
 

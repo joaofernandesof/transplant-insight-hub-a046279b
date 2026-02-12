@@ -30,6 +30,7 @@ import {
   Link2,
   PhoneCall,
   Kanban,
+  FileBarChart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -52,6 +53,7 @@ const getMenuItems = (counts: { unreadChats: number; overdueTasks: number }) => 
   { id: 'config', label: 'Configurar IA', icon: Sparkles, href: '/avivar/config' },
   { id: 'tutorials', label: 'Tutoriais', icon: GraduationCap, href: '/avivar/tutorials' },
   { id: 'divider3', label: '', icon: null, href: '', isDivider: true },
+  { id: 'reports', label: 'Relatórios', icon: FileBarChart, href: '/avivar/reports' },
   { id: 'team', label: 'Equipe', icon: Users, href: '/avivar/team' },
   { id: 'integrations', label: 'Integrações', icon: Link2, href: '/avivar/integrations' },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/avivar/settings' },

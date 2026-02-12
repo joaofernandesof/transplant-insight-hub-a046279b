@@ -18,6 +18,7 @@ import {
   CreditCard,
   Menu,
   X,
+  FileBarChart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,6 +39,7 @@ const menuItems = [
   { id: 'refunds', label: 'Reembolsos', icon: RotateCcw, href: '/neopay/refunds' },
   { id: 'chargebacks', label: 'Chargebacks', icon: ShieldAlert, href: '/neopay/chargebacks', badge: '1' },
   { id: 'automations', label: 'Automações', icon: Zap, href: '/neopay/automations' },
+  { id: 'reports', label: 'Relatórios', icon: FileBarChart, href: '/neopay/reports' },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/neopay/settings' },
 ];
 

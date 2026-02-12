@@ -11,7 +11,8 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileBarChart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,6 +31,7 @@ const menuItems = [
   { id: 'home', label: 'Início', icon: Home, path: '/vision' },
   { id: 'analysis', label: 'Nova Análise', icon: ScanFace, action: 'start-analysis' },
   { id: 'history', label: 'Histórico', icon: History, path: '/vision/history' },
+  { id: 'reports', label: 'Relatórios', icon: FileBarChart, path: '/vision/reports' },
   { id: 'plans', label: 'Planos', icon: CreditCard, action: 'open-plans' },
 ];
 

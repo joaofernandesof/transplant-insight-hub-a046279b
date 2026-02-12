@@ -134,6 +134,7 @@ const IpromedTasks = lazy(() => import("./pages/ipromed/IpromedTasks"));
 const IpromedProposalsList = lazy(() => import("./pages/ipromed/IpromedProposalsList"));
 const IpromedProposalEditor = lazy(() => import("./pages/ipromed/IpromedProposals"));
 const IpromedLayout = lazy(() => import("./pages/ipromed/components/IpromedLayout"));
+const IpromedReports = lazy(() => import("./pages/ipromed/IpromedReports"));
 
 // ====================================
 // Pages - NeoPay (Gateway de Pagamentos)
@@ -149,6 +150,7 @@ const NeoPayRefunds = lazy(() => import("./pages/neopay/NeoPayRefunds"));
 const NeoPayChargebacks = lazy(() => import("./pages/neopay/NeoPayChargebacks"));
 const NeoPayAutomations = lazy(() => import("./pages/neopay/NeoPayAutomations"));
 const NeoPaySettings = lazy(() => import("./pages/neopay/NeoPaySettings"));
+const NeoPayReports = lazy(() => import("./pages/neopay/NeoPayReports"));
 const NeoPaySidebar = lazy(() => import("./pages/neopay/components/NeoPaySidebar"));
 
 
@@ -167,6 +169,7 @@ const AvivarFollowUp = lazy(() => import("./pages/avivar/AvivarFollowUp"));
 const AvivarCatalog = lazy(() => import("./pages/avivar/AvivarCatalog"));
 const AvivarProductivity = lazy(() => import("./pages/avivar/AvivarProductivity"));
 const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
+const AvivarReports = lazy(() => import("./pages/avivar/AvivarReports"));
 
 const AvivarSimpleWizard = lazy(() => import("./pages/avivar/config/AvivarSimpleWizard"));
 const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge"));
@@ -199,6 +202,11 @@ const NeoHairStore = lazy(() => import("./pages/neohair/NeoHairStore"));
 const NeoHairProfessionalDashboard = lazy(() => import("./pages/neohair/NeoHairProfessionalDashboard"));
 const NeoHairAdminDashboard = lazy(() => import("./pages/neohair/NeoHairAdminDashboard"));
 const NeoHairSidebar = lazy(() => import("./pages/neohair/components/NeoHairSidebar"));
+const VisionReports = lazy(() => import("./pages/vision/VisionReports"));
+const NeoTeamReports = lazy(() => import("./pages/neoteam/NeoTeamReports"));
+const NeoLicenseReports = lazy(() => import("./pages/neolicense/NeoLicenseReports"));
+const NeoCareReports = lazy(() => import("./neohub/pages/neocare/NeoCareReports"));
+const AcademyReports = lazy(() => import("./academy/pages/AcademyReports"));
 
 // IPROMED Layout Wrapper
 function IpromedLayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -400,6 +408,7 @@ function NeoCareRoutes() {
           <Route path="my-invoices" element={<PlaceholderPage title="Minhas Faturas" />} />
           <Route path="orientations" element={<NeoCareOrientations />} />
           <Route path="news" element={<PlaceholderPage title="Notícias" />} />
+          <Route path="reports" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoCareReports /></Suspense>} />
           <Route path="*" element={<Navigate to="/neocare" replace />} />
         </Routes>
       </UnifiedSidebar>
@@ -452,6 +461,7 @@ function NeoTeamRoutes() {
           <Route path="postvenda/distrato" element={<Navigate to="/neoteam/postvenda?tab=chamados&tipo=distrato" replace />} />
           <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
           <Route path="settings" element={<NeoTeamSettings />} />
+          <Route path="reports" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>
       </UnifiedSidebar>
@@ -511,6 +521,7 @@ function AcademyRoutes() {
               <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
               <Route path="admin/students" element={<AcademyStudentsAdmin />} />
               <Route path="admin/surveys" element={<SurveyManagement />} />
+              <Route path="reports" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><AcademyReports /></Suspense>} />
               <Route path="*" element={<Navigate to="/academy" replace />} />
             </Routes>
           </UnifiedSidebar>
@@ -547,6 +558,7 @@ function NeoLicenseRoutes() {
             <Route path="hotleads" element={<HotLeads />} />
             <Route path="career" element={<Career />} />
             <Route path="community" element={<Community />} />
+            <Route path="reports" element={<NeoLicenseReports />} />
             <Route path="*" element={<Navigate to="/neolicense" replace />} />
           </Routes>
         </LazyRoute>
@@ -599,6 +611,7 @@ function AvivarRoutes() {
               
               <Route path="settings" element={<AvivarSettings />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="reports" element={<AvivarReports />} />
               <Route path="*" element={<Navigate to="/avivar" replace />} />
             </Routes>
           </AvivarSidebar>
@@ -792,6 +805,7 @@ function AppRoutes() {
       <Route path="/ipromed/proposals" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalsList /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/ipromed/proposals/new" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/ipromed/proposals/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/ipromed/reports" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedReports /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       
 {/* ====================================
           Vision - Diagnóstico Capilar IA
@@ -815,6 +829,7 @@ function AppRoutes() {
       <Route path="/neopay/chargebacks" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayChargebacks /></NeoPaySidebar></Suspense></AdminRoute>} />
       <Route path="/neopay/automations" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayAutomations /></NeoPaySidebar></Suspense></AdminRoute>} />
       <Route path="/neopay/settings" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPaySettings /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/reports" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayReports /></NeoPaySidebar></Suspense></AdminRoute>} />
 
       {/* ====================================
           NeoHair - Tratamento Capilar
