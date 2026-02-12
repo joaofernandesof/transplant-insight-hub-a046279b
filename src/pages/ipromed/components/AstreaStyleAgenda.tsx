@@ -696,21 +696,67 @@ export default function AstreaStyleAgenda() {
                 </p>
               )}
               {/* Dynamic deadline checks for prazo-type */}
-              {apt.appointment_type === 'prazo' && checksByAppointment[apt.id]?.length > 0 && (
-                <div className="mt-2 space-y-1" onClick={(e) => e.stopPropagation()}>
-                  {checksByAppointment[apt.id].map((check) => (
-                    <div key={check.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`sidebar-${check.id}`}
-                        checked={check.is_checked}
-                        onCheckedChange={(checked) => toggleAppointmentCheck.mutate({ checkId: check.id, value: !!checked })}
-                        className="h-3.5 w-3.5"
-                      />
-                      <label htmlFor={`sidebar-${check.id}`} className={`text-[11px] cursor-pointer ${check.is_checked ? 'line-through text-muted-foreground' : ''}`}>
-                        {check.check_label}
-                      </label>
+              {apt.appointment_type === 'prazo' && (
+                <div className="mt-2.5" onClick={(e) => e.stopPropagation()}>
+                  {checksByAppointment[apt.id]?.length > 0 ? (
+                    <div className="space-y-1.5 bg-white/60 rounded-lg p-2 border border-rose-100">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-400 block mb-1">
+                        {deadlineTypes?.find(dt => dt.id === apt.deadline_type_id)?.name || 'Checklist'}
+                      </span>
+                      {checksByAppointment[apt.id].map((check) => (
+                        <div key={check.id} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`sidebar-${check.id}`}
+                            checked={check.is_checked}
+                            onCheckedChange={(checked) => toggleAppointmentCheck.mutate({ checkId: check.id, value: !!checked })}
+                            className="h-3.5 w-3.5"
+                          />
+                          <label htmlFor={`sidebar-${check.id}`} className={`text-[11px] cursor-pointer ${check.is_checked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                            {check.check_label}
+                          </label>
+                          {check.is_checked ? (
+                            <Check className="h-3 w-3 text-emerald-500 ml-auto flex-shrink-0" />
+                          ) : (
+                            <Clock className="h-3 w-3 text-rose-400 ml-auto flex-shrink-0" />
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <div className="bg-white/60 rounded-lg p-2 border border-dashed border-rose-200">
+                      <Select
+                        onValueChange={async (dtId) => {
+                          const dt = deadlineTypes?.find(d => d.id === dtId);
+                          if (!dt) return;
+                          // Set deadline type on appointment
+                          await supabase.from('ipromed_appointments').update({ deadline_type_id: dtId }).eq('id', apt.id);
+                          // Create checks
+                          const checks = dt.checklist_items.map((item: ChecklistItem, idx: number) => ({
+                            appointment_id: apt.id,
+                            check_key: item.key,
+                            check_label: item.label,
+                            is_checked: false,
+                            order_index: idx,
+                          }));
+                          await supabase.from('ipromed_appointment_checks').insert(checks);
+                          queryClient.invalidateQueries({ queryKey: ['ipromed-appointments'] });
+                          queryClient.invalidateQueries({ queryKey: ['ipromed-appointment-checks'] });
+                          toast.success('Checklist aplicado');
+                        }}
+                      >
+                        <SelectTrigger className="h-7 text-[11px] border-rose-200">
+                          <SelectValue placeholder="Selecionar tipo de prazo..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {deadlineTypes?.map((dt) => (
+                            <SelectItem key={dt.id} value={dt.id} className="text-xs">
+                              {dt.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
