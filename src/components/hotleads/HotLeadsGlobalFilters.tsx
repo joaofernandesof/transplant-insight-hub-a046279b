@@ -40,8 +40,16 @@ export function HotLeadsGlobalFilters({
   availableCities,
 }: HotLeadsGlobalFiltersProps) {
   const [showFilters, setShowFilters] = useState(false);
-  const hasFilters = searchTerm || stateFilter !== 'all' || cityFilter !== 'all' || periodFilter !== 'all' || sortBy !== 'recent';
-  const activeFilterCount = [stateFilter !== 'all', cityFilter !== 'all', periodFilter !== 'all', sortBy !== 'recent'].filter(Boolean).length;
+
+  const isPeriodActive = periodFilter !== 'all';
+  const isStateActive = stateFilter !== 'all';
+  const isCityActive = cityFilter !== 'all';
+  const isSortActive = sortBy !== 'recent';
+  const hasFilters = searchTerm || isPeriodActive || isStateActive || isCityActive || isSortActive;
+  const activeFilterCount = [isPeriodActive, isStateActive, isCityActive, isSortActive].filter(Boolean).length;
+
+  const activeStyle = 'border-primary bg-primary/10 ring-1 ring-primary/30';
+  const inactiveStyle = '';
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -61,8 +69,16 @@ export function HotLeadsGlobalFilters({
             placeholder="Buscar nome, cidade, telefone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-9"
+            className={`pl-10 h-9 ${searchTerm ? activeStyle : ''}`}
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
         <Button
           variant={showFilters ? 'secondary' : 'outline'}
@@ -78,17 +94,19 @@ export function HotLeadsGlobalFilters({
           )}
         </Button>
         {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="shrink-0 h-9">
-            <X className="h-4 w-4" />
+          <Button variant="destructive" size="sm" onClick={clearFilters} className="shrink-0 h-9 gap-1">
+            <X className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Limpar filtros</span>
+            <span className="sm:hidden">Limpar</span>
           </Button>
         )}
       </div>
 
-      {/* Filter selects - always visible on desktop, toggle on mobile */}
+      {/* Filter selects */}
       <div className={`flex-wrap items-center gap-2 ${showFilters ? 'flex' : 'hidden lg:flex'}`}>
         <Select value={periodFilter} onValueChange={setPeriodFilter}>
-          <SelectTrigger className="w-full sm:w-[150px] h-9 text-xs">
-            <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+          <SelectTrigger className={`w-full sm:w-[150px] h-9 text-xs transition-colors ${isPeriodActive ? activeStyle : inactiveStyle}`}>
+            <Calendar className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isPeriodActive ? 'text-primary' : 'text-muted-foreground'}`} />
             <SelectValue placeholder="Período" />
           </SelectTrigger>
           <SelectContent>
@@ -101,8 +119,8 @@ export function HotLeadsGlobalFilters({
         </Select>
 
         <Select value={stateFilter} onValueChange={(v) => { setStateFilter(v); setCityFilter('all'); }}>
-          <SelectTrigger className="w-[calc(50%-4px)] sm:w-[130px] h-9 text-xs">
-            <MapPin className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+          <SelectTrigger className={`w-[calc(50%-4px)] sm:w-[130px] h-9 text-xs transition-colors ${isStateActive ? activeStyle : inactiveStyle}`}>
+            <MapPin className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isStateActive ? 'text-primary' : 'text-muted-foreground'}`} />
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
@@ -114,8 +132,8 @@ export function HotLeadsGlobalFilters({
         </Select>
 
         <Select value={cityFilter} onValueChange={setCityFilter}>
-          <SelectTrigger className="w-[calc(50%-4px)] sm:w-[150px] h-9 text-xs">
-            <Building2 className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+          <SelectTrigger className={`w-[calc(50%-4px)] sm:w-[150px] h-9 text-xs transition-colors ${isCityActive ? activeStyle : inactiveStyle}`}>
+            <Building2 className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isCityActive ? 'text-primary' : 'text-muted-foreground'}`} />
             <SelectValue placeholder="Cidade" />
           </SelectTrigger>
           <SelectContent>
@@ -127,8 +145,8 @@ export function HotLeadsGlobalFilters({
         </Select>
 
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full sm:w-[150px] h-9 text-xs">
-            <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+          <SelectTrigger className={`w-full sm:w-[150px] h-9 text-xs transition-colors ${isSortActive ? activeStyle : inactiveStyle}`}>
+            <ArrowUpDown className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isSortActive ? 'text-primary' : 'text-muted-foreground'}`} />
             <SelectValue placeholder="Ordenar" />
           </SelectTrigger>
           <SelectContent>
