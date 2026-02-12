@@ -94,7 +94,8 @@ async function createGoogleCalendarEvent(
   startTime: string,
   endTime: string,
   description?: string,
-  location?: string
+  location?: string,
+  attendeeEmail?: string
 ): Promise<string | null> {
   try {
     const { data: agenda } = await supabase
@@ -111,7 +112,7 @@ async function createGoogleCalendarEvent(
     const tz = await getTimezoneForAgenda(supabase, agendaId);
     const offset = TZ_OFFSETS[tz] || "-03:00";
 
-    const event = {
+    const event: Record<string, unknown> = {
       summary,
       description,
       location,
@@ -124,6 +125,10 @@ async function createGoogleCalendarEvent(
         },
       },
     };
+
+    if (attendeeEmail) {
+      event.attendees = [{ email: attendeeEmail }];
+    }
 
     const response = await fetch(
       `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(agenda.google_calendar_id)}/events?conferenceDataVersion=1`,
@@ -439,6 +444,10 @@ const TOOLS = [
           notes: {
             type: "string",
             description: "Observações adicionais (opcional)"
+          },
+          patient_email: {
+            type: "string",
+            description: "Email do paciente/lead (opcional). Se o lead informou o email durante a conversa, inclua aqui para enviar convite do Google Calendar."
           }
         },
         required: ["agenda_name", "patient_name", "date", "time", "service_type"]
@@ -647,6 +656,10 @@ const TOOLS = [
               service_type: {
                 type: "string",
                 description: "Tipo de serviço: 'avaliacao' ou 'transplante'"
+              },
+              patient_email: {
+                type: "string",
+                description: "Email do paciente/lead (opcional). Se o lead informou o email, inclua aqui."
               }
             },
             required: ["agenda_name", "patient_name", "date", "time", "service_type"]
@@ -1215,7 +1228,8 @@ async function createAppointment(
   date: string,
   time: string,
   serviceType: string,
-  notes?: string
+  notes?: string,
+  patientEmail?: string
 ): Promise<string> {
   console.log(`[AI Agent] Tool: create_appointment(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
 
@@ -1264,6 +1278,7 @@ async function createAppointment(
       location: agendaInfo?.city || null,
       professional_name: agendaInfo?.professional_name || null,
       notes: notes || null,
+      patient_email: patientEmail || null,
       status: "scheduled",
       created_by: "ai"
     })
@@ -1285,7 +1300,8 @@ async function createAppointment(
         `Avaliação com Especialista Capilar - Paciente ${patientName}`,
         normalizedDate, normalizedTime, endTime,
         `Paciente: ${patientName}\nTelefone: ${patientPhone}\n${notes || ""}`,
-        agendaInfo?.address || agendaInfo?.city || undefined
+        agendaInfo?.address || agendaInfo?.city || undefined,
+        patientEmail || undefined
       );
       if (googleResult && appointment?.id) {
         try {
@@ -2743,7 +2759,8 @@ async function processToolCall(
         toolArgs.date as string,
         toolArgs.time as string,
         toolArgs.service_type as string,
-        toolArgs.notes as string | undefined
+        toolArgs.notes as string | undefined,
+        toolArgs.patient_email as string | undefined
       );
     
     case "reschedule_appointment":
