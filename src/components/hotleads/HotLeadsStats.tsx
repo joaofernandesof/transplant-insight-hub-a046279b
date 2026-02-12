@@ -12,7 +12,7 @@ export function HotLeadsStats({ leads, availableCount, myLeadsCount, acquiredCou
   const totalActive = availableCount + myLeadsCount + acquiredCount;
 
   const stats = [
-    { label: 'Total de Leads', value: totalActive, icon: Users, bg: 'bg-orange-50 dark:bg-orange-950', iconColor: 'text-orange-500', border: 'border-orange-200 dark:border-orange-800' },
+    { label: 'Total de Leads', value: totalActive, icon: Users, bg: 'bg-gray-50 dark:bg-gray-900', iconColor: 'text-gray-500', border: 'border-gray-200 dark:border-gray-700' },
     { label: 'Disponíveis', value: availableCount, icon: Flame, bg: 'bg-green-50 dark:bg-green-950', iconColor: 'text-green-500', border: 'border-green-200 dark:border-green-800' },
     { label: 'Meus Leads', value: myLeadsCount, icon: UserCheck, bg: 'bg-blue-50 dark:bg-blue-950', iconColor: 'text-blue-500', border: 'border-blue-200 dark:border-blue-800' },
     { label: 'Perdidos', value: acquiredCount, icon: UserX, bg: 'bg-slate-50 dark:bg-slate-900', iconColor: 'text-slate-400', border: 'border-slate-200 dark:border-slate-700' },
