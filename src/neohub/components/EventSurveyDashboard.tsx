@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { useTabFromUrl } from "@/hooks/useTabFromUrl";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -203,7 +204,7 @@ async function createPDFFromHTML(htmlContent: string, filename: string, options?
   container.style.padding = '20px'; // Add internal padding
   container.style.overflow = 'visible'; // Ensure content is visible
   document.body.appendChild(container);
-  container.innerHTML = htmlContent;
+  container.innerHTML = DOMPurify.sanitize(htmlContent);
   
   // Wait for fonts and styles to load - increased timeout for complex content
   await new Promise(resolve => setTimeout(resolve, 300));
@@ -663,7 +664,7 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
     container.style.overflow = 'visible';
 
     document.body.appendChild(container);
-    container.innerHTML = html;
+    container.innerHTML = DOMPurify.sanitize(html);
 
     try {
       await waitForDOMStabilize();

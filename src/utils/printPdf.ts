@@ -171,10 +171,16 @@ function injectPrintStyles(options: PrintPdfOptions): HTMLStyleElement {
 function createPrintHeader(title: string): HTMLDivElement {
   const header = document.createElement('div');
   header.className = 'print-header';
-  header.innerHTML = `
-    <h1>${title}</h1>
-    <p class="print-date">Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-  `;
+  
+  const h1 = document.createElement('h1');
+  h1.textContent = title; // Safe - no HTML interpretation
+  
+  const p = document.createElement('p');
+  p.className = 'print-date';
+  p.textContent = `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
+  
+  header.appendChild(h1);
+  header.appendChild(p);
   return header;
 }
 

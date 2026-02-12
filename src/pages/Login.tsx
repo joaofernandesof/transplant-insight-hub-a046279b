@@ -52,6 +52,7 @@ export default function Login() {
   const navigate = useNavigate();
   const biometric = useBiometricAuth();
   const [showBiometricSetup, setShowBiometricSetup] = useState(false);
+  const [biometricPendingCredentials, setBiometricPendingCredentials] = useState<{ email: string; password: string } | null>(null);
 
   // Load remembered email on mount
   React.useEffect(() => {
@@ -137,8 +138,8 @@ export default function Login() {
         // Se login com sucesso e biometria disponível mas sem credenciais, oferecer configurar
         if (biometric.isAvailable && !biometric.hasCredentials && !biometricCredentials) {
           setShowBiometricSetup(true);
-          // Salva temporariamente para configurar depois
-          sessionStorage.setItem('_biometric_pending', JSON.stringify({ email: loginEmail, password: loginPassword }));
+          // Store credentials in component state only (not in sessionStorage)
+          setBiometricPendingCredentials({ email: loginEmail, password: loginPassword });
         }
 
         if (rememberMe) {
@@ -187,19 +188,15 @@ export default function Login() {
   const handleSetupBiometric = async (accept: boolean) => {
     setShowBiometricSetup(false);
     
-    if (accept) {
-      const pending = sessionStorage.getItem('_biometric_pending');
-      if (pending) {
-        try {
-          const { email: savedEmail, password: savedPassword } = JSON.parse(pending);
-          await biometric.saveCredentials(savedEmail, savedPassword);
-        } catch (e) {
-          console.error('Failed to save biometric credentials');
-        }
+    if (accept && biometricPendingCredentials) {
+      try {
+        await biometric.saveCredentials(biometricPendingCredentials.email, biometricPendingCredentials.password);
+      } catch (e) {
+        console.error('Failed to save biometric credentials');
       }
     }
     
-    sessionStorage.removeItem('_biometric_pending');
+    setBiometricPendingCredentials(null);
   };
 
   const resetForm = () => {
