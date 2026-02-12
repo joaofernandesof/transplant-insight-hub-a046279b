@@ -30,8 +30,9 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned }: AcquiredLeadCar
   const location = [lead.city, lead.state].filter(Boolean).join(' - ');
   const maskedName = maskName(lead.name);
   
-  const arrivalDate = lead.created_at 
-    ? format(new Date(lead.created_at), "dd/MM/yyyy")
+  const dateToShow = lead.available_at || lead.created_at;
+  const arrivalDate = dateToShow
+    ? format(new Date(dateToShow), "dd/MM/yyyy")
     : null;
 
   const handleResendEmail = async () => {
