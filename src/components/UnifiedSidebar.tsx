@@ -47,7 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ThemedLogo } from "@/components/ThemedLogo";
+
 import { ModuleSwitcher } from "@/components/shared/ModuleSwitcher";
 import { PortalSwitcherButton } from "@/components/shared/PortalSwitcherButton";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";

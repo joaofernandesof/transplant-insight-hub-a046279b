@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Eye, EyeOff, User, GraduationCap, Briefcase, Heart } from 'lucide-react';
 import { toast } from 'sonner';
-import logoNeofolic from '@/assets/logo-byneofolic.png';
+
 
 const PROFILE_OPTIONS: { value: NeoHubProfile; label: string; icon: React.ElementType; description: string }[] = [
   { 
@@ -132,13 +132,6 @@ export default function NeoHubRegister() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 py-8">
       <Card className="w-full max-w-lg shadow-xl">
         <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
-            <img 
-              src={logoNeofolic} 
-              alt="NeoHub" 
-              className="h-12 w-auto dark:invert"
-            />
-          </div>
           <div>
             <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
             <CardDescription>

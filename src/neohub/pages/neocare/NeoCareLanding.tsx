@@ -9,7 +9,7 @@ import {
   Play, Star, Users, Award, Film
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import logoNeofolic from '@/assets/logo-byneofolic.png';
+
 import { useVideos, Video } from '@/hooks/useVideos';
 import { VideoPlayer } from '@/components/VideoPlayer';
 
@@ -442,10 +442,6 @@ export default function NeoCareLanding() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Powered by</span>
-              <img src={logoNeofolic} alt="ByNeoFolic" className="h-6" />
-            </div>
             
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} NeoFolic. Todos os direitos reservados.
