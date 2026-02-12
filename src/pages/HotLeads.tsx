@@ -50,17 +50,24 @@ export default function HotLeads() {
   // Global filters
   const [searchTerm, setSearchTerm] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
+  const [cityFilter, setCityFilter] = useState('all');
   const [periodFilter, setPeriodFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('recent');
 
   // Available states for filter
   const availableStates = useMemo(() => {
     return [...new Set(leads.map(l => l.state).filter(Boolean))] as string[];
   }, [leads]);
 
-  // Filtered leads based on global filters
+  // Available cities (filtered by selected state)
+  const availableCities = useMemo(() => {
+    const filtered = stateFilter !== 'all' ? leads.filter(l => l.state === stateFilter) : leads;
+    return [...new Set(filtered.map(l => l.city).filter(Boolean))] as string[];
+  }, [leads, stateFilter]);
+
+  // Filtered and sorted leads
   const filteredLeads = useMemo(() => {
-    return leads.filter(lead => {
-      // Search filter
+    const filtered = leads.filter(lead => {
       if (searchTerm) {
         const search = searchTerm.toLowerCase();
         const matchesSearch = 
@@ -69,35 +76,34 @@ export default function HotLeads() {
           lead.city?.toLowerCase().includes(search);
         if (!matchesSearch) return false;
       }
-      
-      // State filter
       if (stateFilter !== 'all' && lead.state !== stateFilter) return false;
-      
-      // Period filter
+      if (cityFilter !== 'all' && lead.city !== cityFilter) return false;
       if (periodFilter !== 'all') {
         const leadDate = new Date(lead.created_at);
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        
         switch (periodFilter) {
-          case 'today':
-            if (leadDate < today) return false;
-            break;
-          case '7d':
-            if (leadDate < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)) return false;
-            break;
-          case '30d':
-            if (leadDate < new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)) return false;
-            break;
-          case '90d':
-            if (leadDate < new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)) return false;
-            break;
+          case 'today': if (leadDate < today) return false; break;
+          case '7d': if (leadDate < new Date(now.getTime() - 7 * 86400000)) return false; break;
+          case '30d': if (leadDate < new Date(now.getTime() - 30 * 86400000)) return false; break;
+          case '90d': if (leadDate < new Date(now.getTime() - 90 * 86400000)) return false; break;
         }
       }
-      
       return true;
     });
-  }, [leads, searchTerm, stateFilter, periodFilter]);
+
+    // Sort
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'oldest': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'name_asc': return (a.name || '').localeCompare(b.name || '', 'pt-BR');
+        case 'name_desc': return (b.name || '').localeCompare(a.name || '', 'pt-BR');
+        case 'city_asc': return (a.city || '').localeCompare(b.city || '', 'pt-BR');
+        case 'state_asc': return (a.state || '').localeCompare(b.state || '', 'pt-BR');
+        default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+  }, [leads, searchTerm, stateFilter, cityFilter, periodFilter, sortBy]);
 
   // Filtered subsets
   const filteredAvailable = useMemo(() => 
@@ -179,9 +185,14 @@ export default function HotLeads() {
             setSearchTerm={setSearchTerm}
             stateFilter={stateFilter}
             setStateFilter={setStateFilter}
+            cityFilter={cityFilter}
+            setCityFilter={setCityFilter}
             periodFilter={periodFilter}
             setPeriodFilter={setPeriodFilter}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
             availableStates={availableStates}
+            availableCities={availableCities}
           />
         </div>
 
