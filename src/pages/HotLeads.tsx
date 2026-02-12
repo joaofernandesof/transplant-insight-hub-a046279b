@@ -240,7 +240,7 @@ export default function HotLeads() {
                 items={myLeads}
                 emptyMessage="Você ainda não adquiriu nenhum lead."
                 renderItem={(lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned />
                 )}
               />
             </TabsContent>
@@ -275,7 +275,7 @@ export default function HotLeads() {
             items={myLeads}
             emptyMessage="Você ainda não adquiriu nenhum lead."
             renderItem={(lead) => (
-              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned />
             )}
           />
           <PaginatedLeadColumn
