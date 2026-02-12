@@ -77,6 +77,8 @@ const PORTAL_ROW_COLORS: Record<Portal, string> = {
   avivar: 'bg-orange-50/60 dark:bg-orange-950/20',
   ipromed: 'bg-[#00629B]/5 dark:bg-[#00629B]/10',
   hotleads: 'bg-orange-50/60 dark:bg-orange-950/20',
+  vision: 'bg-violet-50/60 dark:bg-violet-950/20',
+  neopay: 'bg-teal-50/60 dark:bg-teal-950/20',
 };
 
 const PORTAL_ACCENT: Record<Portal, string> = {
@@ -87,10 +89,12 @@ const PORTAL_ACCENT: Record<Portal, string> = {
   avivar: 'border-l-orange-500',
   ipromed: 'border-l-[#00629B]',
   hotleads: 'border-l-orange-600',
+  vision: 'border-l-violet-500',
+  neopay: 'border-l-teal-500',
 };
 
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
-const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'];
+const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'];
 
 export function AccessMatrixTable({
   permissions,
