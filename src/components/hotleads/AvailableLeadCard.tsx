@@ -34,7 +34,7 @@ export function AvailableLeadCard({ lead, onAcquire }: AvailableLeadCardProps) {
   
   // Format arrival date
   const arrivalDate = lead.created_at 
-    ? format(new Date(lead.created_at), "dd 'de' MMM", { locale: ptBR })
+    ? format(new Date(lead.created_at), "dd/MM/yyyy")
     : null;
 
   return (
@@ -52,7 +52,7 @@ export function AvailableLeadCard({ lead, onAcquire }: AvailableLeadCardProps) {
             {arrivalDate && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <Calendar className="h-3 w-3 shrink-0" />
-                Chegou em {arrivalDate}
+                {arrivalDate}
               </p>
             )}
           </div>

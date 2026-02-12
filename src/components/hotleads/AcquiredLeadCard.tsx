@@ -33,7 +33,7 @@ export function AcquiredLeadCard({ lead, claimerName }: AcquiredLeadCardProps) {
   
   // Format arrival date
   const arrivalDate = lead.created_at 
-    ? format(new Date(lead.created_at), "dd 'de' MMM", { locale: ptBR })
+    ? format(new Date(lead.created_at), "dd/MM/yyyy")
     : null;
 
   return (
@@ -51,7 +51,7 @@ export function AcquiredLeadCard({ lead, claimerName }: AcquiredLeadCardProps) {
             {arrivalDate && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <Calendar className="h-3 w-3 shrink-0" />
-                Chegou em {arrivalDate}
+                {arrivalDate}
               </p>
             )}
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
