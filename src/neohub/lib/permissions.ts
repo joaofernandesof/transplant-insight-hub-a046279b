@@ -12,16 +12,16 @@ export type NeoHubProfile =
   | 'cliente_avivar'
   | 'ipromed';
 
-export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads';
+export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay';
 
 // Mapeamento de perfis para portais
 export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
-  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'],
+  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'],
   licenciado: ['neolicense', 'hotleads'],
   colaborador: ['neoteam'],
   medico: ['neoteam'],
   aluno: ['academy'],
-  paciente: ['neocare'],
+  paciente: ['neocare', 'vision'],
   cliente_avivar: ['avivar'],
   ipromed: ['ipromed'],
 };
@@ -59,6 +59,8 @@ export const PORTAL_NAMES: Record<Portal, string> = {
   avivar: 'Avivar',
   ipromed: 'IPROMED',
   hotleads: 'HotLeads',
+  vision: 'Vision',
+  neopay: 'NeoPay',
 };
 
 // Ícones dos perfis (lucide-react)
@@ -191,6 +193,26 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
   ],
   hotleads: [
     { code: 'hotleads_home', name: 'Dashboard', route: '/neolicense/hotleads', icon: 'Flame' },
+  ],
+  vision: [
+    { code: 'vision_home', name: 'Início', route: '/vision', icon: 'Home' },
+    { code: 'vision_scan', name: 'Diagnóstico Capilar', route: '/vision/scan', icon: 'Camera' },
+    { code: 'vision_history', name: 'Histórico de Análises', route: '/vision/history', icon: 'FileText' },
+    { code: 'vision_reports', name: 'Relatórios', route: '/vision/reports', icon: 'BarChart3' },
+  ],
+  neopay: [
+    { code: 'neopay_dashboard', name: 'Dashboard', route: '/neopay', icon: 'BarChart3' },
+    { code: 'neopay_products', name: 'Produtos', route: '/neopay/products', icon: 'Package' },
+    { code: 'neopay_charges', name: 'Cobranças', route: '/neopay/charges', icon: 'CreditCard' },
+    { code: 'neopay_transactions', name: 'Transações', route: '/neopay/transactions', icon: 'ArrowLeftRight' },
+    { code: 'neopay_split', name: 'Split de Pagamentos', route: '/neopay/split', icon: 'Split' },
+    { code: 'neopay_subscriptions', name: 'Assinaturas', route: '/neopay/subscriptions', icon: 'RefreshCw' },
+    { code: 'neopay_delinquency', name: 'Inadimplência', route: '/neopay/delinquency', icon: 'AlertTriangle' },
+    { code: 'neopay_refunds', name: 'Reembolsos', route: '/neopay/refunds', icon: 'RotateCcw' },
+    { code: 'neopay_chargebacks', name: 'Chargebacks', route: '/neopay/chargebacks', icon: 'ShieldAlert' },
+    { code: 'neopay_automations', name: 'Automações', route: '/neopay/automations', icon: 'Zap' },
+    { code: 'neopay_settings', name: 'Configurações', route: '/neopay/settings', icon: 'Settings' },
+    { code: 'neopay_reports', name: 'Relatórios', route: '/neopay/reports', icon: 'FileBarChart' },
   ],
 };
 
