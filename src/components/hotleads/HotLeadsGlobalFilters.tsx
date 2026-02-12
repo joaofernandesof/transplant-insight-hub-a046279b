@@ -7,16 +7,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, X, Calendar, MapPin } from 'lucide-react';
+import { Search, X, Calendar, MapPin, ArrowUpDown, Building2 } from 'lucide-react';
 
 interface HotLeadsGlobalFiltersProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   stateFilter: string;
   setStateFilter: (value: string) => void;
+  cityFilter: string;
+  setCityFilter: (value: string) => void;
   periodFilter: string;
   setPeriodFilter: (value: string) => void;
+  sortBy: string;
+  setSortBy: (value: string) => void;
   availableStates: string[];
+  availableCities: string[];
 }
 
 export function HotLeadsGlobalFilters({
@@ -24,16 +29,23 @@ export function HotLeadsGlobalFilters({
   setSearchTerm,
   stateFilter,
   setStateFilter,
+  cityFilter,
+  setCityFilter,
   periodFilter,
   setPeriodFilter,
+  sortBy,
+  setSortBy,
   availableStates,
+  availableCities,
 }: HotLeadsGlobalFiltersProps) {
-  const hasFilters = searchTerm || stateFilter !== 'all' || periodFilter !== 'all';
+  const hasFilters = searchTerm || stateFilter !== 'all' || cityFilter !== 'all' || periodFilter !== 'all' || sortBy !== 'recent';
 
   const clearFilters = () => {
     setSearchTerm('');
     setStateFilter('all');
+    setCityFilter('all');
     setPeriodFilter('all');
+    setSortBy('recent');
   };
 
   return (
@@ -65,16 +77,46 @@ export function HotLeadsGlobalFilters({
       </Select>
 
       {/* State Filter */}
-      <Select value={stateFilter} onValueChange={setStateFilter}>
+      <Select value={stateFilter} onValueChange={(v) => { setStateFilter(v); setCityFilter('all'); }}>
         <SelectTrigger className="w-[140px]">
           <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
           <SelectValue placeholder="Estado" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="all">Todos estados</SelectItem>
           {availableStates.sort().map(state => (
             <SelectItem key={state} value={state}>{state}</SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+
+      {/* City Filter */}
+      <Select value={cityFilter} onValueChange={setCityFilter}>
+        <SelectTrigger className="w-[170px]">
+          <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+          <SelectValue placeholder="Cidade" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas cidades</SelectItem>
+          {availableCities.sort().map(city => (
+            <SelectItem key={city} value={city}>{city}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Sort */}
+      <Select value={sortBy} onValueChange={setSortBy}>
+        <SelectTrigger className="w-[160px]">
+          <ArrowUpDown className="h-4 w-4 mr-2 text-muted-foreground" />
+          <SelectValue placeholder="Ordenar" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="recent">Mais recentes</SelectItem>
+          <SelectItem value="oldest">Mais antigos</SelectItem>
+          <SelectItem value="name_asc">Nome A-Z</SelectItem>
+          <SelectItem value="name_desc">Nome Z-A</SelectItem>
+          <SelectItem value="city_asc">Cidade A-Z</SelectItem>
+          <SelectItem value="state_asc">Estado A-Z</SelectItem>
         </SelectContent>
       </Select>
 
