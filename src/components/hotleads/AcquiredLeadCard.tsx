@@ -10,19 +10,15 @@ interface AcquiredLeadCardProps {
 }
 
 /**
- * Masks a name by showing only the first 3 letters followed by asterisks.
- * For names with multiple parts, masks each part individually.
- * Example: "Maria Santos" -> "Mar*** San***"
+ * Masks a name: first name shown fully, remaining parts show first 3 chars + asterisks.
+ * Example: "Maria Santos Lima" -> "Maria San*** Lim***"
  */
 function maskName(fullName: string): string {
   if (!fullName) return '***';
-  
   const parts = fullName.trim().split(/\s+/);
-  
-  return parts.map(part => {
-    if (part.length <= 3) {
-      return part.charAt(0) + '***';
-    }
+  return parts.map((part, i) => {
+    if (i === 0) return part;
+    if (part.length <= 3) return part.charAt(0) + '***';
     return part.substring(0, 3) + '***';
   }).join(' ');
 }
