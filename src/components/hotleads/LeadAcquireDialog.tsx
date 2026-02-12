@@ -3,8 +3,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Loader2, Mail, Send } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import type { HotLead } from '@/hooks/useHotLeads';
 
 function maskName(fullName: string): string {
@@ -25,21 +25,16 @@ interface LeadAcquireDialogProps {
 }
 
 export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm }: LeadAcquireDialogProps) {
-  const [email, setEmail] = useState('');
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const userEmail = user?.email || '';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!lead || !email.trim()) return;
-
+  const handleConfirm = async () => {
+    if (!lead || !userEmail) return;
     setIsSubmitting(true);
-    const success = await onConfirm(lead.id, email.trim());
+    const success = await onConfirm(lead.id, userEmail);
     setIsSubmitting(false);
-
-    if (success) {
-      setEmail('');
-      onOpenChange(false);
-    }
+    if (success) onOpenChange(false);
   };
 
   return (
@@ -54,43 +49,31 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm }: LeadA
             {lead && (
               <span>
                 Você está adquirindo o lead <strong>{maskName(lead.name)}</strong>.
-                Insira seu e-mail para receber os dados completos.
+                Os dados completos serão enviados para o seu e-mail.
               </span>
             )}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-2">
-            <div>
-              <label htmlFor="acquire-email" className="text-sm font-medium">
-                Digite seu e-mail para receber os dados desse lead
-              </label>
-              <Input
-                id="acquire-email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="mt-1.5"
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-          <DialogFooter className="mt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting || !email.trim()}>
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              Receber dados do lead
-            </Button>
-          </DialogFooter>
-        </form>
+        <div className="py-3">
+          <p className="text-sm text-muted-foreground">Os dados serão enviados para:</p>
+          <p className="text-sm font-semibold mt-1 flex items-center gap-2">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            {userEmail}
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            Cancelar
+          </Button>
+          <Button onClick={handleConfirm} disabled={isSubmitting || !userEmail}>
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4 mr-2" />
+            )}
+            Receber dados do lead
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
