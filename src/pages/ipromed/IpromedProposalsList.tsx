@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useProposals, useDeleteProposal, useSendProposal, useAcceptProposal, useRejectProposal, type Proposal } from "./hooks/useIpromedProposals";
+import { IpromedPricingTables } from "./components/IpromedPricingTables";
 import { format, isPast, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -226,6 +227,9 @@ export default function IpromedProposalsList() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Tabelas de Preços */}
+      <IpromedPricingTables />
 
       {/* Últimas Propostas */}
       <Card>
