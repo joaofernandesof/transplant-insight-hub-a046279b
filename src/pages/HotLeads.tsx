@@ -178,123 +178,115 @@ export default function HotLeads() {
         </div>
       </header>
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        {/* Global Filters */}
-        <div className="px-3 lg:px-4 py-3">
-          <HotLeadsGlobalFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            stateFilter={stateFilter}
-            setStateFilter={setStateFilter}
-            cityFilter={cityFilter}
-            setCityFilter={setCityFilter}
-            periodFilter={periodFilter}
-            setPeriodFilter={setPeriodFilter}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            availableStates={availableStates}
-            availableCities={availableCities}
-          />
+      {/* Fixed top section */}
+      <div className="shrink-0 px-3 lg:px-4 py-3 space-y-3">
+        <HotLeadsGlobalFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          stateFilter={stateFilter}
+          setStateFilter={setStateFilter}
+          cityFilter={cityFilter}
+          setCityFilter={setCityFilter}
+          periodFilter={periodFilter}
+          setPeriodFilter={setPeriodFilter}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          availableStates={availableStates}
+          availableCities={availableCities}
+        />
+        <HotLeadsStats
+          leads={filteredLeads}
+          availableCount={filteredAvailable.length}
+          myLeadsCount={filteredMyLeads.length}
+          acquiredCount={filteredAcquired.length}
+        />
+        <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
+      </div>
+
+      {/* Scrollable columns area - takes remaining height */}
+      <div className="flex-1 min-h-0 px-3 lg:px-4 pb-4">
+        {/* Mobile: Tabs */}
+        <div className="lg:hidden h-full">
+          <Tabs defaultValue="available" className="flex flex-col h-full">
+            <TabsList className="w-full grid grid-cols-3 mb-3 shrink-0">
+              <TabsTrigger value="available" className="text-xs">
+                <span className="h-2 w-2 rounded-full bg-green-500 mr-1.5" />
+                Disponíveis ({filteredAvailable.length})
+              </TabsTrigger>
+              <TabsTrigger value="mine" className="text-xs">
+                <span className="h-2 w-2 rounded-full bg-blue-500 mr-1.5" />
+                Meus ({filteredMyLeads.length})
+              </TabsTrigger>
+              <TabsTrigger value="lost" className="text-xs">
+                <span className="h-2 w-2 rounded-full bg-muted-foreground mr-1.5" />
+                Perdidos ({filteredAcquired.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="available" className="flex-1 mt-0 min-h-0">
+              <PaginatedLeadColumn
+                title="Leads Disponíveis"
+                dotColor="bg-green-500"
+                items={filteredAvailable}
+                emptyMessage="Nenhum lead disponível no momento."
+                renderItem={(lead) => (
+                  <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
+                )}
+              />
+            </TabsContent>
+            <TabsContent value="mine" className="flex-1 mt-0 min-h-0">
+              <PaginatedLeadColumn
+                title="Meus Leads"
+                dotColor="bg-blue-500"
+                items={myLeads}
+                emptyMessage="Você ainda não adquiriu nenhum lead."
+                renderItem={(lead) => (
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+                )}
+              />
+            </TabsContent>
+            <TabsContent value="lost" className="flex-1 mt-0 min-h-0">
+              <PaginatedLeadColumn
+                title="Oportunidade Perdida"
+                dotColor="bg-muted-foreground"
+                items={acquiredLeads}
+                emptyMessage="Nenhuma oportunidade perdida no momento."
+                renderItem={(lead) => (
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+                )}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
-        {/* Stats */}
-        <div className="px-3 lg:px-4">
-          <HotLeadsStats
-            leads={filteredLeads}
-            availableCount={filteredAvailable.length}
-            myLeadsCount={filteredMyLeads.length}
-            acquiredCount={filteredAcquired.length}
+        {/* Desktop: Grid */}
+        <div className="hidden lg:grid grid-cols-3 gap-6 h-full">
+          <PaginatedLeadColumn
+            title="Leads Disponíveis"
+            dotColor="bg-green-500"
+            items={filteredAvailable}
+            emptyMessage="Nenhum lead disponível no momento."
+            renderItem={(lead) => (
+              <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
+            )}
           />
-        </div>
-
-        {/* Leads Content */}
-        <div className="flex-1 px-3 lg:px-4 pb-4 pt-3">
-          <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
-
-          {/* Mobile: Tabs */}
-          <div className="lg:hidden h-full">
-            <Tabs defaultValue="available" className="flex flex-col h-full">
-              <TabsList className="w-full grid grid-cols-3 mb-3">
-                <TabsTrigger value="available" className="text-xs">
-                  <span className="h-2 w-2 rounded-full bg-green-500 mr-1.5" />
-                  Disponíveis ({filteredAvailable.length})
-                </TabsTrigger>
-                <TabsTrigger value="mine" className="text-xs">
-                  <span className="h-2 w-2 rounded-full bg-blue-500 mr-1.5" />
-                  Meus ({filteredMyLeads.length})
-                </TabsTrigger>
-                <TabsTrigger value="lost" className="text-xs">
-                  <span className="h-2 w-2 rounded-full bg-muted-foreground mr-1.5" />
-                  Perdidos ({filteredAcquired.length})
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="available" className="flex-1 mt-0">
-                <PaginatedLeadColumn
-                  title="Leads Disponíveis"
-                  dotColor="bg-green-500"
-                  items={filteredAvailable}
-                  emptyMessage="Nenhum lead disponível no momento."
-                  renderItem={(lead) => (
-                    <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
-                  )}
-                />
-              </TabsContent>
-              <TabsContent value="mine" className="flex-1 mt-0">
-                <PaginatedLeadColumn
-                  title="Meus Leads"
-                  dotColor="bg-blue-500"
-                  items={myLeads}
-                  emptyMessage="Você ainda não adquiriu nenhum lead."
-                  renderItem={(lead) => (
-                    <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
-                  )}
-                />
-              </TabsContent>
-              <TabsContent value="lost" className="flex-1 mt-0">
-                <PaginatedLeadColumn
-                  title="Oportunidade Perdida"
-                  dotColor="bg-muted-foreground"
-                  items={acquiredLeads}
-                  emptyMessage="Nenhuma oportunidade perdida no momento."
-                  renderItem={(lead) => (
-                    <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
-                  )}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Desktop: Grid */}
-          <div className="hidden lg:grid grid-cols-3 gap-6 h-full">
-            <PaginatedLeadColumn
-              title="Leads Disponíveis"
-              dotColor="bg-green-500"
-              items={filteredAvailable}
-              emptyMessage="Nenhum lead disponível no momento."
-              renderItem={(lead) => (
-                <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
-              )}
-            />
-            <PaginatedLeadColumn
-              title="Meus Leads"
-              dotColor="bg-blue-500"
-              items={myLeads}
-              emptyMessage="Você ainda não adquiriu nenhum lead."
-              renderItem={(lead) => (
-                <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
-              )}
-            />
-            <PaginatedLeadColumn
-              title="Oportunidade Perdida"
-              dotColor="bg-muted-foreground"
-              items={acquiredLeads}
-              emptyMessage="Nenhuma oportunidade perdida no momento."
-              renderItem={(lead) => (
-                <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
-              )}
-            />
-          </div>
+          <PaginatedLeadColumn
+            title="Meus Leads"
+            dotColor="bg-blue-500"
+            items={myLeads}
+            emptyMessage="Você ainda não adquiriu nenhum lead."
+            renderItem={(lead) => (
+              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+            )}
+          />
+          <PaginatedLeadColumn
+            title="Oportunidade Perdida"
+            dotColor="bg-muted-foreground"
+            items={acquiredLeads}
+            emptyMessage="Nenhuma oportunidade perdida no momento."
+            renderItem={(lead) => (
+              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+            )}
+          />
         </div>
       </div>
 
