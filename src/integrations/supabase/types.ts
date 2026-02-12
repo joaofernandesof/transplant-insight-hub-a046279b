@@ -6288,11 +6288,15 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          doc_delivered: boolean
+          doc_elaborated: boolean
           end_datetime: string | null
           id: string
           is_virtual: boolean | null
           location: string | null
           meeting_url: string | null
+          prazo_done: boolean
+          prazo_filed: boolean
           priority: string | null
           reminder_minutes: number | null
           start_datetime: string
@@ -6309,11 +6313,15 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          doc_delivered?: boolean
+          doc_elaborated?: boolean
           end_datetime?: string | null
           id?: string
           is_virtual?: boolean | null
           location?: string | null
           meeting_url?: string | null
+          prazo_done?: boolean
+          prazo_filed?: boolean
           priority?: string | null
           reminder_minutes?: number | null
           start_datetime: string
@@ -6330,11 +6338,15 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          doc_delivered?: boolean
+          doc_elaborated?: boolean
           end_datetime?: string | null
           id?: string
           is_virtual?: boolean | null
           location?: string | null
           meeting_url?: string | null
+          prazo_done?: boolean
+          prazo_filed?: boolean
           priority?: string | null
           reminder_minutes?: number | null
           start_datetime?: string
