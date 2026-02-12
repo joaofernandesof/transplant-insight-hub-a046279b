@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Table,
   TableBody,
@@ -13,13 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { 
   Shield, 
   Building2, 
@@ -30,11 +24,12 @@ import {
   Eye,
   Scale,
   Pencil,
-  Plus,
   Trash2,
   Search,
-  Filter,
-  Info
+  Info,
+  ChevronDown,
+  ChevronRight,
+  Stethoscope,
 } from "lucide-react";
 import { NeoHubProfile, Portal, PORTAL_NAMES, PROFILE_NAMES, PORTAL_MODULES } from "@/neohub/lib/permissions";
 import { ModulePermission } from "@/hooks/useAccessMatrix";
@@ -56,7 +51,7 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
   administrador: <Shield className="h-4 w-4" />,
   licenciado: <Building2 className="h-4 w-4" />,
   colaborador: <Users className="h-4 w-4" />,
-  medico: <Users className="h-4 w-4" />,
+  medico: <Stethoscope className="h-4 w-4" />,
   aluno: <GraduationCap className="h-4 w-4" />,
   paciente: <Heart className="h-4 w-4" />,
   cliente_avivar: <TrendingUp className="h-4 w-4" />,
@@ -74,14 +69,28 @@ const PROFILE_COLORS: Record<NeoHubProfile, string> = {
   ipromed: 'bg-[#00629B]/10 text-[#00629B] dark:bg-[#00629B]/20 dark:text-[#00629B]',
 };
 
+const PORTAL_ROW_COLORS: Record<Portal, string> = {
+  neocare: 'bg-rose-50/60 dark:bg-rose-950/20',
+  neoteam: 'bg-blue-50/60 dark:bg-blue-950/20',
+  academy: 'bg-emerald-50/60 dark:bg-emerald-950/20',
+  neolicense: 'bg-amber-50/60 dark:bg-amber-950/20',
+  avivar: 'bg-orange-50/60 dark:bg-orange-950/20',
+  ipromed: 'bg-[#00629B]/5 dark:bg-[#00629B]/10',
+  hotleads: 'bg-orange-50/60 dark:bg-orange-950/20',
+};
+
+const PORTAL_ACCENT: Record<Portal, string> = {
+  neocare: 'border-l-rose-500',
+  neoteam: 'border-l-blue-500',
+  academy: 'border-l-emerald-500',
+  neolicense: 'border-l-amber-500',
+  avivar: 'border-l-orange-500',
+  ipromed: 'border-l-[#00629B]',
+  hotleads: 'border-l-orange-600',
+};
+
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
 const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'];
-
-interface ModuleRow {
-  code: string;
-  name: string;
-  portal: Portal;
-}
 
 export function AccessMatrixTable({
   permissions,
@@ -90,34 +99,59 @@ export function AccessMatrixTable({
   getPermissionForModule,
 }: AccessMatrixTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPortal, setSelectedPortal] = useState<Portal | 'all'>('all');
   const [updatingCell, setUpdatingCell] = useState<string | null>(null);
+  const [expandedPortals, setExpandedPortals] = useState<Set<Portal>>(new Set());
 
-  // Get all modules from all portals
-  const allModules = useMemo<ModuleRow[]>(() => {
-    const modules: ModuleRow[] = [];
-    ALL_PORTALS.forEach(portal => {
-      const portalModules = PORTAL_MODULES[portal] || [];
-      portalModules.forEach(mod => {
-        modules.push({
-          code: mod.code,
-          name: mod.name,
-          portal,
-        });
-      });
+  const togglePortal = (portal: Portal) => {
+    setExpandedPortals(prev => {
+      const next = new Set(prev);
+      if (next.has(portal)) next.delete(portal);
+      else next.add(portal);
+      return next;
     });
-    return modules;
-  }, []);
+  };
 
-  // Filter modules
-  const filteredModules = useMemo(() => {
-    return allModules.filter(mod => {
-      const matchesSearch = mod.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           mod.code.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesPortal = selectedPortal === 'all' || mod.portal === selectedPortal;
-      return matchesSearch && matchesPortal;
+  const expandAll = () => setExpandedPortals(new Set(ALL_PORTALS));
+  const collapseAll = () => setExpandedPortals(new Set());
+
+  // Filter portals/modules by search
+  const filteredPortals = useMemo(() => {
+    if (!searchTerm) return ALL_PORTALS;
+    return ALL_PORTALS.filter(portal => {
+      const portalName = PORTAL_NAMES[portal].toLowerCase();
+      const modules = PORTAL_MODULES[portal] || [];
+      const matchesPortal = portalName.includes(searchTerm.toLowerCase());
+      const matchesModule = modules.some(m => 
+        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.code.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      return matchesPortal || matchesModule;
     });
-  }, [allModules, searchTerm, selectedPortal]);
+  }, [searchTerm]);
+
+  const getFilteredModules = (portal: Portal) => {
+    const modules = PORTAL_MODULES[portal] || [];
+    if (!searchTerm) return modules;
+    const portalMatches = PORTAL_NAMES[portal].toLowerCase().includes(searchTerm.toLowerCase());
+    if (portalMatches) return modules;
+    return modules.filter(m => 
+      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.code.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  // Get portal-level summary for a profile
+  const getPortalSummary = (portal: Portal, profile: NeoHubProfile) => {
+    const modules = PORTAL_MODULES[portal] || [];
+    let readCount = 0, writeCount = 0, deleteCount = 0;
+    modules.forEach(mod => {
+      const perm = getPermissionForModule(mod.code, profile);
+      if (profile === 'administrador' || perm?.canRead) readCount++;
+      if (profile === 'administrador' || perm?.canWrite) writeCount++;
+      if (profile === 'administrador' || perm?.canDelete) deleteCount++;
+    });
+    return { readCount, writeCount, deleteCount, total: modules.length };
+  };
 
   const handlePermissionChange = async (
     moduleCode: string,
@@ -125,7 +159,6 @@ export function AccessMatrixTable({
     field: 'canRead' | 'canWrite' | 'canDelete',
     value: boolean
   ) => {
-    // Admin always has full access
     if (profile === 'administrador') {
       toast.info("O perfil Administrador possui acesso total e não pode ser alterado.");
       return;
@@ -135,24 +168,15 @@ export function AccessMatrixTable({
     setUpdatingCell(cellKey);
 
     try {
-      const currentPerm = getPermissionForModule(moduleCode, profile);
-      
-      // If disabling read, also disable write and delete
       if (field === 'canRead' && !value) {
         await onUpdatePermission(moduleCode, profile, {
-          canRead: false,
-          canWrite: false,
-          canDelete: false,
+          canRead: false, canWrite: false, canDelete: false,
         });
-      } 
-      // If enabling write or delete, also enable read
-      else if ((field === 'canWrite' || field === 'canDelete') && value) {
+      } else if ((field === 'canWrite' || field === 'canDelete') && value) {
         await onUpdatePermission(moduleCode, profile, {
-          canRead: true,
-          [field]: value,
+          canRead: true, [field]: value,
         });
-      }
-      else {
+      } else {
         await onUpdatePermission(moduleCode, profile, { [field]: value });
       }
     } finally {
@@ -161,18 +185,11 @@ export function AccessMatrixTable({
   };
 
   const getCheckboxState = (moduleCode: string, profile: NeoHubProfile, field: 'canRead' | 'canWrite' | 'canDelete') => {
-    // Admin always has full access
-    if (profile === 'administrador') {
-      return { checked: true, disabled: true };
-    }
-
+    if (profile === 'administrador') return { checked: true, disabled: true };
     const perm = getPermissionForModule(moduleCode, profile);
     const isUpdating = updatingCell === `${moduleCode}-${profile}-${field}`;
-    
-    // Write and delete require read to be enabled
     const requiresRead = field === 'canWrite' || field === 'canDelete';
     const readEnabled = perm?.canRead ?? false;
-
     return {
       checked: perm?.[field] ?? false,
       disabled: isUpdating || (requiresRead && !readEnabled),
@@ -182,13 +199,8 @@ export function AccessMatrixTable({
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-96 w-full" />
-        </CardContent>
+        <CardHeader><Skeleton className="h-6 w-48" /><Skeleton className="h-4 w-64" /></CardHeader>
+        <CardContent><Skeleton className="h-96 w-full" /></CardContent>
       </Card>
     );
   }
@@ -200,7 +212,7 @@ export function AccessMatrixTable({
           <div>
             <CardTitle className="text-lg">Matriz de Permissões</CardTitle>
             <CardDescription>
-              Controle os acessos de cada perfil por módulo do sistema
+              Portais nas linhas · Perfis de usuários nas colunas
             </CardDescription>
           </div>
           
@@ -208,27 +220,18 @@ export function AccessMatrixTable({
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar módulo..."
+                placeholder="Buscar portal ou módulo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-48"
+                className="pl-8 w-56"
               />
             </div>
-            
-            <Select value={selectedPortal} onValueChange={(v) => setSelectedPortal(v as Portal | 'all')}>
-              <SelectTrigger className="w-40">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Portal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Portais</SelectItem>
-                {ALL_PORTALS.map(portal => (
-                  <SelectItem key={portal} value={portal}>
-                    {PORTAL_NAMES[portal]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <button onClick={expandAll} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors">
+              Expandir tudo
+            </button>
+            <button onClick={collapseAll} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors">
+              Recolher
+            </button>
           </div>
         </div>
 
@@ -262,15 +265,15 @@ export function AccessMatrixTable({
       
       <CardContent>
         <ScrollArea className="w-full">
-          <div className="min-w-[900px]">
+          <div className="min-w-[1000px]">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="w-64 sticky left-0 bg-muted/50 z-10">
-                    Módulo / Função
+                  <TableHead className="w-72 sticky left-0 bg-muted/50 z-10 font-semibold">
+                    Portais / Módulos
                   </TableHead>
                   {ALL_PROFILES.map(profile => (
-                    <TableHead key={profile} className="text-center min-w-[140px]">
+                    <TableHead key={profile} className="text-center min-w-[120px]">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -279,7 +282,7 @@ export function AccessMatrixTable({
                               PROFILE_COLORS[profile]
                             )}>
                               {PROFILE_ICONS[profile]}
-                              <span className="truncate max-w-[80px]">
+                              <span className="truncate max-w-[70px]">
                                 {PROFILE_NAMES[profile]}
                               </span>
                             </div>
@@ -300,106 +303,31 @@ export function AccessMatrixTable({
               </TableHeader>
               
               <TableBody>
-                {filteredModules.length === 0 ? (
+                {filteredPortals.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={ALL_PROFILES.length + 1} className="text-center py-8 text-muted-foreground">
-                      Nenhum módulo encontrado
+                      Nenhum portal encontrado
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredModules.map((mod, idx) => (
-                    <TableRow 
-                      key={mod.code}
-                      className={cn(idx % 2 === 0 ? "bg-background" : "bg-muted/30")}
-                    >
-                      <TableCell className="sticky left-0 bg-inherit z-10">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-medium text-sm">{mod.name}</span>
-                          <Badge variant="outline" className="w-fit text-[10px] px-1.5 py-0">
-                            {PORTAL_NAMES[mod.portal]}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      
-                      {ALL_PROFILES.map(profile => {
-                        const readState = getCheckboxState(mod.code, profile, 'canRead');
-                        const writeState = getCheckboxState(mod.code, profile, 'canWrite');
-                        const deleteState = getCheckboxState(mod.code, profile, 'canDelete');
-                        
-                        return (
-                          <TableCell key={profile} className="text-center px-2">
-                            <div className="flex items-center justify-center gap-1.5">
-                              {/* Visualizar (Read) */}
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      onClick={() => !readState.disabled && handlePermissionChange(mod.code, profile, 'canRead', !readState.checked)}
-                                      disabled={readState.disabled}
-                                      className={cn(
-                                        "w-7 h-7 rounded-md flex items-center justify-center transition-all",
-                                        readState.checked 
-                                          ? "bg-emerald-500 text-white shadow-sm" 
-                                          : "bg-muted/50 text-muted-foreground hover:bg-muted",
-                                        readState.disabled && "opacity-50 cursor-not-allowed"
-                                      )}
-                                    >
-                                      <Eye className="h-3.5 w-3.5" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Visualizar</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-
-                              {/* Editar/Inserir (Write) */}
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      onClick={() => !writeState.disabled && handlePermissionChange(mod.code, profile, 'canWrite', !writeState.checked)}
-                                      disabled={writeState.disabled}
-                                      className={cn(
-                                        "w-7 h-7 rounded-md flex items-center justify-center transition-all",
-                                        writeState.checked 
-                                          ? "bg-emerald-500 text-white shadow-sm" 
-                                          : "bg-muted/50 text-muted-foreground hover:bg-muted",
-                                        writeState.disabled && "opacity-50 cursor-not-allowed"
-                                      )}
-                                    >
-                                      <Pencil className="h-3.5 w-3.5" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Editar / Inserir</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-
-                              {/* Excluir (Delete) */}
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      onClick={() => !deleteState.disabled && handlePermissionChange(mod.code, profile, 'canDelete', !deleteState.checked)}
-                                      disabled={deleteState.disabled}
-                                      className={cn(
-                                        "w-7 h-7 rounded-md flex items-center justify-center transition-all",
-                                        deleteState.checked 
-                                          ? "bg-emerald-500 text-white shadow-sm" 
-                                          : "bg-muted/50 text-muted-foreground hover:bg-muted",
-                                        deleteState.disabled && "opacity-50 cursor-not-allowed"
-                                      )}
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Excluir</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))
+                  filteredPortals.map(portal => {
+                    const isExpanded = expandedPortals.has(portal);
+                    const modules = getFilteredModules(portal);
+                    
+                    return (
+                      <PortalGroup
+                        key={portal}
+                        portal={portal}
+                        isExpanded={isExpanded}
+                        onToggle={() => togglePortal(portal)}
+                        modules={modules}
+                        profiles={ALL_PROFILES}
+                        getPortalSummary={getPortalSummary}
+                        getCheckboxState={getCheckboxState}
+                        handlePermissionChange={handlePermissionChange}
+                      />
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -410,11 +338,191 @@ export function AccessMatrixTable({
         <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm text-blue-700 dark:text-blue-400">
           <Info className="h-4 w-4 shrink-0" />
           <span>
-            As permissões de Editar e Excluir dependem da permissão de Visualizar estar ativa.
+            Clique no portal para expandir e ver os módulos individuais.
             O perfil Administrador possui acesso total e não pode ser modificado.
           </span>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ---- Portal Group (row header + expandable modules) ----
+
+interface PortalGroupProps {
+  portal: Portal;
+  isExpanded: boolean;
+  onToggle: () => void;
+  modules: { code: string; name: string; route: string; icon: string }[];
+  profiles: NeoHubProfile[];
+  getPortalSummary: (portal: Portal, profile: NeoHubProfile) => { readCount: number; writeCount: number; deleteCount: number; total: number };
+  getCheckboxState: (moduleCode: string, profile: NeoHubProfile, field: 'canRead' | 'canWrite' | 'canDelete') => { checked: boolean; disabled: boolean };
+  handlePermissionChange: (moduleCode: string, profile: NeoHubProfile, field: 'canRead' | 'canWrite' | 'canDelete', value: boolean) => void;
+}
+
+function PortalGroup({
+  portal,
+  isExpanded,
+  onToggle,
+  modules,
+  profiles,
+  getPortalSummary,
+  getCheckboxState,
+  handlePermissionChange,
+}: PortalGroupProps) {
+  return (
+    <>
+      {/* Portal Header Row */}
+      <TableRow 
+        className={cn(
+          "cursor-pointer hover:bg-muted/60 transition-colors border-l-4",
+          PORTAL_ROW_COLORS[portal],
+          PORTAL_ACCENT[portal],
+        )}
+        onClick={onToggle}
+      >
+        <TableCell className="sticky left-0 z-10 bg-inherit">
+          <div className="flex items-center gap-2">
+            {isExpanded 
+              ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> 
+              : <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            }
+            <span className="font-semibold text-sm">{PORTAL_NAMES[portal]}</span>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">
+              {modules.length} módulos
+            </Badge>
+          </div>
+        </TableCell>
+        
+        {profiles.map(profile => {
+          const summary = getPortalSummary(portal, profile);
+          const allRead = summary.readCount === summary.total;
+          const noneRead = summary.readCount === 0;
+          
+          return (
+            <TableCell key={profile} className="text-center px-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center justify-center">
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-[10px] px-2 py-0.5",
+                          allRead && "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
+                          noneRead && "bg-muted text-muted-foreground",
+                          !allRead && !noneRead && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800"
+                        )}
+                      >
+                        {summary.readCount}/{summary.total}
+                      </Badge>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs space-y-1">
+                      <p className="font-medium">{PROFILE_NAMES[profile]} → {PORTAL_NAMES[portal]}</p>
+                      <p>👁 Visualizar: {summary.readCount}/{summary.total}</p>
+                      <p>✏️ Editar: {summary.writeCount}/{summary.total}</p>
+                      <p>🗑 Excluir: {summary.deleteCount}/{summary.total}</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
+          );
+        })}
+      </TableRow>
+
+      {/* Expanded Module Rows */}
+      {isExpanded && modules.map((mod, idx) => (
+        <TableRow 
+          key={mod.code}
+          className={cn(
+            "border-l-4",
+            PORTAL_ACCENT[portal],
+            idx % 2 === 0 ? "bg-background" : "bg-muted/20"
+          )}
+        >
+          <TableCell className="sticky left-0 bg-inherit z-10 pl-10">
+            <span className="text-sm text-muted-foreground">{mod.name}</span>
+          </TableCell>
+          
+          {profiles.map(profile => {
+            const readState = getCheckboxState(mod.code, profile, 'canRead');
+            const writeState = getCheckboxState(mod.code, profile, 'canWrite');
+            const deleteState = getCheckboxState(mod.code, profile, 'canDelete');
+            
+            return (
+              <TableCell key={profile} className="text-center px-2">
+                <div className="flex items-center justify-center gap-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => !readState.disabled && handlePermissionChange(mod.code, profile, 'canRead', !readState.checked)}
+                          disabled={readState.disabled}
+                          className={cn(
+                            "w-6 h-6 rounded flex items-center justify-center transition-all",
+                            readState.checked 
+                              ? "bg-emerald-500 text-white shadow-sm" 
+                              : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                            readState.disabled && "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          <Eye className="h-3 w-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Visualizar</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => !writeState.disabled && handlePermissionChange(mod.code, profile, 'canWrite', !writeState.checked)}
+                          disabled={writeState.disabled}
+                          className={cn(
+                            "w-6 h-6 rounded flex items-center justify-center transition-all",
+                            writeState.checked 
+                              ? "bg-emerald-500 text-white shadow-sm" 
+                              : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                            writeState.disabled && "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Editar / Inserir</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => !deleteState.disabled && handlePermissionChange(mod.code, profile, 'canDelete', !deleteState.checked)}
+                          disabled={deleteState.disabled}
+                          className={cn(
+                            "w-6 h-6 rounded flex items-center justify-center transition-all",
+                            deleteState.checked 
+                              ? "bg-emerald-500 text-white shadow-sm" 
+                              : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                            deleteState.disabled && "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Excluir</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </TableCell>
+            );
+          })}
+        </TableRow>
+      ))}
+    </>
   );
 }
