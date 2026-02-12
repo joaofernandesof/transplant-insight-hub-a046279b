@@ -74,6 +74,27 @@ import {
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
+interface ChecklistItem {
+  key: string;
+  label: string;
+}
+
+interface DeadlineType {
+  id: string;
+  name: string;
+  checklist_items: ChecklistItem[];
+  is_default: boolean;
+}
+
+interface AppointmentCheck {
+  id: string;
+  appointment_id: string;
+  check_key: string;
+  check_label: string;
+  is_checked: boolean;
+  order_index: number;
+}
+
 interface Appointment {
   id: string;
   client_id: string | null;
@@ -91,7 +112,8 @@ interface Appointment {
   priority: string;
   created_at: string;
   ipromed_legal_clients?: { name: string } | null;
-  // Deadline check fields
+  deadline_type_id: string | null;
+  // Legacy fields (kept for compatibility)
   doc_elaborated: boolean;
   doc_delivered: boolean;
   prazo_done: boolean;
@@ -193,10 +215,16 @@ export default function AstreaStyleAgenda() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null);
+  const [isNewDeadlineTypeOpen, setIsNewDeadlineTypeOpen] = useState(false);
+  const [newDeadlineTypeName, setNewDeadlineTypeName] = useState('');
+  const [newDeadlineTypeItems, setNewDeadlineTypeItems] = useState<{key: string; label: string}[]>([]);
+  const [newItemLabel, setNewItemLabel] = useState('');
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     appointment_type: 'reuniao',
+    deadline_type_id: '',
     start_date: new Date().toISOString().split('T')[0],
     start_time: '09:00',
     end_time: '10:00',
@@ -266,6 +294,7 @@ export default function AstreaStyleAgenda() {
         priority: 'normal',
         created_at: meeting.created_at,
         ipromed_legal_clients: meeting.ipromed_legal_clients,
+        deadline_type_id: null,
         doc_elaborated: false,
         doc_delivered: false,
         prazo_done: false,
@@ -295,6 +324,46 @@ export default function AstreaStyleAgenda() {
     },
   });
 
+  // Fetch deadline types
+  const { data: deadlineTypes = [] } = useQuery({
+    queryKey: ['ipromed-deadline-types'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ipromed_deadline_types')
+        .select('*')
+        .order('is_default', { ascending: false });
+      if (error) throw error;
+      return data as unknown as DeadlineType[];
+    },
+  });
+
+  // Fetch appointment checks for all visible appointments
+  const appointmentIds = appointments.map(a => a.id);
+  const { data: allAppointmentChecks = [] } = useQuery({
+    queryKey: ['ipromed-appointment-checks', appointmentIds.join(',')],
+    queryFn: async () => {
+      if (appointmentIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('ipromed_appointment_checks')
+        .select('*')
+        .in('appointment_id', appointmentIds)
+        .order('order_index');
+      if (error) throw error;
+      return data as AppointmentCheck[];
+    },
+    enabled: appointmentIds.length > 0,
+  });
+
+  // Group checks by appointment id
+  const checksByAppointment = useMemo(() => {
+    const map: Record<string, AppointmentCheck[]> = {};
+    allAppointmentChecks.forEach(c => {
+      if (!map[c.appointment_id]) map[c.appointment_id] = [];
+      map[c.appointment_id].push(c);
+    });
+    return map;
+  }, [allAppointmentChecks]);
+
   // Create appointment
   // Helper to convert local datetime string to proper ISO with timezone offset
   const toLocalISOString = (dateStr: string, timeStr: string = '00:00') => {
@@ -304,7 +373,6 @@ export default function AstreaStyleAgenda() {
 
   const createAppointment = useMutation({
     mutationFn: async () => {
-      // Convert to proper ISO format with timezone
       const startDateTime = formData.all_day
         ? toLocalISOString(formData.start_date, '00:00')
         : toLocalISOString(formData.start_date, formData.start_time);
@@ -313,7 +381,11 @@ export default function AstreaStyleAgenda() {
         ? null
         : toLocalISOString(formData.start_date, formData.end_time);
 
-      const { error } = await supabase
+      const deadlineTypeId = formData.appointment_type === 'prazo' && formData.deadline_type_id
+        ? formData.deadline_type_id
+        : null;
+
+      const { data: inserted, error } = await supabase
         .from('ipromed_appointments')
         .insert([{
           title: formData.title,
@@ -327,12 +399,31 @@ export default function AstreaStyleAgenda() {
           meeting_url: formData.is_virtual ? formData.meeting_url : null,
           client_id: formData.client_id && formData.client_id !== '__none__' ? formData.client_id : null,
           priority: formData.priority,
-        }]);
+          deadline_type_id: deadlineTypeId,
+        }])
+        .select('id')
+        .single();
 
       if (error) throw error;
+
+      // Auto-create checklist items from deadline type
+      if (deadlineTypeId && inserted) {
+        const deadlineType = deadlineTypes.find(dt => dt.id === deadlineTypeId);
+        if (deadlineType?.checklist_items?.length) {
+          const checks = deadlineType.checklist_items.map((item: ChecklistItem, idx: number) => ({
+            appointment_id: inserted.id,
+            check_key: item.key,
+            check_label: item.label,
+            is_checked: false,
+            order_index: idx,
+          }));
+          await supabase.from('ipromed_appointment_checks').insert(checks);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointment-checks'] });
       toast.success('Compromisso criado!');
       setIsFormOpen(false);
       resetForm();
@@ -356,6 +447,10 @@ export default function AstreaStyleAgenda() {
         ? null
         : toLocalISOString(formData.start_date, formData.end_time);
 
+      const deadlineTypeId = formData.appointment_type === 'prazo' && formData.deadline_type_id
+        ? formData.deadline_type_id
+        : null;
+
       const { error } = await supabase
         .from('ipromed_appointments')
         .update({
@@ -370,6 +465,7 @@ export default function AstreaStyleAgenda() {
           meeting_url: formData.is_virtual ? formData.meeting_url : null,
           client_id: formData.client_id && formData.client_id !== '__none__' ? formData.client_id : null,
           priority: formData.priority,
+          deadline_type_id: deadlineTypeId,
         })
         .eq('id', editingAppointmentId);
 
@@ -389,20 +485,48 @@ export default function AstreaStyleAgenda() {
     },
   });
 
-  // Toggle deadline check field
-  const toggleDeadlineCheck = useMutation({
-    mutationFn: async ({ id, field, value }: { id: string; field: string; value: boolean }) => {
-      const { error } = await (supabase as any)
-        .from('ipromed_appointments')
-        .update({ [field]: value })
-        .eq('id', id);
+  // Toggle appointment check
+  const toggleAppointmentCheck = useMutation({
+    mutationFn: async ({ checkId, value }: { checkId: string; value: boolean }) => {
+      const { error } = await supabase
+        .from('ipromed_appointment_checks')
+        .update({ is_checked: value })
+        .eq('id', checkId);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointment-checks'] });
     },
     onError: (error) => {
       toast.error('Erro ao atualizar: ' + error.message);
+    },
+  });
+
+  // Create new deadline type
+  const createDeadlineType = useMutation({
+    mutationFn: async () => {
+      if (!newDeadlineTypeName.trim() || newDeadlineTypeItems.length === 0) {
+        throw new Error('Nome e itens são obrigatórios');
+      }
+      const { error } = await supabase
+        .from('ipromed_deadline_types')
+        .insert([{
+          name: newDeadlineTypeName,
+          checklist_items: newDeadlineTypeItems,
+          is_default: false,
+        }]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-deadline-types'] });
+      toast.success('Tipo de prazo criado!');
+      setIsNewDeadlineTypeOpen(false);
+      setNewDeadlineTypeName('');
+      setNewDeadlineTypeItems([]);
+      setNewItemLabel('');
+    },
+    onError: (error) => {
+      toast.error('Erro: ' + error.message);
     },
   });
 
@@ -411,6 +535,7 @@ export default function AstreaStyleAgenda() {
       title: '',
       description: '',
       appointment_type: 'reuniao',
+      deadline_type_id: '',
       start_date: selectedDate.toISOString().split('T')[0],
       start_time: '09:00',
       end_time: '10:00',
@@ -434,6 +559,7 @@ export default function AstreaStyleAgenda() {
       title: apt.title,
       description: apt.description || '',
       appointment_type: apt.appointment_type,
+      deadline_type_id: apt.deadline_type_id || '',
       start_date: format(startDate, 'yyyy-MM-dd'),
       start_time: format(startDate, 'HH:mm'),
       end_time: endDate ? format(endDate, 'HH:mm') : '10:00',
@@ -569,57 +695,22 @@ export default function AstreaStyleAgenda() {
                   {apt.ipromed_legal_clients.name}
                 </p>
               )}
-              {/* Deadline checks for prazo-type */}
-              {apt.appointment_type === 'prazo' && (
+              {/* Dynamic deadline checks for prazo-type */}
+              {apt.appointment_type === 'prazo' && checksByAppointment[apt.id]?.length > 0 && (
                 <div className="mt-2 space-y-1" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={`doc-elab-${apt.id}`}
-                      checked={apt.doc_elaborated}
-                      onCheckedChange={(checked) => toggleDeadlineCheck.mutate({ id: apt.id, field: 'doc_elaborated', value: !!checked })}
-                      className="h-3.5 w-3.5"
-                    />
-                    <label htmlFor={`doc-elab-${apt.id}`} className={`text-[11px] cursor-pointer ${apt.doc_elaborated ? 'line-through text-muted-foreground' : ''}`}>
-                      Documentação elaborada
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={`doc-del-${apt.id}`}
-                      checked={apt.doc_delivered}
-                      onCheckedChange={(checked) => toggleDeadlineCheck.mutate({ id: apt.id, field: 'doc_delivered', value: !!checked })}
-                      className="h-3.5 w-3.5"
-                    />
-                    <label htmlFor={`doc-del-${apt.id}`} className={`text-[11px] cursor-pointer ${apt.doc_delivered ? 'line-through text-muted-foreground' : ''}`}>
-                      Entregue ao cliente
-                    </label>
-                  </div>
-                  {apt.title.toLowerCase().includes('peti') && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`prazo-done-${apt.id}`}
-                          checked={apt.prazo_done}
-                          onCheckedChange={(checked) => toggleDeadlineCheck.mutate({ id: apt.id, field: 'prazo_done', value: !!checked })}
-                          className="h-3.5 w-3.5"
-                        />
-                        <label htmlFor={`prazo-done-${apt.id}`} className={`text-[11px] cursor-pointer ${apt.prazo_done ? 'line-through text-muted-foreground' : ''}`}>
-                          Prazo feito
-                        </label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`prazo-filed-${apt.id}`}
-                          checked={apt.prazo_filed}
-                          onCheckedChange={(checked) => toggleDeadlineCheck.mutate({ id: apt.id, field: 'prazo_filed', value: !!checked })}
-                          className="h-3.5 w-3.5"
-                        />
-                        <label htmlFor={`prazo-filed-${apt.id}`} className={`text-[11px] cursor-pointer ${apt.prazo_filed ? 'line-through text-muted-foreground' : ''}`}>
-                          Prazo protocolado
-                        </label>
-                      </div>
-                    </>
-                  )}
+                  {checksByAppointment[apt.id].map((check) => (
+                    <div key={check.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`sidebar-${check.id}`}
+                        checked={check.is_checked}
+                        onCheckedChange={(checked) => toggleAppointmentCheck.mutate({ checkId: check.id, value: !!checked })}
+                        className="h-3.5 w-3.5"
+                      />
+                      <label htmlFor={`sidebar-${check.id}`} className={`text-[11px] cursor-pointer ${check.is_checked ? 'line-through text-muted-foreground' : ''}`}>
+                        {check.check_label}
+                      </label>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -925,6 +1016,44 @@ export default function AstreaStyleAgenda() {
               </div>
             </div>
 
+            {/* Deadline type selector - only when type is prazo */}
+            {formData.appointment_type === 'prazo' && (
+              <div>
+                <Label>Tipo de Prazo</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.deadline_type_id}
+                    onValueChange={(v) => setFormData({ ...formData, deadline_type_id: v })}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecione o tipo de prazo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {deadlineTypes.map((dt) => (
+                        <SelectItem key={dt.id} value={dt.id}>
+                          {dt.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsNewDeadlineTypeOpen(true)}
+                    title="Criar novo tipo"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {formData.deadline_type_id && (
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Checklist: {deadlineTypes.find(dt => dt.id === formData.deadline_type_id)?.checklist_items.map(i => i.label).join(' • ')}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div>
               <Label>Data</Label>
               <Input
@@ -1107,67 +1236,25 @@ export default function AstreaStyleAgenda() {
                     </div>
                   )}
 
-                  {/* Deadline Checks for prazo-type */}
-                  {selectedAppointment.appointment_type === 'prazo' && (
+                  {/* Dynamic Deadline Checks for prazo-type */}
+                  {selectedAppointment.appointment_type === 'prazo' && checksByAppointment[selectedAppointment.id]?.length > 0 && (
                     <div className="pt-3 border-t space-y-3">
                       <p className="text-sm font-medium">Checklist do Prazo</p>
                       <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <Checkbox
-                            id="detail-doc-elab"
-                            checked={selectedAppointment.doc_elaborated}
-                            onCheckedChange={(checked) => {
-                              toggleDeadlineCheck.mutate({ id: selectedAppointment.id, field: 'doc_elaborated', value: !!checked });
-                              setSelectedAppointment({ ...selectedAppointment, doc_elaborated: !!checked });
-                            }}
-                          />
-                          <Label htmlFor="detail-doc-elab" className={`cursor-pointer ${selectedAppointment.doc_elaborated ? 'line-through text-muted-foreground' : ''}`}>
-                            Documentação elaborada
-                          </Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Checkbox
-                            id="detail-doc-del"
-                            checked={selectedAppointment.doc_delivered}
-                            onCheckedChange={(checked) => {
-                              toggleDeadlineCheck.mutate({ id: selectedAppointment.id, field: 'doc_delivered', value: !!checked });
-                              setSelectedAppointment({ ...selectedAppointment, doc_delivered: !!checked });
-                            }}
-                          />
-                          <Label htmlFor="detail-doc-del" className={`cursor-pointer ${selectedAppointment.doc_delivered ? 'line-through text-muted-foreground' : ''}`}>
-                            Documentação entregue ao cliente
-                          </Label>
-                        </div>
-                        {selectedAppointment.title.toLowerCase().includes('peti') && (
-                          <>
-                            <div className="flex items-center gap-3">
-                              <Checkbox
-                                id="detail-prazo-done"
-                                checked={selectedAppointment.prazo_done}
-                                onCheckedChange={(checked) => {
-                                  toggleDeadlineCheck.mutate({ id: selectedAppointment.id, field: 'prazo_done', value: !!checked });
-                                  setSelectedAppointment({ ...selectedAppointment, prazo_done: !!checked });
-                                }}
-                              />
-                              <Label htmlFor="detail-prazo-done" className={`cursor-pointer ${selectedAppointment.prazo_done ? 'line-through text-muted-foreground' : ''}`}>
-                                Prazo feito
-                              </Label>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Checkbox
-                                id="detail-prazo-filed"
-                                checked={selectedAppointment.prazo_filed}
-                                onCheckedChange={(checked) => {
-                                  toggleDeadlineCheck.mutate({ id: selectedAppointment.id, field: 'prazo_filed', value: !!checked });
-                                  setSelectedAppointment({ ...selectedAppointment, prazo_filed: !!checked });
-                                }}
-                              />
-                              <Label htmlFor="detail-prazo-filed" className={`cursor-pointer ${selectedAppointment.prazo_filed ? 'line-through text-muted-foreground' : ''}`}>
-                                Prazo protocolado
-                              </Label>
-                            </div>
-                          </>
-                        )}
+                        {checksByAppointment[selectedAppointment.id].map((check) => (
+                          <div key={check.id} className="flex items-center gap-3">
+                            <Checkbox
+                              id={`detail-${check.id}`}
+                              checked={check.is_checked}
+                              onCheckedChange={(checked) => {
+                                toggleAppointmentCheck.mutate({ checkId: check.id, value: !!checked });
+                              }}
+                            />
+                            <Label htmlFor={`detail-${check.id}`} className={`cursor-pointer ${check.is_checked ? 'line-through text-muted-foreground' : ''}`}>
+                              {check.check_label}
+                            </Label>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -1205,6 +1292,91 @@ export default function AstreaStyleAgenda() {
               </>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* New Deadline Type Dialog */}
+      <Dialog open={isNewDeadlineTypeOpen} onOpenChange={setIsNewDeadlineTypeOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Tipo de Prazo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome do tipo</Label>
+              <Input
+                value={newDeadlineTypeName}
+                onChange={(e) => setNewDeadlineTypeName(e.target.value)}
+                placeholder="Ex: Prazo de Recurso"
+              />
+            </div>
+
+            <div>
+              <Label>Itens do Checklist</Label>
+              <div className="space-y-2 mt-2">
+                {newDeadlineTypeItems.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="flex-1">{item.label}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => setNewDeadlineTypeItems(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  value={newItemLabel}
+                  onChange={(e) => setNewItemLabel(e.target.value)}
+                  placeholder="Nome do item"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newItemLabel.trim()) {
+                      e.preventDefault();
+                      const key = newItemLabel.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                      setNewDeadlineTypeItems(prev => [...prev, { key, label: newItemLabel.trim() }]);
+                      setNewItemLabel('');
+                    }
+                  }}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (newItemLabel.trim()) {
+                      const key = newItemLabel.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                      setNewDeadlineTypeItems(prev => [...prev, { key, label: newItemLabel.trim() }]);
+                      setNewItemLabel('');
+                    }
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" className="flex-1" onClick={() => {
+                setIsNewDeadlineTypeOpen(false);
+                setNewDeadlineTypeName('');
+                setNewDeadlineTypeItems([]);
+                setNewItemLabel('');
+              }}>
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => createDeadlineType.mutate()}
+                disabled={!newDeadlineTypeName.trim() || newDeadlineTypeItems.length === 0 || createDeadlineType.isPending}
+              >
+                {createDeadlineType.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Criar Tipo'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
