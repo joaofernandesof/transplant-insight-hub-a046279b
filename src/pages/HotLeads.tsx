@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Trash2 } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -195,20 +195,6 @@ export default function HotLeads() {
                     <span className="hidden sm:inline">Importar</span>
                   </Button>
                   <LeadExportButton leads={leads} getClaimerName={getClaimerName} />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/20"
-                    onClick={async () => {
-                      if (!confirm('Resetar toda a base de leads? Esta ação não pode ser desfeita.')) return;
-                      const { error } = await supabase.from('leads').delete().eq('source', 'planilha');
-                      if (error) { toast.error('Erro ao resetar'); return; }
-                      toast.success('Base resetada');
-                      fetchLeads(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </>
               )}
               <Button
