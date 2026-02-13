@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Lock, User, Calendar, Mail, Loader2 } from 'lucide-react';
+import { MapPin, Lock, User, Calendar, Mail, Loader2, Undo2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +12,7 @@ interface AcquiredLeadCardProps {
   lead: HotLead;
   claimerName: string;
   isOwned?: boolean;
+  onRelease?: (leadId: string) => void;
 }
 
 function maskName(fullName: string): string {
@@ -24,8 +25,8 @@ function maskName(fullName: string): string {
   }).join(' ');
 }
 
-export function AcquiredLeadCard({ lead, claimerName, isOwned }: AcquiredLeadCardProps) {
-  const { user } = useAuth();
+export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease }: AcquiredLeadCardProps) {
+  const { user, isAdmin } = useAuth();
   const [isSending, setIsSending] = useState(false);
   const location = [lead.city, lead.state].filter(Boolean).join(' - ');
   const maskedName = maskName(lead.name);
@@ -90,6 +91,17 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned }: AcquiredLeadCar
               >
                 {isSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
                 Reenviar
+              </Button>
+            )}
+            {isAdmin && onRelease && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200"
+                onClick={() => onRelease(lead.id)}
+              >
+                <Undo2 className="h-3 w-3" />
+                Devolver
               </Button>
             )}
           </div>
