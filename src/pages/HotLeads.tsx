@@ -178,7 +178,7 @@ export default function HotLeads() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden min-h-0 h-[calc(100dvh-52px)] lg:h-screen">
+    <div className="flex-1 flex flex-col bg-background overflow-y-auto min-h-0">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
         <div className="px-4 py-3">
@@ -257,10 +257,10 @@ export default function HotLeads() {
       </div>
 
       {/* Scrollable columns area - takes remaining height */}
-      <div className="flex-1 min-h-0 px-3 lg:px-4 pb-4">
+      <div className="flex-1 px-3 lg:px-4 pb-4">
         {/* Mobile: Tabs */}
-        <div className="lg:hidden h-full">
-          <Tabs defaultValue="available" className="flex flex-col h-full">
+        <div className="lg:hidden">
+          <Tabs defaultValue="available" className="flex flex-col">
             <TabsList className="w-full grid grid-cols-3 mb-3 shrink-0">
               <TabsTrigger value="available" className="text-xs">
                 <span className="h-2 w-2 rounded-full bg-green-500 mr-1.5" />

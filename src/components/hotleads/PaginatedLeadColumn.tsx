@@ -10,7 +10,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = 10;
 
 interface PaginatedLeadColumnProps {
   title: string;
@@ -43,7 +43,7 @@ export function PaginatedLeadColumn({ title, dotColor, items, emptyMessage, rend
   }, [page, totalPages]);
 
   return (
-    <div className="flex flex-col min-h-0 h-full bg-muted/40 rounded-xl border p-4">
+    <div className="flex flex-col bg-muted/40 rounded-xl border p-4">
       <div className="pb-3 border-b mb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <div className={`h-3 w-3 rounded-full ${dotColor}`} />
@@ -51,15 +51,13 @@ export function PaginatedLeadColumn({ title, dotColor, items, emptyMessage, rend
         </CardTitle>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="space-y-3 pr-2">
+      <div className="space-y-3">
           {paginatedItems.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">{emptyMessage}</p>
           ) : (
             paginatedItems.map(renderItem)
           )}
-        </div>
-      </ScrollArea>
+      </div>
 
       {totalPages > 1 && (
         <Pagination className="mt-3 pt-3 border-t">
