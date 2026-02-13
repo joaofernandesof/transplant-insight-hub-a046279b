@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, ShoppingCart, Calendar } from 'lucide-react';
+import { MapPin, ShoppingCart, Calendar, Timer } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { HotLead } from '@/hooks/useHotLeads';
@@ -8,6 +8,8 @@ import type { HotLead } from '@/hooks/useHotLeads';
 interface AvailableLeadCardProps {
   lead: HotLead;
   onAcquire: (lead: HotLead) => void;
+  cooldownRemaining?: number;
+  formatCooldown?: (seconds: number) => string;
 }
 
 /**
@@ -24,7 +26,7 @@ function maskName(fullName: string): string {
   }).join(' ');
 }
 
-export function AvailableLeadCard({ lead, onAcquire }: AvailableLeadCardProps) {
+export function AvailableLeadCard({ lead, onAcquire, cooldownRemaining = 0, formatCooldown }: AvailableLeadCardProps) {
   const location = [lead.city, lead.state].filter(Boolean).join(' - ');
   const maskedName = maskName(lead.name);
   
@@ -53,14 +55,28 @@ export function AvailableLeadCard({ lead, onAcquire }: AvailableLeadCardProps) {
               </p>
             )}
           </div>
-          <Button
-            size="sm"
-            onClick={() => onAcquire(lead)}
-            className="shrink-0 bg-green-600 hover:bg-green-700 text-white"
-          >
-            <ShoppingCart className="h-4 w-4 mr-1" />
-            Adquirir
-          </Button>
+          {cooldownRemaining > 0 ? (
+            <div className="shrink-0 flex flex-col items-center gap-0.5">
+              <Button
+                size="sm"
+                disabled
+                className="bg-muted text-muted-foreground cursor-not-allowed"
+              >
+                <Timer className="h-4 w-4 mr-1" />
+                {formatCooldown ? formatCooldown(cooldownRemaining) : `${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60).toString().padStart(2, '0')}`}
+              </Button>
+              <span className="text-[10px] text-muted-foreground">Aguarde</span>
+            </div>
+          ) : (
+            <Button
+              size="sm"
+              onClick={() => onAcquire(lead)}
+              className="shrink-0 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <ShoppingCart className="h-4 w-4 mr-1" />
+              Adquirir
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
