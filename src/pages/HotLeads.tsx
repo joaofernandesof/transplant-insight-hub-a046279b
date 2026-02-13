@@ -208,7 +208,8 @@ export default function HotLeads() {
               <Flame className="h-6 w-6 text-white/80" />
               HotLeads
             </h1>
-            <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Desktop buttons stay in header */}
+            <div className="hidden lg:flex items-center gap-1.5 flex-wrap">
               {isAdmin && (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
@@ -231,7 +232,6 @@ export default function HotLeads() {
               <Button
                 variant="outline"
                 size="sm"
-                className=""
                 onClick={() => fetchLeads(true)}
                 disabled={isRefreshing}
               >
@@ -245,20 +245,56 @@ export default function HotLeads() {
 
       {/* Fixed top section */}
       <div className="shrink-0 px-3 lg:px-4 py-3 space-y-3">
-        <HotLeadsGlobalFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          stateFilter={stateFilter}
-          setStateFilter={setStateFilter}
-          cityFilter={cityFilter}
-          setCityFilter={setCityFilter}
-          periodFilter={periodFilter}
-          setPeriodFilter={setPeriodFilter}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          availableStates={availableStates}
-          availableCities={availableCities}
-        />
+        {/* Mobile action buttons - moved out of red header */}
+        <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
+          {isAdmin && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+                <Upload className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Importar</span>
+              </Button>
+              <LeadExportButton leads={leads} getClaimerName={getClaimerName} />
+            </>
+          )}
+          {!isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <Settings className="h-4 w-4 mr-1.5" />
+              <span className="hidden sm:inline">Config</span>
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchLeads(true)}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Atualizar</span>
+          </Button>
+        </div>
+
+        {/* Desktop: filters first, then stats, then motivational */}
+        <div className="hidden lg:block">
+          <HotLeadsGlobalFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            stateFilter={stateFilter}
+            setStateFilter={setStateFilter}
+            cityFilter={cityFilter}
+            setCityFilter={setCityFilter}
+            periodFilter={periodFilter}
+            setPeriodFilter={setPeriodFilter}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            availableStates={availableStates}
+            availableCities={availableCities}
+          />
+        </div>
+
         <HotLeadsStats
           leads={filteredLeads}
           availableCount={filteredAvailable.length}
@@ -271,6 +307,25 @@ export default function HotLeads() {
             🔥 Cada lead é um paciente buscando transformação — <span className="text-orange-600 font-extrabold not-italic">capture antes que outro licenciado o faça.</span>
           </p>
         </div>
+
+        {/* Mobile: filters after motivational text */}
+        <div className="lg:hidden">
+          <HotLeadsGlobalFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            stateFilter={stateFilter}
+            setStateFilter={setStateFilter}
+            cityFilter={cityFilter}
+            setCityFilter={setCityFilter}
+            periodFilter={periodFilter}
+            setPeriodFilter={setPeriodFilter}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            availableStates={availableStates}
+            availableCities={availableCities}
+          />
+        </div>
+
         <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
       </div>
 
