@@ -180,17 +180,17 @@ export default function HotLeads() {
   return (
     <div className="flex-1 flex flex-col bg-background min-h-0">
       {/* Header */}
-      <header className="border-b bg-card sticky top-0 z-20">
+      <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 sticky top-0 z-20">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h1 className="text-xl font-bold flex items-center gap-2 pl-12 lg:pl-0">
-              <Flame className="h-6 w-6 text-orange-500" />
+            <h1 className="text-xl font-bold flex items-center gap-2 pl-12 lg:pl-0 text-white">
+              <Flame className="h-6 w-6 text-white/80" />
               HotLeads
             </h1>
             <div className="flex items-center gap-1.5 flex-wrap">
               {isAdmin && (
                 <>
-                  <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+                  <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/20 hover:text-white" onClick={() => setIsImportOpen(true)}>
                     <Upload className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Importar</span>
                   </Button>
@@ -198,7 +198,7 @@ export default function HotLeads() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/20"
                     onClick={async () => {
                       if (!confirm('Resetar toda a base de leads? Esta ação não pode ser desfeita.')) return;
                       const { error } = await supabase.from('leads').delete().eq('source', 'planilha');
@@ -214,6 +214,7 @@ export default function HotLeads() {
               <Button
                 variant="outline"
                 size="sm"
+                className="border-white/30 text-white hover:bg-white/20 hover:text-white"
                 onClick={() => fetchLeads(true)}
                 disabled={isRefreshing}
               >
