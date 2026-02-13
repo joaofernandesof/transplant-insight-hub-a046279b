@@ -172,14 +172,12 @@ export default function PortalSelector() {
     // Portal admin somente para admins
     if (config.adminOnly) return false;
 
-    // Se allowed_portals está definido e não está vazio, usar como filtro principal
+    // Combinar allowed_portals E perfis — qualquer um dos dois concede acesso
     const portals = user?.allowedPortals;
-    if (portals && portals.length > 0) {
-      return portals.includes(config.portalKey);
-    }
+    const hasPortalAccess = portals && portals.length > 0 && portals.includes(config.portalKey);
+    const hasProfileAccess = config.profiles.some(profile => user?.profiles?.includes(profile));
 
-    // Fallback: verificar por perfis
-    return config.profiles.some(profile => user?.profiles?.includes(profile));
+    return hasPortalAccess || hasProfileAccess;
   };
 
   // Obter todos os portais com status de acesso
