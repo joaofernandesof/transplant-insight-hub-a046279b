@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Lock,
   CreditCard,
-  Flame
+  Flame,
+  Scale
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import { cn } from '@/lib/utils';
@@ -114,6 +115,16 @@ const SYSTEM_MODULES: SystemModule[] = [
     color: 'bg-orange-500',
     portalKey: 'avivar',
     requiredProfiles: ['cliente_avivar', 'administrador'],
+  },
+  {
+    key: 'ipromed',
+    name: 'IPROMED',
+    description: 'Advocacia médica preventiva',
+    icon: Scale,
+    route: '/ipromed',
+    color: 'bg-indigo-600',
+    portalKey: 'ipromed',
+    requiredProfiles: ['ipromed', 'administrador'],
   },
   {
     key: 'vision',
