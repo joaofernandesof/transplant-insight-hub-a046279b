@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -8,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, X, Calendar, MapPin, ArrowUpDown, Building2, SlidersHorizontal } from 'lucide-react';
+import { X, Calendar, MapPin, ArrowUpDown, Building2, SlidersHorizontal } from 'lucide-react';
 
 interface HotLeadsGlobalFiltersProps {
   searchTerm: string;
@@ -45,7 +44,7 @@ export function HotLeadsGlobalFilters({
   const isStateActive = stateFilter !== 'all';
   const isCityActive = cityFilter !== 'all';
   const isSortActive = sortBy !== 'recent';
-  const hasFilters = searchTerm || isPeriodActive || isStateActive || isCityActive || isSortActive;
+  const hasFilters = isPeriodActive || isStateActive || isCityActive || isSortActive;
   const activeFilterCount = [isPeriodActive, isStateActive, isCityActive, isSortActive].filter(Boolean).length;
 
   const activeStyle = 'border-primary bg-primary/10 ring-1 ring-primary/30';
@@ -61,26 +60,7 @@ export function HotLeadsGlobalFilters({
 
   return (
     <div className="space-y-2">
-      {/* Single row: search + filters + clear */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative w-full sm:w-[220px] shrink-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar nome, cidade, telefone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`pl-10 h-9 ${searchTerm ? activeStyle : ''}`}
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-
         <Button
           variant={showFilters ? 'secondary' : 'outline'}
           size="sm"
