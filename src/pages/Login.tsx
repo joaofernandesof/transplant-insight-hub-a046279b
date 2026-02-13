@@ -504,6 +504,148 @@ export default function Login() {
                   </button>
                 </form>
               </>
+            ) : viewMode === 'signup' ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => { setViewMode('login'); resetForm(); }}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 text-sm"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Voltar ao login
+                </button>
+
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-2 text-center">
+                  Criar conta
+                </h2>
+                <p className="text-sm text-muted-foreground text-center mb-5">
+                  Preencha seus dados. O acesso será liberado após aprovação do administrador.
+                </p>
+
+                <form onSubmit={handleSignup} className="space-y-4 sm:space-y-5">
+                  {error && (
+                    <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  {successMessage && (
+                    <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm">
+                      <Check className="w-4 h-4 shrink-0" />
+                      <span>{successMessage}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
+                      Nome completo
+                    </label>
+                    <input
+                      type="text"
+                      value={signupName}
+                      onChange={(e) => setSignupName(e.target.value)}
+                      placeholder="Seu nome completo"
+                      required
+                      className="input-metric w-full h-12 text-base"
+                    />
+                    {fieldErrors.fullName && (
+                      <p className="text-destructive text-xs mt-1">{fieldErrors.fullName}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
+                      Email
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type="email"
+                        value={signupEmail}
+                        onChange={(e) => setSignupEmail(e.target.value)}
+                        placeholder="seu@email.com"
+                        required
+                        autoComplete="email"
+                        className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.email ? 'border-destructive' : ''}`}
+                      />
+                    </div>
+                    {fieldErrors.email && (
+                      <p className="text-destructive text-xs mt-1">{fieldErrors.email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
+                      Senha
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type={showSignupPassword ? 'text' : 'password'}
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        autoComplete="new-password"
+                        className={`input-metric pl-10 pr-12 w-full h-12 text-base ${fieldErrors.password ? 'border-destructive' : ''}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignupPassword(!showSignupPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                      >
+                        {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {fieldErrors.password && (
+                      <p className="text-destructive text-xs mt-1">{fieldErrors.password}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
+                      Confirmar senha
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type={showSignupPassword ? 'text' : 'password'}
+                        value={signupConfirmPassword}
+                        onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        autoComplete="new-password"
+                        className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.confirmPassword ? 'border-destructive' : ''}`}
+                      />
+                    </div>
+                    {fieldErrors.confirmPassword && (
+                      <p className="text-destructive text-xs mt-1">{fieldErrors.confirmPassword}</p>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2"
+                  >
+                    {isLoading ? 'Criando conta...' : 'Criar conta'}
+                  </button>
+                </form>
+
+                <div className="mt-5 pt-5 border-t border-border text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Já tem uma conta?{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setViewMode('login'); resetForm(); }}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Fazer login
+                    </button>
+                  </p>
+                </div>
+              </>
             ) : (
               <>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-5 sm:mb-6 text-center">
@@ -647,12 +789,20 @@ export default function Login() {
                   </div>
                 )}
                 
-                {/* Aviso de acesso restrito */}
+                {/* Criar conta */}
                 <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border text-center">
-                  <p className="text-xs text-muted-foreground">
-                    Acesso restrito a usuários autorizados.
-                    <br />
-                    <span className="text-muted-foreground/70">Não é possível criar uma conta diretamente.</span>
+                  <p className="text-sm text-muted-foreground">
+                    Não tem uma conta?{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setViewMode('signup'); resetForm(); }}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Criar conta
+                    </button>
+                  </p>
+                  <p className="text-xs text-muted-foreground/70 mt-2">
+                    O acesso será liberado após aprovação do administrador.
                   </p>
                   <div className="mt-3 flex justify-center gap-4 text-xs text-muted-foreground/70">
                     <a href="https://neohub.ibramec.com/privacy-policy" className="hover:text-muted-foreground transition-colors">Política de Privacidade</a>
