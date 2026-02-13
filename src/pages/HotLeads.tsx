@@ -204,7 +204,7 @@ export default function HotLeads() {
       <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 sticky top-0 z-20">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h1 className="text-xl font-bold flex items-center gap-2 pl-12 lg:pl-0 text-white">
+            <h1 className="text-xl font-bold items-center gap-2 text-white hidden lg:flex">
               <Flame className="h-6 w-6 text-white/80" />
               HotLeads
             </h1>
