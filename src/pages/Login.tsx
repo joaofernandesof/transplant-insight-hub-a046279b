@@ -790,21 +790,21 @@ export default function Login() {
                 )}
                 
                 {/* Criar conta */}
-                <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Não tem uma conta?{' '}
-                    <button
-                      type="button"
-                      onClick={() => { setViewMode('signup'); resetForm(); }}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      Criar conta
-                    </button>
+                <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border text-center space-y-3">
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Não tem uma conta?
                   </p>
-                  <p className="text-xs text-muted-foreground/70 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setViewMode('signup'); resetForm(); }}
+                    className="w-full py-3 rounded-xl border-2 border-primary text-primary font-semibold text-base hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                  >
+                    Criar conta
+                  </button>
+                  <p className="text-xs text-muted-foreground/70">
                     O acesso será liberado após aprovação do administrador.
                   </p>
-                  <div className="mt-3 flex justify-center gap-4 text-xs text-muted-foreground/70">
+                  <div className="flex justify-center gap-4 text-xs text-muted-foreground/70 pt-1">
                     <a href="https://neohub.ibramec.com/privacy-policy" className="hover:text-muted-foreground transition-colors">Política de Privacidade</a>
                     <a href="https://neohub.ibramec.com/terms" className="hover:text-muted-foreground transition-colors">Termos de Serviço</a>
                   </div>
