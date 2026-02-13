@@ -574,13 +574,18 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
 
   // Logout
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn('signOut error (ignored):', e);
+    }
     setUser(null);
     setSession(null);
     setActiveProfileState(null);
     setActiveTenantState(null);
     localStorage.removeItem('neohub_active_profile');
     localStorage.removeItem('neohub_active_tenant');
+    window.location.href = '/login';
   }, []);
 
   // ====================================
