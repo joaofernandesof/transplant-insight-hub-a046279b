@@ -190,7 +190,7 @@ export default function HotLeads() {
             <div className="flex items-center gap-1.5 flex-wrap">
               {isAdmin && (
                 <>
-                  <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/20 hover:text-white" onClick={() => setIsImportOpen(true)}>
+                  <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
                     <Upload className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Importar</span>
                   </Button>
@@ -200,7 +200,7 @@ export default function HotLeads() {
               <Button
                 variant="outline"
                 size="sm"
-                className="border-white/30 text-white hover:bg-white/20 hover:text-white"
+                className=""
                 onClick={() => fetchLeads(true)}
                 disabled={isRefreshing}
               >
