@@ -3,9 +3,10 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Mail, Send } from 'lucide-react';
+import { Loader2, MessageCircle, Send } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { HotLead } from '@/hooks/useHotLeads';
+import type { HotLeadsSettings } from '@/hooks/useHotLeadsSettings';
 
 function maskName(fullName: string): string {
   if (!fullName) return '***';
@@ -22,56 +23,78 @@ interface LeadAcquireDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (leadId: string, email: string) => Promise<boolean>;
+  settings: HotLeadsSettings | null;
+  generateWhatsAppUrl: (phone: string, name: string) => string | null;
 }
 
-export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm }: LeadAcquireDialogProps) {
+export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, settings, generateWhatsAppUrl }: LeadAcquireDialogProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const userEmail = user?.email || '';
 
   const handleConfirm = async () => {
-    if (!lead || !userEmail) return;
+    if (!lead || !userEmail || !settings) return;
     setIsSubmitting(true);
     const success = await onConfirm(lead.id, userEmail);
     setIsSubmitting(false);
-    if (success) onOpenChange(false);
+    if (success) {
+      onOpenChange(false);
+      // Open WhatsApp with the standardized message
+      const whatsappUrl = generateWhatsAppUrl(lead.phone, lead.name);
+      if (whatsappUrl) {
+        window.open(whatsappUrl, '_blank');
+      }
+    }
   };
+
+  // Preview of the message
+  const previewMessage = settings && lead
+    ? `Olá, ${lead.name}, tudo bem?\n\nSou ${settings.licensee_name} e falo da clínica ${settings.clinic_name}, localizada em ${settings.clinic_city}!\n\nSomos uma clínica credenciada à Licença Neo Folic de Transplante Capilar e recebemos o seu cadastro através do site da Neo Folic para receber mais informações sobre procedimentos capilares.\n\nVocê prefere que eu te ligue ou continuamos por aqui?`
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-primary" />
-            Adquirir Lead
+            <MessageCircle className="h-5 w-5 text-green-600" />
+            Adquirir Lead e Contatar via WhatsApp
           </DialogTitle>
           <DialogDescription>
             {lead && (
               <span>
                 Você está adquirindo o lead <strong>{maskName(lead.name)}</strong>.
-                Os dados completos serão enviados para o seu e-mail.
+                Após confirmar, será redirecionado ao WhatsApp com uma mensagem padronizada.
               </span>
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="py-3">
-          <p className="text-sm text-muted-foreground">Os dados serão enviados para:</p>
-          <p className="text-sm font-semibold mt-1 flex items-center gap-2">
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            {userEmail}
-          </p>
-        </div>
+
+        {/* Message Preview */}
+        {previewMessage && (
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
+            <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">Prévia da mensagem:</p>
+            <p className="text-sm text-green-900 dark:text-green-200 whitespace-pre-line leading-relaxed">
+              {previewMessage}
+            </p>
+          </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button onClick={handleConfirm} disabled={isSubmitting || !userEmail}>
+          <Button 
+            onClick={handleConfirm} 
+            disabled={isSubmitting || !userEmail}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
             {isSubmitting ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}
-            Receber dados do lead
+            Adquirir e abrir WhatsApp
           </Button>
         </DialogFooter>
       </DialogContent>
