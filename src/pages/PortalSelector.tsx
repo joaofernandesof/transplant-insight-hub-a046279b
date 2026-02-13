@@ -77,7 +77,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     gradient: 'from-orange-500 to-red-500',
     bgColor: 'bg-orange-50 dark:bg-orange-950/30',
     profiles: ['licenciado'],
-    route: '/neolicense/hotleads',
+    route: '/hotleads',
     portalKey: 'hotleads',
   },
   neocare: {

@@ -91,7 +91,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     name: 'HotLeads',
     description: 'Marketplace de leads quentes',
     icon: Flame,
-    route: '/neolicense/hotleads',
+    route: '/hotleads',
     color: 'bg-orange-500',
     portalKey: 'hotleads',
     requiredProfiles: ['licenciado', 'administrador'],

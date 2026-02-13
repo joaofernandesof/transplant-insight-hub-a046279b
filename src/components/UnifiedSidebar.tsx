@@ -118,8 +118,7 @@ function detectPortal(pathname: string): PortalKey {
   if (pathname.startsWith('/neocare')) return 'neocare';
   if (pathname.startsWith('/neoteam')) return 'neoteam';
   if (pathname.startsWith('/academy')) return 'academy';
-  // HotLeads must be checked BEFORE neolicense since it's a sub-path
-  if (pathname.startsWith('/neolicense/hotleads')) return 'hotleads';
+  if (pathname.startsWith('/hotleads')) return 'hotleads';
   if (pathname.startsWith('/neolicense')) return 'neolicense';
   if (pathname.startsWith('/avivar')) return 'avivar';
   if (pathname.startsWith('/admin')) return 'admin';

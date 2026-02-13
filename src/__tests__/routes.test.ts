@@ -10,7 +10,7 @@ describe('Route Redirects', () => {
     { from: '/profile', to: '/neolicense/profile' },
     { from: '/career', to: '/neolicense/career' },
     { from: '/community', to: '/neolicense/community' },
-    { from: '/hotleads', to: '/avivar/hotleads' },
+    { from: '/avivar/hotleads', to: '/hotleads' },
     { from: '/surgery-schedule', to: '/neolicense/surgery' },
     { from: '/estrutura-neo', to: '/neolicense/structure' },
     { from: '/home', to: '/' }
@@ -27,10 +27,10 @@ describe('Route Redirects', () => {
       expect(route?.to).toBe('/neolicense/university');
     });
 
-    it('should redirect /hotleads to /avivar/hotleads', () => {
-      const route = legacyRoutes.find(r => r.from === '/hotleads');
+    it('should redirect /avivar/hotleads to /hotleads', () => {
+      const route = legacyRoutes.find(r => r.from === '/avivar/hotleads');
       expect(route).toBeDefined();
-      expect(route?.to).toBe('/avivar/hotleads');
+      expect(route?.to).toBe('/hotleads');
     });
 
     it('should redirect /home to /', () => {

@@ -64,7 +64,7 @@ const routeLabels: Record<string, string> = {
   '/neolicense/referral': 'Indique e Ganhe',
   '/neolicense/structure': 'Estrutura NEO',
   '/neolicense/profile': 'Meu Perfil',
-  '/neolicense/hotleads': 'HotLeads',
+  '/hotleads': 'HotLeads',
   '/neolicense/career': 'Carreira',
   '/neolicense/community': 'Comunidade',
   
@@ -110,7 +110,7 @@ const routeLabels: Record<string, string> = {
   '/mentorship': 'Mentoria',
   '/systems': 'Sistemas',
   '/career': 'Carreira',
-  '/hotleads': 'HotLeads',
+  // '/hotleads' already defined above
   '/community': 'Comunidade',
   '/profile': 'Meu Perfil',
   '/certificates': 'Certificados',
