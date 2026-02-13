@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Bell,
   Home,
+  UserPlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -30,6 +31,7 @@ const mainMenu = [
 // Menu de gestão
 const managementMenu = [
   { id: 'users', label: 'Usuários', icon: Users, href: '/admin' },
+  { id: 'approvals', label: 'Aprovações', icon: UserPlus, href: '/admin/approvals' },
   { id: 'permissions', label: 'Permissões', icon: Shield, href: '/access-matrix' },
 ];
 

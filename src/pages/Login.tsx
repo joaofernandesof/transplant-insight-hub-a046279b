@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale, Fingerprint } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale, Fingerprint, Check } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
@@ -20,8 +20,17 @@ const resetPasswordSchema = z.object({
   email: z.string().trim().email({ message: 'Email inválido' }),
 });
 
-// NOTA: Cadastro desabilitado - apenas login e recuperação de senha
-type ViewMode = 'login' | 'forgot-password';
+const signupSchema = z.object({
+  fullName: z.string().min(3, { message: 'Nome deve ter no mínimo 3 caracteres' }),
+  email: z.string().trim().email({ message: 'Email inválido' }),
+  password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'As senhas não coincidem',
+  path: ['confirmPassword'],
+});
+
+type ViewMode = 'login' | 'forgot-password' | 'signup';
 
 const modules = [
   { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Pacientes' },
@@ -47,6 +56,13 @@ export default function Login() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  
+  // Signup fields
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   
   const { login } = useUnifiedAuth();
   const navigate = useNavigate();
@@ -135,10 +151,21 @@ export default function Login() {
       const { success, error: loginError } = await login(loginEmail, loginPassword);
       
       if (success) {
-        // Se login com sucesso e biometria disponível mas sem credenciais, oferecer configurar
+        // Check if user is pending approval (after auth, so RLS works)
+        const { data: neohubUser } = await supabase
+          .from('neohub_users')
+          .select('is_active')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id || '')
+          .maybeSingle();
+        
+        if (neohubUser && !neohubUser.is_active) {
+          await supabase.auth.signOut();
+          setError('Seu cadastro está aguardando aprovação do administrador. Você receberá acesso assim que for aprovado.');
+          setIsLoading(false);
+          return;
+        }
         if (biometric.isAvailable && !biometric.hasCredentials && !biometricCredentials) {
           setShowBiometricSetup(true);
-          // Store credentials in component state only (not in sessionStorage)
           setBiometricPendingCredentials({ email: loginEmail, password: loginPassword });
         }
 
@@ -148,9 +175,6 @@ export default function Login() {
           localStorage.removeItem('rememberedEmail');
         }
         
-        // Nova arquitetura de redirecionamento:
-        // - Todos os usuários → /portal-selector para escolher o portal
-        // - Admins verão o portal Admin na lista de opções
         navigate('/portal-selector');
       } else {
         setError(loginError || 'Email ou senha incorretos');
@@ -204,6 +228,93 @@ export default function Login() {
     setFieldErrors({});
     setSuccessMessage('');
     setPassword('');
+    setSignupName('');
+    setSignupEmail('');
+    setSignupPassword('');
+    setSignupConfirmPassword('');
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setFieldErrors({});
+    setSuccessMessage('');
+    setIsLoading(true);
+
+    const result = signupSchema.safeParse({
+      fullName: signupName,
+      email: signupEmail,
+      password: signupPassword,
+      confirmPassword: signupConfirmPassword,
+    });
+
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          errors[err.path[0] as string] = err.message;
+        }
+      });
+      setFieldErrors(errors);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: signupEmail.trim(),
+        password: signupPassword,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { full_name: signupName },
+        },
+      });
+
+      if (authError) {
+        if (authError.message.includes('User already registered')) {
+          setError('Este email já está cadastrado.');
+        } else {
+          setError(authError.message);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      if (!authData.user) {
+        setError('Erro ao criar usuário');
+        setIsLoading(false);
+        return;
+      }
+
+      // Create neohub_users with is_active = false (pending approval)
+      const { error: userError } = await supabase
+        .from('neohub_users')
+        .insert({
+          user_id: authData.user.id,
+          email: signupEmail.trim().toLowerCase(),
+          full_name: signupName,
+          is_active: false,
+          allowed_portals: [],
+        });
+
+      if (userError) {
+        console.error('Error creating neohub user:', userError);
+        setError('Erro ao criar perfil. Tente novamente.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Sign out immediately so the user can't access anything
+      await supabase.auth.signOut();
+
+      setSuccessMessage('Cadastro realizado com sucesso! Seu acesso será liberado após aprovação do administrador.');
+      resetForm();
+    } catch (err) {
+      setError('Ocorreu um erro. Tente novamente.');
+    }
+
+    setIsLoading(false);
   };
   
   return (
