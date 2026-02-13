@@ -116,10 +116,10 @@ function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows:
           <Table>
             <TableHeader>
               <TableRow className={accentBg}>
-                <TableHead className="text-[11px] text-center min-w-[90px] font-bold text-foreground">Estrutura</TableHead>
-                <TableHead className="text-[11px] text-center min-w-[90px] font-bold text-muted-foreground">Valor Tabela</TableHead>
-                <TableHead className="text-[11px] text-center min-w-[100px] font-bold text-emerald-600 dark:text-emerald-400">Desconto</TableHead>
-                <TableHead className={`text-[11px] text-center min-w-[90px] font-bold ${accentColor}`}>Valor Final</TableHead>
+                <TableHead className="text-[11px] text-left min-w-[90px] font-bold text-foreground">Estrutura</TableHead>
+                <TableHead className="text-[11px] text-left min-w-[90px] font-bold text-muted-foreground">Valor Tabela</TableHead>
+                <TableHead className="text-[11px] text-left min-w-[100px] font-bold text-emerald-600 dark:text-emerald-400">Desconto</TableHead>
+                <TableHead className={`text-[11px] text-left min-w-[90px] font-bold ${accentColor}`}>Valor Final</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -130,20 +130,20 @@ function PlanTable({ title, rows, onRowChange, variant }: { title: string; rows:
                   : row.discount === "—" ? "—" : "0";
                 return (
                   <TableRow key={idx} className={idx % 2 === 0 ? 'bg-muted/20' : ''}>
-                    <TableCell className="py-2 px-2 text-center">
+                    <TableCell className="py-2 px-2 text-left">
                       <span className="text-xs font-bold text-foreground">{row.structure}</span>
                     </TableCell>
-                    <TableCell className="py-2 px-2 text-center">
+                    <TableCell className="py-2 px-2 text-left">
                       <span className={`inline-flex items-center text-xs font-bold text-muted-foreground ${hasDiscount ? 'line-through bg-muted/60 rounded-full px-2 py-0.5' : 'bg-muted/40 rounded-full px-2 py-0.5'}`}>
                         {row.theoreticalValue}
                       </span>
                     </TableCell>
-                    <TableCell className="py-2 px-2 text-center">
+                    <TableCell className="py-2 px-2 text-left">
                       <span className={`inline-flex items-center text-xs font-bold ${hasDiscount ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 rounded-full px-2 py-0.5' : 'text-muted-foreground bg-muted/40 rounded-full px-2 py-0.5'}`}>
                         {discountDisplay}
                       </span>
                     </TableCell>
-                    <TableCell className="py-2 px-2 text-center">
+                    <TableCell className="py-2 px-2 text-left">
                       <span className={`inline-flex items-center text-xs font-bold ${accentColor} ${isIntegral ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-blue-50 dark:bg-blue-950/40'} rounded-full px-2.5 py-0.5`}>
                         {row.tableValue}
                       </span>
