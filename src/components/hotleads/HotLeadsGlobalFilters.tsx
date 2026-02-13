@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X, Calendar, MapPin, ArrowUpDown, Building2, SlidersHorizontal } from 'lucide-react';
+import { X, Calendar, MapPin, ArrowUpDown, Building2 } from 'lucide-react';
 
 interface HotLeadsGlobalFiltersProps {
   searchTerm: string;
@@ -38,7 +38,7 @@ export function HotLeadsGlobalFilters({
   availableStates,
   availableCities,
 }: HotLeadsGlobalFiltersProps) {
-  const [showFilters, setShowFilters] = useState(false);
+  // Filters always visible on mobile (no toggle)
 
   const isPeriodActive = periodFilter !== 'all';
   const isStateActive = stateFilter !== 'all';
@@ -61,23 +61,9 @@ export function HotLeadsGlobalFilters({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 flex-wrap">
-        <Button
-          variant={showFilters ? 'secondary' : 'outline'}
-          size="sm"
-          className="lg:hidden shrink-0 h-9"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          {activeFilterCount > 0 && (
-            <span className="ml-1 bg-primary text-primary-foreground rounded-full text-[10px] h-4 w-4 flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </Button>
-
-        <div className={`flex-wrap items-center gap-2 ${showFilters ? 'flex' : 'hidden lg:flex'}`}>
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full lg:w-auto">
           <Select value={periodFilter} onValueChange={setPeriodFilter}>
-            <SelectTrigger className={`w-[130px] h-9 text-xs transition-colors ${isPeriodActive ? activeStyle : inactiveStyle}`}>
+            <SelectTrigger className={`w-full sm:w-[130px] h-9 text-xs transition-colors ${isPeriodActive ? activeStyle : inactiveStyle}`}>
               <Calendar className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isPeriodActive ? 'text-primary' : 'text-muted-foreground'}`} />
               <SelectValue placeholder="Período" />
             </SelectTrigger>
@@ -91,7 +77,7 @@ export function HotLeadsGlobalFilters({
           </Select>
 
           <Select value={stateFilter} onValueChange={(v) => { setStateFilter(v); setCityFilter('all'); }}>
-            <SelectTrigger className={`w-[120px] h-9 text-xs transition-colors ${isStateActive ? activeStyle : inactiveStyle}`}>
+            <SelectTrigger className={`w-full sm:w-[120px] h-9 text-xs transition-colors ${isStateActive ? activeStyle : inactiveStyle}`}>
               <MapPin className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isStateActive ? 'text-primary' : 'text-muted-foreground'}`} />
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
@@ -104,7 +90,7 @@ export function HotLeadsGlobalFilters({
           </Select>
 
           <Select value={cityFilter} onValueChange={setCityFilter}>
-            <SelectTrigger className={`w-[140px] h-9 text-xs transition-colors ${isCityActive ? activeStyle : inactiveStyle}`}>
+            <SelectTrigger className={`w-full sm:w-[140px] h-9 text-xs transition-colors ${isCityActive ? activeStyle : inactiveStyle}`}>
               <Building2 className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isCityActive ? 'text-primary' : 'text-muted-foreground'}`} />
               <SelectValue placeholder="Cidade" />
             </SelectTrigger>
@@ -117,7 +103,7 @@ export function HotLeadsGlobalFilters({
           </Select>
 
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className={`w-[140px] h-9 text-xs transition-colors ${isSortActive ? activeStyle : inactiveStyle}`}>
+            <SelectTrigger className={`w-full sm:w-[140px] h-9 text-xs transition-colors ${isSortActive ? activeStyle : inactiveStyle}`}>
               <ArrowUpDown className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isSortActive ? 'text-primary' : 'text-muted-foreground'}`} />
               <SelectValue placeholder="Ordenar" />
             </SelectTrigger>
