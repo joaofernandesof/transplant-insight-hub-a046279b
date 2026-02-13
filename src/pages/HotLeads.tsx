@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -40,14 +40,61 @@ export default function HotLeads() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  // Cooldown: 5 minutes (300 seconds) after acquiring a lead
+  const COOLDOWN_SECONDS = 300;
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const cooldownInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Restore cooldown from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(`hotleads_cooldown_${user?.id}`);
+    if (stored) {
+      const expiresAt = parseInt(stored, 10);
+      const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      if (remaining > 0) setCooldownRemaining(remaining);
+      else localStorage.removeItem(`hotleads_cooldown_${user?.id}`);
+    }
+  }, [user?.id]);
+
+  // Tick down the cooldown
+  useEffect(() => {
+    if (cooldownRemaining <= 0) {
+      if (cooldownInterval.current) clearInterval(cooldownInterval.current);
+      return;
+    }
+    cooldownInterval.current = setInterval(() => {
+      setCooldownRemaining(prev => {
+        if (prev <= 1) {
+          localStorage.removeItem(`hotleads_cooldown_${user?.id}`);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (cooldownInterval.current) clearInterval(cooldownInterval.current); };
+  }, [cooldownRemaining > 0, user?.id]);
+
+  const startCooldown = useCallback(() => {
+    const expiresAt = Date.now() + COOLDOWN_SECONDS * 1000;
+    localStorage.setItem(`hotleads_cooldown_${user?.id}`, expiresAt.toString());
+    setCooldownRemaining(COOLDOWN_SECONDS);
+  }, [user?.id]);
+
+  const formatCooldown = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
   const handleAcquireConfirm = useCallback(async (leadId: string, email: string) => {
     const success = await acquireLead(leadId, email);
     if (success) {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3500);
+      startCooldown();
     }
     return success;
-  }, [acquireLead]);
+  }, [acquireLead, startCooldown]);
   
   // Global filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -235,7 +282,7 @@ export default function HotLeads() {
                 items={filteredAvailable}
                 emptyMessage="Nenhum lead disponível no momento."
                 renderItem={(lead) => (
-                  <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
+                  <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
                 )}
               />
             </TabsContent>
@@ -272,7 +319,7 @@ export default function HotLeads() {
             items={filteredAvailable}
             emptyMessage="Nenhum lead disponível no momento."
             renderItem={(lead) => (
-              <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
+              <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
             )}
           />
           <PaginatedLeadColumn
