@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Zap, Users, Timer, Sparkles, Flame, CheckCircle2 } from 'lucide-react';
+import { Zap, Users, Timer, Sparkles, Flame, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLeadRelease } from '@/hooks/useLeadRelease';
@@ -24,6 +24,7 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
   } = useLeadRelease();
 
   const [justReleased, setJustReleased] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Show "released" state for 3s when a new lead appears
   useEffect(() => {
@@ -58,6 +59,27 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
   const isUrgent = countdown > 0 && countdown <= 10;
   const isAboutToRelease = countdown === 0 && info.next_release_at && !justReleased;
 
+  // Collapsed: show just a small button
+  if (!isExpanded) {
+    return (
+      <div className="flex justify-end mb-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsExpanded(true)}
+          className="border-orange-500/30 text-orange-600 hover:bg-orange-500/10 gap-2"
+        >
+          <Sparkles className="h-4 w-4" />
+          Próximo Lead
+          {countdown > 0 && (
+            <span className="font-mono text-xs tabular-nums">{formatCountdown(countdown)}</span>
+          )}
+          <ChevronDown className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -71,18 +93,14 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
               : "border-orange-500/20 bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-yellow-500/10"
       )}
     >
-      {/* Animated background pulse when releasing */}
       {(isReleasing || isAboutToRelease) && (
         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-amber-400/20 to-orange-500/10 animate-pulse pointer-events-none" />
       )}
-
-      {/* Success glow */}
       {justReleased && (
         <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-emerald-400/15 to-green-500/10 animate-pulse pointer-events-none" />
       )}
 
       <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        {/* Left: Status + Lead preview */}
         <div className="flex items-center gap-3">
           <div
             className={cn(
@@ -108,30 +126,16 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
           <div>
             {justReleased ? (
               <div className="animate-fade-in">
-                <span className="font-semibold text-sm text-green-600">
-                  🎉 Novo lead disponível!
-                </span>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Corra para adquirir antes dos outros!
-                </p>
+                <span className="font-semibold text-sm text-green-600">🎉 Novo lead disponível!</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Corra para adquirir antes dos outros!</p>
               </div>
             ) : isReleasing ? (
               <div className="animate-fade-in">
-                <span className="font-semibold text-sm text-orange-600">
-                  Liberando lead...
-                </span>
+                <span className="font-semibold text-sm text-orange-600">Liberando lead...</span>
                 <div className="flex gap-1 mt-1">
                   {[0, 1, 2].map(i => (
-                    <div
-                      key={i}
-                      className="h-1.5 w-6 rounded-full bg-orange-500/40 overflow-hidden"
-                    >
-                      <div
-                        className="h-full bg-orange-500 rounded-full"
-                        style={{
-                          animation: `shimmer 1.2s ease-in-out ${i * 0.2}s infinite`,
-                        }}
-                      />
+                    <div key={i} className="h-1.5 w-6 rounded-full bg-orange-500/40 overflow-hidden">
+                      <div className="h-full bg-orange-500 rounded-full" style={{ animation: `shimmer 1.2s ease-in-out ${i * 0.2}s infinite` }} />
                     </div>
                   ))}
                 </div>
@@ -149,71 +153,42 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
                   )}
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    {info.queued_count.toLocaleString()} na fila
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Zap className="h-3 w-3" />
-                    {info.daily_released}/{info.daily_target} liberados hoje
-                  </span>
+                  <span className="flex items-center gap-1"><Users className="h-3 w-3" />{info.queued_count.toLocaleString()} na fila</span>
+                  <span className="flex items-center gap-1"><Zap className="h-3 w-3" />{info.daily_released}/{info.daily_target} liberados hoje</span>
                 </div>
               </>
             )}
           </div>
         </div>
 
-        {/* Right: Countdown + Admin button */}
         <div className="flex items-center gap-3">
           {countdown > 0 && !isReleasing && (
-            <div
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-2 border transition-all duration-300",
-                isUrgent
-                  ? "bg-red-500/10 border-red-500/30"
-                  : "bg-background/80 border-border"
-              )}
-            >
-              <Timer className={cn(
-                "h-4 w-4 transition-colors",
-                isUrgent ? "text-red-500" : "text-orange-500"
-              )} />
-              <span
-                className={cn(
-                  "font-mono text-lg font-bold tabular-nums transition-colors",
-                  isUrgent ? "text-red-600" : "text-orange-600"
-                )}
-              >
-                {formatCountdown(countdown)}
-              </span>
+            <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2 border transition-all duration-300", isUrgent ? "bg-red-500/10 border-red-500/30" : "bg-background/80 border-border")}>
+              <Timer className={cn("h-4 w-4 transition-colors", isUrgent ? "text-red-500" : "text-orange-500")} />
+              <span className={cn("font-mono text-lg font-bold tabular-nums transition-colors", isUrgent ? "text-red-600" : "text-orange-600")}>{formatCountdown(countdown)}</span>
             </div>
           )}
 
           {isAboutToRelease && !isReleasing && (
             <div className="flex items-center gap-2 bg-orange-500/15 rounded-lg px-3 py-2 border border-orange-500/30 animate-pulse">
               <Flame className="h-4 w-4 text-orange-500" />
-              <span className="text-sm font-semibold text-orange-600">
-                Em instantes...
-              </span>
+              <span className="text-sm font-semibold text-orange-600">Em instantes...</span>
             </div>
           )}
 
           {isAdmin && !justReleased && (
-            <Button
-              size="sm"
-              variant="default"
-              onClick={handleReleaseNow}
-              disabled={isReleasing}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
-            >
+            <Button size="sm" variant="default" onClick={handleReleaseNow} disabled={isReleasing} className="bg-orange-600 hover:bg-orange-700 text-white">
               <Zap className="h-4 w-4 mr-1" />
               {isReleasing ? 'Liberando...' : 'Liberar agora'}
             </Button>
           )}
+
+          <Button variant="ghost" size="icon" onClick={() => setIsExpanded(false)} className="h-8 w-8 text-muted-foreground hover:text-foreground">
+            <ChevronUp className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Inline keyframes for shimmer animation */}
       <style>{`
         @keyframes shimmer {
           0% { width: 0%; opacity: 0.5; }
