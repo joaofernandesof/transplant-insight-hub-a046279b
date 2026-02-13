@@ -243,8 +243,8 @@ export default function HotLeads() {
         </div>
       </header>
 
-      {/* Fixed top section */}
-      <div className="shrink-0 px-3 lg:px-4 py-3 space-y-3">
+      {/* Fixed top section - sticky below header */}
+      <div className="shrink-0 px-3 lg:px-4 py-3 space-y-3 sticky top-[57px] z-10 bg-background">
         {/* Mobile action buttons - moved out of red header */}
         <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
           {isAdmin && (
