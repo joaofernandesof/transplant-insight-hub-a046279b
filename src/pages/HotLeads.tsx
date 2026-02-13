@@ -336,15 +336,15 @@ export default function HotLeads() {
           <Tabs defaultValue="available" className="flex flex-col">
             <TabsList className="w-full grid grid-cols-3 mb-3 shrink-0">
               <TabsTrigger value="available" className="text-xs">
-                <span className="h-2 w-2 rounded-full bg-green-500 mr-1.5" />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500 mr-1.5" />
                 Disponíveis ({filteredAvailable.length})
               </TabsTrigger>
               <TabsTrigger value="mine" className="text-xs">
-                <span className="h-2 w-2 rounded-full bg-blue-500 mr-1.5" />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500 mr-1.5" />
                 Meus ({filteredMyLeads.length})
               </TabsTrigger>
               <TabsTrigger value="lost" className="text-xs">
-                <span className="h-2 w-2 rounded-full bg-red-500 mr-1.5" />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500 mr-1.5" />
                 Perdidos ({filteredAcquired.length})
               </TabsTrigger>
             </TabsList>
