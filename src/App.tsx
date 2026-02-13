@@ -2,6 +2,7 @@
 // App.tsx - Entry Point Único
 // ====================================
 // Arquitetura unificada NeoHub com um único AuthProvider
+// v2.1 - Republish trigger
 
 import React, { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
