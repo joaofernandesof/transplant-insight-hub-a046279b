@@ -82,9 +82,10 @@ export function useHotLeads() {
   }, []);
 
   useEffect(() => {
+    if (!user) return;
     fetchLeads();
     fetchProfiles();
-  }, [fetchLeads, fetchProfiles]);
+  }, [fetchLeads, fetchProfiles, user]);
 
   const availableLeads = useMemo(() =>
     leads.filter(l => !l.claimed_by && l.release_status !== 'queued'), [leads]);
