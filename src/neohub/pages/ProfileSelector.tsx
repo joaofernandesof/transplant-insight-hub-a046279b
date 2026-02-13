@@ -173,14 +173,12 @@ export default function ProfileSelector() {
     if (user.isAdmin) return true;
     if (module.adminOnly) return false;
     
-    // Verificar allowed_portals - se o array existe e não está vazio, usar como filtro principal
+    // Combinar allowed_portals E perfis — qualquer um dos dois concede acesso
     const portals = user.allowedPortals;
-    if (portals && portals.length > 0) {
-      return portals.includes(module.portalKey);
-    }
+    const hasPortalAccess = portals && portals.length > 0 && portals.includes(module.portalKey);
+    const hasProfileAccess = module.requiredProfiles.some(profile => user.profiles.includes(profile as any));
     
-    // Fallback: verificar por perfis (comportamento legado)
-    return module.requiredProfiles.some(profile => user.profiles.includes(profile as any));
+    return hasPortalAccess || hasProfileAccess;
   };
 
   const handleLogout = async () => {
