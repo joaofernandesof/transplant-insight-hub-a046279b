@@ -126,6 +126,30 @@ export function useHotLeads() {
     }
   }, [user?.id, fetchLeads]);
 
+  const releaseLead = useCallback(async (leadId: string): Promise<boolean> => {
+    if (!isAdmin) {
+      toast.error('Apenas administradores podem devolver leads');
+      return false;
+    }
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({ claimed_by: null, claimed_at: null, status: 'new' })
+        .eq('id', leadId);
+
+      if (error) throw error;
+      toast.success('Lead devolvido para disponíveis!');
+      setLeads(prev => prev.map(l =>
+        l.id === leadId ? { ...l, claimed_by: null, claimed_at: null, status: 'new' } : l
+      ));
+      return true;
+    } catch (error) {
+      console.error('Error releasing lead:', error);
+      toast.error('Erro ao devolver lead.');
+      return false;
+    }
+  }, [isAdmin]);
+
   const importLeads = useCallback(async (
     leadsData: { name: string; phone: string; email: string; state: string; city: string; tags?: string[] }[],
     onProgress?: (progress: { current: number; total: number; success: number; errors: number }) => void,
@@ -207,6 +231,7 @@ export function useHotLeads() {
     isAdmin,
     fetchLeads,
     acquireLead,
+    releaseLead,
     importLeads,
     getClaimerName,
   };

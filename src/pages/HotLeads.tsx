@@ -33,6 +33,7 @@ export default function HotLeads() {
     isRefreshing,
     fetchLeads,
     acquireLead,
+    releaseLead,
     importLeads,
     getClaimerName,
   } = useHotLeads();
@@ -310,7 +311,7 @@ export default function HotLeads() {
                 items={myLeads}
                 emptyMessage="Você ainda não adquiriu nenhum lead."
                 renderItem={(lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned />
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
                 )}
               />
             </TabsContent>
@@ -321,7 +322,7 @@ export default function HotLeads() {
                 items={acquiredLeads}
                 emptyMessage="Nenhuma oportunidade perdida no momento."
                 renderItem={(lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
                 )}
               />
             </TabsContent>
@@ -345,7 +346,7 @@ export default function HotLeads() {
             items={myLeads}
             emptyMessage="Você ainda não adquiriu nenhum lead."
             renderItem={(lead) => (
-              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned />
+              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
             )}
           />
           <PaginatedLeadColumn
@@ -354,7 +355,7 @@ export default function HotLeads() {
             items={acquiredLeads}
             emptyMessage="Nenhuma oportunidade perdida no momento."
             renderItem={(lead) => (
-              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
             )}
           />
         </div>
