@@ -2,10 +2,11 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
+import { useHotLeadsSettings } from '@/hooks/useHotLeadsSettings';
 import {
   AvailableLeadCard,
   AcquiredLeadCard,
@@ -16,6 +17,7 @@ import {
   HotLeadsGlobalFilters,
   NextLeadReleaseBanner,
 } from '@/components/hotleads';
+import { LicenseeSettingsDialog } from '@/components/hotleads/LicenseeSettingsDialog';
 import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { HotLead } from '@/hooks/useHotLeads';
@@ -34,10 +36,13 @@ export default function HotLeads() {
     importLeads,
     getClaimerName,
   } = useHotLeads();
+  const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
 
   const [selectedLead, setSelectedLead] = useState<HotLead | null>(null);
   const [isAcquireOpen, setIsAcquireOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Cooldown: 5 minutes (300 seconds) after acquiring a lead
@@ -165,8 +170,23 @@ export default function HotLeads() {
     filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== user?.id), [filteredLeads, user?.id]);
 
   const handleAcquireClick = (lead: HotLead) => {
+    if (!settings) {
+      setSelectedLead(lead);
+      setShowSettingsRequired(true);
+      return;
+    }
     setSelectedLead(lead);
     setIsAcquireOpen(true);
+  };
+
+  const handleSettingsSaved = async (values: { licensee_name: string; clinic_name: string; clinic_city: string }) => {
+    const success = await saveSettings(values);
+    if (success && selectedLead) {
+      setShowSettingsRequired(false);
+      // After saving settings, open the acquire dialog
+      setTimeout(() => setIsAcquireOpen(true), 300);
+    }
+    return success;
   };
 
   if (isLoading) {
@@ -196,6 +216,16 @@ export default function HotLeads() {
                   </Button>
                   <LeadExportButton leads={leads} getClaimerName={getClaimerName} />
                 </>
+              )}
+              {!isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSettingsOpen(true)}
+                >
+                  <Settings className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Config</span>
+                </Button>
               )}
               <Button
                 variant="outline"
@@ -338,12 +368,31 @@ export default function HotLeads() {
         open={isAcquireOpen}
         onOpenChange={setIsAcquireOpen}
         onConfirm={handleAcquireConfirm}
+        settings={settings}
+        generateWhatsAppUrl={generateWhatsAppUrl}
       />
 
       <LeadImportDialog
         open={isImportOpen}
         onOpenChange={setIsImportOpen}
         onImport={importLeads}
+      />
+
+      {/* Settings dialog - voluntary */}
+      <LicenseeSettingsDialog
+        open={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+        settings={settings}
+        onSave={saveSettings}
+      />
+
+      {/* Settings dialog - required (before first acquire) */}
+      <LicenseeSettingsDialog
+        open={showSettingsRequired}
+        onOpenChange={setShowSettingsRequired}
+        settings={settings}
+        onSave={handleSettingsSaved}
+        required
       />
     </div>
   );

@@ -5983,6 +5983,36 @@ export type Database = {
         }
         Relationships: []
       }
+      hotleads_licensee_settings: {
+        Row: {
+          clinic_city: string
+          clinic_name: string
+          created_at: string
+          id: string
+          licensee_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clinic_city: string
+          clinic_name: string
+          created_at?: string
+          id?: string
+          licensee_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clinic_city?: string
+          clinic_name?: string
+          created_at?: string
+          id?: string
+          licensee_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       import_logs: {
         Row: {
           created_at: string
