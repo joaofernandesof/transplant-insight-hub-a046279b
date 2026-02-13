@@ -178,7 +178,7 @@ export default function HotLeads() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden min-h-0 h-[calc(100dvh-52px)] lg:h-screen">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
         <div className="px-4 py-3">
