@@ -178,7 +178,7 @@ export default function HotLeads() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-y-auto min-h-0">
+    <div className="flex-1 flex flex-col bg-background min-h-0">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
         <div className="px-4 py-3">
