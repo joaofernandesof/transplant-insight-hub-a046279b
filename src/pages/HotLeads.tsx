@@ -200,6 +200,12 @@ export default function HotLeads() {
           myLeadsCount={filteredMyLeads.length}
           acquiredCount={filteredAcquired.length}
         />
+        {/* Motivational phrase */}
+        <div className="text-center py-2">
+          <p className="text-sm font-medium text-muted-foreground italic">
+            🔥 Cada lead é um paciente buscando transformação — <span className="text-orange-600 font-semibold not-italic">capture antes que outro licenciado o faça.</span>
+          </p>
+        </div>
         <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
       </div>
 
