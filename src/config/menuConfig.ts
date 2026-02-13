@@ -289,7 +289,7 @@ export const ACADEMY_MENU_ITEMS: MenuItem[] = [
 export const NEOLICENSE_MENU_ITEMS: MenuItem[] = [
   { id: 'neolicense_home', code: 'neolicense_home', title: 'Início', icon: Home, route: '/neolicense' },
   { id: 'neolicense_dashboard', code: 'neolicense_dashboard', title: 'Dashboard', icon: BarChart3, route: '/neolicense/dashboard' },
-  { id: 'neolicense_hotleads', code: 'neolicense_hotleads', title: 'HotLeads', icon: Flame, route: '/neolicense/hotleads' },
+  { id: 'neolicense_hotleads', code: 'neolicense_hotleads', title: 'HotLeads', icon: Flame, route: '/hotleads' },
   { id: 'neolicense_surgery', code: 'neolicense_surgery', title: 'Cirurgias', icon: Calendar, route: '/neolicense/surgery' },
   { id: 'neolicense_university', code: 'neolicense_university', title: 'Universidade', icon: GraduationCap, route: '/neolicense/university' },
   { id: 'neolicense_materials', code: 'neolicense_materials', title: 'Materiais', icon: FileText, route: '/neolicense/materials' },
@@ -318,7 +318,7 @@ export const AVIVAR_MENU_ITEMS: MenuItem[] = [
 
 // HotLeads dedicated portal menu
 export const HOTLEADS_MENU_ITEMS: MenuItem[] = [
-  { id: 'hotleads_home', code: 'hotleads_home', title: 'HotLeads', icon: Flame, route: '/neolicense/hotleads' },
+  { id: 'hotleads_home', code: 'hotleads_home', title: 'HotLeads', icon: Flame, route: '/hotleads' },
 ];
 
 // Mapeamento de portal para menu flat (compatibilidade)

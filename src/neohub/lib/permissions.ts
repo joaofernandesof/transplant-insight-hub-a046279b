@@ -115,7 +115,7 @@ export function getPortalFromRoute(route: string): Portal | null {
   if (route.startsWith('/neocare')) return 'neocare';
   if (route.startsWith('/neoteam')) return 'neoteam';
   if (route.startsWith('/academy')) return 'academy';
-  if (route.startsWith('/neolicense/hotleads')) return 'hotleads';
+  if (route.startsWith('/hotleads')) return 'hotleads';
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/avivar')) return 'avivar';
   if (route.startsWith('/ipromed')) return 'ipromed';
@@ -164,7 +164,7 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
   neolicense: [
     { code: 'neolicense_home', name: 'Início', route: '/neolicense', icon: 'Home' },
     { code: 'neolicense_dashboard', name: 'Dashboard', route: '/neolicense/dashboard', icon: 'BarChart3' },
-    { code: 'neolicense_hotleads', name: 'HotLeads', route: '/neolicense/hotleads', icon: 'Flame' },
+    { code: 'neolicense_hotleads', name: 'HotLeads', route: '/hotleads', icon: 'Flame' },
     { code: 'neolicense_surgery', name: 'Cirurgias', route: '/neolicense/surgery', icon: 'Calendar' },
     { code: 'neolicense_university', name: 'Universidade', route: '/neolicense/university', icon: 'GraduationCap' },
     { code: 'neolicense_materials', name: 'Materiais', route: '/neolicense/materials', icon: 'FileText' },
@@ -192,7 +192,7 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'ipromed_contracts', name: 'Contratos', route: '/ipromed/contracts', icon: 'FileSignature' },
   ],
   hotleads: [
-    { code: 'hotleads_home', name: 'Dashboard', route: '/neolicense/hotleads', icon: 'Flame' },
+    { code: 'hotleads_home', name: 'Dashboard', route: '/hotleads', icon: 'Flame' },
   ],
   vision: [
     { code: 'vision_home', name: 'Início', route: '/vision', icon: 'Home' },

@@ -557,11 +557,29 @@ function NeoLicenseRoutes() {
             <Route path="referral" element={<ReferralProgram />} />
             <Route path="structure" element={<EstruturaNeo />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="hotleads" element={<HotLeads />} />
+            <Route path="hotleads" element={<Navigate to="/hotleads" replace />} />
             <Route path="career" element={<Career />} />
             <Route path="community" element={<Community />} />
             <Route path="reports" element={<NeoLicenseReports />} />
             <Route path="*" element={<Navigate to="/neolicense" replace />} />
+          </Routes>
+        </LazyRoute>
+      </SidebarWrapper>
+    </ProfileGuard>
+  );
+}
+
+// ====================================
+// HotLeads Routes (Portal HotLeads)
+// ====================================
+function HotLeadsRoutes() {
+  return (
+    <ProfileGuard allowedProfiles={['licenciado']}>
+      <SidebarWrapper>
+        <LazyRoute>
+          <Routes>
+            <Route index element={<HotLeads />} />
+            <Route path="*" element={<Navigate to="/hotleads" replace />} />
           </Routes>
         </LazyRoute>
       </SidebarWrapper>
@@ -592,7 +610,7 @@ function AvivarRoutes() {
               <Route path="followup" element={<AvivarFollowUp />} />
               <Route path="catalog" element={<AvivarCatalog />} />
               <Route path="productivity" element={<AvivarProductivity />} />
-              <Route path="hotleads" element={<HotLeads />} />
+              <Route path="hotleads" element={<Navigate to="/hotleads" replace />} />
               <Route path="traffic" element={<PlaceholderPage title="Indicadores de Tráfego" />} />
               <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
               <Route path="tutorials" element={<AvivarTutorialsPage />} />
@@ -698,6 +716,7 @@ function AppRoutes() {
       <Route path="/neoteam/*" element={<ProtectedRoute><NeoTeamRoutes /></ProtectedRoute>} />
       <Route path="/academy/*" element={<ProtectedRoute><AcademyRoutes /></ProtectedRoute>} />
       <Route path="/neolicense/*" element={<ProtectedRoute><NeoLicenseRoutes /></ProtectedRoute>} />
+      <Route path="/hotleads/*" element={<ProtectedRoute><HotLeadsRoutes /></ProtectedRoute>} />
       <Route path="/avivar/*" element={<ProtectedRoute><AvivarRoutes /></ProtectedRoute>} />
 
       {/* ====================================
@@ -728,8 +747,9 @@ function AppRoutes() {
       {/* Community -> NeoLicense */}
       <Route path="/community" element={<Navigate to="/neolicense/community" replace />} />
       
-      {/* HotLeads -> Avivar */}
-      <Route path="/hotleads" element={<Navigate to="/avivar/hotleads" replace />} />
+      {/* Legacy HotLeads redirects */}
+      <Route path="/neolicense/hotleads" element={<Navigate to="/hotleads" replace />} />
+      <Route path="/avivar/hotleads" element={<Navigate to="/hotleads" replace />} />
       
       {/* NeoCRM -> Avivar (merged) */}
       <Route path="/neocrm/*" element={<Navigate to="/avivar" replace />} />

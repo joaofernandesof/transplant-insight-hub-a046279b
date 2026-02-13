@@ -167,7 +167,7 @@ export function ProfileGuard({
 
 // Helper: mapear rota para portal key
 function getPortalKeyFromRoute(route: string): string | null {
-  if (route.startsWith('/neolicense/hotleads')) return 'hotleads';
+  if (route.startsWith('/hotleads')) return 'hotleads';
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/neoteam')) return 'neoteam';
   if (route.startsWith('/academy')) return 'academy';
