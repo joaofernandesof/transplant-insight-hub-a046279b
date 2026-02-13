@@ -158,6 +158,21 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
   const currentPortal = useMemo(() => detectPortal(location.pathname), [location.pathname]);
   const portalConfig = PORTAL_CONFIG[currentPortal];
 
+  // Build profile route based on current portal
+  const profileRoute = useMemo(() => {
+    const portalProfileMap: Record<string, string> = {
+      neolicense: '/neolicense/profile',
+      avivar: '/avivar/profile',
+      academy: '/academy/profile',
+      hotleads: '/neolicense/profile',
+      admin: '/neolicense/profile',
+      neocare: '/neolicense/profile',
+      neoteam: '/neolicense/profile',
+      main: '/neolicense/profile',
+    };
+    return portalProfileMap[currentPortal] || '/neolicense/profile';
+  }, [currentPortal]);
+
   // Tier é apenas para licenciados, não para admins
   const tier = (!isAdmin && user) ? getLicenseeTier(user.id) : null;
   const tierInfo = tier ? tierConfig[tier] : null;
@@ -316,7 +331,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           <div className="p-4 border-b">
             <div 
               className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors"
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate(profileRoute)}
             >
               <Avatar className="h-10 w-10 ring-2 ring-primary/20">
                 <AvatarImage src={user?.avatarUrl} />
@@ -346,7 +361,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           <div className="p-2 border-b flex justify-center">
             <Avatar 
               className="h-10 w-10 cursor-pointer ring-2 ring-primary/20"
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate(profileRoute)}
             >
               <AvatarImage src={user?.avatarUrl} />
               <AvatarFallback className="bg-primary/10 text-primary text-xs">
