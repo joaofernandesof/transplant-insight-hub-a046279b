@@ -182,13 +182,21 @@ const handler = async (req: Request): Promise<Response> => {
       auth: { persistSession: false }
     });
 
-    // Check if user exists
-    const { data: users, error: userError } = await supabase.auth.admin.listUsers();
-    const userExists = users?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase());
+    // Check if user exists using neohub_users table (reliable, no pagination issues)
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    const { data: existingUser, error: lookupError } = await supabase
+      .from("neohub_users")
+      .select("user_id, email")
+      .ilike("email", normalizedEmail)
+      .eq("is_active", true)
+      .maybeSingle();
 
-    if (!userExists) {
+    console.log("User lookup result:", { normalizedEmail, found: !!existingUser, lookupError: lookupError?.message });
+
+    if (!existingUser) {
       // Don't reveal if user exists - return success anyway for security
-      console.log("User not found, but returning success for security");
+      console.log("User not found in neohub_users, but returning success for security");
       return new Response(
         JSON.stringify({ success: true, message: "Se o email existir, você receberá as instruções." }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
