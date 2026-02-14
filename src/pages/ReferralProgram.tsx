@@ -1,32 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { useTabFromUrl } from '@/hooks/useTabFromUrl';
 import { supabase } from '@/integrations/supabase/client';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { AdminReferralTabs } from '@/components/referrals/AdminReferralTabs';
 import { ReferralsList, type ReferralLead } from '@/components/referrals/ReferralsList';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Gift, 
   Copy, 
   Check, 
   Users, 
   DollarSign, 
-  Clock, 
-  CheckCircle2,
   Share2,
-  TrendingUp,
   Loader2,
-  Mail,
-  Phone,
-  RefreshCw,
-  GraduationCap,
-  Shield,
-  MousePointerClick
+  ChevronRight,
+  Banknote,
+  UserPlus,
+  HandCoins,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -75,6 +69,7 @@ export default function ReferralProgram() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [showReferrals, setShowReferrals] = useState(false);
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
 
   const referralLink = referralCode 
@@ -89,7 +84,6 @@ export default function ReferralProgram() {
 
   const fetchData = async () => {
     try {
-      // Fetch referral code from profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('referral_code')
@@ -100,7 +94,6 @@ export default function ReferralProgram() {
         setReferralCode(profile.referral_code);
       }
 
-      // Fetch user's own referrals
       const { data: referralData } = await supabase
         .from('referral_leads')
         .select('*')
@@ -110,13 +103,11 @@ export default function ReferralProgram() {
       if (referralData) {
         setReferrals(referralData);
         
-        // Calculate stats
         const converted = referralData.filter(r => r.status === 'converted');
         const pending = referralData.filter(r => r.status === 'pending');
         const paidCommissions = referralData.filter(r => r.commission_paid);
         const unpaidCommissions = converted.filter(r => !r.commission_paid);
 
-        // Fetch click stats
         let clickStats = { total: 0, last7Days: 0 };
         if (profile?.referral_code) {
           const { data: clicks } = await supabase
@@ -146,7 +137,6 @@ export default function ReferralProgram() {
         });
       }
 
-      // If admin, fetch ALL student referrals
       if (isAdmin) {
         const { data: studentReferrals, error: studentError } = await supabase
           .from('student_referrals')
@@ -156,7 +146,6 @@ export default function ReferralProgram() {
         if (studentError) {
           console.error('Error fetching student referrals:', studentError);
         } else if (studentReferrals) {
-          // Get referrer names from profiles
           const referrerIds = [...new Set(studentReferrals.map(r => r.referrer_user_id))];
           const { data: profiles } = await supabase
             .from('profiles')
@@ -185,7 +174,7 @@ export default function ReferralProgram() {
     try {
       await navigator.clipboard.writeText(referralLink);
       setCopied(true);
-      toast.success('Link copiado para a área de transferência!');
+      toast.success('Link copiado!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       toast.error('Erro ao copiar link');
@@ -196,8 +185,8 @@ export default function ReferralProgram() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Cursos IBRAMEC',
-          text: 'Conheça os cursos do IBRAMEC e transforme sua carreira!',
+          title: 'Neo Folic - Indicação',
+          text: 'Conheça os cursos e transforme sua carreira!',
           url: referralLink
         });
       } catch (error) {
@@ -231,11 +220,11 @@ export default function ReferralProgram() {
       if (data?.skipped) {
         toast.info(`E-mail pulado: ${data.reason}`);
       } else {
-        toast.success('E-mail de notificação reenviado com sucesso!');
+        toast.success('E-mail de notificação reenviado!');
       }
     } catch (error) {
       console.error('Error resending notification:', error);
-      toast.error('Erro ao reenviar e-mail de notificação');
+      toast.error('Erro ao reenviar e-mail');
     } finally {
       setResendingEmail(null);
     }
@@ -277,146 +266,17 @@ export default function ReferralProgram() {
     );
   }
 
-  return (
-    <ModuleLayout>
-      <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Gift className="h-6 w-6 text-primary" />
-            Indique e Ganhe
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Ganhe 5% de comissão sobre o valor pago por cada indicação convertida
-          </p>
-        </div>
-
-        {/* Referral Link Card */}
-        <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Share2 className="h-5 w-5" />
-              Seu Link de Indicação
-            </CardTitle>
-            <CardDescription>
-              Compartilhe este link com seus amigos e ganhe comissões
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex-1 p-3 bg-background rounded-lg border text-sm font-mono break-all">
-                {referralLink || 'Gerando link...'}
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={copyToClipboard} variant="outline" className="gap-2">
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {copied ? 'Copiado!' : 'Copiar'}
-                </Button>
-                <Button onClick={shareLink} className="gap-2">
-                  <Share2 className="h-4 w-4" />
-                  Compartilhar
-                </Button>
-              </div>
-            </div>
-
-            <div className="p-4 bg-background/50 rounded-lg border border-dashed">
-              <h4 className="font-semibold mb-2">Como funciona:</h4>
-              <ol className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">1</span>
-                  Compartilhe seu link exclusivo com amigos interessados em cursos de transplante capilar
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">2</span>
-                  Seu amigo se cadastra através do link e vira um lead
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">3</span>
-                  Quando ele comprar um curso, você recebe <strong>5% do valor pago</strong>
-                </li>
-              </ol>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-500/10">
-                  <MousePointerClick className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.linkClicks}</p>
-                  <p className="text-xs text-muted-foreground">Cliques no Link</p>
-                  {stats.clicksLast7Days > 0 && (
-                    <p className="text-[10px] text-purple-600">+{stats.clicksLast7Days} últimos 7 dias</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/10">
-                  <Users className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.totalReferrals}</p>
-                  <p className="text-xs text-muted-foreground">Indicações</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-500/10">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.convertedReferrals}</p>
-                  <p className="text-xs text-muted-foreground">Convertidos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-yellow-500/10">
-                  <Clock className="h-5 w-5 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{formatCurrency(stats.pendingEarnings)}</p>
-                  <p className="text-xs text-muted-foreground">A Receber</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{formatCurrency(stats.paidEarnings)}</p>
-                  <p className="text-xs text-muted-foreground">Já Recebido</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs for Admin */}
-        {isAdmin ? (
+  // Admin view
+  if (isAdmin) {
+    return (
+      <ModuleLayout>
+        <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Gift className="h-6 w-6 text-primary" />
+              Indique e Ganhe - Admin
+            </h1>
+          </div>
           <AdminReferralTabs
             referrals={referrals}
             allStudentReferrals={allStudentReferrals}
@@ -427,17 +287,173 @@ export default function ReferralProgram() {
             setResendingEmail={setResendingEmail}
             resendNotificationEmail={resendNotificationEmail}
           />
-        ) : (
-          <ReferralsList 
-            referrals={referrals} 
-            getStatusBadge={getStatusBadge}
-            formatDate={formatDate}
-            formatCurrency={formatCurrency}
-            isAdmin={false}
-            onResendEmail={() => {}}
-            resendingEmail={null}
-          />
+        </div>
+      </ModuleLayout>
+    );
+  }
+
+  // User view - Méliuz-inspired
+  return (
+    <ModuleLayout>
+      <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full max-w-2xl mx-auto">
+        
+        {/* Hero Section */}
+        <div className="mb-8">
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight">
+            Ganhe 5% no PIX por cada indicação
+          </h1>
+          <p className="text-muted-foreground mt-2 text-sm lg:text-base">
+            Indique amigos para nossos cursos e receba dinheiro no PIX quando a venda for concluída
+          </p>
+        </div>
+
+        {/* Earning Examples */}
+        <div className="space-y-3 mb-8">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+            <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center shrink-0">
+              <Banknote className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground text-sm">
+                Indique um transplante de R$ 20.000
+              </p>
+              <p className="text-emerald-600 dark:text-emerald-400 text-sm font-bold">
+                Ganhe R$ 1.000 no PIX
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+            <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center shrink-0">
+              <HandCoins className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground text-sm">
+                Indique um curso de R$ 40.000
+              </p>
+              <p className="text-emerald-600 dark:text-emerald-400 text-sm font-bold">
+                Ganhe R$ 2.000 no PIX
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-foreground mb-3">Minhas indicações</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="bg-muted/50">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{stats.totalReferrals}</p>
+                <p className="text-xs text-muted-foreground">Total de cadastros</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-muted/50">
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.pendingEarnings)}</p>
+                <p className="text-xs text-muted-foreground">Saldo pendente</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* View Referrals Button */}
+        {stats.totalReferrals > 0 && (
+          <Button 
+            variant="outline" 
+            className="w-full mb-8 h-12 text-sm font-medium"
+            onClick={() => setShowReferrals(!showReferrals)}
+          >
+            {showReferrals ? 'Ocultar indicações' : 'Ver minhas indicações'}
+            <ChevronRight className={`h-4 w-4 ml-auto transition-transform ${showReferrals ? 'rotate-90' : ''}`} />
+          </Button>
         )}
+
+        {/* Referrals List (collapsible) */}
+        {showReferrals && (
+          <div className="mb-8">
+            <ReferralsList 
+              referrals={referrals} 
+              getStatusBadge={getStatusBadge}
+              formatDate={formatDate}
+              formatCurrency={formatCurrency}
+              isAdmin={false}
+              onResendEmail={() => {}}
+              resendingEmail={null}
+            />
+          </div>
+        )}
+
+        {/* How it works */}
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-foreground mb-3">Como funciona</h2>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/50">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Share2 className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground pt-1.5">
+                Compartilhe seu link com as pessoas que você conhece
+              </p>
+            </div>
+            
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/50">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <UserPlus className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground pt-1.5">
+                Os indicados se cadastram pelo seu link e recebem atendimento da equipe
+              </p>
+            </div>
+            
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/50">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <DollarSign className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground pt-1.5">
+                Quando a venda for concluída, você recebe <strong className="text-foreground">5% do valor via PIX</strong>
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+              <div className="h-9 w-9 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
+                <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <p className="text-sm text-amber-700 dark:text-amber-300 pt-1.5">
+                Sem limite de indicações! Quanto mais indicar, mais você ganha
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Referral Link + Share CTA */}
+        <div className="space-y-3 pb-6">
+          {referralLink && (
+            <div className="p-3 rounded-xl bg-muted/50 border">
+              <p className="text-xs text-muted-foreground mb-1.5">Seu link exclusivo</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-mono text-foreground flex-1 break-all leading-relaxed">
+                  {referralLink}
+                </p>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={copyToClipboard}
+                  className="shrink-0"
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <Button 
+            onClick={shareLink} 
+            className="w-full h-12 text-base font-semibold bg-foreground text-background hover:bg-foreground/90"
+          >
+            Indicar amigos
+          </Button>
+        </div>
       </div>
     </ModuleLayout>
   );
