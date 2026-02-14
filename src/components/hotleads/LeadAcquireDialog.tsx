@@ -49,7 +49,7 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, setting
 
   // Preview of the message
   const previewMessage = settings && lead
-    ? `Olá, ${lead.name}, tudo bem?\n\nSou ${settings.licensee_name} e falo da clínica ${settings.clinic_name}, localizada em ${settings.clinic_city}!\n\nSomos uma clínica credenciada à Licença Neo Folic de Transplante Capilar e recebemos o seu cadastro através do site da Neo Folic para receber mais informações sobre procedimentos capilares.\n\nVocê prefere que eu te ligue ou continuamos por aqui?`
+    ? `Olá, ${lead.name}, tudo bem?\n\nMeu nome é ${settings.licensee_name} e falo da clínica ${settings.clinic_name}.\n\nRecebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.\n\nVocê prefere que eu te ligue ou continuamos por aqui?\n\nSe em algum momento você preferir não receber mais mensagens, é só me avisar 😊`
     : null;
 
   return (

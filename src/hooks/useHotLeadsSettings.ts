@@ -70,7 +70,7 @@ export function useHotLeadsSettings() {
     const phone = leadPhone.replace(/\D/g, '');
     const fullPhone = phone.startsWith('55') ? phone : `55${phone}`;
     
-    const message = `Olá, ${leadName}, tudo bem?\n\nSou ${settings.licensee_name} e falo da clínica ${settings.clinic_name}, localizada em ${settings.clinic_city}!\n\nSomos uma clínica credenciada à *Licença Neo Folic* de Transplante Capilar e recebemos o seu cadastro através do site da Neo Folic para receber mais informações sobre procedimentos capilares.\n\nVocê prefere que eu te *ligue* ou continuamos *por aqui*?`;
+    const message = `Olá, ${leadName}, tudo bem?\n\nMeu nome é ${settings.licensee_name} e falo da clínica ${settings.clinic_name}.\n\nRecebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.\n\nVocê prefere que eu te *ligue* ou continuamos *por aqui*?\n\nSe em algum momento você preferir não receber mais mensagens, é só me avisar 😊`;
 
     return `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
   }, [settings]);
