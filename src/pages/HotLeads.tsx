@@ -201,7 +201,7 @@ export default function HotLeads() {
   return (
     <div className="flex-1 flex flex-col bg-background min-h-0">
       {/* Header */}
-      <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 sticky top-0 z-20">
+      <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 sticky top-0 z-20 hidden lg:block">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <h1 className="text-xl font-bold items-center gap-2 text-white hidden lg:flex">
@@ -244,7 +244,7 @@ export default function HotLeads() {
       </header>
 
       {/* Fixed top section - sticky below header */}
-      <div className="shrink-0 px-3 lg:px-4 py-3 space-y-3 sticky top-[57px] z-10 bg-background">
+      <div className="shrink-0 px-3 lg:px-4 py-3 space-y-3 sticky top-0 lg:top-[57px] z-10 bg-background">
         {/* Mobile action buttons - moved out of red header */}
         <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
           {isAdmin && (
