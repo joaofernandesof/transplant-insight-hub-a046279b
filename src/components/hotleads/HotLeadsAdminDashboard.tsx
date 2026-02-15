@@ -177,33 +177,6 @@ export function HotLeadsAdminDashboard() {
           </CardContent>
         </Card>
 
-         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Distribuição por Status</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie data={statusPie} cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false} fontSize={11}
-                >
-                  {statusPie.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex flex-wrap justify-center gap-3 mt-2">
-              {statusPie.map((item, i) => (
-                <div key={i} className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-xs text-muted-foreground">{item.name}</span>
-                  <span className="text-xs font-semibold">{item.value.toLocaleString('pt-BR')}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* State Charts + Region */}
