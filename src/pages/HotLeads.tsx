@@ -460,8 +460,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               </button>
             ))}
 
-            {/* Inline filters */}
-            <div className="hidden sm:contents">
+            {/* Spacer to push filters right */}
+            <div className="flex-1" />
+
+            {/* Inline filters (right-aligned) */}
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
               <HotLeadsGlobalFilters
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
@@ -505,7 +508,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </div>
 
             {/* View toggle */}
-            <div className="flex items-center border rounded-lg overflow-hidden shrink-0 ml-auto">
+            <div className="flex items-center border rounded-lg overflow-hidden shrink-0">
               <button
                 onClick={() => setViewMode('cards')}
                 className={`p-1.5 transition-colors ${viewMode === 'cards' ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}
