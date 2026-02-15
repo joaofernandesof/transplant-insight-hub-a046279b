@@ -7,9 +7,12 @@ import {
 } from 'recharts';
 import {
   Flame, MapPin, Building2, TrendingUp, Clock, UserCheck, Target,
-  BarChart3, Lightbulb, Zap, AlertTriangle, CheckCircle2,
+  BarChart3, Lightbulb, Zap, AlertTriangle, CheckCircle2, Trophy, Crown, Medal, User,
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAllLeadStats } from '@/hooks/useAllLeadStats';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const COLORS = ['#f97316', '#3b82f6', '#22c55e', '#8b5cf6', '#ec4899', '#06b6d4', '#eab308', '#ef4444', '#14b8a6', '#f43f5e'];
 
@@ -363,6 +366,169 @@ export function HotLeadsAdminDashboard() {
               <Bar dataKey="claimed" stackId="a" fill="#3b82f6" name="Adquiridos" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
+        </CardContent>
+      </Card>
+      {/* Top Licensees Ranking */}
+      <Card className="border-amber-200 dark:border-amber-800">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-amber-500" />
+            Ranking de Licenciados
+            <Badge variant="outline" className="font-normal text-[10px]">{stats.topLicensees.length} licenciados</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Top 3 Podium */}
+          {stats.topLicensees.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {stats.topLicensees.slice(0, 3).map((lic, i) => {
+                const podiumColors = [
+                  { bg: 'bg-gradient-to-br from-amber-400 to-yellow-500', ring: 'ring-amber-400', icon: Crown, text: 'text-amber-900' },
+                  { bg: 'bg-gradient-to-br from-slate-300 to-slate-400', ring: 'ring-slate-300', icon: Medal, text: 'text-slate-700' },
+                  { bg: 'bg-gradient-to-br from-orange-400 to-amber-600', ring: 'ring-orange-400', icon: Medal, text: 'text-orange-900' },
+                ];
+                const p = podiumColors[i];
+                const initials = lic.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+                return (
+                  <div key={lic.user_id} className={`relative rounded-xl p-4 ${p.bg} text-center shadow-lg`}>
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <div className={`w-7 h-7 rounded-full bg-white shadow flex items-center justify-center`}>
+                        <span className="text-sm font-bold">{i + 1}º</span>
+                      </div>
+                    </div>
+                    <Avatar className={`mx-auto mt-2 h-14 w-14 ring-3 ${p.ring}`}>
+                      <AvatarImage src={lic.avatar_url || ''} />
+                      <AvatarFallback className="bg-white/80 font-bold text-sm">{initials}</AvatarFallback>
+                    </Avatar>
+                    <p className={`font-bold text-sm mt-2 truncate ${p.text}`}>
+                      {lic.full_name.split(' ').slice(0, 2).join(' ')}
+                    </p>
+                    <p className={`text-3xl font-extrabold mt-1 ${p.text}`}>{lic.total_claimed}</p>
+                    <p className={`text-[10px] ${p.text} opacity-70`}>leads capturados</p>
+                    {lic.last_claim && (
+                      <p className={`text-[10px] mt-1 ${p.text} opacity-50`}>
+                        Último: {new Date(lic.last_claim).toLocaleDateString('pt-BR')}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Full Table */}
+          <div className="overflow-auto max-h-[400px]">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-background">
+                <tr className="border-b bg-muted/50">
+                  <th className="text-center py-2 px-2 w-10 font-semibold text-muted-foreground">#</th>
+                  <th className="text-left py-2 px-3 font-semibold text-muted-foreground">Licenciado</th>
+                  <th className="text-right py-2 px-3 font-semibold text-muted-foreground">Leads</th>
+                  <th className="text-right py-2 px-3 font-semibold text-muted-foreground hidden sm:table-cell">Última Captação</th>
+                  <th className="text-right py-2 px-3 font-semibold text-muted-foreground hidden md:table-cell">Performance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.topLicensees.map((lic, i) => {
+                  const initials = lic.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+                  const maxClaimed = stats.topLicensees[0]?.total_claimed || 1;
+                  const pctBar = maxClaimed > 0 ? (lic.total_claimed / maxClaimed) * 100 : 0;
+                  return (
+                    <tr key={lic.user_id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="text-center py-2 px-2">
+                        {i < 3 ? (
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                            i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : 'bg-orange-100 text-orange-700'
+                          }`}>{i + 1}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">{i + 1}</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={lic.avatar_url || ''} />
+                            <AvatarFallback className="text-[10px] font-semibold bg-muted">{initials}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{lic.full_name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{lic.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-right py-2 px-3">
+                        <span className={`font-bold ${lic.total_claimed > 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          {lic.total_claimed}
+                        </span>
+                      </td>
+                      <td className="text-right py-2 px-3 hidden sm:table-cell">
+                        {lic.last_claim ? (
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(lic.last_claim).toLocaleDateString('pt-BR')}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">—</span>
+                        )}
+                      </td>
+                      <td className="text-right py-2 px-3 hidden md:table-cell">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                i === 0 ? 'bg-amber-500' : i < 3 ? 'bg-blue-500' : 'bg-green-500'
+                              }`}
+                              style={{ width: `${pctBar}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Insights */}
+          {stats.topLicensees.length > 0 && (
+            <div className="mt-4 grid gap-2">
+              {(() => {
+                const insights: { text: string; color: string; bg: string }[] = [];
+                const active = stats.topLicensees.filter(l => l.total_claimed > 0);
+                const inactive = stats.topLicensees.filter(l => l.total_claimed === 0);
+                
+                if (active.length > 0) {
+                  insights.push({
+                    text: `${active.length} licenciado(s) já capturaram leads. ${active[0].full_name.split(' ')[0]} lidera com ${active[0].total_claimed} lead(s).`,
+                    color: 'text-green-600',
+                    bg: 'bg-green-50 dark:bg-green-950',
+                  });
+                }
+                if (inactive.length > 0) {
+                  insights.push({
+                    text: `${inactive.length} licenciado(s) ainda não capturaram nenhum lead. Considere engajá-los com comunicação direta.`,
+                    color: 'text-amber-600',
+                    bg: 'bg-amber-50 dark:bg-amber-950',
+                  });
+                }
+                const totalClaimed = stats.topLicensees.reduce((s, l) => s + l.total_claimed, 0);
+                if (totalClaimed > 0 && stats.available > 0) {
+                  const ratio = (stats.available / stats.topLicensees.length).toFixed(0);
+                  insights.push({
+                    text: `Média de ${ratio} leads disponíveis por licenciado. Há oportunidade para todos!`,
+                    color: 'text-blue-600',
+                    bg: 'bg-blue-50 dark:bg-blue-950',
+                  });
+                }
+                return insights.map((ins, i) => (
+                  <div key={i} className={`flex items-start gap-2 p-3 rounded-lg ${ins.bg}`}>
+                    <Lightbulb className={`h-4 w-4 ${ins.color} shrink-0 mt-0.5`} />
+                    <p className="text-xs leading-relaxed">{ins.text}</p>
+                  </div>
+                ));
+              })()}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
