@@ -17,19 +17,19 @@ export function HotLeadsStats({ leads, availableCount, myLeadsCount, acquiredCou
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className={`rounded-xl bg-gradient-to-br ${stat.gradient} p-4 flex items-center justify-between shadow-lg min-h-[90px]`}
+          className={`rounded-xl bg-gradient-to-br ${stat.gradient} p-3 sm:p-4 flex flex-col justify-between shadow-lg min-h-[80px] sm:min-h-[90px] overflow-hidden`}
         >
-          <div>
-            <p className="text-white/80 text-xs font-medium">{stat.label}</p>
-            <p className="text-3xl lg:text-4xl font-extrabold text-white leading-none mt-1">
-              {stat.value.toLocaleString('pt-BR')}
-            </p>
+          <div className="flex items-start justify-between gap-1">
+            <p className="text-white/80 text-[10px] sm:text-xs font-medium leading-tight">{stat.label}</p>
+            <stat.icon className="h-6 w-6 sm:h-10 sm:w-10 text-white/20 shrink-0" />
           </div>
-          <stat.icon className="h-10 w-10 text-white/30 shrink-0" />
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-none mt-1 truncate">
+            {stat.value.toLocaleString('pt-BR')}
+          </p>
         </div>
       ))}
     </div>
