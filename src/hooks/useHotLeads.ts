@@ -157,15 +157,22 @@ export function useHotLeads() {
   const importLeads = useCallback(async (
     leadsData: { name: string; phone: string; email: string; state: string; city: string; tags?: string[] }[],
     onProgress?: (progress: { current: number; total: number; success: number; errors: number }) => void,
-  ): Promise<{ success: number; errors: number }> => {
+    duplicateAction?: 'skip' | 'overwrite',
+    duplicates?: { parsed: { name: string; phone: string; email: string; state: string; city: string }; existing: { id: string } }[],
+  ): Promise<{ success: number; errors: number; duplicatesSkipped: number; duplicatesOverwritten: number }> => {
     if (!isAdmin) {
       toast.error('Apenas administradores podem importar leads');
-      return { success: 0, errors: leadsData.length };
+      return { success: 0, errors: leadsData.length, duplicatesSkipped: 0, duplicatesOverwritten: 0 };
     }
 
     let success = 0;
     let errors = 0;
+    let duplicatesSkipped = 0;
+    let duplicatesOverwritten = 0;
 
+    const totalWork = leadsData.length + (duplicateAction === 'overwrite' && duplicates ? duplicates.length : 0);
+
+    // 1. Insert new leads in chunks
     const chunkSize = 500;
     const maxRetries = 3;
 
@@ -199,9 +206,7 @@ export function useHotLeads() {
         }
 
         console.error(`[Import] Chunk ${Math.floor(i / chunkSize) + 1} attempt ${attempt} failed:`, error);
-
         if (attempt < maxRetries) {
-          // Exponential backoff: 1s, 2s, 4s
           await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
         }
       }
@@ -212,13 +217,50 @@ export function useHotLeads() {
 
       onProgress?.({
         current: Math.min(i + chunkSize, leadsData.length),
-        total: leadsData.length,
+        total: totalWork,
         success,
         errors,
       });
 
-      // Yield to UI thread between chunks
       await new Promise(r => setTimeout(r, 50));
+    }
+
+    // 2. Handle duplicates
+    if (duplicates && duplicates.length > 0) {
+      if (duplicateAction === 'overwrite') {
+        // Update existing leads with new data
+        for (let i = 0; i < duplicates.length; i += 50) {
+          const batch = duplicates.slice(i, i + 50);
+          for (const dup of batch) {
+            const { error } = await supabase
+              .from('leads')
+              .update({
+                name: dup.parsed.name,
+                email: dup.parsed.email || null,
+                state: dup.parsed.state || null,
+                city: dup.parsed.city || null,
+              } as any)
+              .eq('id', dup.existing.id);
+
+            if (!error) {
+              duplicatesOverwritten++;
+            } else {
+              errors++;
+            }
+          }
+
+          onProgress?.({
+            current: leadsData.length + Math.min(i + 50, duplicates.length),
+            total: totalWork,
+            success: success + duplicatesOverwritten,
+            errors,
+          });
+
+          await new Promise(r => setTimeout(r, 50));
+        }
+      } else {
+        duplicatesSkipped = duplicates.length;
+      }
     }
 
     if (success > 0) {
@@ -232,7 +274,7 @@ export function useHotLeads() {
     }
 
     await fetchLeads(true);
-    return { success, errors };
+    return { success, errors, duplicatesSkipped, duplicatesOverwritten };
   }, [isAdmin, fetchLeads]);
 
   const getClaimerName = useCallback((userId: string | null): string => {
