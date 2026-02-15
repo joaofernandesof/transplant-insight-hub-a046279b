@@ -25,6 +25,9 @@ import {
   CreditCard,
   Eye,
   Award,
+  Flame,
+  Building2,
+  BookOpen,
 } from 'lucide-react';
 import { subDays } from 'date-fns';
 import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
@@ -42,11 +45,11 @@ interface SystemStats {
 
 // Portais do ecossistema
 const portals = [
-  { id: 'academy', title: 'Aluno', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy', description: 'Portal educacional' },
-  { id: 'license', title: 'Licenciado', icon: Award, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense', description: 'Gestão de licenças' },
-  { id: 'patient', title: 'Paciente', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare', description: 'Portal do paciente' },
-  { id: 'staff', title: 'Colaborador', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam', description: 'Equipe clínica' },
-  { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view', description: 'Visão clínica' },
+  { id: 'neocare', title: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare', description: 'Portal do paciente' },
+  { id: 'neoteam', title: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam', description: 'Equipe clínica' },
+  { id: 'academy', title: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy', description: 'Portal educacional' },
+  { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense', description: 'Gestão de licenças' },
+  { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads', description: 'Marketplace de leads' },
   { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar', description: 'CRM & Marketing IA' },
   { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed', description: 'Portal jurídico' },
   { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision', description: 'Análise capilar' },

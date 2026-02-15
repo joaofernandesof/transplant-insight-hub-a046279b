@@ -244,13 +244,15 @@ export function useGlobalMetrics() {
         },
         
         portals: [
-          { id: 'academy', name: 'Academy', icon: 'GraduationCap', color: 'emerald', totalUsers: students, activeUsers: 0, trend: 12, recentActivity: enrollments },
-          { id: 'neoteam', name: 'NeoTeam', icon: 'Users', color: 'blue', totalUsers: collaborators, activeUsers: 0, trend: 5, recentActivity: 0 },
           { id: 'neocare', name: 'NeoCare', icon: 'Heart', color: 'rose', totalUsers: patients, activeUsers: 0, trend: 8, recentActivity: scheduledSurgeries },
+          { id: 'neoteam', name: 'NeoTeam', icon: 'Users', color: 'blue', totalUsers: collaborators, activeUsers: 0, trend: 5, recentActivity: 0 },
+          { id: 'academy', name: 'IBRAMEC', icon: 'GraduationCap', color: 'emerald', totalUsers: students, activeUsers: 0, trend: 12, recentActivity: enrollments },
+          { id: 'neolicense', name: 'NeoLicense', icon: 'Building2', color: 'amber', totalUsers: licensees, activeUsers: 0, trend: 10, recentActivity: referrals },
+          { id: 'hotleads', name: 'HotLeads', icon: 'Flame', color: 'orange', totalUsers: totalLeads, activeUsers: 0, trend: 18, recentActivity: leadsMonth },
           { id: 'avivar', name: 'Avivar', icon: 'Zap', color: 'purple', totalUsers: agents, activeUsers: 0, trend: 15, recentActivity: conversations },
           { id: 'ipromed', name: 'IPROMED', icon: 'Scale', color: 'indigo', totalUsers: legalCases.length, activeUsers: 0, trend: 3, recentActivity: openCases },
           { id: 'vision', name: 'Vision', icon: 'Eye', color: 'pink', totalUsers: subscriptionUsers, activeUsers: 0, trend: 20, recentActivity: neohairEvals },
-          { id: 'neolicense', name: 'NeoLicense', icon: 'Award', color: 'amber', totalUsers: licensees, activeUsers: 0, trend: 10, recentActivity: referrals },
+          { id: 'neopay', name: 'NeoPay', icon: 'CreditCard', color: 'green', totalUsers: clinicSales.length, activeUsers: 0, trend: 7, recentActivity: clinicSales.filter(s => s.contract_status === 'pendente').length },
         ],
 
         academy: {
