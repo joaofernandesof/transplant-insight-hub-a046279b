@@ -14960,10 +14960,13 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address_full: string | null
           avatar_url: string | null
+          birth_date: string | null
           city: string | null
           clinic_logo_url: string | null
           clinic_name: string | null
+          cpf: string | null
           created_at: string
           crm: string | null
           email: string
@@ -14988,10 +14991,13 @@ export type Database = {
           whatsapp_personal: string | null
         }
         Insert: {
+          address_full?: string | null
           avatar_url?: string | null
+          birth_date?: string | null
           city?: string | null
           clinic_logo_url?: string | null
           clinic_name?: string | null
+          cpf?: string | null
           created_at?: string
           crm?: string | null
           email: string
@@ -15016,10 +15022,13 @@ export type Database = {
           whatsapp_personal?: string | null
         }
         Update: {
+          address_full?: string | null
           avatar_url?: string | null
+          birth_date?: string | null
           city?: string | null
           clinic_logo_url?: string | null
           clinic_name?: string | null
+          cpf?: string | null
           created_at?: string
           crm?: string | null
           email?: string
