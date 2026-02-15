@@ -64,14 +64,10 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease }: Acqu
               {isAdmin && (
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className={`shrink-0 p-1.5 rounded-full transition-all ${
-                    expanded 
-                      ? 'bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300 ring-2 ring-orange-300 dark:ring-orange-700' 
-                      : 'bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-300 ring-2 ring-amber-300 dark:ring-amber-700 animate-pulse hover:animate-none'
-                  }`}
+                  className="shrink-0 transition-colors"
                   title={expanded ? 'Ocultar dados' : 'Ver dados completos (admin)'}
                 >
-                  {expanded ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {expanded ? <EyeOff className="h-4 w-4 text-orange-500" /> : <Eye className="h-4 w-4 text-amber-500 hover:text-amber-600" />}
                 </button>
               )}
             </div>
