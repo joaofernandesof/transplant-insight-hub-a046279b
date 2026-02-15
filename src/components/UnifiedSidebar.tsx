@@ -194,6 +194,10 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
 
   const isActive = (route: string) => {
     if (route === location.pathname) return true;
+    // For portal root routes (e.g. /hotleads, /neolicense), only match exactly
+    const portalRoots = ['hotleads', 'neolicense', 'avivar', 'academy', 'neocare', 'neoteam', 'flow', 'neopay', 'vision', 'postvenda'];
+    const isPortalRoot = portalRoots.some(p => route === `/${p}`);
+    if (isPortalRoot) return false;
     // Match parent routes for nested paths
     if (route !== '/' && location.pathname.startsWith(route + '/')) return true;
     return false;
