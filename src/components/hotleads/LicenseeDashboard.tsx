@@ -118,16 +118,6 @@ export function LicenseeDashboard({ myLeads, allLeads, userId }: LicenseeDashboa
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Title */}
-      <div className="flex items-center gap-2">
-        <div className="p-1.5 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 shadow">
-          <Award className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold">Minha Performance</h2>
-          <p className="text-xs text-muted-foreground">Acompanhe seus resultados e compare com a rede</p>
-        </div>
-      </div>
 
       {/* Main KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
