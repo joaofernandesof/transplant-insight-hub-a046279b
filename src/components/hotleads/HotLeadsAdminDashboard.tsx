@@ -114,26 +114,26 @@ export function HotLeadsAdminDashboard() {
   return (
     <div className="space-y-6 pb-8">
       {/* KPI Cards with embedded insights */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
           { label: 'Total de Leads', value: stats.total, icon: Flame, gradient: 'from-orange-500 to-red-500', insight: kpiInsights.total },
           { label: 'Disponíveis', value: stats.available, icon: Target, gradient: 'from-green-500 to-emerald-500', insight: kpiInsights.available },
           { label: 'Adquiridos', value: stats.claimed, icon: UserCheck, gradient: 'from-blue-500 to-indigo-500', insight: kpiInsights.claimed },
         ].map(kpi => (
           <Card key={kpi.label} className={`bg-gradient-to-br ${kpi.gradient} text-white border-0 shadow-lg`}>
-            <CardContent className="pt-5 pb-4">
+            <CardContent className="pt-4 pb-3 sm:pt-5 sm:pb-4">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-white/80 text-xs font-medium">{kpi.label}</p>
-                  <p className="text-3xl font-bold mt-1">{kpi.value.toLocaleString('pt-BR')}</p>
+                  <p className="text-2xl sm:text-3xl font-bold mt-1">{kpi.value.toLocaleString('pt-BR')}</p>
                 </div>
-                <kpi.icon className="h-10 w-10 text-white/30" />
+                <kpi.icon className="h-8 w-8 sm:h-10 sm:w-10 text-white/30 shrink-0" />
               </div>
               {kpi.insight && (
-                <div className="mt-3 pt-3 border-t border-white/20">
+                <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/20">
                   <div className="flex items-start gap-2">
                     <Lightbulb className="h-3.5 w-3.5 text-white/70 shrink-0 mt-0.5" />
-                    <p className="text-[10px] leading-relaxed text-white/80">{kpi.insight}</p>
+                    <p className="text-[10px] sm:text-[11px] leading-relaxed text-white/80">{kpi.insight}</p>
                   </div>
                 </div>
               )}
@@ -152,7 +152,7 @@ export function HotLeadsAdminDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={stats.byDay}>
               <defs>
                 <linearGradient id="gradTotal" x1="0" y1="0" x2="0" y2="1">
@@ -177,7 +177,7 @@ export function HotLeadsAdminDashboard() {
       </Card>
 
       {/* Region + State Distribution */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* State Pie */}
         <Card>
           <CardHeader className="pb-2">
@@ -187,7 +187,7 @@ export function HotLeadsAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
                   data={statePie}
@@ -216,7 +216,7 @@ export function HotLeadsAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
                   data={regionPie}
