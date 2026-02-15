@@ -158,20 +158,6 @@ export function HotLeadsGlobalFilters({
     <div className="space-y-2">
       <div className="flex items-center gap-2 flex-wrap">
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full lg:w-auto">
-          <Select value={periodFilter} onValueChange={setPeriodFilter}>
-            <SelectTrigger className={`w-full sm:w-[130px] h-9 text-xs transition-colors ${isPeriodActive ? activeStyle : inactiveStyle}`}>
-              <Calendar className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isPeriodActive ? 'text-primary' : 'text-muted-foreground'}`} />
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todo período</SelectItem>
-              <SelectItem value="today">Hoje</SelectItem>
-              <SelectItem value="7d">Últimos 7 dias</SelectItem>
-              <SelectItem value="30d">Últimos 30 dias</SelectItem>
-              <SelectItem value="90d">Últimos 90 dias</SelectItem>
-            </SelectContent>
-          </Select>
-
           <Select value={stateFilter} onValueChange={(v) => { setStateFilter(v); setCityFilter('all'); }}>
             <SelectTrigger className={`w-full sm:w-[120px] h-9 text-xs transition-colors ${isStateActive ? activeStyle : inactiveStyle}`}>
               <MapPin className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isStateActive ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -195,21 +181,6 @@ export function HotLeadsGlobalFilters({
               {availableCities.sort().map(city => (
                 <SelectItem key={city} value={city}>{city}</SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className={`w-full sm:w-[140px] h-9 text-xs transition-colors ${isSortActive ? activeStyle : inactiveStyle}`}>
-              <ArrowUpDown className={`h-3.5 w-3.5 mr-1.5 shrink-0 ${isSortActive ? 'text-primary' : 'text-muted-foreground'}`} />
-              <SelectValue placeholder="Ordenar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Mais recentes</SelectItem>
-              <SelectItem value="oldest">Mais antigos</SelectItem>
-              <SelectItem value="name_asc">Nome A-Z</SelectItem>
-              <SelectItem value="name_desc">Nome Z-A</SelectItem>
-              <SelectItem value="city_asc">Cidade A-Z</SelectItem>
-              <SelectItem value="state_asc">Estado A-Z</SelectItem>
             </SelectContent>
           </Select>
 
