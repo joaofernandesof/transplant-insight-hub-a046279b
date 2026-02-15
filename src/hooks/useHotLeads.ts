@@ -28,6 +28,7 @@ export function useHotLeads() {
   const { user, isAdmin } = useAuth();
   const [leads, setLeads] = useState<HotLead[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [hotleadsProfiles, setHotleadsProfiles] = useState<Record<string, string>>({});
   const [queuedCount, setQueuedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -80,6 +81,18 @@ export function useHotLeads() {
       const map: Record<string, string> = {};
       data?.forEach(p => { map[p.user_id] = p.name; });
       setProfiles(map);
+
+      // Fetch only users with hotleads portal access for the filter dropdown
+      const { data: hotleadsData, error: hotleadsError } = await supabase
+        .from('profiles')
+        .select('user_id, name')
+        .contains('allowed_portals', ['hotleads']);
+      if (hotleadsError) throw hotleadsError;
+      const hotleadsMap: Record<string, string> = {};
+      (hotleadsData as any[])?.forEach((p: any) => {
+        hotleadsMap[p.user_id] = p.name;
+      });
+      setHotleadsProfiles(hotleadsMap);
     } catch (error) {
       console.error('Error fetching profiles:', error);
     }
@@ -345,5 +358,6 @@ export function useHotLeads() {
     overdueLeads,
     isBlocked,
     profiles,
+    hotleadsProfiles,
   };
 }

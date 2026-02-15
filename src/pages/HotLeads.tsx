@@ -51,6 +51,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     overdueLeads,
     isBlocked,
     profiles,
+    hotleadsProfiles,
   } = useHotLeads();
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
 
@@ -142,10 +143,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     return [...new Set(filtered.map(l => l.city).filter(Boolean))] as string[];
   }, [leads, stateFilter]);
 
-  // Available users for admin filter
+  // Available users for admin filter - only those with hotleads portal access
   const availableUsers = useMemo(() => {
-    return Object.entries(profiles).map(([id, name]) => ({ id, name }));
-  }, [profiles]);
+    return Object.entries(hotleadsProfiles).map(([id, name]) => ({ id, name: name as string }));
+  }, [hotleadsProfiles]);
 
   const filteredLeads = useMemo(() => {
     const filtered = leads.filter(lead => {
