@@ -420,23 +420,6 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           <nav className="px-2 space-y-1">
             {/* Portal Switcher - Always first */}
             <PortalSwitcherButton isCollapsed={isCollapsed} variant="default" />
-            {/* Admin shortcut when in a portal (not main/admin) */}
-            {isAdmin && currentPortal !== 'main' && currentPortal !== 'admin' && (
-              <>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-3 h-10 text-destructive hover:text-destructive hover:bg-destructive/10",
-                    isCollapsed && "justify-center px-2"
-                  )}
-                  onClick={() => navigate('/admin-dashboard')}
-                >
-                  <Shield className="h-4 w-4 flex-shrink-0" />
-                  {!isCollapsed && <span className="truncate">Início Admin</span>}
-                </Button>
-                <div className="my-2 border-t border-border" />
-              </>
-            )}
 
             {groupedMenuItems.map((category) => (
               <div key={category.id}>
