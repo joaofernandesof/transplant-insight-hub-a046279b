@@ -615,8 +615,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 />
               </div>
 
-              {/* View toggle */}
-              <div className="flex items-center border rounded-lg overflow-hidden shrink-0">
+              {/* View toggle - desktop only */}
+              <div className="hidden lg:flex items-center border rounded-lg overflow-hidden shrink-0">
                 <button
                   onClick={() => setViewMode('cards')}
                   className={`p-1.5 transition-colors ${viewMode === 'cards' ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}
