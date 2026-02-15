@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Zap, Users, Timer, Sparkles, Flame, CheckCircle2, Pencil } from 'lucide-react';
+import { Zap, Users, Timer, Sparkles, Flame, CheckCircle2, Pencil, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useLeadRelease } from '@/hooks/useLeadRelease';
+import { useLeadRelease, isNightPauseBRT, getNextMorningBRT } from '@/hooks/useLeadRelease';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -29,7 +29,27 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [editMinutes, setEditMinutes] = useState('');
   const [editSeconds, setEditSeconds] = useState('');
+  const [nightPause, setNightPause] = useState(isNightPauseBRT());
+  const [nightCountdown, setNightCountdown] = useState('');
   const minutesRef = useRef<HTMLInputElement>(null);
+
+  // Check night pause every 30s
+  useEffect(() => {
+    const check = () => {
+      const isPaused = isNightPauseBRT();
+      setNightPause(isPaused);
+      if (isPaused) {
+        const morning = getNextMorningBRT();
+        const diff = Math.max(0, Math.floor((morning.getTime() - Date.now()) / 1000));
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        setNightCountdown(`${h}h${String(m).padStart(2, '0')}m`);
+      }
+    };
+    check();
+    const interval = setInterval(check, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const startEditing = () => {
     if (!isAdmin) return;
@@ -90,6 +110,33 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
   };
 
   if (!isAdmin || !info || info.queued_count === 0) return null;
+
+  // Night pause UI
+  if (nightPause) {
+    return (
+      <div className="relative rounded-lg border p-4 mb-4 border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full p-2.5 bg-indigo-500/20">
+              <Moon className="h-5 w-5 text-indigo-400" />
+            </div>
+            <div>
+              <span className="font-semibold text-sm">Liberação pausada</span>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Leads são liberados das 06:00 às 21:00. Retorna em <strong>{nightCountdown}</strong>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 border-2 border-indigo-500/30 bg-indigo-500/10">
+            <Moon className="h-4 w-4 text-indigo-400" />
+            <span className="font-mono text-lg font-bold tabular-nums tracking-wider text-indigo-400">
+              {nightCountdown}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isUrgent = countdown > 0 && countdown <= 10;
   const isAboutToRelease = countdown === 0 && info.next_release_at && !justReleased;

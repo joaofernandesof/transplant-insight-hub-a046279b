@@ -173,12 +173,15 @@ function getBrtDate(): { dateStr: string; brtHour: number; brtMinutes: number } 
 }
 
 // Probabilistic release: decides randomly whether to release NOW
-// With 50 leads/day and 1440 minutes, probability per minute ≈ 50/1440 ≈ 3.5%
-// We adjust based on remaining leads and remaining time in the day
+// With 50 leads/day and ~900 active minutes (6h-21h), probability adjusts dynamically
+// Night pause: no releases between 21:00 and 06:00 BRT
 async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reason: string }> {
   const { dateStr, brtHour, brtMinutes } = getBrtDate();
 
-  // Active 24 hours - no time restriction
+  // Night pause: 21:00 to 05:59 BRT — no releases
+  if (brtHour >= 21 || brtHour < 6) {
+    return { release: false, reason: "night_pause" };
+  }
 
   const { data: daily } = await supabase
     .from("lead_release_daily")
@@ -194,18 +197,17 @@ async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reas
     return { release: false, reason: "daily_quota_reached" };
   }
 
-  // Calculate remaining minutes until midnight BRT
-  const minutesLeft = Math.max(1, (24 - brtHour) * 60 - brtMinutes);
+  // Calculate remaining minutes until 21:00 BRT (end of active window)
+  const minutesUntilEnd = Math.max(1, (21 - brtHour) * 60 - brtMinutes);
 
-  // Probability = remaining leads / remaining minutes
-  // This naturally increases urgency as the day progresses
-  const probability = Math.min(0.95, remaining / minutesLeft);
+  // Probability = remaining leads / remaining active minutes
+  const probability = Math.min(0.95, remaining / minutesUntilEnd);
 
   // Random dice roll
   const roll = Math.random();
   const shouldRelease = roll < probability;
 
-  console.log(`[HotLeads Cron] brtDate=${dateStr} hour=${brtHour} released=${released}/${target} remaining=${remaining} minutesLeft=${minutesLeft} prob=${(probability*100).toFixed(1)}% roll=${roll.toFixed(3)} => ${shouldRelease ? 'RELEASE' : 'SKIP'}`);
+  console.log(`[HotLeads Cron] brtDate=${dateStr} hour=${brtHour} released=${released}/${target} remaining=${remaining} minutesLeft=${minutesUntilEnd} prob=${(probability*100).toFixed(1)}% roll=${roll.toFixed(3)} => ${shouldRelease ? 'RELEASE' : 'SKIP'}`);
 
   return { 
     release: shouldRelease, 
@@ -217,6 +219,21 @@ async function calculateNextRelease(supabase: any) {
   const now = new Date();
   const { dateStr, brtHour, brtMinutes } = getBrtDate();
   
+  // If we're in night pause (21:00-05:59), next release is at 06:00 next day
+  if (brtHour >= 21 || brtHour < 6) {
+    const brtNow = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const nextMorning = new Date(brtNow);
+    if (brtHour >= 21) {
+      nextMorning.setDate(nextMorning.getDate() + 1);
+    }
+    nextMorning.setHours(6, 0, 0, 0);
+    // Convert back to UTC approximately
+    const diffMs = nextMorning.getTime() - brtNow.getTime();
+    const nextReleaseAt = new Date(now.getTime() + diffMs);
+    
+    return { next_release_at: nextReleaseAt.toISOString(), remaining: 0, night_pause: true };
+  }
+
   const { data: daily } = await supabase
     .from("lead_release_daily")
     .select("*")

@@ -15,6 +15,30 @@ export interface LeadReleaseInfo {
   } | null;
 }
 
+// Check if currently in night pause (21:00-05:59 BRT)
+export function isNightPauseBRT(): boolean {
+  const now = new Date();
+  const brtString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+  const brt = new Date(brtString);
+  const hour = brt.getHours();
+  return hour >= 21 || hour < 6;
+}
+
+// Get next 06:00 BRT as Date
+export function getNextMorningBRT(): Date {
+  const now = new Date();
+  const brtString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+  const brt = new Date(brtString);
+  const hour = brt.getHours();
+  const nextMorning = new Date(brt);
+  if (hour >= 21) {
+    nextMorning.setDate(nextMorning.getDate() + 1);
+  }
+  nextMorning.setHours(6, 0, 0, 0);
+  const diffMs = nextMorning.getTime() - brt.getTime();
+  return new Date(now.getTime() + diffMs);
+}
+
 export function useLeadRelease() {
   const [info, setInfo] = useState<LeadReleaseInfo | null>(null);
   const [isReleasing, setIsReleasing] = useState(false);
