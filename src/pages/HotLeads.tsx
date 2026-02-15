@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, LayoutGrid } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, LayoutGrid, Home } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -24,8 +25,13 @@ import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashb
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { HotLead } from '@/hooks/useHotLeads';
 
-export default function HotLeads() {
+interface HotLeadsProps {
+  initialView?: 'marketplace' | 'dashboard' | 'settings';
+}
+
+export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps) {
   const { isAdmin, user } = useAuth();
+  const navigate = useNavigate();
   const {
     leads,
     availableLeads,
@@ -45,11 +51,11 @@ export default function HotLeads() {
   const [selectedLead, setSelectedLead] = useState<HotLead | null>(null);
   const [isAcquireOpen, setIsAcquireOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(initialView === 'settings');
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
-  const [adminView, setAdminView] = useState<'marketplace' | 'dashboard'>('marketplace');
+  const adminView = initialView === 'dashboard' ? 'dashboard' : 'marketplace';
 
   // Cooldown: 5 minutes (300 seconds) after acquiring a lead
   const COOLDOWN_SECONDS = 300;
@@ -220,15 +226,15 @@ export default function HotLeads() {
                   <Button
                     variant={adminView === 'marketplace' ? 'secondary' : 'outline'}
                     size="sm"
-                    onClick={() => setAdminView('marketplace')}
+                    onClick={() => navigate('/hotleads')}
                   >
-                    <LayoutGrid className="h-4 w-4 mr-1.5" />
-                    <span className="hidden sm:inline">Marketplace</span>
+                    <Home className="h-4 w-4 mr-1.5" />
+                    <span className="hidden sm:inline">Início</span>
                   </Button>
                   <Button
                     variant={adminView === 'dashboard' ? 'secondary' : 'outline'}
                     size="sm"
-                    onClick={() => setAdminView('dashboard')}
+                    onClick={() => navigate('/hotleads/dashboard')}
                   >
                     <BarChart3 className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Painel</span>
@@ -277,15 +283,15 @@ export default function HotLeads() {
               <Button
                 variant={adminView === 'marketplace' ? 'secondary' : 'outline'}
                 size="sm"
-                onClick={() => setAdminView('marketplace')}
+                onClick={() => navigate('/hotleads')}
               >
-                <LayoutGrid className="h-4 w-4 mr-1.5" />
-                <span className="hidden sm:inline">Marketplace</span>
+                <Home className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Início</span>
               </Button>
               <Button
                 variant={adminView === 'dashboard' ? 'secondary' : 'outline'}
                 size="sm"
-                onClick={() => setAdminView('dashboard')}
+                onClick={() => navigate('/hotleads/dashboard')}
               >
                 <BarChart3 className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Painel</span>

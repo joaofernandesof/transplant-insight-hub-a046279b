@@ -580,6 +580,8 @@ function HotLeadsRoutes() {
         <LazyRoute>
           <Routes>
             <Route index element={<HotLeads />} />
+            <Route path="dashboard" element={<HotLeads initialView="dashboard" />} />
+            <Route path="settings" element={<HotLeads initialView="settings" />} />
             <Route path="*" element={<Navigate to="/hotleads" replace />} />
           </Routes>
         </LazyRoute>

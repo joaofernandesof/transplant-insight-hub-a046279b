@@ -318,7 +318,9 @@ export const AVIVAR_MENU_ITEMS: MenuItem[] = [
 
 // HotLeads dedicated portal menu
 export const HOTLEADS_MENU_ITEMS: MenuItem[] = [
-  { id: 'hotleads_home', code: 'hotleads_home', title: 'HotLeads', icon: Flame, route: '/hotleads' },
+  { id: 'hotleads_home', code: 'hotleads_home', title: 'Início', icon: Home, route: '/hotleads' },
+  { id: 'hotleads_dashboard', code: 'hotleads_dashboard', title: 'Dashboard', icon: BarChart3, route: '/hotleads/dashboard' },
+  { id: 'hotleads_settings', code: 'hotleads_settings', title: 'Configurações', icon: Settings, route: '/hotleads/settings' },
 ];
 
 // Mapeamento de portal para menu flat (compatibilidade)
