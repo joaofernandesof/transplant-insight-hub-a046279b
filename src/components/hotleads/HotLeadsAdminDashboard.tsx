@@ -358,6 +358,8 @@ export function HotLeadsAdminDashboard() {
                 <tr className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
                   <th className="text-center py-3 px-3 w-12 font-bold text-xs uppercase tracking-wider text-muted-foreground">#</th>
                   <th className="text-left py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Licenciado</th>
+                  <th className="text-left py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground hidden md:table-cell">Cidade</th>
+                  <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground hidden md:table-cell">UF</th>
                   <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Leads Captados</th>
                   <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Tempo Online</th>
                 </tr>
@@ -396,6 +398,12 @@ export function HotLeadsAdminDashboard() {
                             <p className="text-[10px] text-muted-foreground truncate">{lic.email}</p>
                           </div>
                         </div>
+                      </td>
+                      <td className="py-3 px-3 hidden md:table-cell">
+                        <span className="text-xs text-muted-foreground">{lic.city || '—'}</span>
+                      </td>
+                      <td className="text-center py-3 px-3 hidden md:table-cell">
+                        <span className="text-xs text-muted-foreground">{lic.state || '—'}</span>
                       </td>
                       <td className="text-center py-3 px-3">
                         <span className={`inline-flex items-center justify-center min-w-[32px] px-2 py-0.5 rounded-full text-sm font-extrabold ${
