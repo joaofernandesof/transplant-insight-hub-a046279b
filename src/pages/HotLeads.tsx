@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, LayoutGrid, Home } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -22,8 +22,9 @@ import { LicenseeSettingsDialog } from '@/components/hotleads/LicenseeSettingsDi
 import { AdminManualReleaseDialog } from '@/components/hotleads/AdminManualReleaseDialog';
 import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashboard';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { HotLead } from '@/hooks/useHotLeads';
+
+const ITEMS_PER_PAGE = 10;
 
 interface HotLeadsProps {
   initialView?: 'marketplace' | 'dashboard' | 'settings';
@@ -119,6 +120,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [cityFilter, setCityFilter] = useState('all');
   const [periodFilter, setPeriodFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
+  const [activeTab, setActiveTab] = useState<'available' | 'mine' | 'lost'>('available');
+  const [activePage, setActivePage] = useState(1);
 
   // Available states for filter
   const availableStates = useMemo(() => {
@@ -180,6 +183,23 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   
   const filteredAcquired = useMemo(() => 
     filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== user?.id), [filteredLeads, user?.id]);
+
+  // Pagination for active tab
+  const activeItems = useMemo(() => {
+    if (activeTab === 'available') return filteredAvailable;
+    if (activeTab === 'mine') return filteredMyLeads;
+    return filteredAcquired;
+  }, [activeTab, filteredAvailable, filteredMyLeads, filteredAcquired]);
+
+  const activeTotal = activeItems.length;
+  const activeTotalPages = Math.max(1, Math.ceil(activeTotal / ITEMS_PER_PAGE));
+  const paginatedActive = useMemo(() => {
+    const start = (activePage - 1) * ITEMS_PER_PAGE;
+    return activeItems.slice(start, start + ITEMS_PER_PAGE);
+  }, [activeItems, activePage]);
+
+  // Reset page when tab or filters change
+  useEffect(() => { setActivePage(1); }, [activeTab, searchTerm, stateFilter, cityFilter, periodFilter, sortBy]);
 
   const handleAcquireClick = (lead: HotLead) => {
     if (!settings) {
@@ -371,92 +391,96 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         )}
       </div>
 
-      {/* Scrollable columns area - takes remaining height */}
+      {/* Toggle + Grid layout */}
       {(!isAdmin || adminView === 'marketplace') && (
         <div className="flex-1 px-3 lg:px-4 pb-4">
-          {/* Mobile: Tabs */}
-          <div className="lg:hidden">
-            <Tabs defaultValue="available" className="flex flex-col">
-              <TabsList className="w-full grid grid-cols-3 mb-3 shrink-0">
-                <TabsTrigger value="available" className="text-xs">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500 mr-1.5" />
-                  Disponíveis ({filteredAvailable.length})
-                </TabsTrigger>
-                <TabsTrigger value="mine" className="text-xs">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500 mr-1.5" />
-                  Meus ({filteredMyLeads.length})
-                </TabsTrigger>
-                <TabsTrigger value="lost" className="text-xs">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500 mr-1.5" />
-                  Perdidos ({filteredAcquired.length})
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="available" className="flex-1 mt-0 min-h-0">
-                <PaginatedLeadColumn
-                  title="Leads Disponíveis"
-                  dotColor="bg-green-500"
-                  items={filteredAvailable}
-                  emptyMessage="Nenhum lead disponível no momento."
-                  renderItem={(lead) => (
-                    <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
-                  )}
-                />
-              </TabsContent>
-              <TabsContent value="mine" className="flex-1 mt-0 min-h-0">
-                <PaginatedLeadColumn
-                  title="Meus Leads"
-                  dotColor="bg-blue-500"
-                  items={myLeads}
-                  emptyMessage="Você ainda não adquiriu nenhum lead."
-                  renderItem={(lead) => (
-                    <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
-                  )}
-                />
-              </TabsContent>
-              <TabsContent value="lost" className="flex-1 mt-0 min-h-0">
-                <PaginatedLeadColumn
-                  title="Oportunidade Perdida"
-                  dotColor="bg-red-500"
-                  items={acquiredLeads}
-                  emptyMessage="Nenhuma oportunidade perdida no momento."
-                  renderItem={(lead) => (
-                    <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
-                  )}
-                />
-              </TabsContent>
-            </Tabs>
+          {/* Pill toggle buttons */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[
+              { key: 'available', label: 'Disponíveis', count: filteredAvailable.length, color: 'bg-green-500' },
+              { key: 'mine', label: 'Meus Leads', count: filteredMyLeads.length, color: 'bg-blue-500' },
+              { key: 'lost', label: 'Perdidos', count: filteredAcquired.length, color: 'bg-red-500' },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as 'available' | 'mine' | 'lost')}
+                className={`
+                  inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all
+                  ${activeTab === tab.key
+                    ? 'bg-foreground text-background shadow-md scale-[1.02]'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }
+                `}
+              >
+                <span className={`h-2 w-2 rounded-full ${tab.color}`} />
+                {tab.label}
+                <span className={`
+                  ml-1 text-xs px-1.5 py-0.5 rounded-full
+                  ${activeTab === tab.key ? 'bg-background/20 text-background' : 'bg-background text-foreground'}
+                `}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
           </div>
 
-          {/* Desktop: Grid */}
-          <div className="hidden lg:grid grid-cols-3 gap-6 h-full">
-            <PaginatedLeadColumn
-              title="Leads Disponíveis"
-              dotColor="bg-green-500"
-              items={filteredAvailable}
-              emptyMessage="Nenhum lead disponível no momento."
-              renderItem={(lead) => (
-                <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
-              )}
-            />
-            <PaginatedLeadColumn
-              title="Meus Leads"
-              dotColor="bg-blue-500"
-              items={myLeads}
-              emptyMessage="Você ainda não adquiriu nenhum lead."
-              renderItem={(lead) => (
-                <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
-              )}
-            />
-            <PaginatedLeadColumn
-              title="Oportunidade Perdida"
-              dotColor="bg-red-500"
-              items={acquiredLeads}
-              emptyMessage="Nenhuma oportunidade perdida no momento."
-              renderItem={(lead) => (
-                <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
-              )}
-            />
-          </div>
+          {/* 2-column card grid */}
+          {activeTab === 'available' && (
+            filteredAvailable.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-12">Nenhum lead disponível no momento.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {paginatedActive.map((lead) => (
+                  <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
+                ))}
+              </div>
+            )
+          )}
+          {activeTab === 'mine' && (
+            filteredMyLeads.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-12">Você ainda não adquiriu nenhum lead.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {paginatedActive.map((lead) => (
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
+                ))}
+              </div>
+            )
+          )}
+          {activeTab === 'lost' && (
+            filteredAcquired.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-12">Nenhuma oportunidade perdida no momento.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {paginatedActive.map((lead) => (
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
+                ))}
+              </div>
+            )
+          )}
+
+          {/* Pagination */}
+          {activeTotal > ITEMS_PER_PAGE && (
+            <div className="flex items-center justify-center gap-2 mt-4 pt-3 border-t">
+              <button
+                onClick={() => setActivePage(p => Math.max(1, p - 1))}
+                disabled={activePage === 1}
+                className="px-3 py-1.5 text-sm rounded-md border disabled:opacity-40 hover:bg-muted transition-colors"
+              >
+                Anterior
+              </button>
+              <span className="text-sm text-muted-foreground">
+                {activePage} de {activeTotalPages}
+              </span>
+              <button
+                onClick={() => setActivePage(p => Math.min(activeTotalPages, p + 1))}
+                disabled={activePage === activeTotalPages}
+                className="px-3 py-1.5 text-sm rounded-md border disabled:opacity-40 hover:bg-muted transition-colors"
+              >
+                Próximo
+              </button>
+            </div>
+          )}
         </div>
       )}
 
