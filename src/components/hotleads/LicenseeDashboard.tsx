@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useGamification } from '@/hooks/useGamification';
+import { GamificationWidget } from '@/components/hotleads/GamificationWidget';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -316,6 +318,17 @@ export function LicenseeDashboard({ myLeads, allLeads, userId }: LicenseeDashboa
           </div>
         </CardContent>
       </Card>
+
+      {/* Gamification */}
+      <GamificationSection />
     </div>
   );
+}
+
+function GamificationSection() {
+  const { profile, isLoading } = useGamification();
+
+  if (isLoading || !profile) return null;
+
+  return <GamificationWidget profile={profile} />;
 }

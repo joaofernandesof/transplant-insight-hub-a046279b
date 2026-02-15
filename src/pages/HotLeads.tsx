@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
 import { useLeadNotificationSound } from '@/hooks/useLeadNotificationSound';
+import { useGamification } from '@/hooks/useGamification';
 import { useHotLeadsSettings } from '@/hooks/useHotLeadsSettings';
 import {
   AvailableLeadCard,
@@ -57,6 +58,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     hotleadsProfiles,
   } = useHotLeads();
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
+  const { awardPoints } = useGamification();
 
 
   // Listen for focus-available custom event
@@ -136,10 +138,36 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3500);
       startCooldown();
+      
+      // Gamification: award points for acquiring lead
+      awardPoints('lead_acquired', leadId);
+      
+      // Check if fast response (within 5 min of release)
+      const lead = availableLeads.find(l => l.id === leadId);
+      if (lead?.available_at) {
+        const releaseTime = new Date(lead.available_at).getTime();
+        const now = Date.now();
+        if (now - releaseTime < 5 * 60 * 1000) {
+          awardPoints('fast_response', leadId);
+        }
+      }
     }
     return success;
-  }, [acquireLead, startCooldown]);
-  
+  }, [acquireLead, startCooldown, awardPoints, availableLeads]);
+
+  // Wrap updateLeadOutcome to award gamification points
+  const handleUpdateOutcome = useCallback(async (leadId: string, outcome: any): Promise<boolean> => {
+    const success = await updateLeadOutcome(leadId, outcome);
+    if (success) {
+      if (outcome === 'vendido') {
+        awardPoints('lead_sold', leadId);
+      } else if (outcome === 'em_atendimento') {
+        awardPoints('lead_in_service', leadId);
+      }
+    }
+    return success;
+  }, [updateLeadOutcome, awardPoints]);
+
   // Global filters
   const [searchTerm, setSearchTerm] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
@@ -636,7 +664,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             onClearSelection={() => setSelectedLeads(new Set())}
             onSelectAll={selectAllVisible}
             onRelease={releaseLead}
-            onUpdateOutcome={updateLeadOutcome}
+            onUpdateOutcome={handleUpdateOutcome}
             getClaimerName={getClaimerName}
           />
 
@@ -662,7 +690,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                         claimerName={getClaimerName(lead.claimed_by)}
                         isOwned
                         onRelease={releaseLead}
-                        onUpdateOutcome={showOutcomeActions ? updateLeadOutcome : undefined}
+                        onUpdateOutcome={showOutcomeActions ? handleUpdateOutcome : undefined}
                         selected={selectedLeads.has(lead.id)}
                         onSelect={toggleLeadSelection}
                       />
@@ -688,7 +716,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                     formatCooldown={activeTab === 'available' ? formatCooldown : undefined}
                     claimerName={activeTab === 'unavailable' ? getClaimerName(lead.claimed_by) : undefined}
                     onRelease={releaseLead}
-                    onUpdateOutcome={showOutcomeActions ? updateLeadOutcome : undefined}
+                    onUpdateOutcome={showOutcomeActions ? handleUpdateOutcome : undefined}
                   />
                 ))
               )}
