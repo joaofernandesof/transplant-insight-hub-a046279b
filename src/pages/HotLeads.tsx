@@ -372,10 +372,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   return (
     <div className="flex-1 flex flex-col bg-background h-[calc(100dvh-52px)] lg:h-dvh overflow-y-auto">
       {/* Header */}
-      <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 sticky top-0 z-20">
+      <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 lg:sticky lg:top-0 z-20 hidden lg:block">
         <div className="px-3 lg:px-4 py-2 lg:py-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h1 className="text-lg lg:text-xl font-bold hidden lg:flex items-center gap-2 text-white">
+            <h1 className="text-lg lg:text-xl font-bold flex items-center gap-2 text-white">
               <Flame className="h-5 w-5 lg:h-6 lg:w-6 text-white/80" />
               HotLeads
             </h1>
@@ -435,7 +435,40 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
       {/* Fixed top section */}
       <div className="shrink-0 px-3 lg:px-4 py-2 lg:py-3 space-y-2 lg:space-y-3">
-        {/* Mobile action buttons removed - now unified in sticky header */}
+        {/* Mobile action buttons - normal flow, not sticky */}
+        <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
+          {isAdmin && (
+            <>
+              <Button variant={adminView === 'marketplace' ? 'secondary' : 'outline'} size="sm" onClick={() => navigate('/hotleads')}>
+                <Home className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Início</span>
+              </Button>
+              <Button variant={adminView === 'dashboard' ? 'secondary' : 'outline'} size="sm" onClick={() => navigate('/hotleads/dashboard')}>
+                <BarChart3 className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Painel</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setIsManualReleaseOpen(true)}>
+                <Unlock className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Liberar</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+                <Upload className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Importar</span>
+              </Button>
+              <LeadExportButton leads={leads} getClaimerName={getClaimerName} />
+            </>
+          )}
+          {!isAdmin && (
+            <Button variant="outline" size="sm" onClick={() => setIsSettingsOpen(true)}>
+              <Settings className="h-4 w-4 mr-1.5" />
+              <span className="hidden sm:inline">Config</span>
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => fetchLeads(true)} disabled={isRefreshing}>
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Atualizar</span>
+          </Button>
+        </div>
 
         {/* Dashboard Views */}
         {isAdmin && adminView === 'dashboard' ? (
