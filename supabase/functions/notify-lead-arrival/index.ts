@@ -131,6 +131,20 @@ Deno.serve(async (req) => {
       throw recipientsError;
     }
 
+    // Send push notifications to native devices
+    const userIds = licenseeProfiles.map(p => p.user_id);
+    const { data: pushTokens } = await supabase
+      .from("push_tokens")
+      .select("token, platform")
+      .in("user_id", userIds);
+
+    if (pushTokens && pushTokens.length > 0) {
+      console.log(`Found ${pushTokens.length} push tokens for ${userIds.length} users`);
+      // Note: FCM/APNs sending requires a server key configured.
+      // For now, log tokens. Full FCM integration requires FIREBASE_SERVER_KEY secret.
+      // The in-app realtime + browser notifications handle the notification delivery.
+    }
+
     console.log(`Notified ${licenseeProfiles.length} licensees about lead in ${lead.state}`);
 
     return new Response(
@@ -138,7 +152,8 @@ Deno.serve(async (req) => {
         success: true, 
         message: `Notified ${licenseeProfiles.length} licensees`,
         notification_id: notification.id,
-        recipients_count: licenseeProfiles.length
+        recipients_count: licenseeProfiles.length,
+        push_tokens_found: pushTokens?.length || 0,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

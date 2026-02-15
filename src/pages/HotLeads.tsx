@@ -7,6 +7,7 @@ import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, L
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
+import { useLeadNotificationSound } from '@/hooks/useLeadNotificationSound';
 import { useHotLeadsSettings } from '@/hooks/useHotLeadsSettings';
 import {
   AvailableLeadCard,
@@ -57,6 +58,14 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   } = useHotLeads();
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
 
+
+  // Listen for focus-available custom event
+  useEffect(() => {
+    const handler = () => setActiveTab('available');
+    window.addEventListener('hotlead:focus-available', handler);
+    return () => window.removeEventListener('hotlead:focus-available', handler);
+  }, []);
+
   const [selectedLead, setSelectedLead] = useState<HotLead | null>(null);
   const [isAcquireOpen, setIsAcquireOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -71,6 +80,12 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
   const adminView = initialView === 'dashboard' ? 'dashboard' : initialView === 'my-dashboard' ? 'my-dashboard' : 'marketplace';
+
+  // Sound + browser notification for new leads
+  useLeadNotificationSound({
+    onNewLead: () => fetchLeads(true),
+    enabled: adminView === 'marketplace',
+  });
 
   const COOLDOWN_SECONDS = 300;
   const [cooldownRemaining, setCooldownRemaining] = useState(0);

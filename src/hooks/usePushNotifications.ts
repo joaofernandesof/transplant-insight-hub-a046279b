@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface UsePushNotificationsReturn {
   token: string | null;
@@ -13,12 +15,32 @@ export interface UsePushNotificationsReturn {
 }
 
 export function usePushNotifications(): UsePushNotificationsReturn {
+  const { user } = useAuth();
   const [token, setToken] = useState<string | null>(null);
   const [notification, setNotification] = useState<PushNotificationSchema | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const isSupported = Capacitor.isNativePlatform();
+
+  // Save token to database
+  const saveTokenToDb = useCallback(async (pushToken: string) => {
+    if (!user?.id) return;
+    
+    const platform = Capacitor.getPlatform(); // 'ios' | 'android' | 'web'
+    
+    try {
+      await supabase
+        .from('push_tokens')
+        .upsert(
+          { user_id: user.id, token: pushToken, platform, updated_at: new Date().toISOString() },
+          { onConflict: 'user_id,token' }
+        );
+      console.log('Push token saved to database');
+    } catch (err) {
+      console.error('Error saving push token:', err);
+    }
+  }, [user?.id]);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!isSupported) {
@@ -70,10 +92,12 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     // Listen for registration success
     const registrationListener = PushNotifications.addListener(
       'registration',
-      (token: Token) => {
-        console.log('Push registration success, token:', token.value);
-        setToken(token.value);
+      (tokenData: Token) => {
+        console.log('Push registration success, token:', tokenData.value);
+        setToken(tokenData.value);
         setError(null);
+        // Save token to database
+        saveTokenToDb(tokenData.value);
       }
     );
 
@@ -89,9 +113,9 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     // Listen for incoming push notifications
     const pushReceivedListener = PushNotifications.addListener(
       'pushNotificationReceived',
-      (notification: PushNotificationSchema) => {
-        console.log('Push notification received:', notification);
-        setNotification(notification);
+      (notif: PushNotificationSchema) => {
+        console.log('Push notification received:', notif);
+        setNotification(notif);
       }
     );
 
@@ -113,7 +137,14 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       pushReceivedListener.then(l => l.remove());
       pushActionListener.then(l => l.remove());
     };
-  }, [isSupported]);
+  }, [isSupported, saveTokenToDb]);
+
+  // Auto-register when user is available on native
+  useEffect(() => {
+    if (isSupported && user?.id && !isRegistered) {
+      register();
+    }
+  }, [isSupported, user?.id, isRegistered, register]);
 
   return {
     token,
