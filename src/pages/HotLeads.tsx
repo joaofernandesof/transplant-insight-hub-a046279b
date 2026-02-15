@@ -59,6 +59,13 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [isAcquireOpen, setIsAcquireOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(initialView === 'settings');
+
+  // Sync settings dialog with route changes
+  useEffect(() => {
+    if (initialView === 'settings') {
+      setIsSettingsOpen(true);
+    }
+  }, [initialView]);
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
