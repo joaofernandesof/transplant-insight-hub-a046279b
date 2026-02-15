@@ -329,24 +329,6 @@ export default function HotLeads() {
           </div>
         ) : (
           <>
-            {/* Desktop: filters first, then stats, then motivational */}
-            <div className="hidden lg:block">
-              <HotLeadsGlobalFilters
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                stateFilter={stateFilter}
-                setStateFilter={setStateFilter}
-                cityFilter={cityFilter}
-                setCityFilter={setCityFilter}
-                periodFilter={periodFilter}
-                setPeriodFilter={setPeriodFilter}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                availableStates={availableStates}
-                availableCities={availableCities}
-              />
-            </div>
-
             <HotLeadsStats
               leads={filteredLeads}
               availableCount={filteredAvailable.length}
@@ -360,23 +342,21 @@ export default function HotLeads() {
               </p>
             </div>
 
-            {/* Mobile: filters after motivational text */}
-            <div className="lg:hidden">
-              <HotLeadsGlobalFilters
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                stateFilter={stateFilter}
-                setStateFilter={setStateFilter}
-                cityFilter={cityFilter}
-                setCityFilter={setCityFilter}
-                periodFilter={periodFilter}
-                setPeriodFilter={setPeriodFilter}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                availableStates={availableStates}
-                availableCities={availableCities}
-              />
-            </div>
+            {/* Filters below motivational text */}
+            <HotLeadsGlobalFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              stateFilter={stateFilter}
+              setStateFilter={setStateFilter}
+              cityFilter={cityFilter}
+              setCityFilter={setCityFilter}
+              periodFilter={periodFilter}
+              setPeriodFilter={setPeriodFilter}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              availableStates={availableStates}
+              availableCities={availableCities}
+            />
 
             <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
           </>
