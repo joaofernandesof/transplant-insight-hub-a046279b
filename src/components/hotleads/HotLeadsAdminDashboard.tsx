@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAllLeadStats } from '@/hooks/useAllLeadStats';
+import { BrazilMapChart } from '@/components/hotleads/BrazilMapChart';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -246,6 +247,9 @@ export function HotLeadsAdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Heat Map */}
+      <BrazilMapChart byState={stats.byState} />
 
       {/* Full State Table */}
       <Card>
