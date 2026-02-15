@@ -343,9 +343,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               queuedCount={queuedCount}
             />
             {/* Motivational phrase */}
-            <div className="text-center py-2">
-              <p className="text-lg lg:text-xl font-bold text-muted-foreground italic">
-                🔥 Cada lead é um paciente buscando transformação — <span className="text-orange-600 font-extrabold not-italic">capture antes que outro licenciado o faça.</span>
+            <div className="relative text-center py-4 px-6 my-2 rounded-xl bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 border border-orange-200/60 dark:border-orange-800/40 overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-400/5 via-transparent to-transparent" />
+              <p className="relative text-lg lg:text-2xl font-extrabold bg-gradient-to-r from-orange-600 via-red-500 to-orange-600 bg-clip-text text-transparent tracking-tight">
+                🔥 Cada lead é um paciente buscando transformação
               </p>
             </div>
 
