@@ -79,6 +79,29 @@ export function HotLeadsAdminDashboard() {
     return result;
   }, [stats.byState]);
 
+  // Region data
+  const STATE_TO_REGION: Record<string, string> = {
+    AC: 'Norte', AP: 'Norte', AM: 'Norte', PA: 'Norte', RO: 'Norte', RR: 'Norte', TO: 'Norte',
+    AL: 'Nordeste', BA: 'Nordeste', CE: 'Nordeste', MA: 'Nordeste', PB: 'Nordeste', PE: 'Nordeste', PI: 'Nordeste', RN: 'Nordeste', SE: 'Nordeste',
+    DF: 'Centro-Oeste', GO: 'Centro-Oeste', MT: 'Centro-Oeste', MS: 'Centro-Oeste',
+    ES: 'Sudeste', MG: 'Sudeste', RJ: 'Sudeste', SP: 'Sudeste',
+    PR: 'Sul', RS: 'Sul', SC: 'Sul',
+  };
+  const REGION_COLORS: Record<string, string> = {
+    'Norte': '#06b6d4', 'Nordeste': '#f97316', 'Centro-Oeste': '#eab308',
+    'Sudeste': '#8b5cf6', 'Sul': '#22c55e',
+  };
+  const regionPie = useMemo(() => {
+    const regionMap: Record<string, number> = {};
+    stats.byState.forEach(s => {
+      const region = STATE_TO_REGION[s.state] || 'Outros';
+      regionMap[region] = (regionMap[region] || 0) + s.total;
+    });
+    return Object.entries(regionMap)
+      .map(([name, value]) => ({ name, value, color: REGION_COLORS[name] || '#94a3b8' }))
+      .sort((a, b) => b.value - a.value);
+  }, [stats.byState]);
+
   if (stats.isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -154,14 +177,17 @@ export function HotLeadsAdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Distribuição por Status</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+          <CardContent className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={260}>
               <PieChart>
-                <Pie data={statusPie} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value">
+                <Pie data={statusPie} cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false} fontSize={11}
+                >
                   {statusPie.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
                 <Tooltip contentStyle={tooltipStyle} />
@@ -180,10 +206,10 @@ export function HotLeadsAdminDashboard() {
         </Card>
       </div>
 
-      {/* State Charts Row */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* State Charts + Region */}
+      <div className="grid lg:grid-cols-3 gap-6">
         {/* State Bar Chart */}
-        <Card>
+        <Card className="lg:col-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <MapPin className="h-4 w-4 text-orange-500" />
@@ -206,7 +232,7 @@ export function HotLeadsAdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* State Pie + Distribution */}
+        {/* State Pie */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -214,24 +240,64 @@ export function HotLeadsAdminDashboard() {
               Distribuição por Estado
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
+          <CardContent className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={statePie}
                   cx="50%"
                   cy="50%"
-                  outerRadius={85}
+                  outerRadius={110}
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                  fontSize={10}
+                  labelLine={true}
+                  fontSize={11}
                 >
                   {statePie.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
                 <Tooltip contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Region Pie */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-cyan-500" />
+              Leads por Região
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={regionPie}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={110}
+                  innerRadius={50}
+                  paddingAngle={3}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={true}
+                  fontSize={11}
+                >
+                  {regionPie.map((e, i) => <Cell key={i} fill={e.color} />)}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap justify-center gap-3 mt-2">
+              {regionPie.map((item, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-xs text-muted-foreground">{item.name}</span>
+                  <span className="text-xs font-semibold">{item.value.toLocaleString('pt-BR')}</span>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
