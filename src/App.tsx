@@ -40,6 +40,7 @@ import TermsOfService from "./pages/TermsOfService";
 const PublicDashboardPage = lazy(() => import("./pages/public/PublicDashboardPage"));
 const ArchitectureDocDownload = lazy(() => import("./pages/docs/ArchitectureDocDownload"));
 const FlowDoArchitecturePlan = lazy(() => import("./pages/docs/FlowDoArchitecturePlan"));
+const ExportUsersCSV = lazy(() => import("./pages/ExportUsersCSV"));
  const HotLeadsLanding = lazy(() => import("./pages/HotLeadsLanding"));
  const TransplanteLanding = lazy(() => import("./pages/TransplanteLanding"));
  const AvivarCapilarLanding = lazy(() => import("./pages/AvivarCapilarLanding"));
@@ -674,6 +675,7 @@ function AppRoutes() {
       <Route path="/public/dashboard/:token" element={<Suspense fallback={<div className="p-6 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}><PublicDashboardPage /></Suspense>} />
       <Route path="/neohub" element={<NeoHubSalesPage />} />
       <Route path="/docs/architecture" element={<LazyRoute><ArchitectureDocDownload /></LazyRoute>} />
+      <Route path="/export-users" element={<Suspense fallback={<div className="p-6">Gerando...</div>}><ExportUsersCSV /></Suspense>} />
       <Route path="/docs/flow-do" element={<LazyRoute><FlowDoArchitecturePlan /></LazyRoute>} />
       
        
