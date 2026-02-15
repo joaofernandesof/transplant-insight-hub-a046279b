@@ -112,11 +112,11 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
   // Night pause is visible to ALL users
   if (nightPause) {
     return (
-      <div className="relative rounded-lg border p-3 sm:p-4 mb-3 sm:mb-4 border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full p-2 sm:p-2.5 bg-indigo-500/20 shrink-0">
-              <Moon className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
+      <div className="relative rounded-lg border p-3 mb-3 border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="rounded-full p-2 bg-indigo-500/20 shrink-0">
+              <Moon className="h-4 w-4 text-indigo-400" />
             </div>
             <div className="min-w-0">
               <span className="font-semibold text-sm">Liberação pausada</span>
@@ -125,9 +125,9 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 border-2 border-indigo-500/30 bg-indigo-500/10 self-start">
+          <div className="flex items-center gap-2 rounded-xl px-3 py-2 border-2 border-indigo-500/30 bg-indigo-500/10 shrink-0">
             <Moon className="h-4 w-4 text-indigo-400" />
-            <span className="font-mono text-base sm:text-lg font-bold tabular-nums tracking-wider text-indigo-400">
+            <span className="font-mono text-base font-bold tabular-nums tracking-wider text-indigo-400">
               {nightCountdown}
             </span>
           </div>
