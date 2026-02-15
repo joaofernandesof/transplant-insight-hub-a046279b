@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -20,6 +20,7 @@ import {
 import { LicenseeSettingsDialog } from '@/components/hotleads/LicenseeSettingsDialog';
 import { AdminManualReleaseDialog } from '@/components/hotleads/AdminManualReleaseDialog';
 import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
+import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashboard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { HotLead } from '@/hooks/useHotLeads';
 
@@ -30,6 +31,7 @@ export default function HotLeads() {
     availableLeads,
     myLeads,
     acquiredLeads,
+    queuedCount,
     isLoading,
     isRefreshing,
     fetchLeads,
@@ -47,6 +49,7 @@ export default function HotLeads() {
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
+  const [adminView, setAdminView] = useState<'marketplace' | 'dashboard'>('marketplace');
 
   // Cooldown: 5 minutes (300 seconds) after acquiring a lead
   const COOLDOWN_SECONDS = 300;
@@ -214,6 +217,14 @@ export default function HotLeads() {
             <div className="hidden lg:flex items-center gap-1.5 flex-wrap">
               {isAdmin && (
                 <>
+                  <Button
+                    variant={adminView === 'dashboard' ? 'secondary' : 'outline'}
+                    size="sm"
+                    onClick={() => setAdminView(v => v === 'dashboard' ? 'marketplace' : 'dashboard')}
+                  >
+                    <BarChart3 className="h-4 w-4 mr-1.5" />
+                    <span className="hidden sm:inline">Painel</span>
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setIsManualReleaseOpen(true)}>
                     <Unlock className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Liberar</span>
@@ -255,6 +266,14 @@ export default function HotLeads() {
         <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
           {isAdmin && (
             <>
+              <Button
+                variant={adminView === 'dashboard' ? 'secondary' : 'outline'}
+                size="sm"
+                onClick={() => setAdminView(v => v === 'dashboard' ? 'marketplace' : 'dashboard')}
+              >
+                <BarChart3 className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Painel</span>
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setIsManualReleaseOpen(true)}>
                 <Unlock className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Liberar</span>
@@ -287,144 +306,155 @@ export default function HotLeads() {
           </Button>
         </div>
 
-        {/* Desktop: filters first, then stats, then motivational */}
-        <div className="hidden lg:block">
-          <HotLeadsGlobalFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            stateFilter={stateFilter}
-            setStateFilter={setStateFilter}
-            cityFilter={cityFilter}
-            setCityFilter={setCityFilter}
-            periodFilter={periodFilter}
-            setPeriodFilter={setPeriodFilter}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            availableStates={availableStates}
-            availableCities={availableCities}
-          />
-        </div>
+        {/* Admin Dashboard View */}
+        {isAdmin && adminView === 'dashboard' ? (
+          <div className="mt-2">
+            <HotLeadsAdminDashboard leads={leads} queuedCount={queuedCount} />
+          </div>
+        ) : (
+          <>
+            {/* Desktop: filters first, then stats, then motivational */}
+            <div className="hidden lg:block">
+              <HotLeadsGlobalFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                stateFilter={stateFilter}
+                setStateFilter={setStateFilter}
+                cityFilter={cityFilter}
+                setCityFilter={setCityFilter}
+                periodFilter={periodFilter}
+                setPeriodFilter={setPeriodFilter}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                availableStates={availableStates}
+                availableCities={availableCities}
+              />
+            </div>
 
-        <HotLeadsStats
-          leads={filteredLeads}
-          availableCount={filteredAvailable.length}
-          myLeadsCount={filteredMyLeads.length}
-          acquiredCount={filteredAcquired.length}
-        />
-        {/* Motivational phrase */}
-        <div className="text-center py-2">
-          <p className="text-lg lg:text-xl font-bold text-muted-foreground italic">
-            🔥 Cada lead é um paciente buscando transformação — <span className="text-orange-600 font-extrabold not-italic">capture antes que outro licenciado o faça.</span>
-          </p>
-        </div>
+            <HotLeadsStats
+              leads={filteredLeads}
+              availableCount={filteredAvailable.length}
+              myLeadsCount={filteredMyLeads.length}
+              acquiredCount={filteredAcquired.length}
+            />
+            {/* Motivational phrase */}
+            <div className="text-center py-2">
+              <p className="text-lg lg:text-xl font-bold text-muted-foreground italic">
+                🔥 Cada lead é um paciente buscando transformação — <span className="text-orange-600 font-extrabold not-italic">capture antes que outro licenciado o faça.</span>
+              </p>
+            </div>
 
-        {/* Mobile: filters after motivational text */}
-        <div className="lg:hidden">
-          <HotLeadsGlobalFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            stateFilter={stateFilter}
-            setStateFilter={setStateFilter}
-            cityFilter={cityFilter}
-            setCityFilter={setCityFilter}
-            periodFilter={periodFilter}
-            setPeriodFilter={setPeriodFilter}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            availableStates={availableStates}
-            availableCities={availableCities}
-          />
-        </div>
+            {/* Mobile: filters after motivational text */}
+            <div className="lg:hidden">
+              <HotLeadsGlobalFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                stateFilter={stateFilter}
+                setStateFilter={setStateFilter}
+                cityFilter={cityFilter}
+                setCityFilter={setCityFilter}
+                periodFilter={periodFilter}
+                setPeriodFilter={setPeriodFilter}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                availableStates={availableStates}
+                availableCities={availableCities}
+              />
+            </div>
 
-        <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
+            <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
+          </>
+        )}
       </div>
 
       {/* Scrollable columns area - takes remaining height */}
-      <div className="flex-1 px-3 lg:px-4 pb-4">
-        {/* Mobile: Tabs */}
-        <div className="lg:hidden">
-          <Tabs defaultValue="available" className="flex flex-col">
-            <TabsList className="w-full grid grid-cols-3 mb-3 shrink-0">
-              <TabsTrigger value="available" className="text-xs">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500 mr-1.5" />
-                Disponíveis ({filteredAvailable.length})
-              </TabsTrigger>
-              <TabsTrigger value="mine" className="text-xs">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500 mr-1.5" />
-                Meus ({filteredMyLeads.length})
-              </TabsTrigger>
-              <TabsTrigger value="lost" className="text-xs">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500 mr-1.5" />
-                Perdidos ({filteredAcquired.length})
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="available" className="flex-1 mt-0 min-h-0">
-              <PaginatedLeadColumn
-                title="Leads Disponíveis"
-                dotColor="bg-green-500"
-                items={filteredAvailable}
-                emptyMessage="Nenhum lead disponível no momento."
-                renderItem={(lead) => (
-                  <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
-                )}
-              />
-            </TabsContent>
-            <TabsContent value="mine" className="flex-1 mt-0 min-h-0">
-              <PaginatedLeadColumn
-                title="Meus Leads"
-                dotColor="bg-blue-500"
-                items={myLeads}
-                emptyMessage="Você ainda não adquiriu nenhum lead."
-                renderItem={(lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
-                )}
-              />
-            </TabsContent>
-            <TabsContent value="lost" className="flex-1 mt-0 min-h-0">
-              <PaginatedLeadColumn
-                title="Oportunidade Perdida"
-                dotColor="bg-red-500"
-                items={acquiredLeads}
-                emptyMessage="Nenhuma oportunidade perdida no momento."
-                renderItem={(lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
-                )}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+      {(!isAdmin || adminView === 'marketplace') && (
+        <div className="flex-1 px-3 lg:px-4 pb-4">
+          {/* Mobile: Tabs */}
+          <div className="lg:hidden">
+            <Tabs defaultValue="available" className="flex flex-col">
+              <TabsList className="w-full grid grid-cols-3 mb-3 shrink-0">
+                <TabsTrigger value="available" className="text-xs">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500 mr-1.5" />
+                  Disponíveis ({filteredAvailable.length})
+                </TabsTrigger>
+                <TabsTrigger value="mine" className="text-xs">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500 mr-1.5" />
+                  Meus ({filteredMyLeads.length})
+                </TabsTrigger>
+                <TabsTrigger value="lost" className="text-xs">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500 mr-1.5" />
+                  Perdidos ({filteredAcquired.length})
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="available" className="flex-1 mt-0 min-h-0">
+                <PaginatedLeadColumn
+                  title="Leads Disponíveis"
+                  dotColor="bg-green-500"
+                  items={filteredAvailable}
+                  emptyMessage="Nenhum lead disponível no momento."
+                  renderItem={(lead) => (
+                    <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
+                  )}
+                />
+              </TabsContent>
+              <TabsContent value="mine" className="flex-1 mt-0 min-h-0">
+                <PaginatedLeadColumn
+                  title="Meus Leads"
+                  dotColor="bg-blue-500"
+                  items={myLeads}
+                  emptyMessage="Você ainda não adquiriu nenhum lead."
+                  renderItem={(lead) => (
+                    <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
+                  )}
+                />
+              </TabsContent>
+              <TabsContent value="lost" className="flex-1 mt-0 min-h-0">
+                <PaginatedLeadColumn
+                  title="Oportunidade Perdida"
+                  dotColor="bg-red-500"
+                  items={acquiredLeads}
+                  emptyMessage="Nenhuma oportunidade perdida no momento."
+                  renderItem={(lead) => (
+                    <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
+                  )}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
 
-        {/* Desktop: Grid */}
-        <div className="hidden lg:grid grid-cols-3 gap-6 h-full">
-          <PaginatedLeadColumn
-            title="Leads Disponíveis"
-            dotColor="bg-green-500"
-            items={filteredAvailable}
-            emptyMessage="Nenhum lead disponível no momento."
-            renderItem={(lead) => (
-              <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
-            )}
-          />
-          <PaginatedLeadColumn
-            title="Meus Leads"
-            dotColor="bg-blue-500"
-            items={myLeads}
-            emptyMessage="Você ainda não adquiriu nenhum lead."
-            renderItem={(lead) => (
-              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
-            )}
-          />
-          <PaginatedLeadColumn
-            title="Oportunidade Perdida"
-            dotColor="bg-red-500"
-            items={acquiredLeads}
-            emptyMessage="Nenhuma oportunidade perdida no momento."
-            renderItem={(lead) => (
-              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
-            )}
-          />
+          {/* Desktop: Grid */}
+          <div className="hidden lg:grid grid-cols-3 gap-6 h-full">
+            <PaginatedLeadColumn
+              title="Leads Disponíveis"
+              dotColor="bg-green-500"
+              items={filteredAvailable}
+              emptyMessage="Nenhum lead disponível no momento."
+              renderItem={(lead) => (
+                <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
+              )}
+            />
+            <PaginatedLeadColumn
+              title="Meus Leads"
+              dotColor="bg-blue-500"
+              items={myLeads}
+              emptyMessage="Você ainda não adquiriu nenhum lead."
+              renderItem={(lead) => (
+                <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
+              )}
+            />
+            <PaginatedLeadColumn
+              title="Oportunidade Perdida"
+              dotColor="bg-red-500"
+              items={acquiredLeads}
+              emptyMessage="Nenhuma oportunidade perdida no momento."
+              renderItem={(lead) => (
+                <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
+              )}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Dialogs */}
       <ConfettiEffect active={showConfetti} />
