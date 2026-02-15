@@ -26,66 +26,41 @@ const tooltipStyle = {
 export function HotLeadsAdminDashboard() {
   const stats = useAllLeadStats();
 
-  // AI Insights
-  const insights = useMemo(() => {
-    if (stats.isLoading || stats.total === 0) return [];
-    const items: { icon: typeof Lightbulb; color: string; bg: string; text: string }[] = [];
+  // Per-KPI insights
+  const kpiInsights = useMemo(() => {
+    if (stats.isLoading || stats.total === 0) return { total: null, queued: null, available: null, claimed: null };
+    
+    const result: Record<string, string | null> = { total: null, queued: null, available: null, claimed: null };
 
-    // Top state concentration
+    // Total insight - top state concentration + diversity
     const topState = stats.byState[0];
     if (topState) {
       const pct = ((topState.total / stats.total) * 100).toFixed(0);
-      items.push({
-        icon: MapPin,
-        color: 'text-orange-600',
-        bg: 'bg-orange-50 dark:bg-orange-950',
-        text: `${topState.state} concentra ${pct}% dos leads (${topState.total.toLocaleString('pt-BR')}). Considere estratégias regionais.`,
-      });
+      result.total = `${topState.state} concentra ${pct}% (${topState.total.toLocaleString('pt-BR')}). Base em ${stats.byState.length} estados.`;
     }
 
-    // Low capture rate
-    const captureRate = stats.total > 0 ? (stats.claimed / stats.total) * 100 : 0;
-    if (captureRate < 5) {
-      items.push({
-        icon: AlertTriangle,
-        color: 'text-amber-600',
-        bg: 'bg-amber-50 dark:bg-amber-950',
-        text: `Taxa de captação de apenas ${captureRate.toFixed(1)}%. ${stats.available.toLocaleString('pt-BR')} leads disponíveis aguardando ação.`,
-      });
+    // Queue insight
+    if (stats.queued > 0) {
+      result.queued = `Fila sendo liberada gradualmente para manter qualidade de distribuição.`;
     }
 
-    // Queue size
-    if (stats.queued > 1000) {
-      items.push({
-        icon: Clock,
-        color: 'text-blue-600',
-        bg: 'bg-blue-50 dark:bg-blue-950',
-        text: `${stats.queued.toLocaleString('pt-BR')} leads na fila de espera. A fila está sendo liberada gradualmente para manter qualidade.`,
-      });
-    }
-
-    // States with zero captures
+    // Available insight - zero capture states
     const zeroCaptureStates = stats.byState.filter(s => s.claimed === 0 && s.total >= 5);
     if (zeroCaptureStates.length > 0) {
-      items.push({
-        icon: Zap,
-        color: 'text-purple-600',
-        bg: 'bg-purple-50 dark:bg-purple-950',
-        text: `${zeroCaptureStates.length} estado(s) com leads mas sem nenhuma captação: ${zeroCaptureStates.slice(0, 3).map(s => s.state).join(', ')}. Oportunidade!`,
-      });
+      result.available = `${zeroCaptureStates.length} estado(s) sem captação: ${zeroCaptureStates.slice(0, 3).map(s => s.state).join(', ')}. Oportunidade!`;
+    } else if (stats.available > 0) {
+      result.available = `${stats.available.toLocaleString('pt-BR')} leads aguardando ação dos licenciados.`;
     }
 
-    // Diversity
-    if (stats.byState.length >= 10) {
-      items.push({
-        icon: CheckCircle2,
-        color: 'text-green-600',
-        bg: 'bg-green-50 dark:bg-green-950',
-        text: `Base diversificada: leads distribuídos em ${stats.byState.length} estados e ${stats.byCity.length}+ cidades.`,
-      });
+    // Claimed insight - capture rate
+    const captureRate = stats.total > 0 ? (stats.claimed / stats.total) * 100 : 0;
+    if (captureRate < 5 && stats.total > 0) {
+      result.claimed = `Taxa de captação de ${captureRate.toFixed(1)}%. Engaje os licenciados para aumentar.`;
+    } else if (stats.claimed > 0) {
+      result.claimed = `${captureRate.toFixed(1)}% dos leads já foram captados pelos licenciados.`;
     }
 
-    return items;
+    return result;
   }, [stats]);
 
   // Status pie
@@ -114,13 +89,13 @@ export function HotLeadsAdminDashboard() {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* KPI Cards */}
+      {/* KPI Cards with embedded insights */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Total de Leads', value: stats.total, icon: Flame, gradient: 'from-orange-500 to-red-500' },
-          { label: 'Na Fila', value: stats.queued, icon: Clock, gradient: 'from-yellow-500 to-amber-500' },
-          { label: 'Disponíveis', value: stats.available, icon: Target, gradient: 'from-green-500 to-emerald-500' },
-          { label: 'Adquiridos', value: stats.claimed, icon: UserCheck, gradient: 'from-blue-500 to-indigo-500' },
+          { label: 'Total de Leads', value: stats.total, icon: Flame, gradient: 'from-orange-500 to-red-500', insight: kpiInsights.total },
+          { label: 'Na Fila', value: stats.queued, icon: Clock, gradient: 'from-yellow-500 to-amber-500', insight: kpiInsights.queued },
+          { label: 'Disponíveis', value: stats.available, icon: Target, gradient: 'from-green-500 to-emerald-500', insight: kpiInsights.available },
+          { label: 'Adquiridos', value: stats.claimed, icon: UserCheck, gradient: 'from-blue-500 to-indigo-500', insight: kpiInsights.claimed },
         ].map(kpi => (
           <Card key={kpi.label} className={`bg-gradient-to-br ${kpi.gradient} text-white border-0 shadow-lg`}>
             <CardContent className="pt-5 pb-4">
@@ -131,33 +106,18 @@ export function HotLeadsAdminDashboard() {
                 </div>
                 <kpi.icon className="h-10 w-10 text-white/30" />
               </div>
+              {kpi.insight && (
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-3.5 w-3.5 text-white/70 shrink-0 mt-0.5" />
+                    <p className="text-[10px] leading-relaxed text-white/80">{kpi.insight}</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
-
-      {/* AI Insights */}
-      {insights.length > 0 && (
-        <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-amber-500" />
-              Insights Inteligentes
-              <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700 dark:text-amber-400">IA</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2">
-              {insights.map((insight, i) => (
-                <div key={i} className={`flex items-start gap-3 p-3 rounded-lg ${insight.bg}`}>
-                  <insight.icon className={`h-4 w-4 ${insight.color} shrink-0 mt-0.5`} />
-                  <p className="text-xs leading-relaxed">{insight.text}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Timeline + Status Pie */}
       <div className="grid lg:grid-cols-3 gap-6">
