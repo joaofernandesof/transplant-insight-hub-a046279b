@@ -36,6 +36,7 @@ export function AvailableLeadCard({ lead, onAcquire, cooldownRemaining = 0, form
   const arrivalDate = dateToShow
     ? format(new Date(dateToShow), "dd/MM/yyyy")
     : null;
+  const isNew = lead.available_at && (Date.now() - new Date(lead.available_at).getTime()) < 30 * 60 * 1000;
 
   return (
     <Card className={`group border border-border/60 hover:border-green-400/60 hover:shadow-lg transition-all duration-200 overflow-hidden ${selected ? 'ring-2 ring-primary' : ''}`}>
@@ -55,6 +56,9 @@ export function AvailableLeadCard({ lead, onAcquire, cooldownRemaining = 0, form
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <h3 className="font-semibold text-sm truncate">{expanded ? lead.name : maskedName}</h3>
+                {isNew && (
+                  <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full leading-none animate-pulse">NEW</span>
+                )}
                 {isAdmin && (
                   <button
                     onClick={() => setExpanded(!expanded)}

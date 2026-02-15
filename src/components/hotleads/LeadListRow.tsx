@@ -59,6 +59,7 @@ export function LeadListRow({
   const maskedName = maskName(lead.name);
   const dateToShow = lead.available_at || lead.created_at;
   const arrivalDate = dateToShow ? format(new Date(dateToShow), 'dd/MM/yyyy') : null;
+  const isNew = variant === 'available' && lead.available_at && (Date.now() - new Date(lead.available_at).getTime()) < 30 * 60 * 1000;
   const isOwned = variant === 'mine';
 
   const handleResendEmail = async () => {
@@ -102,6 +103,9 @@ export function LeadListRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="font-medium text-sm truncate">{expanded ? lead.name : maskedName}</span>
+            {isNew && (
+              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full leading-none animate-pulse">NEW</span>
+            )}
             {isAdmin && (
               <button onClick={() => setExpanded(!expanded)} className="shrink-0">
                 {expanded ? <EyeOff className="h-3 w-3 text-orange-500" /> : <Eye className="h-3 w-3 text-amber-500" />}
@@ -188,6 +192,9 @@ export function LeadListRow({
           {/* Name + eye */}
           <div className="flex items-center gap-1.5">
             <span className="font-medium text-sm truncate">{expanded ? lead.name : maskedName}</span>
+            {isNew && (
+              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full leading-none animate-pulse">NEW</span>
+            )}
             {isAdmin && (
               <button onClick={() => setExpanded(!expanded)} className="shrink-0">
                 {expanded ? <EyeOff className="h-3 w-3 text-orange-500" /> : <Eye className="h-3 w-3 text-amber-500" />}
