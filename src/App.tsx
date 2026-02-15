@@ -581,7 +581,7 @@ function HotLeadsRoutes() {
           <Routes>
             <Route index element={<HotLeads />} />
             <Route path="dashboard" element={<HotLeads initialView="dashboard" />} />
-            <Route path="my-dashboard" element={<HotLeads initialView="my-dashboard" />} />
+            
             <Route path="settings" element={<HotLeads initialView="settings" />} />
             <Route path="*" element={<Navigate to="/hotleads" replace />} />
           </Routes>
