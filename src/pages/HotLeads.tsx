@@ -257,7 +257,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-y-auto">
+    <div className="flex-1 flex flex-col bg-background h-[calc(100dvh-52px)] lg:h-dvh overflow-y-auto">
       {/* Header */}
       <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 sticky top-0 z-20 hidden lg:block">
         <div className="px-4 py-3">
@@ -322,7 +322,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       </header>
 
       {/* Fixed top section - sticky below header */}
-      <div className="shrink-0 px-3 lg:px-4 py-2 lg:py-3 space-y-2 lg:space-y-3 sticky top-0 lg:top-[57px] z-10 bg-background">
+      <div className="shrink-0 px-3 lg:px-4 py-2 lg:py-3 space-y-2 lg:space-y-3">
         {/* Mobile action buttons - moved out of red header */}
         <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
           {isAdmin && (
@@ -430,7 +430,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
           )}
 
           {/* Pill toggle buttons + filters - sticky */}
-          <div className="flex flex-wrap items-center gap-2 mb-4 sticky top-0 lg:top-[57px] z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
+          <div className="flex flex-wrap items-center gap-2 mb-4 sticky top-0 z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
             {[
               { key: 'available', label: 'Disponíveis', count: filteredAvailable.length, color: 'bg-green-500' },
               { key: 'mine', label: 'Meus Leads', count: filteredMyLeads.length, color: 'bg-blue-500', alert: overdueLeads.length > 0 },
