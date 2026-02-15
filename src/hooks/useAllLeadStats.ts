@@ -9,6 +9,7 @@ export interface TopLicensee {
   total_claimed: number;
   first_claim: string;
   last_claim: string;
+  total_online_seconds: number;
 }
 
 export interface AllLeadStats {
@@ -33,7 +34,7 @@ export function useAllLeadStats(): AllLeadStats {
       setIsLoading(true);
       
       // Fetch leads and licensee data in parallel
-      const [leadsResult, licenseeResult] = await Promise.all([
+      const [leadsResult, licenseeResult, sessionsResult] = await Promise.all([
         supabase
           .from('leads')
           .select('state, city, release_status, claimed_by, created_at, claimed_at')
@@ -49,10 +50,23 @@ export function useAllLeadStats(): AllLeadStats {
           .eq('neohub_user_profiles.profile', 'licenciado')
           .eq('neohub_user_profiles.is_active', true)
           .eq('is_active', true),
+        supabase
+          .from('user_sessions')
+          .select('user_id, duration_seconds')
+          .not('duration_seconds', 'is', null),
       ]);
 
       const leadsData = leadsResult.data || [];
       const licensees = licenseeResult.data || [];
+      const sessionsData = sessionsResult.data || [];
+
+      // Build online time map
+      const onlineMap: Record<string, number> = {};
+      sessionsData.forEach((s: any) => {
+        if (s.user_id && s.duration_seconds) {
+          onlineMap[s.user_id] = (onlineMap[s.user_id] || 0) + s.duration_seconds;
+        }
+      });
       
       setLeads(leadsData);
 
@@ -79,6 +93,7 @@ export function useAllLeadStats(): AllLeadStats {
         total_claimed: claimMap[lic.user_id]?.count || 0,
         first_claim: claimMap[lic.user_id]?.first || '',
         last_claim: claimMap[lic.user_id]?.last || '',
+        total_online_seconds: onlineMap[lic.user_id] || 0,
       }));
 
       allLicensees.sort((a, b) => b.total_claimed - a.total_claimed);
