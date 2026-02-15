@@ -302,5 +302,6 @@ export function useHotLeads() {
     updateLeadOutcome,
     overdueLeads,
     isBlocked,
+    profiles,
   };
 }

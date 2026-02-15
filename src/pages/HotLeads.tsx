@@ -50,6 +50,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     updateLeadOutcome,
     overdueLeads,
     isBlocked,
+    profiles,
   } = useHotLeads();
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
 
@@ -124,6 +125,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [cityFilter, setCityFilter] = useState('all');
   const [periodFilter, setPeriodFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
+  const [userFilter, setUserFilter] = useState('all');
   const [activeTab, setActiveTab] = useState<'available' | 'mine' | 'lost'>('available');
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
@@ -140,7 +142,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     return [...new Set(filtered.map(l => l.city).filter(Boolean))] as string[];
   }, [leads, stateFilter]);
 
-  // Filtered and sorted leads
+  // Available users for admin filter
+  const availableUsers = useMemo(() => {
+    return Object.entries(profiles).map(([id, name]) => ({ id, name }));
+  }, [profiles]);
+
   const filteredLeads = useMemo(() => {
     const filtered = leads.filter(lead => {
       if (searchTerm) {
@@ -153,6 +159,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       }
       if (stateFilter !== 'all' && lead.state !== stateFilter) return false;
       if (cityFilter !== 'all' && lead.city !== cityFilter) return false;
+      if (userFilter !== 'all' && lead.claimed_by !== userFilter) return false;
       if (periodFilter !== 'all') {
         const leadDate = new Date(lead.created_at);
         const now = new Date();
@@ -178,7 +185,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
-  }, [leads, searchTerm, stateFilter, cityFilter, periodFilter, sortBy]);
+  }, [leads, searchTerm, stateFilter, cityFilter, periodFilter, sortBy, userFilter]);
 
   // Filtered subsets
   const filteredAvailable = useMemo(() => 
@@ -205,7 +212,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   }, [activeItems, activePage]);
 
   // Reset page and selection when tab or filters change
-  useEffect(() => { setActivePage(1); setSelectedLeads(new Set()); }, [activeTab, searchTerm, stateFilter, cityFilter, periodFilter, sortBy]);
+  useEffect(() => { setActivePage(1); setSelectedLeads(new Set()); }, [activeTab, searchTerm, stateFilter, cityFilter, periodFilter, sortBy, userFilter]);
 
   const toggleLeadSelection = useCallback((id: string) => {
     setSelectedLeads(prev => {
@@ -468,6 +475,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 setSortBy={setSortBy}
                 availableStates={availableStates}
                 availableCities={availableCities}
+                userFilter={userFilter}
+                setUserFilter={setUserFilter}
+                availableUsers={availableUsers}
+                isAdmin={isAdmin}
                 inline
               />
             </div>
@@ -486,6 +497,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 setSortBy={setSortBy}
                 availableStates={availableStates}
                 availableCities={availableCities}
+                userFilter={userFilter}
+                setUserFilter={setUserFilter}
+                availableUsers={availableUsers}
+                isAdmin={isAdmin}
               />
             </div>
 
