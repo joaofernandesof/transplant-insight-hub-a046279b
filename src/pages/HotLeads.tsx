@@ -375,7 +375,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 sticky top-0 z-20">
         <div className="px-3 lg:px-4 py-2 lg:py-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h1 className="text-lg lg:text-xl font-bold flex items-center gap-2 text-white">
+            <h1 className="text-lg lg:text-xl font-bold hidden lg:flex items-center gap-2 text-white">
               <Flame className="h-5 w-5 lg:h-6 lg:w-6 text-white/80" />
               HotLeads
             </h1>
