@@ -109,9 +109,7 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
     }
   };
 
-  if (!isAdmin || !info || info.queued_count === 0) return null;
-
-  // Night pause UI
+  // Night pause is visible to ALL users
   if (nightPause) {
     return (
       <div className="relative rounded-lg border p-4 mb-4 border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10">
@@ -137,6 +135,9 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
       </div>
     );
   }
+
+  // Non-night content is admin-only
+  if (!isAdmin || !info || info.queued_count === 0) return null;
 
   const isUrgent = countdown > 0 && countdown <= 10;
   const isAboutToRelease = countdown === 0 && info.next_release_at && !justReleased;
