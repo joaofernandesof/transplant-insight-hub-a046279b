@@ -10,3 +10,4 @@ export { HotLeadsCharts } from './HotLeadsCharts';
 export { HotLeadsGlobalFilters } from './HotLeadsGlobalFilters';
 export { NextLeadReleaseBanner } from './NextLeadReleaseBanner';
 export { ConfettiEffect } from './ConfettiEffect';
+export { LeadListRow } from './LeadListRow';

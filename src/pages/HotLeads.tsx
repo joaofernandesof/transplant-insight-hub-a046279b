@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -17,6 +17,7 @@ import {
   PaginatedLeadColumn,
   HotLeadsGlobalFilters,
   NextLeadReleaseBanner,
+  LeadListRow,
 } from '@/components/hotleads';
 import { LicenseeSettingsDialog } from '@/components/hotleads/LicenseeSettingsDialog';
 import { AdminManualReleaseDialog } from '@/components/hotleads/AdminManualReleaseDialog';
@@ -124,6 +125,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [periodFilter, setPeriodFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [activeTab, setActiveTab] = useState<'available' | 'mine' | 'lost'>('available');
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const [activePage, setActivePage] = useState(1);
 
   // Available states for filter
@@ -201,8 +204,16 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     return activeItems.slice(start, start + ITEMS_PER_PAGE);
   }, [activeItems, activePage]);
 
-  // Reset page when tab or filters change
-  useEffect(() => { setActivePage(1); }, [activeTab, searchTerm, stateFilter, cityFilter, periodFilter, sortBy]);
+  // Reset page and selection when tab or filters change
+  useEffect(() => { setActivePage(1); setSelectedLeads(new Set()); }, [activeTab, searchTerm, stateFilter, cityFilter, periodFilter, sortBy]);
+
+  const toggleLeadSelection = useCallback((id: string) => {
+    setSelectedLeads(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
 
   const handleAcquireClick = (lead: HotLead) => {
     if (isBlocked) {
@@ -477,41 +488,93 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 availableCities={availableCities}
               />
             </div>
+
+            {/* View toggle */}
+            <div className="flex items-center border rounded-lg overflow-hidden shrink-0 ml-auto">
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`p-1.5 transition-colors ${viewMode === 'cards' ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}
+                title="Cards"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 transition-colors ${viewMode === 'list' ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}
+                title="Lista"
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
-          {/* 4-column card grid */}
-          {activeTab === 'available' && (
-            filteredAvailable.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">Nenhum lead disponível no momento.</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {paginatedActive.map((lead) => (
-                  <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
-                ))}
-              </div>
-            )
+          {/* Selection count */}
+          {selectedLeads.size > 0 && (
+            <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{selectedLeads.size}</span> selecionado{selectedLeads.size > 1 ? 's' : ''}
+              <button onClick={() => setSelectedLeads(new Set())} className="text-xs underline text-primary hover:text-primary/80">Limpar</button>
+            </div>
           )}
-          {activeTab === 'mine' && (
-            filteredMyLeads.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">Você ainda não adquiriu nenhum lead.</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {paginatedActive.map((lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} onUpdateOutcome={updateLeadOutcome} />
-                ))}
-              </div>
-            )
-          )}
-          {activeTab === 'lost' && (
-            filteredAcquired.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">Nenhuma oportunidade perdida no momento.</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {paginatedActive.map((lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
-                ))}
-              </div>
-            )
+
+          {/* Card grid or List view */}
+          {viewMode === 'cards' ? (
+            <>
+              {activeTab === 'available' && (
+                filteredAvailable.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-12">Nenhum lead disponível no momento.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {paginatedActive.map((lead) => (
+                      <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} selected={selectedLeads.has(lead.id)} onSelect={toggleLeadSelection} />
+                    ))}
+                  </div>
+                )
+              )}
+              {activeTab === 'mine' && (
+                filteredMyLeads.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-12">Você ainda não adquiriu nenhum lead.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {paginatedActive.map((lead) => (
+                      <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} onUpdateOutcome={updateLeadOutcome} selected={selectedLeads.has(lead.id)} onSelect={toggleLeadSelection} />
+                    ))}
+                  </div>
+                )
+              )}
+              {activeTab === 'lost' && (
+                filteredAcquired.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-12">Nenhuma oportunidade perdida no momento.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {paginatedActive.map((lead) => (
+                      <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} selected={selectedLeads.has(lead.id)} onSelect={toggleLeadSelection} />
+                    ))}
+                  </div>
+                )
+              )}
+            </>
+          ) : (
+            <div className="rounded-lg border border-border overflow-hidden">
+              {paginatedActive.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-12">Nenhum lead encontrado.</p>
+              ) : (
+                paginatedActive.map((lead) => (
+                  <LeadListRow
+                    key={lead.id}
+                    lead={lead}
+                    variant={activeTab}
+                    selected={selectedLeads.has(lead.id)}
+                    onSelect={toggleLeadSelection}
+                    onAcquire={activeTab === 'available' ? handleAcquireClick : undefined}
+                    cooldownRemaining={activeTab === 'available' ? cooldownRemaining : undefined}
+                    formatCooldown={activeTab === 'available' ? formatCooldown : undefined}
+                    claimerName={activeTab === 'lost' ? getClaimerName(lead.claimed_by) : undefined}
+                    onRelease={releaseLead}
+                    onUpdateOutcome={activeTab === 'mine' ? updateLeadOutcome : undefined}
+                  />
+                ))
+              )}
+            </div>
           )}
 
           {/* Pagination */}
