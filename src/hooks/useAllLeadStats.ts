@@ -10,6 +10,8 @@ export interface TopLicensee {
   first_claim: string;
   last_claim: string;
   total_online_seconds: number;
+  city: string | null;
+  state: string | null;
 }
 
 export interface AllLeadStats {
@@ -40,7 +42,7 @@ export function useAllLeadStats(): AllLeadStats {
         supabase
           .from('neohub_users')
           .select(`
-            user_id, full_name, email, avatar_url,
+            user_id, full_name, email, avatar_url, address_city, address_state,
             neohub_user_profiles!inner(profile, is_active)
           `)
           .eq('neohub_user_profiles.profile', 'licenciado')
@@ -84,6 +86,8 @@ export function useAllLeadStats(): AllLeadStats {
         first_claim: claimStats[lic.user_id]?.first_claim || '',
         last_claim: claimStats[lic.user_id]?.last_claim || '',
         total_online_seconds: onlineMap[lic.user_id] || 0,
+        city: lic.address_city || null,
+        state: lic.address_state || null,
       }));
 
       allLicensees.sort((a, b) => b.total_claimed - a.total_claimed);
