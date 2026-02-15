@@ -191,7 +191,7 @@ export function BrazilMapChart({ leads, byState: byStateProp }: BrazilMapChartPr
 
         <svg
           viewBox="0 0 460 460"
-          className="w-full max-h-[420px]"
+          className="w-full max-h-[800px]"
           style={{ aspectRatio: '1' }}
         >
           {Object.entries(STATE_PATHS).map(([state, { d, label }]) => {
