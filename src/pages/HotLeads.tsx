@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3 } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, LayoutGrid } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -217,14 +217,25 @@ export default function HotLeads() {
             <div className="hidden lg:flex items-center gap-1.5 flex-wrap">
               {isAdmin && (
                 <>
-                  <Button
-                    variant={adminView === 'dashboard' ? 'secondary' : 'outline'}
-                    size="sm"
-                    onClick={() => setAdminView(v => v === 'dashboard' ? 'marketplace' : 'dashboard')}
-                  >
-                    <BarChart3 className="h-4 w-4 mr-1.5" />
-                    <span className="hidden sm:inline">Painel</span>
-                  </Button>
+                  {adminView === 'dashboard' ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setAdminView('marketplace')}
+                    >
+                      <LayoutGrid className="h-4 w-4 mr-1.5" />
+                      <span className="hidden sm:inline">Marketplace</span>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAdminView('dashboard')}
+                    >
+                      <BarChart3 className="h-4 w-4 mr-1.5" />
+                      <span className="hidden sm:inline">Painel</span>
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm" onClick={() => setIsManualReleaseOpen(true)}>
                     <Unlock className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Liberar</span>
@@ -266,14 +277,17 @@ export default function HotLeads() {
         <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
           {isAdmin && (
             <>
-              <Button
-                variant={adminView === 'dashboard' ? 'secondary' : 'outline'}
-                size="sm"
-                onClick={() => setAdminView(v => v === 'dashboard' ? 'marketplace' : 'dashboard')}
-              >
-                <BarChart3 className="h-4 w-4 mr-1.5" />
-                <span className="hidden sm:inline">Painel</span>
-              </Button>
+              {adminView === 'dashboard' ? (
+                <Button variant="secondary" size="sm" onClick={() => setAdminView('marketplace')}>
+                  <LayoutGrid className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Marketplace</span>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => setAdminView('dashboard')}>
+                  <BarChart3 className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Painel</span>
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={() => setIsManualReleaseOpen(true)}>
                 <Unlock className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Liberar</span>
