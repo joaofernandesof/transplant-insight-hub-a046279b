@@ -15,7 +15,7 @@ const EXTERNAL_LABELS: Record<string, { anchor: [number, number]; external: [num
   PE: { anchor: [410, 165], external: [455, 158] },
   PB: { anchor: [434, 148], external: [465, 140] },
   RN: { anchor: [431, 135], external: [465, 122] },
-  DF: { anchor: [301, 250], external: [320, 260] },
+  DF: { anchor: [299, 246], external: [320, 232] },
   ES: { anchor: [380, 300], external: [415, 305] },
   RJ: { anchor: [355, 330], external: [400, 340] },
 };
