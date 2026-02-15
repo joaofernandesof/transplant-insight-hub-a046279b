@@ -5935,6 +5935,83 @@ export type Database = {
           },
         ]
       }
+      hotlead_gamification_points: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          lead_id: string | null
+          metadata: Json | null
+          points: number
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          points?: number
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          points?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotlead_gamification_points_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotlead_gamification_profiles: {
+        Row: {
+          achievements_unlocked: string[] | null
+          created_at: string
+          current_streak: number
+          id: string
+          last_active_date: string | null
+          level: number
+          longest_streak: number
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievements_unlocked?: string[] | null
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_active_date?: string | null
+          level?: number
+          longest_streak?: number
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievements_unlocked?: string[] | null
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_active_date?: string | null
+          level?: number
+          longest_streak?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hotleads_captures: {
         Row: {
           assigned_at: string | null
