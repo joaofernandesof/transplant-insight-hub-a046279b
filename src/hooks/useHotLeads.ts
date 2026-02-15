@@ -84,13 +84,13 @@ export function useHotLeads() {
 
       // Fetch only users with hotleads portal access for the filter dropdown
       const { data: hotleadsData, error: hotleadsError } = await supabase
-        .from('profiles')
-        .select('user_id, name')
+        .from('neohub_users')
+        .select('user_id, full_name')
         .contains('allowed_portals', ['hotleads']);
       if (hotleadsError) throw hotleadsError;
       const hotleadsMap: Record<string, string> = {};
       (hotleadsData as any[])?.forEach((p: any) => {
-        hotleadsMap[p.user_id] = p.name;
+        hotleadsMap[p.user_id] = p.full_name;
       });
       setHotleadsProfiles(hotleadsMap);
     } catch (error) {
