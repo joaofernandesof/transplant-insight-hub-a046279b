@@ -49,10 +49,10 @@ export function BrazilMapChart({ leads }: BrazilMapChartProps) {
           </span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={420}>
-          <BarChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+      <CardContent className="px-2 sm:px-6">
+        <ResponsiveContainer width="100%" height={320}>
+          <BarChart data={chartData} layout="horizontal" margin={{ top: 20, right: 5, left: 5, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="hsl(var(--border))" />
             <XAxis
               dataKey="state"
               tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
@@ -70,11 +70,12 @@ export function BrazilMapChart({ leads }: BrazilMapChartProps) {
               }}
               formatter={(value: number) => [`${value} leads`, 'Total']}
             />
-            <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={28}>
+            <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={24}>
               <LabelList
                 dataKey="count"
                 position="top"
-                style={{ fontSize: 9, fontWeight: 600, fill: 'hsl(var(--foreground))' }}
+                style={{ fontSize: 8, fontWeight: 600, fill: 'hsl(var(--foreground))' }}
+                formatter={(v: number) => v > 0 ? v : ''}
               />
               {chartData.map((entry, index) => (
                 <Cell key={index} fill={getBarColor(entry.count)} />
