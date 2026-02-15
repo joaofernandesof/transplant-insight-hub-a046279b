@@ -65,14 +65,14 @@ export function AvailableLeadCard({ lead, onAcquire, cooldownRemaining = 0, form
           {/* Info rows */}
           <div className="space-y-1.5 mb-3">
             {location && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <MapPin className="h-3 w-3 shrink-0 text-green-500" />
+              <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 shrink-0 text-green-500" />
                 {location}
               </p>
             )}
             {arrivalDate && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <Calendar className="h-3 w-3 shrink-0 text-green-500" />
+              <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 shrink-0 text-green-500" />
                 {arrivalDate}
               </p>
             )}
