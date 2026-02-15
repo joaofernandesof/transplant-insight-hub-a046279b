@@ -11,24 +11,26 @@ interface HotLeadsStatsProps {
 
 export function HotLeadsStats({ leads, availableCount, myLeadsCount, acquiredCount, queuedCount }: HotLeadsStatsProps) {
   const stats = [
-    { label: 'Na Fila', value: queuedCount, icon: Clock, bg: 'bg-yellow-50 dark:bg-yellow-950', iconColor: 'text-yellow-500', border: 'border-yellow-200 dark:border-yellow-800' },
-    { label: 'Disponíveis', value: availableCount, icon: Target, bg: 'bg-green-50 dark:bg-green-950', iconColor: 'text-green-500', border: 'border-green-200 dark:border-green-800' },
-    { label: 'Adquiridos', value: acquiredCount, icon: UserCheck, bg: 'bg-blue-50 dark:bg-blue-950', iconColor: 'text-blue-500', border: 'border-blue-200 dark:border-blue-800' },
+    { label: 'Total de Leads', value: leads.length + queuedCount, icon: Flame, gradient: 'from-orange-500 to-red-500' },
+    { label: 'Na Fila', value: queuedCount, icon: Clock, gradient: 'from-yellow-400 to-amber-500' },
+    { label: 'Disponíveis', value: availableCount, icon: Target, gradient: 'from-green-400 to-emerald-600' },
+    { label: 'Adquiridos', value: acquiredCount + myLeadsCount, icon: UserCheck, gradient: 'from-blue-500 to-indigo-600' },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {stats.map((stat) => (
-        <div key={stat.label} className={`rounded-xl border-2 ${stat.border} ${stat.bg} p-4 flex flex-col justify-center`}>
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl bg-white dark:bg-background shadow-sm ${stat.iconColor}`}>
-              <stat.icon className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-3xl lg:text-4xl font-extrabold leading-none tracking-tight">{stat.value.toLocaleString('pt-BR')}</p>
-              <p className="text-xs text-muted-foreground mt-1 font-medium">{stat.label}</p>
-            </div>
+        <div
+          key={stat.label}
+          className={`rounded-xl bg-gradient-to-br ${stat.gradient} p-4 flex items-center justify-between shadow-lg min-h-[90px]`}
+        >
+          <div>
+            <p className="text-white/80 text-xs font-medium">{stat.label}</p>
+            <p className="text-3xl lg:text-4xl font-extrabold text-white leading-none mt-1">
+              {stat.value.toLocaleString('pt-BR')}
+            </p>
           </div>
+          <stat.icon className="h-10 w-10 text-white/30 shrink-0" />
         </div>
       ))}
     </div>
