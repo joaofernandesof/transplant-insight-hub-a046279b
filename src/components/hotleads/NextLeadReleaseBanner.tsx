@@ -177,26 +177,26 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
 
         <div className="flex items-center gap-3">
           {countdown > 0 && !isReleasing && !justReleased && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Timer className="h-3.5 w-3.5 text-orange-500" />
-              <span className={cn("font-mono font-semibold tabular-nums", isUrgent ? "text-red-600" : "text-orange-600")}>
+            <div className={cn(
+              "flex items-center gap-2 rounded-xl px-4 py-2.5 border-2 transition-all duration-300",
+              isUrgent
+                ? "border-red-500/50 bg-red-500/10"
+                : "border-orange-500/30 bg-orange-500/10"
+            )}>
+              <Timer className={cn("h-5 w-5", isUrgent ? "text-red-500 animate-pulse" : "text-orange-500")} />
+              <span className={cn(
+                "font-mono text-2xl font-bold tabular-nums tracking-wider",
+                isUrgent ? "text-red-600" : "text-orange-600"
+              )}>
                 {formatCountdown(countdown)}
               </span>
             </div>
           )}
 
           {!isReleasing && !justReleased && isAdmin && (
-            <div
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-2 border transition-all duration-300",
-                "bg-background/80 border-border",
-                !isEditingTime && "cursor-pointer hover:border-orange-400"
-              )}
-              onClick={!isEditingTime ? startEditing : undefined}
-              title="Clique para editar o intervalo padrão"
-            >
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Intervalo</span>
-              {isEditingTime ? (
+            isEditingTime ? (
+              <div className="flex items-center gap-2 rounded-lg px-3 py-2 border bg-background/80 border-border">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Intervalo</span>
                 <span className="flex items-center gap-0.5">
                   <input
                     ref={minutesRef}
@@ -217,13 +217,16 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
                     maxLength={2}
                   />
                 </span>
-              ) : (
-                <span className="font-mono text-lg font-bold tabular-nums text-orange-600">
-                  {formatCountdown(defaultInterval)}
-                </span>
-              )}
-              {!isEditingTime && <Pencil className="h-3 w-3 text-muted-foreground" />}
-            </div>
+              </div>
+            ) : (
+              <button
+                onClick={startEditing}
+                className="text-muted-foreground hover:text-orange-600 transition-colors p-1.5 rounded-md hover:bg-orange-500/10"
+                title={`Intervalo: ${formatCountdown(defaultInterval)} — clique para editar`}
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            )
           )}
 
           {isAboutToRelease && !isReleasing && (
