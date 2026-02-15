@@ -12,13 +12,12 @@ interface HotLeadsStatsProps {
 export function HotLeadsStats({ leads, availableCount, myLeadsCount, acquiredCount, queuedCount }: HotLeadsStatsProps) {
   const stats = [
     { label: 'Total de Leads', value: leads.length + queuedCount, icon: Flame, gradient: 'from-orange-500 to-red-500' },
-    { label: 'Na Fila', value: queuedCount, icon: Clock, gradient: 'from-yellow-400 to-amber-500' },
     { label: 'Disponíveis', value: availableCount, icon: Target, gradient: 'from-green-400 to-emerald-600' },
     { label: 'Adquiridos', value: acquiredCount + myLeadsCount, icon: UserCheck, gradient: 'from-blue-500 to-indigo-600' },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-3 gap-3">
       {stats.map((stat) => (
         <div
           key={stat.label}
