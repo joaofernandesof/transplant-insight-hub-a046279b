@@ -22,6 +22,7 @@ interface HotLeadsGlobalFiltersProps {
   setSortBy: (value: string) => void;
   availableStates: string[];
   availableCities: string[];
+  inline?: boolean;
 }
 
 export function HotLeadsGlobalFilters({
@@ -37,6 +38,7 @@ export function HotLeadsGlobalFilters({
   setSortBy,
   availableStates,
   availableCities,
+  inline = false,
 }: HotLeadsGlobalFiltersProps) {
   // Filters always visible on mobile (no toggle)
 
@@ -57,6 +59,73 @@ export function HotLeadsGlobalFilters({
     setPeriodFilter('all');
     setSortBy('recent');
   };
+
+  if (inline) {
+    return (
+      <>
+        <Select value={periodFilter} onValueChange={setPeriodFilter}>
+          <SelectTrigger className={`w-[120px] h-9 text-xs transition-colors ${isPeriodActive ? activeStyle : inactiveStyle}`}>
+            <Calendar className={`h-3.5 w-3.5 mr-1 shrink-0 ${isPeriodActive ? 'text-primary' : 'text-muted-foreground'}`} />
+            <SelectValue placeholder="Período" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todo período</SelectItem>
+            <SelectItem value="today">Hoje</SelectItem>
+            <SelectItem value="7d">Últimos 7d</SelectItem>
+            <SelectItem value="30d">Últimos 30d</SelectItem>
+            <SelectItem value="90d">Últimos 90d</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={stateFilter} onValueChange={(v) => { setStateFilter(v); setCityFilter('all'); }}>
+          <SelectTrigger className={`w-[110px] h-9 text-xs transition-colors ${isStateActive ? activeStyle : inactiveStyle}`}>
+            <MapPin className={`h-3.5 w-3.5 mr-1 shrink-0 ${isStateActive ? 'text-primary' : 'text-muted-foreground'}`} />
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Estado</SelectItem>
+            {availableStates.sort().map(state => (
+              <SelectItem key={state} value={state}>{state}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={cityFilter} onValueChange={setCityFilter}>
+          <SelectTrigger className={`w-[120px] h-9 text-xs transition-colors ${isCityActive ? activeStyle : inactiveStyle}`}>
+            <Building2 className={`h-3.5 w-3.5 mr-1 shrink-0 ${isCityActive ? 'text-primary' : 'text-muted-foreground'}`} />
+            <SelectValue placeholder="Cidade" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Cidade</SelectItem>
+            {availableCities.sort().map(city => (
+              <SelectItem key={city} value={city}>{city}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className={`w-[120px] h-9 text-xs transition-colors ${isSortActive ? activeStyle : inactiveStyle}`}>
+            <ArrowUpDown className={`h-3.5 w-3.5 mr-1 shrink-0 ${isSortActive ? 'text-primary' : 'text-muted-foreground'}`} />
+            <SelectValue placeholder="Ordenar" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">Mais recentes</SelectItem>
+            <SelectItem value="oldest">Mais antigos</SelectItem>
+            <SelectItem value="name_asc">Nome A-Z</SelectItem>
+            <SelectItem value="name_desc">Nome Z-A</SelectItem>
+            <SelectItem value="city_asc">Cidade A-Z</SelectItem>
+            <SelectItem value="state_asc">Estado A-Z</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {hasFilters && (
+          <Button variant="destructive" size="sm" onClick={clearFilters} className="shrink-0 h-9 gap-1">
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </>
+    );
+  }
 
   return (
     <div className="space-y-2">

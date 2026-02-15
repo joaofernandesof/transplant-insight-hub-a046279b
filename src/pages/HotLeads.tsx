@@ -378,21 +378,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               </p>
             </div>
 
-            {/* Filters below motivational text */}
-            <HotLeadsGlobalFilters
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              stateFilter={stateFilter}
-              setStateFilter={setStateFilter}
-              cityFilter={cityFilter}
-              setCityFilter={setCityFilter}
-              periodFilter={periodFilter}
-              setPeriodFilter={setPeriodFilter}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              availableStates={availableStates}
-              availableCities={availableCities}
-            />
 
             <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
           </>
@@ -425,8 +410,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </div>
           )}
 
-          {/* Pill toggle buttons - sticky */}
-          <div className="flex flex-wrap gap-2 mb-4 sticky top-0 lg:top-[57px] z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
+          {/* Pill toggle buttons + filters - sticky */}
+          <div className="flex flex-wrap items-center gap-2 mb-4 sticky top-0 lg:top-[57px] z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
             {[
               { key: 'available', label: 'Disponíveis', count: filteredAvailable.length, color: 'bg-green-500' },
               { key: 'mine', label: 'Meus Leads', count: filteredMyLeads.length, color: 'bg-blue-500', alert: overdueLeads.length > 0 },
@@ -436,7 +421,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as 'available' | 'mine' | 'lost')}
                 className={`
-                  relative inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all
+                  relative inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all shrink-0
                   ${activeTab === tab.key
                     ? 'bg-foreground text-background shadow-md scale-[1.02]'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -456,6 +441,42 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 )}
               </button>
             ))}
+
+            {/* Inline filters */}
+            <div className="hidden sm:contents">
+              <HotLeadsGlobalFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                stateFilter={stateFilter}
+                setStateFilter={setStateFilter}
+                cityFilter={cityFilter}
+                setCityFilter={setCityFilter}
+                periodFilter={periodFilter}
+                setPeriodFilter={setPeriodFilter}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                availableStates={availableStates}
+                availableCities={availableCities}
+                inline
+              />
+            </div>
+            {/* Mobile filters below */}
+            <div className="sm:hidden w-full">
+              <HotLeadsGlobalFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                stateFilter={stateFilter}
+                setStateFilter={setStateFilter}
+                cityFilter={cityFilter}
+                setCityFilter={setCityFilter}
+                periodFilter={periodFilter}
+                setPeriodFilter={setPeriodFilter}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                availableStates={availableStates}
+                availableCities={availableCities}
+              />
+            </div>
           </div>
 
           {/* 4-column card grid */}
