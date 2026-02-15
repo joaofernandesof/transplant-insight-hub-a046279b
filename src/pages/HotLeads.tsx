@@ -24,7 +24,7 @@ import { BulkActionsBar } from '@/components/hotleads/BulkActionsBar';
 import { AdminManualReleaseDialog } from '@/components/hotleads/AdminManualReleaseDialog';
 import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashboard';
-import type { HotLead } from '@/hooks/useHotLeads';
+import type { HotLead, LeadTab } from '@/hooks/useHotLeads';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -61,7 +61,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(initialView === 'settings');
 
-  // Sync settings dialog with route changes
   useEffect(() => {
     if (initialView === 'settings') {
       setIsSettingsOpen(true);
@@ -72,12 +71,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
   const adminView = initialView === 'dashboard' ? 'dashboard' : 'marketplace';
 
-  // Cooldown: 5 minutes (300 seconds) after acquiring a lead
   const COOLDOWN_SECONDS = 300;
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const cooldownInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Restore cooldown from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(`hotleads_cooldown_${user?.id}`);
     if (stored) {
@@ -88,7 +85,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     }
   }, [user?.id]);
 
-  // Tick down the cooldown
   useEffect(() => {
     if (cooldownRemaining <= 0) {
       if (cooldownInterval.current) clearInterval(cooldownInterval.current);
@@ -135,23 +131,20 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [periodFilter, setPeriodFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [userFilter, setUserFilter] = useState('all');
-  const [activeTab, setActiveTab] = useState<'available' | 'mine' | 'lost'>('available');
+  const [activeTab, setActiveTab] = useState<LeadTab>('available');
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const [activePage, setActivePage] = useState(1);
 
-  // Available states for filter
   const availableStates = useMemo(() => {
     return [...new Set(leads.map(l => l.state).filter(Boolean))] as string[];
   }, [leads]);
 
-  // Available cities (filtered by selected state)
   const availableCities = useMemo(() => {
     const filtered = stateFilter !== 'all' ? leads.filter(l => l.state === stateFilter) : leads;
     return [...new Set(filtered.map(l => l.city).filter(Boolean))] as string[];
   }, [leads, stateFilter]);
 
-  // Available users for admin filter - only those with hotleads portal access
   const availableUsers = useMemo(() => {
     return Object.entries(hotleadsProfiles).map(([id, name]) => ({ id, name: name as string }));
   }, [hotleadsProfiles]);
@@ -183,7 +176,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       return true;
     });
 
-    // Sort
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'oldest': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -196,22 +188,62 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     });
   }, [leads, searchTerm, stateFilter, cityFilter, periodFilter, sortBy, userFilter]);
 
-  // Filtered subsets
+  // ── Tab subsets ──
+  // Disponíveis: unclaimed, available
   const filteredAvailable = useMemo(() => 
     filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available'), [filteredLeads]);
   
-  const filteredMyLeads = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id), [filteredLeads, user?.id]);
-  
+  // Adquiridos: claimed by me, NO outcome yet
   const filteredAcquired = useMemo(() => 
+    filteredLeads.filter(l => l.claimed_by === user?.id && !l.lead_outcome), [filteredLeads, user?.id]);
+  
+  // Em Atendimento: claimed by me, outcome = em_atendimento
+  const filteredInProgress = useMemo(() => 
+    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'em_atendimento'), [filteredLeads, user?.id]);
+  
+  // Vendido: claimed by me, outcome = vendido
+  const filteredSold = useMemo(() => 
+    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'vendido'), [filteredLeads, user?.id]);
+  
+  // Descartado: claimed by me, outcome = descartado
+  const filteredDiscarded = useMemo(() => 
+    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'descartado'), [filteredLeads, user?.id]);
+  
+  // Indisponível: claimed by OTHER users
+  const filteredUnavailable = useMemo(() => 
     filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== user?.id), [filteredLeads, user?.id]);
 
-  // Pagination for active tab
+  // Tab definitions
+  const TAB_CONFIG: { key: LeadTab; label: string; color: string; alert?: boolean }[] = [
+    { key: 'available', label: 'Disponíveis', color: 'bg-green-500' },
+    { key: 'acquired', label: 'Adquiridos', color: 'bg-blue-500', alert: overdueLeads.some(l => !l.lead_outcome) },
+    { key: 'in_progress', label: 'Em Atendimento', color: 'bg-amber-500', alert: overdueLeads.some(l => l.lead_outcome === 'em_atendimento') },
+    { key: 'sold', label: 'Vendido', color: 'bg-emerald-500' },
+    { key: 'discarded', label: 'Descartado', color: 'bg-red-500' },
+    { key: 'unavailable', label: 'Indisponível', color: 'bg-slate-400' },
+  ];
+
+  const getTabCount = (key: LeadTab) => {
+    switch (key) {
+      case 'available': return filteredAvailable.length;
+      case 'acquired': return filteredAcquired.length;
+      case 'in_progress': return filteredInProgress.length;
+      case 'sold': return filteredSold.length;
+      case 'discarded': return filteredDiscarded.length;
+      case 'unavailable': return filteredUnavailable.length;
+    }
+  };
+
   const activeItems = useMemo(() => {
-    if (activeTab === 'available') return filteredAvailable;
-    if (activeTab === 'mine') return filteredMyLeads;
-    return filteredAcquired;
-  }, [activeTab, filteredAvailable, filteredMyLeads, filteredAcquired]);
+    switch (activeTab) {
+      case 'available': return filteredAvailable;
+      case 'acquired': return filteredAcquired;
+      case 'in_progress': return filteredInProgress;
+      case 'sold': return filteredSold;
+      case 'discarded': return filteredDiscarded;
+      case 'unavailable': return filteredUnavailable;
+    }
+  }, [activeTab, filteredAvailable, filteredAcquired, filteredInProgress, filteredSold, filteredDiscarded, filteredUnavailable]);
 
   const activeTotal = activeItems.length;
   const activeTotalPages = Math.max(1, Math.ceil(activeTotal / ITEMS_PER_PAGE));
@@ -220,7 +252,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     return activeItems.slice(start, start + ITEMS_PER_PAGE);
   }, [activeItems, activePage]);
 
-  // Reset page and selection when tab or filters change
   useEffect(() => { setActivePage(1); setSelectedLeads(new Set()); }, [activeTab, searchTerm, stateFilter, cityFilter, periodFilter, sortBy, userFilter]);
 
   const toggleLeadSelection = useCallback((id: string) => {
@@ -237,8 +268,13 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
   const handleAcquireClick = (lead: HotLead) => {
     if (isBlocked) {
-      toast.error('Você precisa informar o destino dos seus leads pendentes antes de adquirir novos.');
-      setActiveTab('mine');
+      toast.error('Você precisa atualizar o status dos seus leads pendentes antes de adquirir novos.');
+      // Navigate to the tab with overdue leads
+      if (overdueLeads.some(l => !l.lead_outcome)) {
+        setActiveTab('acquired');
+      } else {
+        setActiveTab('in_progress');
+      }
       return;
     }
     if (!settings) {
@@ -254,10 +290,31 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     const success = await saveSettings(values);
     if (success && selectedLead) {
       setShowSettingsRequired(false);
-      // After saving settings, open the acquire dialog
       setTimeout(() => setIsAcquireOpen(true), 300);
     }
     return success;
+  };
+
+  // Determine which card component to render per lead
+  const isOwnedTab = activeTab === 'acquired' || activeTab === 'in_progress' || activeTab === 'sold' || activeTab === 'discarded';
+  const showOutcomeActions = activeTab === 'acquired' || activeTab === 'in_progress';
+
+  // Map tab to LeadListRow variant
+  const getListRowVariant = (): 'available' | 'mine' | 'lost' => {
+    if (activeTab === 'available') return 'available';
+    if (activeTab === 'unavailable') return 'lost';
+    return 'mine';
+  };
+
+  const getEmptyMessage = () => {
+    switch (activeTab) {
+      case 'available': return 'Nenhum lead disponível no momento.';
+      case 'acquired': return 'Nenhum lead adquirido aguardando atendimento.';
+      case 'in_progress': return 'Nenhum lead em atendimento.';
+      case 'sold': return 'Nenhum lead vendido ainda.';
+      case 'discarded': return 'Nenhum lead descartado.';
+      case 'unavailable': return 'Nenhum lead indisponível no momento.';
+    }
   };
 
   if (isLoading) {
@@ -278,7 +335,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               <Flame className="h-6 w-6 text-white/80" />
               HotLeads
             </h1>
-            {/* Desktop buttons stay in header */}
             <div className="hidden lg:flex items-center gap-1.5 flex-wrap">
               {isAdmin && (
                 <>
@@ -333,25 +389,17 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         </div>
       </header>
 
-      {/* Fixed top section - sticky below header */}
+      {/* Fixed top section */}
       <div className="shrink-0 px-3 lg:px-4 py-2 lg:py-3 space-y-2 lg:space-y-3">
-        {/* Mobile action buttons - moved out of red header */}
+        {/* Mobile action buttons */}
         <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
           {isAdmin && (
             <>
-              <Button
-                variant={adminView === 'marketplace' ? 'secondary' : 'outline'}
-                size="sm"
-                onClick={() => navigate('/hotleads')}
-              >
+              <Button variant={adminView === 'marketplace' ? 'secondary' : 'outline'} size="sm" onClick={() => navigate('/hotleads')}>
                 <Home className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Início</span>
               </Button>
-              <Button
-                variant={adminView === 'dashboard' ? 'secondary' : 'outline'}
-                size="sm"
-                onClick={() => navigate('/hotleads/dashboard')}
-              >
+              <Button variant={adminView === 'dashboard' ? 'secondary' : 'outline'} size="sm" onClick={() => navigate('/hotleads/dashboard')}>
                 <BarChart3 className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Painel</span>
               </Button>
@@ -367,21 +415,12 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </>
           )}
           {!isAdmin && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsSettingsOpen(true)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setIsSettingsOpen(true)}>
               <Settings className="h-4 w-4 mr-1.5" />
               <span className="hidden sm:inline">Config</span>
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchLeads(true)}
-            disabled={isRefreshing}
-          >
+          <Button variant="outline" size="sm" onClick={() => fetchLeads(true)} disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Atualizar</span>
           </Button>
@@ -397,8 +436,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             <HotLeadsStats
               leads={filteredLeads}
               availableCount={filteredAvailable.length}
-              myLeadsCount={filteredMyLeads.length}
-              acquiredCount={filteredAcquired.length}
+              myLeadsCount={filteredAcquired.length + filteredInProgress.length}
+              acquiredCount={filteredUnavailable.length}
               queuedCount={queuedCount}
             />
             {/* Motivational phrase */}
@@ -408,7 +447,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 🔥 Cada lead é um paciente buscando transformação
               </p>
             </div>
-
 
             <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
           </>
@@ -426,33 +464,41 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-amber-800 dark:text-amber-200 text-sm">
-                  Você possui {overdueLeads.length} {overdueLeads.length === 1 ? 'lead' : 'leads'} sem destino definido
+                  Você possui {overdueLeads.length} {overdueLeads.length === 1 ? 'lead' : 'leads'} sem atualização há mais de 7 dias
                 </p>
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                  Informe se o lead foi <strong>Vendido</strong>, está <strong>Em Atendimento</strong> ou foi <strong>Descartado</strong> para desbloquear a aquisição de novos leads.
+                  Atualize o status dos leads em <strong>Adquiridos</strong> ou <strong>Em Atendimento</strong> para <strong>Vendido</strong>, <strong>Em Atendimento</strong> ou <strong>Descartado</strong> para desbloquear novas aquisições.
                 </p>
-                <button
-                  onClick={() => setActiveTab('mine')}
-                  className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
-                >
-                  Ver meus leads pendentes →
-                </button>
+                <div className="flex gap-2 mt-2">
+                  {overdueLeads.some(l => !l.lead_outcome) && (
+                    <button
+                      onClick={() => setActiveTab('acquired')}
+                      className="text-xs font-medium text-amber-700 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
+                    >
+                      Ver Adquiridos →
+                    </button>
+                  )}
+                  {overdueLeads.some(l => l.lead_outcome === 'em_atendimento') && (
+                    <button
+                      onClick={() => setActiveTab('in_progress')}
+                      className="text-xs font-medium text-amber-700 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
+                    >
+                      Ver Em Atendimento →
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {/* Pill toggle buttons + filters - sticky */}
-          <div className="flex flex-wrap items-center gap-2 mb-4 sticky top-0 z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
-            {[
-              { key: 'available', label: 'Disponíveis', count: filteredAvailable.length, color: 'bg-green-500' },
-              { key: 'mine', label: 'Meus Leads', count: filteredMyLeads.length, color: 'bg-blue-500', alert: overdueLeads.length > 0 },
-              { key: 'lost', label: 'Perdidos', count: filteredAcquired.length, color: 'bg-red-500' },
-            ].map((tab) => (
+          <div className="flex flex-wrap items-center gap-1.5 mb-4 sticky top-0 z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
+            {TAB_CONFIG.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as 'available' | 'mine' | 'lost')}
+                onClick={() => setActiveTab(tab.key)}
                 className={`
-                  relative inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all shrink-0
+                  relative inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all shrink-0
                   ${activeTab === tab.key
                     ? 'bg-orange-600 text-white shadow-md scale-[1.02]'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -460,23 +506,23 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 `}
               >
                 <span className={`h-2 w-2 rounded-full ${tab.color}`} />
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.length > 10 ? tab.label.slice(0, 8) + '…' : tab.label}</span>
                 <span className={`
-                  ml-1 text-xs px-1.5 py-0.5 rounded-full
+                  ml-0.5 text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full
                   ${activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-background text-foreground'}
                 `}>
-                  {tab.count}
+                  {getTabCount(tab.key)}
                 </span>
-                {'alert' in tab && tab.alert && (
+                {tab.alert && (
                   <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 border-2 border-background animate-pulse" />
                 )}
               </button>
             ))}
 
-            {/* Spacer to push filters right */}
             <div className="flex-1" />
 
-            {/* Inline filters (right-aligned) */}
+            {/* Inline filters */}
             <div className="hidden sm:flex items-center gap-2 shrink-0">
               <HotLeadsGlobalFilters
                 searchTerm={searchTerm}
@@ -498,7 +544,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 inline
               />
             </div>
-            {/* Mobile filters below */}
             <div className="sm:hidden w-full">
               <HotLeadsGlobalFilters
                 searchTerm={searchTerm}
@@ -539,7 +584,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </div>
           </div>
 
-          {/* Selection count */}
+          {/* Bulk actions bar */}
           <BulkActionsBar
             selectedLeads={selectedLeads}
             allLeads={leads}
@@ -555,58 +600,52 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
           {/* Card grid or List view */}
           {viewMode === 'cards' ? (
             <>
-              {activeTab === 'available' && (
-                filteredAvailable.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-12">Nenhum lead disponível no momento.</p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {paginatedActive.map((lead) => (
-                      <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} selected={selectedLeads.has(lead.id)} onSelect={toggleLeadSelection} />
-                    ))}
-                  </div>
-                )
-              )}
-              {activeTab === 'mine' && (
-                filteredMyLeads.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-12">Você ainda não adquiriu nenhum lead.</p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {paginatedActive.map((lead) => (
-                      <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} onUpdateOutcome={updateLeadOutcome} selected={selectedLeads.has(lead.id)} onSelect={toggleLeadSelection} />
-                    ))}
-                  </div>
-                )
-              )}
-              {activeTab === 'lost' && (
-                filteredAcquired.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-12">Nenhuma oportunidade perdida no momento.</p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {paginatedActive.map((lead) => (
-                      <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} selected={selectedLeads.has(lead.id)} onSelect={toggleLeadSelection} />
-                    ))}
-                  </div>
-                )
+              {activeItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-12">{getEmptyMessage()}</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {paginatedActive.map((lead) => {
+                    if (activeTab === 'available') {
+                      return <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} selected={selectedLeads.has(lead.id)} onSelect={toggleLeadSelection} />;
+                    }
+                    if (activeTab === 'unavailable') {
+                      return <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} selected={selectedLeads.has(lead.id)} onSelect={toggleLeadSelection} />;
+                    }
+                    // Owned tabs: acquired, in_progress, sold, discarded
+                    return (
+                      <AcquiredLeadCard
+                        key={lead.id}
+                        lead={lead}
+                        claimerName={getClaimerName(lead.claimed_by)}
+                        isOwned
+                        onRelease={releaseLead}
+                        onUpdateOutcome={showOutcomeActions ? updateLeadOutcome : undefined}
+                        selected={selectedLeads.has(lead.id)}
+                        onSelect={toggleLeadSelection}
+                      />
+                    );
+                  })}
+                </div>
               )}
             </>
           ) : (
             <div className="rounded-lg border border-border overflow-hidden">
               {paginatedActive.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-12">Nenhum lead encontrado.</p>
+                <p className="text-sm text-muted-foreground text-center py-12">{getEmptyMessage()}</p>
               ) : (
                 paginatedActive.map((lead) => (
                   <LeadListRow
                     key={lead.id}
                     lead={lead}
-                    variant={activeTab}
+                    variant={getListRowVariant()}
                     selected={selectedLeads.has(lead.id)}
                     onSelect={toggleLeadSelection}
                     onAcquire={activeTab === 'available' ? handleAcquireClick : undefined}
                     cooldownRemaining={activeTab === 'available' ? cooldownRemaining : undefined}
                     formatCooldown={activeTab === 'available' ? formatCooldown : undefined}
-                    claimerName={activeTab === 'lost' ? getClaimerName(lead.claimed_by) : undefined}
+                    claimerName={activeTab === 'unavailable' ? getClaimerName(lead.claimed_by) : undefined}
                     onRelease={releaseLead}
-                    onUpdateOutcome={activeTab === 'mine' ? updateLeadOutcome : undefined}
+                    onUpdateOutcome={showOutcomeActions ? updateLeadOutcome : undefined}
                   />
                 ))
               )}
@@ -656,7 +695,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         onImport={importLeads}
       />
 
-      {/* Settings dialog - voluntary */}
       <LicenseeSettingsDialog
         open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
@@ -664,7 +702,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         onSave={saveSettings}
       />
 
-      {/* Settings dialog - required (before first acquire) */}
       <LicenseeSettingsDialog
         open={showSettingsRequired}
         onOpenChange={setShowSettingsRequired}
@@ -673,7 +710,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         required
       />
 
-      {/* Admin manual release dialog */}
       {isAdmin && (
         <AdminManualReleaseDialog
           open={isManualReleaseOpen}
