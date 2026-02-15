@@ -442,7 +442,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 className={`
                   relative inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all shrink-0
                   ${activeTab === tab.key
-                    ? 'bg-foreground text-background shadow-md scale-[1.02]'
+                    ? 'bg-orange-600 text-white shadow-md scale-[1.02]'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }
                 `}
@@ -451,7 +451,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 {tab.label}
                 <span className={`
                   ml-1 text-xs px-1.5 py-0.5 rounded-full
-                  ${activeTab === tab.key ? 'bg-background/20 text-background' : 'bg-background text-foreground'}
+                  ${activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-background text-foreground'}
                 `}>
                   {tab.count}
                 </span>
