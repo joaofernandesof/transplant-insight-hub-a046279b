@@ -1,40 +1,15 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  AreaChart,
-  Area,
-  Line,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, AreaChart, Area, Legend, LineChart, Line,
 } from 'recharts';
-import { format, subDays, eachDayOfInterval, startOfDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import {
-  Flame,
-  Users,
-  MapPin,
-  Building2,
-  TrendingUp,
-  Clock,
-  UserCheck,
-  Target,
-  BarChart3,
-  Award,
+  Flame, MapPin, Building2, TrendingUp, Clock, UserCheck, Target,
+  BarChart3, Lightbulb, Zap, AlertTriangle, CheckCircle2,
 } from 'lucide-react';
-import type { HotLead } from '@/hooks/useHotLeads';
-
-interface HotLeadsAdminDashboardProps {
-  leads: HotLead[];
-  queuedCount: number;
-}
+import { useAllLeadStats } from '@/hooks/useAllLeadStats';
 
 const COLORS = ['#f97316', '#3b82f6', '#22c55e', '#8b5cf6', '#ec4899', '#06b6d4', '#eab308', '#ef4444', '#14b8a6', '#f43f5e'];
 
@@ -45,200 +20,172 @@ const tooltipStyle = {
   fontSize: '12px',
 };
 
-export function HotLeadsAdminDashboard({ leads, queuedCount }: HotLeadsAdminDashboardProps) {
-  // ── KPI calculations ──
-  const kpis = useMemo(() => {
-    const total = leads.length;
-    const claimed = leads.filter(l => l.claimed_by).length;
-    const available = leads.filter(l => !l.claimed_by && l.release_status === 'available').length;
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const todayLeads = leads.filter(l => new Date(l.created_at) >= today).length;
-    const weekAgo = subDays(new Date(), 7);
-    const weekLeads = leads.filter(l => new Date(l.created_at) >= weekAgo).length;
-    const rate = total > 0 ? ((claimed / total) * 100).toFixed(1) : '0';
+export function HotLeadsAdminDashboard() {
+  const stats = useAllLeadStats();
 
-    return { total, claimed, available, todayLeads, weekLeads, rate };
-  }, [leads]);
+  // AI Insights
+  const insights = useMemo(() => {
+    if (stats.isLoading || stats.total === 0) return [];
+    const items: { icon: typeof Lightbulb; color: string; bg: string; text: string }[] = [];
 
-  // ── By State ──
-  const stateData = useMemo(() => {
-    const map: Record<string, { total: number; claimed: number }> = {};
-    leads.forEach(l => {
-      const s = l.state || 'N/A';
-      if (!map[s]) map[s] = { total: 0, claimed: 0 };
-      map[s].total++;
-      if (l.claimed_by) map[s].claimed++;
-    });
-    return Object.entries(map)
-      .map(([state, v]) => ({ state, total: v.total, claimed: v.claimed, available: v.total - v.claimed }))
-      .sort((a, b) => b.total - a.total);
-  }, [leads]);
+    // Top state concentration
+    const topState = stats.byState[0];
+    if (topState) {
+      const pct = ((topState.total / stats.total) * 100).toFixed(0);
+      items.push({
+        icon: MapPin,
+        color: 'text-orange-600',
+        bg: 'bg-orange-50 dark:bg-orange-950',
+        text: `${topState.state} concentra ${pct}% dos leads (${topState.total.toLocaleString('pt-BR')}). Considere estratégias regionais.`,
+      });
+    }
 
-  // ── By City (top 15) ──
-  const cityData = useMemo(() => {
-    const map: Record<string, { total: number; claimed: number }> = {};
-    leads.forEach(l => {
-      const c = l.city || 'N/A';
-      if (!map[c]) map[c] = { total: 0, claimed: 0 };
-      map[c].total++;
-      if (l.claimed_by) map[c].claimed++;
-    });
-    return Object.entries(map)
-      .map(([city, v]) => ({
-        city: city.length > 18 ? city.slice(0, 18) + '…' : city,
-        fullCity: city,
-        total: v.total,
-        claimed: v.claimed,
-        available: v.total - v.claimed,
-      }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 15);
-  }, [leads]);
+    // Low capture rate
+    const captureRate = stats.total > 0 ? (stats.claimed / stats.total) * 100 : 0;
+    if (captureRate < 5) {
+      items.push({
+        icon: AlertTriangle,
+        color: 'text-amber-600',
+        bg: 'bg-amber-50 dark:bg-amber-950',
+        text: `Taxa de captação de apenas ${captureRate.toFixed(1)}%. ${stats.available.toLocaleString('pt-BR')} leads disponíveis aguardando ação.`,
+      });
+    }
 
-  // ── Daily evolution (30 days) ──
-  const dailyData = useMemo(() => {
-    const today = new Date();
-    const start = subDays(today, 30);
-    return eachDayOfInterval({ start, end: today }).map(day => {
-      const ds = startOfDay(day);
-      const de = new Date(ds); de.setDate(de.getDate() + 1);
-      const dayLeads = leads.filter(l => { const c = new Date(l.created_at); return c >= ds && c < de; });
-      const claimed = dayLeads.filter(l => l.claimed_by).length;
-      return {
-        date: format(day, 'dd/MM', { locale: ptBR }),
-        leads: dayLeads.length,
-        claimed,
-      };
-    });
-  }, [leads]);
+    // Queue size
+    if (stats.queued > 1000) {
+      items.push({
+        icon: Clock,
+        color: 'text-blue-600',
+        bg: 'bg-blue-50 dark:bg-blue-950',
+        text: `${stats.queued.toLocaleString('pt-BR')} leads na fila de espera. A fila está sendo liberada gradualmente para manter qualidade.`,
+      });
+    }
 
-  // ── Status pie ──
+    // States with zero captures
+    const zeroCaptureStates = stats.byState.filter(s => s.claimed === 0 && s.total >= 5);
+    if (zeroCaptureStates.length > 0) {
+      items.push({
+        icon: Zap,
+        color: 'text-purple-600',
+        bg: 'bg-purple-50 dark:bg-purple-950',
+        text: `${zeroCaptureStates.length} estado(s) com leads mas sem nenhuma captação: ${zeroCaptureStates.slice(0, 3).map(s => s.state).join(', ')}. Oportunidade!`,
+      });
+    }
+
+    // Diversity
+    if (stats.byState.length >= 10) {
+      items.push({
+        icon: CheckCircle2,
+        color: 'text-green-600',
+        bg: 'bg-green-50 dark:bg-green-950',
+        text: `Base diversificada: leads distribuídos em ${stats.byState.length} estados e ${stats.byCity.length}+ cidades.`,
+      });
+    }
+
+    return items;
+  }, [stats]);
+
+  // Status pie
   const statusPie = useMemo(() => [
-    { name: 'Disponíveis', value: kpis.available, color: '#22c55e' },
-    { name: 'Adquiridos', value: kpis.claimed, color: '#3b82f6' },
-    { name: 'Na Fila', value: queuedCount, color: '#eab308' },
-  ], [kpis, queuedCount]);
+    { name: 'Na Fila', value: stats.queued, color: '#eab308' },
+    { name: 'Disponíveis', value: stats.available, color: '#22c55e' },
+    { name: 'Adquiridos', value: stats.claimed, color: '#3b82f6' },
+  ], [stats]);
 
-  // ── State pie (top 5 + outros) ──
+  // State pie (top 5 + others)
   const statePie = useMemo(() => {
-    const top5 = stateData.slice(0, 5);
-    const othersTotal = stateData.slice(5).reduce((s, v) => s + v.total, 0);
+    const top5 = stats.byState.slice(0, 5);
+    const othersTotal = stats.byState.slice(5).reduce((s, v) => s + v.total, 0);
     const result = top5.map((s, i) => ({ name: s.state, value: s.total, color: COLORS[i] }));
     if (othersTotal > 0) result.push({ name: 'Outros', value: othersTotal, color: '#94a3b8' });
     return result;
-  }, [stateData]);
+  }, [stats.byState]);
 
-  // ── Unique cities/states count ──
-  const uniqueStates = stateData.length;
-  const uniqueCities = useMemo(() => new Set(leads.map(l => l.city).filter(Boolean)).size, [leads]);
+  if (stats.isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-8">
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Total', value: kpis.total, icon: Flame, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-950' },
-          { label: 'Disponíveis', value: kpis.available, icon: Target, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-950' },
-          { label: 'Adquiridos', value: kpis.claimed, icon: UserCheck, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950' },
-          { label: 'Na Fila', value: queuedCount, icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-950' },
-          { label: 'Hoje', value: kpis.todayLeads, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950' },
-          { label: 'Taxa Captação', value: `${kpis.rate}%`, icon: Award, color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-950' },
+          { label: 'Total de Leads', value: stats.total, icon: Flame, gradient: 'from-orange-500 to-red-500' },
+          { label: 'Na Fila', value: stats.queued, icon: Clock, gradient: 'from-yellow-500 to-amber-500' },
+          { label: 'Disponíveis', value: stats.available, icon: Target, gradient: 'from-green-500 to-emerald-500' },
+          { label: 'Adquiridos', value: stats.claimed, icon: UserCheck, gradient: 'from-blue-500 to-indigo-500' },
         ].map(kpi => (
-          <Card key={kpi.label} className={`${kpi.bg} border`}>
-            <CardContent className="pt-4 pb-3 px-4">
-              <div className="flex items-center gap-2">
-                <kpi.icon className={`h-4 w-4 ${kpi.color} shrink-0`} />
-                <span className="text-xs text-muted-foreground font-medium truncate">{kpi.label}</span>
+          <Card key={kpi.label} className={`bg-gradient-to-br ${kpi.gradient} text-white border-0 shadow-lg`}>
+            <CardContent className="pt-5 pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-xs font-medium">{kpi.label}</p>
+                  <p className="text-3xl font-bold mt-1">{kpi.value.toLocaleString('pt-BR')}</p>
+                </div>
+                <kpi.icon className="h-10 w-10 text-white/30" />
               </div>
-              <p className="text-2xl font-bold mt-1">{typeof kpi.value === 'number' ? kpi.value.toLocaleString('pt-BR') : kpi.value}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Geography summary - Top States & Cities */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
+      {/* AI Insights */}
+      {insights.length > 0 && (
+        <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-orange-500" />
-              Top Estados
-              <span className="ml-auto text-xs font-normal text-muted-foreground">{uniqueStates} estados</span>
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+              Insights Inteligentes
+              <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700 dark:text-amber-400">IA</Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {stateData.slice(0, 6).map((s) => {
-              const max = stateData[0]?.total || 1;
-              return (
-                <div key={s.state} className="flex items-center gap-2">
-                  <span className="text-xs font-semibold w-8 text-right">{s.state}</span>
-                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-600 transition-all"
-                      style={{ width: `${(s.total / max) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-bold w-10 text-right">{s.total}</span>
+          <CardContent>
+            <div className="grid gap-2">
+              {insights.map((insight, i) => (
+                <div key={i} className={`flex items-start gap-3 p-3 rounded-lg ${insight.bg}`}>
+                  <insight.icon className={`h-4 w-4 ${insight.color} shrink-0 mt-0.5`} />
+                  <p className="text-xs leading-relaxed">{insight.text}</p>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-blue-500" />
-              Top Cidades
-              <span className="ml-auto text-xs font-normal text-muted-foreground">{uniqueCities} cidades</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {(() => {
-              const cityMap: Record<string, number> = {};
-              leads.forEach(l => { if (l.city) cityMap[l.city] = (cityMap[l.city] || 0) + 1; });
-              const topCities = Object.entries(cityMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
-              const maxCity = topCities[0]?.[1] || 1;
-              return topCities.map(([city, count]) => (
-                <div key={city} className="flex items-center gap-2">
-                  <span className="text-xs font-semibold w-24 truncate text-right">{city}</span>
-                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all"
-                      style={{ width: `${(count / maxCity) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-bold w-10 text-right">{count}</span>
-                </div>
-              ));
-            })()}
-          </CardContent>
-        </Card>
-      </div>
+      )}
 
-      {/* Row 1: Daily Evolution + Status Pie */}
+      {/* Timeline + Status Pie */}
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              Evolução Diária (30 dias)
+              <TrendingUp className="h-4 w-4 text-orange-500" />
+              Linha do Tempo — Leads por Dia
+              <Badge variant="outline" className="font-normal text-[10px]">30 dias</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={dailyData}>
+              <AreaChart data={stats.byDay}>
                 <defs>
-                  <linearGradient id="adminColorLeads" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                  <linearGradient id="gradTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.4} />
                     <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradClaimed" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="date" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="leads" stroke="#f97316" strokeWidth={2} fill="url(#adminColorLeads)" name="Novos Leads" />
-                <Line type="monotone" dataKey="claimed" stroke="#3b82f6" strokeWidth={2} dot={false} name="Adquiridos" />
+                <Legend fontSize={11} />
+                <Area type="monotone" dataKey="total" stroke="#f97316" strokeWidth={2} fill="url(#gradTotal)" name="Novos Leads" />
+                <Area type="monotone" dataKey="claimed" stroke="#3b82f6" strokeWidth={2} fill="url(#gradClaimed)" name="Capturados" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -246,7 +193,7 @@ export function HotLeadsAdminDashboard({ leads, queuedCount }: HotLeadsAdminDash
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Status Geral</CardTitle>
+            <CardTitle className="text-sm font-semibold">Distribuição por Status</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -270,84 +217,148 @@ export function HotLeadsAdminDashboard({ leads, queuedCount }: HotLeadsAdminDash
         </Card>
       </div>
 
-      {/* Row 2: States bar + State pie */}
+      {/* State Charts Row */}
       <div className="grid lg:grid-cols-2 gap-6">
+        {/* State Bar Chart */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <MapPin className="h-4 w-4 text-orange-500" />
               Leads por Estado
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={Math.max(250, stateData.length * 28)}>
-              <BarChart data={stateData} layout="vertical">
+            <ResponsiveContainer width="100%" height={Math.max(300, stats.byState.length * 30)}>
+              <BarChart data={stats.byState} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis type="number" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis dataKey="state" type="category" width={50} fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis dataKey="state" type="category" width={45} fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="available" stackId="a" fill="#22c55e" name="Disponíveis" radius={[0, 0, 0, 0]} />
+                <Legend fontSize={11} />
+                <Bar dataKey="queued" stackId="a" fill="#eab308" name="Na Fila" />
+                <Bar dataKey="available" stackId="a" fill="#22c55e" name="Disponíveis" />
                 <Bar dataKey="claimed" stackId="a" fill="#3b82f6" name="Adquiridos" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
+        {/* State Pie + Distribution */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Distribuição por Estado</CardTitle>
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-purple-500" />
+              Distribuição por Estado
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={statePie} cx="50%" cy="50%" outerRadius={85} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={10}>
+                <Pie
+                  data={statePie}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={85}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                  fontSize={10}
+                >
                   {statePie.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
                 <Tooltip contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
-            {/* State table */}
-            <div className="mt-4 max-h-[200px] overflow-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-1.5 font-medium text-muted-foreground">Estado</th>
-                    <th className="text-right py-1.5 font-medium text-muted-foreground">Total</th>
-                    <th className="text-right py-1.5 font-medium text-muted-foreground">Disp.</th>
-                    <th className="text-right py-1.5 font-medium text-muted-foreground">Adq.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stateData.map(s => (
-                    <tr key={s.state} className="border-b last:border-0">
-                      <td className="py-1.5 font-medium">{s.state}</td>
-                      <td className="text-right py-1.5">{s.total}</td>
-                      <td className="text-right py-1.5 text-green-600">{s.available}</td>
-                      <td className="text-right py-1.5 text-blue-600">{s.claimed}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Row 3: Cities bar */}
+      {/* Full State Table */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-            Top 15 Cidades
+            <MapPin className="h-4 w-4 text-green-500" />
+            Todos os Estados — Detalhamento Completo
+            <Badge variant="outline" className="font-normal text-[10px]">{stats.byState.length} estados</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={cityData} layout="vertical">
+          <div className="overflow-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground">Estado</th>
+                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">Total</th>
+                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">Na Fila</th>
+                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">Disponíveis</th>
+                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">Adquiridos</th>
+                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">% do Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.byState.map((s, i) => {
+                  const pct = stats.total > 0 ? ((s.total / stats.total) * 100).toFixed(1) : '0';
+                  return (
+                    <tr key={s.state} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="py-2 px-3 font-semibold flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        {s.state}
+                      </td>
+                      <td className="text-right py-2 px-3 font-bold">{s.total.toLocaleString('pt-BR')}</td>
+                      <td className="text-right py-2 px-3 text-amber-600 font-medium">{s.queued.toLocaleString('pt-BR')}</td>
+                      <td className="text-right py-2 px-3 text-green-600 font-medium">{s.available.toLocaleString('pt-BR')}</td>
+                      <td className="text-right py-2 px-3 text-blue-600 font-medium">{s.claimed.toLocaleString('pt-BR')}</td>
+                      <td className="text-right py-2 px-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                            <div className="h-full bg-orange-500 rounded-full" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-xs text-muted-foreground w-10 text-right">{pct}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 bg-muted/30">
+                  <td className="py-2.5 px-3 font-bold">TOTAL</td>
+                  <td className="text-right py-2.5 px-3 font-bold">{stats.total.toLocaleString('pt-BR')}</td>
+                  <td className="text-right py-2.5 px-3 font-bold text-amber-600">{stats.queued.toLocaleString('pt-BR')}</td>
+                  <td className="text-right py-2.5 px-3 font-bold text-green-600">{stats.available.toLocaleString('pt-BR')}</td>
+                  <td className="text-right py-2.5 px-3 font-bold text-blue-600">{stats.claimed.toLocaleString('pt-BR')}</td>
+                  <td className="text-right py-2.5 px-3 font-bold">100%</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top Cities */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-blue-500" />
+            Top 20 Cidades
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={Math.max(400, stats.byCity.length * 28)}>
+            <BarChart data={stats.byCity} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis type="number" fontSize={10} tickLine={false} axisLine={false} />
-              <YAxis dataKey="city" type="category" width={130} fontSize={11} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(value: any, name: any, props: any) => [value, props.payload?.fullCity || name]} />
+              <YAxis
+                dataKey="city"
+                type="category"
+                width={130}
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v: string) => v.length > 18 ? v.slice(0, 18) + '…' : v}
+              />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Legend fontSize={11} />
               <Bar dataKey="available" stackId="a" fill="#22c55e" name="Disponíveis" />
               <Bar dataKey="claimed" stackId="a" fill="#3b82f6" name="Adquiridos" radius={[0, 4, 4, 0]} />
             </BarChart>

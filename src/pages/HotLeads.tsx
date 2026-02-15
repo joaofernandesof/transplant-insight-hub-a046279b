@@ -331,7 +331,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         {/* Admin Dashboard View */}
         {isAdmin && adminView === 'dashboard' ? (
           <div className="mt-2">
-            <HotLeadsAdminDashboard leads={leads} queuedCount={queuedCount} />
+            <HotLeadsAdminDashboard />
           </div>
         ) : (
           <>
