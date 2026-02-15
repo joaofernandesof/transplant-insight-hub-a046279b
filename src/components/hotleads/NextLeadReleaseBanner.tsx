@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Zap, Users, Timer, Sparkles, Flame, CheckCircle2, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { Zap, Users, Timer, Sparkles, Flame, CheckCircle2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLeadRelease } from '@/hooks/useLeadRelease';
@@ -25,7 +25,6 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
   } = useLeadRelease();
 
   const [justReleased, setJustReleased] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [editMinutes, setEditMinutes] = useState('');
   const [editSeconds, setEditSeconds] = useState('');
@@ -93,56 +92,6 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
 
   const isUrgent = countdown > 0 && countdown <= 10;
   const isAboutToRelease = countdown === 0 && info.next_release_at && !justReleased;
-
-  // Collapsed: show just a small button
-  if (!isExpanded) {
-    return (
-      <div className="flex justify-end mb-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsExpanded(true)}
-          className="border-orange-500/30 text-orange-600 hover:bg-orange-500/10 gap-2"
-        >
-          <Sparkles className="h-4 w-4" />
-          Próximo Lead
-          {countdown > 0 && (
-            isAdmin && isEditingTime ? (
-              <span className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                <input
-                  ref={minutesRef}
-                  value={editMinutes}
-                  onChange={e => setEditMinutes(e.target.value.replace(/\D/g, '').slice(0, 2))}
-                  onKeyDown={handleEditKeyDown}
-                  onBlur={confirmEdit}
-                  className="w-6 text-center font-mono text-xs bg-transparent border-b border-orange-400 outline-none tabular-nums"
-                  maxLength={2}
-                />
-                <span>:</span>
-                <input
-                  value={editSeconds}
-                  onChange={e => setEditSeconds(e.target.value.replace(/\D/g, '').slice(0, 2))}
-                  onKeyDown={handleEditKeyDown}
-                  onBlur={confirmEdit}
-                  className="w-6 text-center font-mono text-xs bg-transparent border-b border-orange-400 outline-none tabular-nums"
-                  maxLength={2}
-                />
-              </span>
-            ) : (
-              <span
-                className={cn("font-mono text-xs tabular-nums", isAdmin && "cursor-pointer hover:underline")}
-                onClick={isAdmin ? (e) => { e.stopPropagation(); startEditing(); } : undefined}
-                title={isAdmin ? "Clique para editar" : undefined}
-              >
-                {formatCountdown(countdown)}
-              </span>
-            )
-          )}
-          <ChevronDown className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -281,9 +230,6 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
             </Button>
           )}
 
-          <Button variant="ghost" size="icon" onClick={() => setIsExpanded(false)} className="h-8 w-8 text-muted-foreground hover:text-foreground">
-            <ChevronUp className="h-4 w-4" />
-          </Button>
         </div>
       </div>
 
