@@ -8,6 +8,18 @@ interface BrazilMapChartProps {
   byState?: { state: string; total: number }[];
 }
 
+// States with labels placed outside the shape with connector lines
+const EXTERNAL_LABELS: Record<string, { anchor: [number, number]; external: [number, number] }> = {
+  SE: { anchor: [417, 190], external: [460, 198] },
+  AL: { anchor: [432, 175], external: [465, 175] },
+  PE: { anchor: [410, 165], external: [455, 158] },
+  PB: { anchor: [434, 148], external: [465, 140] },
+  RN: { anchor: [431, 135], external: [465, 122] },
+  DF: { anchor: [301, 250], external: [320, 260] },
+  ES: { anchor: [380, 300], external: [415, 305] },
+  RJ: { anchor: [355, 330], external: [400, 340] },
+};
+
 const STATE_PATHS: Record<string, { d: string; label: [number, number] }> = {
   TO: {
     d: 'M289.558,235.641c16.104,0.575,44.973-31.647,44.835-45.259c-0.136-13.612-17.227-58.446-22.349-66.088c-5.122-7.628-37.905,2.506-37.905,2.506S234.852,233.695,289.558,235.641z',
@@ -190,14 +202,15 @@ export function BrazilMapChart({ leads, byState: byStateProp }: BrazilMapChartPr
         )}
 
         <svg
-          viewBox="0 0 460 460"
+          viewBox="-10 0 500 470"
           className="w-full max-h-[800px]"
-          style={{ aspectRatio: '1' }}
+          style={{ aspectRatio: '500/470' }}
         >
           {Object.entries(STATE_PATHS).map(([state, { d, label }]) => {
             const count = stateData[state] || 0;
             const isHovered = hoveredState === state;
             const intensity = maxCount > 0 ? Math.min(count / maxCount, 1) : 0;
+            const ext = EXTERNAL_LABELS[state];
 
             return (
               <g key={state}>
@@ -215,35 +228,82 @@ export function BrazilMapChart({ leads, byState: byStateProp }: BrazilMapChartPr
                     filter: isHovered ? 'brightness(1.15)' : undefined,
                   }}
                 />
-                <text
-                  x={label[0]}
-                  y={label[1]}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  className="pointer-events-none select-none"
-                  style={{
-                    fontSize: state === 'DF' ? 7 : 9,
-                    fontWeight: count > 0 ? 700 : 400,
-                    fill: intensity > 0.5 ? 'white' : 'hsl(var(--foreground))',
-                  }}
-                >
-                  {state}
-                </text>
-                {count > 0 && (
-                  <text
-                    x={label[0]}
-                    y={label[1] + 10}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    className="pointer-events-none select-none"
-                    style={{
-                      fontSize: 7,
-                      fontWeight: 600,
-                      fill: intensity > 0.5 ? 'rgba(255,255,255,0.9)' : 'hsl(var(--muted-foreground))',
-                    }}
-                  >
-                    {count.toLocaleString('pt-BR')}
-                  </text>
+                {ext ? (
+                  <>
+                    {/* Connector line from state to external label */}
+                    <line
+                      x1={ext.anchor[0]}
+                      y1={ext.anchor[1]}
+                      x2={ext.external[0] - 2}
+                      y2={ext.external[1]}
+                      stroke="hsl(var(--muted-foreground))"
+                      strokeWidth={0.6}
+                      className="pointer-events-none"
+                    />
+                    <text
+                      x={ext.external[0]}
+                      y={ext.external[1] - 4}
+                      textAnchor="start"
+                      dominantBaseline="central"
+                      className="pointer-events-none select-none"
+                      style={{
+                        fontSize: 9,
+                        fontWeight: count > 0 ? 700 : 400,
+                        fill: 'hsl(var(--foreground))',
+                      }}
+                    >
+                      {state}
+                    </text>
+                    {count > 0 && (
+                      <text
+                        x={ext.external[0]}
+                        y={ext.external[1] + 7}
+                        textAnchor="start"
+                        dominantBaseline="central"
+                        className="pointer-events-none select-none"
+                        style={{
+                          fontSize: 7,
+                          fontWeight: 600,
+                          fill: 'hsl(var(--muted-foreground))',
+                        }}
+                      >
+                        {count.toLocaleString('pt-BR')}
+                      </text>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <text
+                      x={label[0]}
+                      y={label[1]}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className="pointer-events-none select-none"
+                      style={{
+                        fontSize: 9,
+                        fontWeight: count > 0 ? 700 : 400,
+                        fill: intensity > 0.5 ? 'white' : 'hsl(var(--foreground))',
+                      }}
+                    >
+                      {state}
+                    </text>
+                    {count > 0 && (
+                      <text
+                        x={label[0]}
+                        y={label[1] + 10}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        className="pointer-events-none select-none"
+                        style={{
+                          fontSize: 7,
+                          fontWeight: 600,
+                          fill: intensity > 0.5 ? 'rgba(255,255,255,0.9)' : 'hsl(var(--muted-foreground))',
+                        }}
+                      >
+                        {count.toLocaleString('pt-BR')}
+                      </text>
+                    )}
+                  </>
                 )}
               </g>
             );
