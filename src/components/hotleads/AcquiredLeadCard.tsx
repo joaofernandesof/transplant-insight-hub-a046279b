@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MapPin, Lock, Calendar, Mail, Loader2, Undo2, Eye, EyeOff, Phone, CheckCircle2, XCircle, Clock, AlertTriangle, User } from 'lucide-react';
+import { MapPin, Lock, Calendar, Mail, Loader2, Undo2, Eye, EyeOff, Phone, CheckCircle2, XCircle, Clock, AlertTriangle, User, Timer } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,17 +33,81 @@ function maskName(fullName: string): string {
 const OVERDUE_DAYS = 7;
 
 function isOverdue(lead: HotLead): boolean {
-  if (lead.lead_outcome) return false;
-  const claimedTime = lead.claimed_at ? new Date(lead.claimed_at).getTime() : new Date(lead.created_at).getTime();
-  return claimedTime < Date.now() - OVERDUE_DAYS * 24 * 60 * 60 * 1000;
+  if (lead.lead_outcome === 'vendido' || lead.lead_outcome === 'descartado') return false;
+  const refTime = getDeadlineReference(lead);
+  return refTime < Date.now() - OVERDUE_DAYS * 24 * 60 * 60 * 1000;
 }
 
-function getDaysRemaining(lead: HotLead): number | null {
-  if (lead.lead_outcome) return null;
-  const claimedTime = lead.claimed_at ? new Date(lead.claimed_at).getTime() : new Date(lead.created_at).getTime();
-  const deadline = claimedTime + OVERDUE_DAYS * 24 * 60 * 60 * 1000;
-  const remaining = Math.ceil((deadline - Date.now()) / (24 * 60 * 60 * 1000));
-  return remaining;
+/** Get the reference timestamp for the 7-day deadline */
+function getDeadlineReference(lead: HotLead): number {
+  if (lead.lead_outcome === 'em_atendimento' && lead.outcome_at) {
+    return new Date(lead.outcome_at).getTime();
+  }
+  return lead.claimed_at ? new Date(lead.claimed_at).getTime() : new Date(lead.created_at).getTime();
+}
+
+function getTimeRemaining(lead: HotLead): { days: number; hours: number; minutes: number; seconds: number; total: number } | null {
+  if (lead.lead_outcome === 'vendido' || lead.lead_outcome === 'descartado') return null;
+  const refTime = getDeadlineReference(lead);
+  const deadline = refTime + OVERDUE_DAYS * 24 * 60 * 60 * 1000;
+  const total = deadline - Date.now();
+  if (total <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
+  const days = Math.floor(total / (24 * 60 * 60 * 1000));
+  const hours = Math.floor((total % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+  const minutes = Math.floor((total % (60 * 60 * 1000)) / (60 * 1000));
+  const seconds = Math.floor((total % (60 * 1000)) / 1000);
+  return { days, hours, minutes, seconds, total };
+}
+
+function CountdownTimer({ lead }: { lead: HotLead }) {
+  const [remaining, setRemaining] = useState(getTimeRemaining(lead));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRemaining(getTimeRemaining(lead));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lead.claimed_at, lead.outcome_at, lead.lead_outcome]);
+
+  if (!remaining) return null;
+
+  const isUrgent = remaining.total > 0 && remaining.days < 2;
+  const isExpired = remaining.total <= 0;
+
+  if (isExpired) {
+    return (
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800">
+        <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+        <span className="text-xs font-bold text-red-600 dark:text-red-400">Prazo expirado — atualize agora!</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border ${
+      isUrgent 
+        ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' 
+        : 'bg-muted/50 border-border/60'
+    }`}>
+      <Timer className={`h-3.5 w-3.5 shrink-0 ${isUrgent ? 'text-amber-500' : 'text-muted-foreground'}`} />
+      <div className="flex items-center gap-1">
+        {remaining.days > 0 && (
+          <span className={`text-xs font-bold tabular-nums ${isUrgent ? 'text-amber-700 dark:text-amber-300' : 'text-foreground'}`}>
+            {remaining.days}d
+          </span>
+        )}
+        <span className={`text-xs font-bold tabular-nums ${isUrgent ? 'text-amber-700 dark:text-amber-300' : 'text-foreground'}`}>
+          {String(remaining.hours).padStart(2, '0')}h
+        </span>
+        <span className={`text-xs font-bold tabular-nums ${isUrgent ? 'text-amber-700 dark:text-amber-300' : 'text-foreground'}`}>
+          {String(remaining.minutes).padStart(2, '0')}m
+        </span>
+        <span className={`text-[10px] tabular-nums ${isUrgent ? 'text-amber-500 dark:text-amber-400' : 'text-muted-foreground'}`}>
+          {String(remaining.seconds).padStart(2, '0')}s
+        </span>
+      </div>
+    </div>
+  );
 }
 
 const OUTCOME_CONFIG: Record<LeadOutcome, { label: string; icon: typeof CheckCircle2; color: string; bgColor: string; accentColor: string }> = {
@@ -60,7 +124,7 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
   const location = [lead.city, lead.state].filter(Boolean).join(' - ');
   const maskedName = maskName(lead.name);
   const overdue = isOwned && isOverdue(lead);
-  const daysLeft = isOwned ? getDaysRemaining(lead) : null;
+  const showCountdown = isOwned && (lead.lead_outcome !== 'vendido' && lead.lead_outcome !== 'descartado');
   
   const dateToShow = lead.available_at || lead.created_at;
   const arrivalDate = dateToShow
@@ -166,19 +230,11 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
             );
           })()}
 
-          {/* Overdue warning */}
-          {overdue && !lead.lead_outcome && (
-            <div className="mb-3 p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-              <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Informe o destino!</span>
+          {/* Countdown timer for acquired/in_progress leads */}
+          {showCountdown && (
+            <div className="mb-3">
+              <CountdownTimer lead={lead} />
             </div>
-          )}
-
-          {/* Days remaining warning */}
-          {daysLeft !== null && daysLeft > 0 && daysLeft <= 3 && !lead.lead_outcome && (
-            <p className="text-[11px] text-amber-500 mb-3">
-              ⏳ {daysLeft} {daysLeft === 1 ? 'dia restante' : 'dias restantes'}
-            </p>
           )}
 
           {/* Admin expanded info */}
