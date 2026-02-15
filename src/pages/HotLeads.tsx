@@ -20,6 +20,7 @@ import {
   LeadListRow,
 } from '@/components/hotleads';
 import { LicenseeSettingsDialog } from '@/components/hotleads/LicenseeSettingsDialog';
+import { BulkActionsBar } from '@/components/hotleads/BulkActionsBar';
 import { AdminManualReleaseDialog } from '@/components/hotleads/AdminManualReleaseDialog';
 import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashboard';
@@ -229,6 +230,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       return next;
     });
   }, []);
+
+  const selectAllVisible = useCallback(() => {
+    setSelectedLeads(new Set(activeItems.map(l => l.id)));
+  }, [activeItems]);
 
   const handleAcquireClick = (lead: HotLead) => {
     if (isBlocked) {
@@ -535,12 +540,17 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
           </div>
 
           {/* Selection count */}
-          {selectedLeads.size > 0 && (
-            <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{selectedLeads.size}</span> selecionado{selectedLeads.size > 1 ? 's' : ''}
-              <button onClick={() => setSelectedLeads(new Set())} className="text-xs underline text-primary hover:text-primary/80">Limpar</button>
-            </div>
-          )}
+          <BulkActionsBar
+            selectedLeads={selectedLeads}
+            allLeads={leads}
+            activeTab={activeTab}
+            activeItems={activeItems}
+            onClearSelection={() => setSelectedLeads(new Set())}
+            onSelectAll={selectAllVisible}
+            onRelease={releaseLead}
+            onUpdateOutcome={updateLeadOutcome}
+            getClaimerName={getClaimerName}
+          />
 
           {/* Card grid or List view */}
           {viewMode === 'cards' ? (
