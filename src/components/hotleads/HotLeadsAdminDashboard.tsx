@@ -165,7 +165,7 @@ export function HotLeadsAdminDashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" fontSize={10} tickLine={false} axisLine={false} />
-              <YAxis fontSize={10} tickLine={false} axisLine={false} domain={[0, (dataMax: number) => Math.max(dataMax, 1)]} allowDataOverflow={false} />
+              <YAxis fontSize={10} tickLine={false} axisLine={false} domain={[0, 'dataMax']} allowDecimals={false} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend fontSize={11} />
               <Area type="monotone" dataKey="total" stroke="#f97316" strokeWidth={2} fill="url(#gradTotal)" name="Novos Leads" />
