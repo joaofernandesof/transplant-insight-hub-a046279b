@@ -340,6 +340,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               availableCount={filteredAvailable.length}
               myLeadsCount={filteredMyLeads.length}
               acquiredCount={filteredAcquired.length}
+              queuedCount={queuedCount}
             />
             {/* Motivational phrase */}
             <div className="text-center py-2">
