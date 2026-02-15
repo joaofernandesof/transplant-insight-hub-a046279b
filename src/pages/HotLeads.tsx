@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -18,6 +18,7 @@ import {
   NextLeadReleaseBanner,
 } from '@/components/hotleads';
 import { LicenseeSettingsDialog } from '@/components/hotleads/LicenseeSettingsDialog';
+import { AdminManualReleaseDialog } from '@/components/hotleads/AdminManualReleaseDialog';
 import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { HotLead } from '@/hooks/useHotLeads';
@@ -45,6 +46,7 @@ export default function HotLeads() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
 
   // Cooldown: 5 minutes (300 seconds) after acquiring a lead
   const COOLDOWN_SECONDS = 300;
@@ -212,6 +214,10 @@ export default function HotLeads() {
             <div className="hidden lg:flex items-center gap-1.5 flex-wrap">
               {isAdmin && (
                 <>
+                  <Button variant="outline" size="sm" onClick={() => setIsManualReleaseOpen(true)}>
+                    <Unlock className="h-4 w-4 mr-1.5" />
+                    <span className="hidden sm:inline">Liberar</span>
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
                     <Upload className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Importar</span>
@@ -249,6 +255,10 @@ export default function HotLeads() {
         <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
           {isAdmin && (
             <>
+              <Button variant="outline" size="sm" onClick={() => setIsManualReleaseOpen(true)}>
+                <Unlock className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Liberar</span>
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
                 <Upload className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Importar</span>
@@ -450,6 +460,15 @@ export default function HotLeads() {
         onSave={handleSettingsSaved}
         required
       />
+
+      {/* Admin manual release dialog */}
+      {isAdmin && (
+        <AdminManualReleaseDialog
+          open={isManualReleaseOpen}
+          onOpenChange={setIsManualReleaseOpen}
+          onLeadReleased={() => fetchLeads(true)}
+        />
+      )}
     </div>
   );
 }
