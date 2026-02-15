@@ -9406,8 +9406,10 @@ export type Database = {
           interest_level: string | null
           language: string | null
           lead_code: string
+          lead_outcome: string | null
           name: string
           notes: string | null
+          outcome_at: string | null
           phone: string
           procedure_interest: string | null
           procedures_sold: string[] | null
@@ -9438,8 +9440,10 @@ export type Database = {
           interest_level?: string | null
           language?: string | null
           lead_code: string
+          lead_outcome?: string | null
           name: string
           notes?: string | null
+          outcome_at?: string | null
           phone: string
           procedure_interest?: string | null
           procedures_sold?: string[] | null
@@ -9470,8 +9474,10 @@ export type Database = {
           interest_level?: string | null
           language?: string | null
           lead_code?: string
+          lead_outcome?: string | null
           name?: string
           notes?: string | null
+          outcome_at?: string | null
           phone?: string
           procedure_interest?: string | null
           procedures_sold?: string[] | null
