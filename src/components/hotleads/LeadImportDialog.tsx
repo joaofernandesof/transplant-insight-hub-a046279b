@@ -32,8 +32,9 @@ interface LeadImportDialogProps {
   ) => Promise<{ success: number; errors: number }>;
 }
 
-const REQUIRED_COLUMNS = ['nome', 'telefone'];
-
+/**
+ * Normaliza um nome de cabeçalho para matching confiável.
+ */
 function normalizeHeader(header: string): string {
   return header
     .toLowerCase()
@@ -43,109 +44,89 @@ function normalizeHeader(header: string): string {
     .trim();
 }
 
-function findValue(normalized: Record<string, string>, possibleNames: string[]): string {
-  const keys = Object.keys(normalized);
-  const targets = possibleNames.map(n => normalizeHeader(n));
+/**
+ * Encontra o índice de uma coluna usando matching hierárquico:
+ * 1. Exact match → 2. Starts with → 3. Includes
+ * Retorna o índice da coluna no array de headers.
+ */
+function findColumnIndex(normalizedHeaders: string[], possibleNames: string[]): number {
+  const targets = possibleNames.map(normalizeHeader);
 
+  // Priority 1: Exact match
   for (const target of targets) {
-    if (normalized[target] !== undefined) return normalized[target];
+    const idx = normalizedHeaders.indexOf(target);
+    if (idx !== -1) return idx;
   }
+
+  // Priority 2: Starts with
   for (const target of targets) {
-    const key = keys.find(k => k.startsWith(target));
-    if (key) return normalized[key];
+    const idx = normalizedHeaders.findIndex(h => h.startsWith(target));
+    if (idx !== -1) return idx;
   }
+
+  // Priority 3: Includes
   for (const target of targets) {
-    const key = keys.find(k => k.includes(target));
-    if (key) return normalized[key];
+    const idx = normalizedHeaders.findIndex(h => h.includes(target));
+    if (idx !== -1) return idx;
   }
-  return '';
+
+  return -1;
 }
 
-const KNOWN_FIELD_KEYWORDS = [
-  'nome', 'contato', 'name',
-  'telefone', 'phone', 'celular', 'whatsapp', 'fone',
-  'email', 'e-mail', 'e mail', 'mail',
-  'estado', 'uf', 'state',
-  'cidade', 'city', 'municipio',
-  'source', 'fonte', 'origem',
-  'status', 'situacao',
-  'id', 'codigo', 'code',
-  'data', 'date', 'created', 'criado',
-  'cpf', 'cnpj', 'rg', 'documento',
-  'endereco', 'address', 'cep', 'bairro', 'rua', 'numero', 'complemento',
-  'observacao', 'obs', 'nota', 'note', 'comment',
-];
-
-const TAG_KEYWORDS = ['tag', 'etiqueta', 'rotulo', 'label', 'marcador', 'classificacao', 'categoria', 'segmento', 'grupo'];
-
-function collectTags(normalized: Record<string, string>): string {
-  const tagParts: string[] = [];
-  
-  for (const [key, value] of Object.entries(normalized)) {
-    if (value && TAG_KEYWORDS.some(kw => key.includes(kw))) {
-      tagParts.push(value);
-    }
-  }
-  
-  if (tagParts.length > 0) return tagParts.join(', ');
-  
-  for (const [key, value] of Object.entries(normalized)) {
-    if (!value) continue;
-    const isKnown = KNOWN_FIELD_KEYWORDS.some(kw => key.includes(kw));
-    if (!isKnown && key.length > 0) {
-      const trimmed = value.trim();
-      if (trimmed.length > 0 && trimmed.length < 200 && !/^\d+$/.test(trimmed)) {
-        tagParts.push(trimmed);
-      }
-    }
-  }
-  
-  return tagParts.join(', ');
-}
-
-function parseTags(raw: string): string[] {
-  if (!raw) return [];
-  
-  const NOISE = new Set(['N/A', 'N A', 'undefined', 'null', 'none', '-', '']);
-  
-  let tags: string[];
-  
-  if (raw.includes(',') || raw.includes(';') || raw.includes('|')) {
-    tags = raw.split(/[,;|]/).map(t => t.trim());
-  } else if (raw.includes('#')) {
-    tags = raw.match(/#[^#,;|]+/g)?.map(t => t.trim()) || [raw.trim()];
-  } else {
-    tags = [raw.trim()];
-  }
-  
-  return [...new Set(tags.filter(t => t.length > 0 && !NOISE.has(t)))];
-}
-
-function mapRow(row: Record<string, any>, rowIndex?: number): ParsedLead | null {
-  if (rowIndex === 0) {
-    console.log('[HotLeads Import] Raw column headers:', Object.keys(row));
+/**
+ * Mapeia colunas por ÍNDICE ao invés de por nome em cada linha.
+ * Isso garante que cidade/estado nunca se embaralhem entre linhas.
+ */
+function parseSheet(rawRows: any[][]): { leads: ParsedLead[]; error?: string } {
+  if (!rawRows.length || rawRows.length < 2) {
+    return { leads: [], error: 'A planilha está vazia.' };
   }
 
-  const normalized: Record<string, string> = {};
-  Object.entries(row).forEach(([key, value]) => {
-    const nk = normalizeHeader(key);
-    const nv = String(value ?? '').trim();
-    normalized[nk] = nv;
-  });
+  const headerRow = rawRows[0].map(h => String(h ?? ''));
+  const normalizedHeaders = headerRow.map(normalizeHeader);
 
-  if (rowIndex === 0) {
-    console.log('[HotLeads Import] Normalized keys:', Object.keys(normalized));
+  console.log('[HotLeads Import] Raw headers:', headerRow);
+  console.log('[HotLeads Import] Normalized headers:', normalizedHeaders);
+
+  // Find column indices
+  const nameIdx = findColumnIndex(normalizedHeaders, ['contato principal', 'nome', 'contato', 'name']);
+  const phoneIdx = findColumnIndex(normalizedHeaders, ['telefone comercial', 'telefone comercial contato', 'telefone', 'phone', 'celular', 'whatsapp', 'fone']);
+  const emailIdx = findColumnIndex(normalizedHeaders, ['email formulario', 'email', 'e-mail', 'e mail', 'mail']);
+  const stateIdx = findColumnIndex(normalizedHeaders, ['estado do lead', 'estado', 'uf', 'state']);
+  const cityIdx = findColumnIndex(normalizedHeaders, ['cidade principal', 'cidade', 'city', 'municipio']);
+
+  console.log('[HotLeads Import] Column indices:', { nameIdx, phoneIdx, emailIdx, stateIdx, cityIdx });
+
+  if (nameIdx === -1 || phoneIdx === -1) {
+    return { leads: [], error: 'Colunas obrigatórias ausentes: necessário "Contato principal" (ou "Nome") e "Telefone"' };
   }
 
-  const name = findValue(normalized, ['nome', 'contato principal', 'contato', 'name']);
-  const phone = findValue(normalized, ['telefone', 'telefone comercial', 'telefone comercial contato', 'phone', 'celular', 'whatsapp']);
-  const email = findValue(normalized, ['email', 'email formulario', 'e-mail', 'e mail']);
-  const state = findValue(normalized, ['estado', 'estado do lead', 'uf', 'state']);
-  const city = findValue(normalized, ['cidade', 'cidade principal', 'city', 'municipio']);
+  const leads: ParsedLead[] = [];
 
-  if (!name || !phone) return null;
+  for (let i = 1; i < rawRows.length; i++) {
+    const row = rawRows[i];
+    if (!row || row.length === 0) continue;
 
-  return { name, phone, email, state, city };
+    const name = String(row[nameIdx] ?? '').trim();
+    const phone = String(row[phoneIdx] ?? '').trim();
+    const email = emailIdx >= 0 ? String(row[emailIdx] ?? '').trim() : '';
+    const state = stateIdx >= 0 ? String(row[stateIdx] ?? '').trim() : '';
+    const city = cityIdx >= 0 ? String(row[cityIdx] ?? '').trim() : '';
+
+    if (!name || !phone) continue;
+
+    leads.push({ name, phone, email, state, city });
+  }
+
+  if (leads.length === 0) {
+    return { leads: [], error: 'Nenhum lead válido encontrado (nome e telefone são obrigatórios).' };
+  }
+
+  // Validation: log a sample to confirm correct mapping
+  const sample = leads[0];
+  console.log('[HotLeads Import] First lead sample:', sample);
+
+  return { leads };
 }
 
 function formatNumber(n: number): string {
@@ -172,8 +153,8 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
 
   const downloadTemplate = useCallback(() => {
     const templateData = [
-      { 'Contato principal': 'João Silva', 'Telefone comercial (contato)': '11999998888', 'EMAIL (FORMULÁRIO)': 'joao@email.com', 'ESTADO DO LEAD': 'SP', 'CIDADE PRINCIPAL': 'São Paulo', 'Lead tags': '' },
-      { 'Contato principal': 'Maria Santos', 'Telefone comercial (contato)': '21988887777', 'EMAIL (FORMULÁRIO)': 'maria@email.com', 'ESTADO DO LEAD': 'RJ', 'CIDADE PRINCIPAL': 'Rio de Janeiro', 'Lead tags': 'Oportunidade, #DISPARO_OPERAÇÃO' },
+      { 'Contato principal': 'João Silva', 'Telefone comercial (contato)': '11999998888', 'EMAIL (FORMULÁRIO)': 'joao@email.com', 'ESTADO DO LEAD': 'SP', 'CIDADE PRINCIPAL': 'São Paulo' },
+      { 'Contato principal': 'Maria Santos', 'Telefone comercial (contato)': '21988887777', 'EMAIL (FORMULÁRIO)': 'maria@email.com', 'ESTADO DO LEAD': 'RJ', 'CIDADE PRINCIPAL': 'Rio de Janeiro' },
     ];
     
     const worksheet = XLSX.utils.json_to_sheet(templateData);
@@ -181,7 +162,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
     
     worksheet['!cols'] = [
-      { wch: 25 }, { wch: 22 }, { wch: 30 }, { wch: 15 }, { wch: 20 }, { wch: 35 },
+      { wch: 25 }, { wch: 22 }, { wch: 30 }, { wch: 15 }, { wch: 20 },
     ];
     
     XLSX.writeFile(workbook, 'modelo_hotleads.xlsx');
@@ -203,30 +184,18 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
         const data = new Uint8Array(evt.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
-
-        if (json.length === 0) {
-          setParseError('A planilha está vazia.');
-          return;
-        }
-
-        const rawHeaders = Object.keys(json[0]);
-        const headers = rawHeaders.map(normalizeHeader);
-        const hasName = headers.some(h => h === 'nome' || h.includes('contato'));
-        const hasPhone = headers.some(h => h.includes('telefone') || h.includes('phone') || h.includes('celular') || h.includes('whatsapp') || h.includes('fone'));
         
-        if (!hasName || !hasPhone) {
-          setParseError('Colunas obrigatórias ausentes: necessário "Contato principal" (ou "Nome") e "Telefone"');
+        // Use sheet_to_json with header:1 to get raw 2D array (preserves column positions)
+        const rawRows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: '' });
+
+        const { leads, error } = parseSheet(rawRows);
+        
+        if (error) {
+          setParseError(error);
           return;
         }
 
-        const mapped = json.map((row, idx) => mapRow(row, idx)).filter(Boolean) as ParsedLead[];
-        if (mapped.length === 0) {
-          setParseError('Nenhum lead válido encontrado (nome e telefone são obrigatórios).');
-          return;
-        }
-
-        setParsedLeads(mapped);
+        setParsedLeads(leads);
       } catch {
         setParseError('Erro ao ler o arquivo. Verifique o formato.');
       }
@@ -238,7 +207,6 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
     setIsImporting(true);
     setProgress({ current: 0, total: parsedLeads.length, success: 0, errors: 0 });
     const res = await onImport(parsedLeads, (p) => setProgress(p));
-    // Keep final progress visible briefly before showing result
     setProgress(prev => prev ? { ...prev, current: prev.total } : null);
     await new Promise(r => setTimeout(r, 800));
     setResult(res);
