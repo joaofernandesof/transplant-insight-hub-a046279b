@@ -355,212 +355,77 @@ export function HotLeadsAdminDashboard() {
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
-          {/* Top 3 Podium - Redesigned */}
-          {stats.topLicensees.length > 0 && (
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              {/* 2nd Place */}
-              {stats.topLicensees[1] && (() => {
-                const lic = stats.topLicensees[1];
-                const initials = lic.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-                return (
-                  <div className="flex flex-col items-center pt-6">
-                    <div className="relative">
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 text-white text-xs font-extrabold shadow-lg">2</span>
-                      </div>
-                      <Avatar className="h-16 w-16 ring-4 ring-slate-300 shadow-xl">
-                        <AvatarImage src={lic.avatar_url || ''} />
-                        <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 font-bold text-sm text-slate-600">{initials}</AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <p className="font-semibold text-sm mt-3 text-center truncate max-w-full">{lic.full_name.split(' ').slice(0, 2).join(' ')}</p>
-                    <div className="mt-1 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800">
-                      <span className="text-xl font-extrabold text-slate-600 dark:text-slate-300">{lic.total_claimed}</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1">leads capturados</p>
-                  </div>
-                );
-              })()}
-              {/* 1st Place */}
-              {stats.topLicensees[0] && (() => {
-                const lic = stats.topLicensees[0];
-                const initials = lic.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-                return (
-                  <div className="flex flex-col items-center">
-                    <div className="relative">
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                        <Crown className="h-6 w-6 text-amber-400 drop-shadow-lg" />
-                      </div>
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-20">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 text-white text-sm font-extrabold shadow-lg ring-2 ring-amber-300">1</span>
-                      </div>
-                      <Avatar className="h-20 w-20 mt-4 ring-4 ring-amber-400 shadow-2xl">
-                        <AvatarImage src={lic.avatar_url || ''} />
-                        <AvatarFallback className="bg-gradient-to-br from-amber-50 to-amber-100 font-bold text-base text-amber-700">{initials}</AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <p className="font-bold text-sm mt-3 text-center truncate max-w-full">{lic.full_name.split(' ').slice(0, 2).join(' ')}</p>
-                    <div className="mt-1 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 shadow-md">
-                      <span className="text-2xl font-extrabold text-white">{lic.total_claimed}</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1 font-medium">leads capturados</p>
-                  </div>
-                );
-              })()}
-              {/* 3rd Place */}
-              {stats.topLicensees[2] && (() => {
-                const lic = stats.topLicensees[2];
-                const initials = lic.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-                return (
-                  <div className="flex flex-col items-center pt-8">
-                    <div className="relative">
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-amber-600 text-white text-xs font-extrabold shadow-lg">3</span>
-                      </div>
-                      <Avatar className="h-14 w-14 ring-4 ring-orange-300 shadow-xl">
-                        <AvatarImage src={lic.avatar_url || ''} />
-                        <AvatarFallback className="bg-gradient-to-br from-orange-50 to-orange-100 font-bold text-xs text-orange-600">{initials}</AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <p className="font-semibold text-xs mt-3 text-center truncate max-w-full">{lic.full_name.split(' ').slice(0, 2).join(' ')}</p>
-                    <div className="mt-1 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900">
-                      <span className="text-lg font-extrabold text-orange-600 dark:text-orange-300">{lic.total_claimed}</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1">leads capturados</p>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-
-          {/* Full Table - Redesigned */}
+        <CardContent className="pt-4">
           <div className="rounded-xl border overflow-hidden">
-            <div className="overflow-auto max-h-[420px]">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10">
-                  <tr className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-                    <th className="text-center py-3 px-3 w-12 font-bold text-xs uppercase tracking-wider text-muted-foreground">#</th>
-                    <th className="text-left py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Licenciado</th>
-                    <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Leads</th>
-                    <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground hidden sm:table-cell">Última Captação</th>
-                    <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground hidden md:table-cell">Atividade</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.topLicensees.map((lic, i) => {
-                    const initials = lic.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-                    const maxClaimed = stats.topLicensees[0]?.total_claimed || 1;
-                    const pctBar = maxClaimed > 0 ? (lic.total_claimed / maxClaimed) * 100 : 0;
-                    const isTopThree = i < 3;
-                    const rankColors = ['text-amber-500', 'text-slate-400', 'text-orange-500'];
-                    const rankBgs = ['bg-amber-50 dark:bg-amber-950', 'bg-slate-50 dark:bg-slate-900', 'bg-orange-50 dark:bg-orange-950'];
-                    const barColors = ['from-amber-400 to-yellow-500', 'from-slate-300 to-slate-400', 'from-orange-400 to-amber-500'];
-                    
-                    return (
-                      <tr key={lic.user_id} className={`border-b last:border-0 transition-colors ${isTopThree ? rankBgs[i] : 'hover:bg-muted/40'}`}>
-                        <td className="text-center py-3 px-3">
-                          {isTopThree ? (
-                            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full font-extrabold text-sm ${rankColors[i]}`}>
-                              {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
-                            </span>
-                          ) : (
-                            <span className="text-sm font-medium text-muted-foreground">{i + 1}</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-3">
-                            <Avatar className={`h-9 w-9 ${isTopThree ? 'ring-2 ring-amber-200 dark:ring-amber-800' : ''}`}>
-                              <AvatarImage src={lic.avatar_url || ''} />
-                              <AvatarFallback className="text-[10px] font-bold bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-600 dark:text-slate-300">{initials}</AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                              <p className={`text-sm truncate ${isTopThree ? 'font-bold' : 'font-medium'}`}>{lic.full_name}</p>
-                              <p className="text-[10px] text-muted-foreground truncate">{lic.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="text-center py-3 px-3">
-                          <span className={`inline-flex items-center justify-center min-w-[32px] px-2 py-0.5 rounded-full text-sm font-extrabold ${
-                            lic.total_claimed > 0 
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
-                              : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {lic.total_claimed}
-                          </span>
-                        </td>
-                        <td className="text-center py-3 px-3 hidden sm:table-cell">
-                          {lic.last_claim ? (
-                            <span className="text-xs font-medium bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-md">
-                              {new Date(lic.last_claim).toLocaleDateString('pt-BR')}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/40">sem captação</span>
-                          )}
-                        </td>
-                        <td className="text-center py-3 px-3 hidden md:table-cell">
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-24 h-2.5 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full bg-gradient-to-r transition-all duration-500 ${
-                                  isTopThree ? barColors[i] : 'from-green-400 to-emerald-500'
-                                }`}
-                                style={{ width: `${Math.max(pctBar, lic.total_claimed > 0 ? 5 : 0)}%` }}
-                              />
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+                  <th className="text-center py-3 px-3 w-12 font-bold text-xs uppercase tracking-wider text-muted-foreground">#</th>
+                  <th className="text-left py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Licenciado</th>
+                  <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Leads Captados</th>
+                  <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Tempo Online</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.topLicensees.map((lic, i) => {
+                  const initials = lic.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+                  const isTopThree = i < 3;
+                  const rankBgs = ['bg-amber-50 dark:bg-amber-950', 'bg-slate-50 dark:bg-slate-900', 'bg-orange-50 dark:bg-orange-950'];
 
-          {/* Insights */}
-          {stats.topLicensees.length > 0 && (
-            <div className="mt-5 grid gap-2">
-              {(() => {
-                const insightsList: { text: string; color: string; bg: string; icon: string }[] = [];
-                const active = stats.topLicensees.filter(l => l.total_claimed > 0);
-                const inactive = stats.topLicensees.filter(l => l.total_claimed === 0);
-                
-                if (active.length > 0) {
-                  insightsList.push({
-                    text: `${active.length} licenciado(s) já capturaram leads. ${active[0].full_name.split(' ')[0]} lidera com ${active[0].total_claimed} lead(s).`,
-                    color: 'text-green-700 dark:text-green-400',
-                    bg: 'bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800',
-                    icon: '🏆',
-                  });
-                }
-                if (inactive.length > 0) {
-                  insightsList.push({
-                    text: `${inactive.length} licenciado(s) ainda não capturaram nenhum lead. Engaje-os com comunicação direta.`,
-                    color: 'text-amber-700 dark:text-amber-400',
-                    bg: 'bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800',
-                    icon: '⚡',
-                  });
-                }
-                const totalClaimed = stats.topLicensees.reduce((s, l) => s + l.total_claimed, 0);
-                if (totalClaimed > 0 && stats.available > 0) {
-                  const ratio = (stats.available / stats.topLicensees.length).toFixed(0);
-                  insightsList.push({
-                    text: `Média de ${ratio} leads disponíveis por licenciado. Oportunidade para todos!`,
-                    color: 'text-blue-700 dark:text-blue-400',
-                    bg: 'bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800',
-                    icon: '📊',
-                  });
-                }
-                return insightsList.map((ins, idx) => (
-                  <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl ${ins.bg}`}>
-                    <span className="text-lg">{ins.icon}</span>
-                    <p className={`text-xs leading-relaxed font-medium ${ins.color}`}>{ins.text}</p>
-                  </div>
-                ));
-              })()}
-            </div>
-          )}
+                  // Format online time
+                  const totalSec = lic.total_online_seconds;
+                  const hours = Math.floor(totalSec / 3600);
+                  const minutes = Math.floor((totalSec % 3600) / 60);
+                  const onlineLabel = hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
+
+                  return (
+                    <tr key={lic.user_id} className={`border-b last:border-0 transition-colors ${isTopThree ? rankBgs[i] : 'hover:bg-muted/40'}`}>
+                      <td className="text-center py-3 px-3">
+                        {isTopThree ? (
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full font-extrabold text-sm">
+                            {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
+                          </span>
+                        ) : (
+                          <span className="text-sm font-medium text-muted-foreground">{i + 1}</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className={`h-9 w-9 ${isTopThree ? 'ring-2 ring-amber-200 dark:ring-amber-800' : ''}`}>
+                            <AvatarImage src={lic.avatar_url || ''} />
+                            <AvatarFallback className="text-[10px] font-bold bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-600 dark:text-slate-300">{initials}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className={`text-sm truncate ${isTopThree ? 'font-bold' : 'font-medium'}`}>{lic.full_name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{lic.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-center py-3 px-3">
+                        <span className={`inline-flex items-center justify-center min-w-[32px] px-2 py-0.5 rounded-full text-sm font-extrabold ${
+                          lic.total_claimed > 0 
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+                            : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {lic.total_claimed}
+                        </span>
+                      </td>
+                      <td className="text-center py-3 px-3">
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md ${
+                          totalSec > 0 
+                            ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400' 
+                            : 'text-muted-foreground/40'
+                        }`}>
+                          <Clock className="h-3 w-3" />
+                          {totalSec > 0 ? onlineLabel : 'sem registro'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
     </div>
