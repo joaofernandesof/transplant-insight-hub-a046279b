@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 
 export type LeadOutcome = 'vendido' | 'descartado' | 'em_atendimento';
 
+export type LeadTab = 'available' | 'acquired' | 'in_progress' | 'sold' | 'discarded' | 'unavailable';
+
 export interface HotLead {
   id: string;
   name: string;
@@ -24,6 +26,8 @@ export interface HotLead {
   outcome_at: string | null;
 }
 
+const OVERDUE_DAYS = 7;
+
 export function useHotLeads() {
   const { user, isAdmin } = useAuth();
   const [leads, setLeads] = useState<HotLead[]>([]);
@@ -38,9 +42,6 @@ export function useHotLeads() {
       if (showRefresh) setIsRefreshing(true);
       else setIsLoading(true);
 
-      // Filter leads from HotLeads sources (planilha + n8n)
-      // This excludes leads from Avivar CRM and other sources
-      // Fetch available/claimed leads (not queued) - these are the ones shown in the UI
       const { data: activeData, error: activeError } = await supabase
         .from('leads')
         .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags, available_at, lead_outcome, outcome_at')
@@ -49,7 +50,6 @@ export function useHotLeads() {
         .order('created_at', { ascending: false })
         .limit(5000);
 
-      // Fetch count of queued leads for the banner (no need to load all 13k+ rows)
       const { count: queuedCount } = await supabase
         .from('leads')
         .select('id', { count: 'exact', head: true })
@@ -58,10 +58,7 @@ export function useHotLeads() {
 
       if (activeError) throw activeError;
       const data = activeData || [];
-      // Store queued count for banner use
       setQueuedCount(queuedCount || 0);
-
-      if (activeError) throw activeError;
       setLeads((data) as HotLead[]);
     } catch (error) {
       console.error('Error fetching leads:', error);
@@ -82,7 +79,6 @@ export function useHotLeads() {
       data?.forEach(p => { map[p.user_id] = p.name; });
       setProfiles(map);
 
-      // Fetch only users with hotleads portal access for the filter dropdown
       const { data: hotleadsData, error: hotleadsError } = await supabase
         .from('neohub_users')
         .select('user_id, full_name')
@@ -104,12 +100,15 @@ export function useHotLeads() {
     fetchProfiles();
   }, [fetchLeads, fetchProfiles, user]);
 
+  // Leads available (unclaimed)
   const availableLeads = useMemo(() =>
     leads.filter(l => !l.claimed_by && l.release_status !== 'queued'), [leads]);
 
+  // My leads by category
   const myLeads = useMemo(() =>
     leads.filter(l => l.claimed_by === user?.id), [leads, user?.id]);
 
+  // Leads claimed by others (unavailable)
   const acquiredLeads = useMemo(() =>
     leads.filter(l => !!l.claimed_by && l.claimed_by !== user?.id), [leads, user?.id]);
 
@@ -128,7 +127,6 @@ export function useHotLeads() {
       }
 
       toast.success(data?.message || 'Lead adquirido com sucesso!');
-      // Update local state
       setLeads(prev => prev.map(l =>
         l.id === leadId
           ? { ...l, claimed_by: user?.id || '', claimed_at: new Date().toISOString(), status: 'contacted' }
@@ -151,13 +149,13 @@ export function useHotLeads() {
     try {
       const { error } = await supabase
         .from('leads')
-        .update({ claimed_by: null, claimed_at: null, status: 'new' })
+        .update({ claimed_by: null, claimed_at: null, status: 'new', lead_outcome: null, outcome_at: null })
         .eq('id', leadId);
 
       if (error) throw error;
       toast.success('Lead devolvido para disponíveis!');
       setLeads(prev => prev.map(l =>
-        l.id === leadId ? { ...l, claimed_by: null, claimed_at: null, status: 'new' } : l
+        l.id === leadId ? { ...l, claimed_by: null, claimed_at: null, status: 'new', lead_outcome: null, outcome_at: null } : l
       ));
       return true;
     } catch (error) {
@@ -185,7 +183,6 @@ export function useHotLeads() {
 
     const totalWork = leadsData.length + (duplicateAction === 'overwrite' && duplicates ? duplicates.length : 0);
 
-    // 1. Insert new leads in chunks
     const chunkSize = 500;
     const maxRetries = 3;
 
@@ -238,10 +235,8 @@ export function useHotLeads() {
       await new Promise(r => setTimeout(r, 50));
     }
 
-    // 2. Handle duplicates
     if (duplicates && duplicates.length > 0) {
       if (duplicateAction === 'overwrite') {
-        // Update existing leads with new data
         for (let i = 0; i < duplicates.length; i += 50) {
           const batch = duplicates.slice(i, i + 50);
           for (const dup of batch) {
@@ -295,13 +290,26 @@ export function useHotLeads() {
     return profiles[userId] || 'Licenciado';
   }, [profiles]);
 
-  // Leads that are overdue (claimed > 7 days ago, no outcome set, owned by current user)
-  const OVERDUE_DAYS = 7;
+  /**
+   * Overdue logic: leads owned by current user that need status update.
+   * - Leads with NO outcome (acquired) → overdue if claimed_at > 7 days ago
+   * - Leads with outcome "em_atendimento" → overdue if outcome_at > 7 days ago (must update again)
+   * - Leads with "vendido" or "descartado" → never overdue (final states)
+   */
   const overdueLeads = useMemo(() => {
     if (!user?.id) return [];
     const cutoff = Date.now() - OVERDUE_DAYS * 24 * 60 * 60 * 1000;
     return myLeads.filter(l => {
-      if (l.lead_outcome) return false; // already has outcome
+      // Final outcomes are never overdue
+      if (l.lead_outcome === 'vendido' || l.lead_outcome === 'descartado') return false;
+      
+      if (l.lead_outcome === 'em_atendimento') {
+        // "Em atendimento" leads must be updated every 7 days from outcome_at
+        const referenceTime = l.outcome_at ? new Date(l.outcome_at).getTime() : new Date(l.created_at).getTime();
+        return referenceTime < cutoff;
+      }
+      
+      // No outcome yet - check from claimed_at
       const claimedTime = l.claimed_at ? new Date(l.claimed_at).getTime() : new Date(l.created_at).getTime();
       return claimedTime < cutoff;
     });

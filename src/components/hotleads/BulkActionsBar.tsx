@@ -5,7 +5,7 @@ import {
   ShoppingCart, CheckCheck, Loader2, Trash2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import type { HotLead, LeadOutcome } from '@/hooks/useHotLeads';
+import type { HotLead, LeadOutcome, LeadTab } from '@/hooks/useHotLeads';
 import * as XLSX from 'xlsx';
 import {
   AlertDialog,
@@ -21,7 +21,7 @@ import {
 interface BulkActionsBarProps {
   selectedLeads: Set<string>;
   allLeads: HotLead[];
-  activeTab: 'available' | 'mine' | 'lost';
+  activeTab: LeadTab;
   activeItems: HotLead[];
   onClearSelection: () => void;
   onSelectAll: () => void;
@@ -62,7 +62,7 @@ export function BulkActionsBar({
       Email: l.email || '',
       Estado: l.state || '',
       Cidade: l.city || '',
-      Status: l.claimed_by ? 'Adquirido' : 'Disponível',
+      Status: l.lead_outcome || (l.claimed_by ? 'Adquirido' : 'Disponível'),
       'Adquirido por': l.claimed_by ? getClaimerName(l.claimed_by) : '',
       'Data': l.available_at
         ? new Date(l.available_at).toLocaleDateString('pt-BR')
@@ -87,9 +87,7 @@ export function BulkActionsBar({
         if (!onUpdateOutcome) return;
         setIsProcessing(outcome);
         for (const lead of selectedItems) {
-          if (!lead.lead_outcome) {
-            await onUpdateOutcome(lead.id, outcome);
-          }
+          await onUpdateOutcome(lead.id, outcome);
         }
         setIsProcessing(null);
         onClearSelection();
@@ -113,6 +111,10 @@ export function BulkActionsBar({
     });
   };
 
+  // Determine which outcome actions to show based on tab
+  const showOutcomeActions = activeTab === 'acquired' || activeTab === 'in_progress';
+  const showReleaseAction = isAdmin && onRelease && activeTab !== 'available';
+
   return (
     <>
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-200">
@@ -126,13 +128,12 @@ export function BulkActionsBar({
               onClick={allSelected ? onClearSelection : onSelectAll}
               className="text-xs underline opacity-70 hover:opacity-100 whitespace-nowrap"
             >
-              {allSelected ? 'Limpar' : 'Selecionar todos'}
+              {allSelected ? 'Limpar' : 'Todos'}
             </button>
           </div>
 
           {/* Context actions */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            {/* Export - always available */}
             <Button
               size="sm"
               variant="secondary"
@@ -143,8 +144,7 @@ export function BulkActionsBar({
               Exportar
             </Button>
 
-            {/* Tab: mine - outcome actions */}
-            {activeTab === 'mine' && onUpdateOutcome && (
+            {showOutcomeActions && onUpdateOutcome && (
               <>
                 <Button
                   size="sm"
@@ -179,8 +179,7 @@ export function BulkActionsBar({
               </>
             )}
 
-            {/* Tab: mine or lost - admin can release */}
-            {(activeTab === 'mine' || activeTab === 'lost') && isAdmin && onRelease && (
+            {showReleaseAction && (
               <Button
                 size="sm"
                 variant="secondary"
@@ -194,7 +193,6 @@ export function BulkActionsBar({
             )}
           </div>
 
-          {/* Close */}
           <button
             onClick={onClearSelection}
             className="ml-1 p-1 rounded-full hover:bg-background/20 transition-colors"
@@ -204,7 +202,6 @@ export function BulkActionsBar({
         </div>
       </div>
 
-      {/* Confirmation dialog */}
       <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
