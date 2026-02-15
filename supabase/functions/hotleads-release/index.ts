@@ -51,6 +51,20 @@ serve(async (req) => {
     }
 
     if (action === "release") {
+      // ALWAYS check night pause regardless of mode
+      const { brtHour } = getBrtDate();
+      if (brtHour >= 21 || brtHour < 6) {
+        console.log(`[release] BLOCKED by night_pause. BRT hour=${brtHour}, mode=${mode}`);
+        return new Response(JSON.stringify({ 
+          skipped: true, 
+          reason: "night_pause",
+          message: "Liberação pausada entre 21:00 e 06:00 BRT",
+          brt_hour: brtHour,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // For cron mode: use probabilistic release instead of fixed intervals
       if (isCronMode) {
         const shouldRelease = await shouldReleaseNow(supabase);
