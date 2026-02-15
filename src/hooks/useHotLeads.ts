@@ -162,8 +162,8 @@ export function useHotLeads() {
     let success = 0;
     let errors = 0;
 
-    const chunkSize = 50;
-    const totalChunks = Math.ceil(leadsData.length / chunkSize);
+    const chunkSize = 500;
+    const maxRetries = 3;
 
     for (let i = 0; i < leadsData.length; i += chunkSize) {
       const chunk = leadsData.slice(i, i + chunkSize);
@@ -181,16 +181,29 @@ export function useHotLeads() {
         available_at: null,
       }));
 
-      const { data, error } = await supabase
-        .from('leads')
-        .insert(rows as any)
-        .select('id');
+      let chunkSuccess = false;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        const { data, error } = await supabase
+          .from('leads')
+          .insert(rows as any)
+          .select('id');
 
-      if (error) {
-        console.error('Error importing chunk:', error);
+        if (!error && data) {
+          success += data.length;
+          chunkSuccess = true;
+          break;
+        }
+
+        console.error(`[Import] Chunk ${Math.floor(i / chunkSize) + 1} attempt ${attempt} failed:`, error);
+
+        if (attempt < maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s
+          await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
+        }
+      }
+
+      if (!chunkSuccess) {
         errors += chunk.length;
-      } else {
-        success += data?.length || 0;
       }
 
       onProgress?.({
@@ -199,6 +212,9 @@ export function useHotLeads() {
         success,
         errors,
       });
+
+      // Yield to UI thread between chunks
+      await new Promise(r => setTimeout(r, 50));
     }
 
     if (success > 0) {
