@@ -22,10 +22,11 @@ export interface AllLeadStats {
   byDay: { date: string; total: number; claimed: number }[];
   topLicensees: TopLicensee[];
   isLoading: boolean;
+  weekLeads?: number;
 }
 
 export function useAllLeadStats(): AllLeadStats {
-  const [leads, setLeads] = useState<any[]>([]);
+  const [rpcData, setRpcData] = useState<any>(null);
   const [topLicensees, setTopLicensees] = useState<TopLicensee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -33,14 +34,9 @@ export function useAllLeadStats(): AllLeadStats {
     async function fetchAll() {
       setIsLoading(true);
       
-      // Fetch leads and licensee data in parallel
-      const [leadsResult, licenseeResult, sessionsResult] = await Promise.all([
-        supabase
-          .from('leads')
-          .select('state, city, release_status, claimed_by, created_at, claimed_at')
-          .in('source', ['planilha', 'n8n'])
-          .order('created_at', { ascending: false })
-          .limit(50000),
+      // Fetch RPC stats, licensees, and sessions in parallel
+      const [rpcResult, licenseeResult, sessionsResult] = await Promise.all([
+        supabase.rpc('get_hotleads_admin_stats'),
         supabase
           .from('neohub_users')
           .select(`
@@ -56,7 +52,7 @@ export function useAllLeadStats(): AllLeadStats {
           .not('duration_seconds', 'is', null),
       ]);
 
-      const leadsData = leadsResult.data || [];
+      const data = rpcResult.data as any;
       const licensees = licenseeResult.data || [];
       const sessionsData = sessionsResult.data || [];
 
@@ -67,22 +63,16 @@ export function useAllLeadStats(): AllLeadStats {
           onlineMap[s.user_id] = (onlineMap[s.user_id] || 0) + s.duration_seconds;
         }
       });
-      
-      setLeads(leadsData);
 
-      // Calculate top licensees from leads data
-      const claimMap: Record<string, { count: number; first: string; last: string }> = {};
-      leadsData.forEach(l => {
-        if (l.claimed_by) {
-          if (!claimMap[l.claimed_by]) {
-            claimMap[l.claimed_by] = { count: 0, first: l.claimed_at || l.created_at, last: l.claimed_at || l.created_at };
-          }
-          claimMap[l.claimed_by].count++;
-          const claimDate = l.claimed_at || l.created_at;
-          if (claimDate < claimMap[l.claimed_by].first) claimMap[l.claimed_by].first = claimDate;
-          if (claimDate > claimMap[l.claimed_by].last) claimMap[l.claimed_by].last = claimDate;
-        }
-      });
+      setRpcData(data);
+
+      // Build claim stats map from RPC data
+      const claimStats: Record<string, any> = {};
+      if (data?.claimStats) {
+        data.claimStats.forEach((cs: any) => {
+          claimStats[cs.user_id] = cs;
+        });
+      }
 
       // Merge with licensee names - include all licensees even with 0 claims
       const allLicensees: TopLicensee[] = licensees.map((lic: any) => ({
@@ -90,9 +80,9 @@ export function useAllLeadStats(): AllLeadStats {
         full_name: lic.full_name || lic.email,
         email: lic.email,
         avatar_url: lic.avatar_url,
-        total_claimed: claimMap[lic.user_id]?.count || 0,
-        first_claim: claimMap[lic.user_id]?.first || '',
-        last_claim: claimMap[lic.user_id]?.last || '',
+        total_claimed: claimStats[lic.user_id]?.total_claimed || 0,
+        first_claim: claimStats[lic.user_id]?.first_claim || '',
+        last_claim: claimStats[lic.user_id]?.last_claim || '',
         total_online_seconds: onlineMap[lic.user_id] || 0,
       }));
 
@@ -104,62 +94,29 @@ export function useAllLeadStats(): AllLeadStats {
   }, []);
 
   const stats = useMemo(() => {
-    const total = leads.length;
-    const queued = leads.filter(l => l.release_status === 'queued').length;
-    const available = leads.filter(l => l.release_status === 'available' && !l.claimed_by).length;
-    const claimed = leads.filter(l => l.claimed_by).length;
-
-    // By state
-    const stateMap: Record<string, { total: number; available: number; claimed: number; queued: number }> = {};
-    leads.forEach(l => {
-      const s = l.state || 'N/A';
-      if (!stateMap[s]) stateMap[s] = { total: 0, available: 0, claimed: 0, queued: 0 };
-      stateMap[s].total++;
-      if (l.release_status === 'queued') stateMap[s].queued++;
-      else if (l.claimed_by) stateMap[s].claimed++;
-      else stateMap[s].available++;
-    });
-    const byState = Object.entries(stateMap)
-      .map(([state, v]) => ({ state, ...v }))
-      .sort((a, b) => b.total - a.total);
-
-    // By city (top 20)
-    const cityMap: Record<string, { total: number; available: number; claimed: number }> = {};
-    leads.forEach(l => {
-      const c = l.city || 'N/A';
-      if (!cityMap[c]) cityMap[c] = { total: 0, available: 0, claimed: 0 };
-      cityMap[c].total++;
-      if (l.claimed_by) cityMap[c].claimed++;
-      else if (l.release_status !== 'queued') cityMap[c].available++;
-    });
-    const byCity = Object.entries(cityMap)
-      .map(([city, v]) => ({ city, ...v }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 20);
-
-    // By day (last 30 days)
-    const now = new Date();
-    const dayMap: Record<string, { total: number; claimed: number }> = {};
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      dayMap[key] = { total: 0, claimed: 0 };
+    if (!rpcData) {
+      return { total: 0, queued: 0, available: 0, claimed: 0, byState: [], byCity: [], byDay: [], topLicensees, isLoading };
     }
-    leads.forEach(l => {
-      const key = l.created_at?.slice(0, 10);
-      if (key && dayMap[key] !== undefined) {
-        dayMap[key].total++;
-        if (l.claimed_by) dayMap[key].claimed++;
-      }
-    });
-    const byDay = Object.entries(dayMap).map(([date, v]) => ({
-      date: `${date.slice(8, 10)}/${date.slice(5, 7)}`,
-      ...v,
+
+    // Format byDay dates
+    const byDay = (rpcData.byDay || []).map((d: any) => ({
+      date: `${d.date.slice(8, 10)}/${d.date.slice(5, 7)}`,
+      total: d.total,
+      claimed: d.claimed,
     }));
 
-    return { total, queued, available, claimed, byState, byCity, byDay, topLicensees, isLoading };
-  }, [leads, topLicensees, isLoading]);
+    return {
+      total: rpcData.total || 0,
+      queued: rpcData.queued || 0,
+      available: rpcData.available || 0,
+      claimed: rpcData.claimed || 0,
+      byState: rpcData.byState || [],
+      byCity: rpcData.byCity || [],
+      byDay,
+      topLicensees,
+      isLoading,
+    };
+  }, [rpcData, topLicensees, isLoading]);
 
   return stats;
 }

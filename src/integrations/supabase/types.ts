@@ -17768,6 +17768,7 @@ export type Database = {
           total_scheduled: number
         }[]
       }
+      get_hotleads_admin_stats: { Args: never; Returns: Json }
       get_lead_release_info: { Args: never; Returns: Json }
       get_neohub_user_id: { Args: { _auth_user_id: string }; Returns: string }
       get_neohub_user_profiles: {
