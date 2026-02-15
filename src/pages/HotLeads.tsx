@@ -425,8 +425,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </div>
           )}
 
-          {/* Pill toggle buttons */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          {/* Pill toggle buttons - sticky */}
+          <div className="flex flex-wrap gap-2 mb-4 sticky top-0 lg:top-[57px] z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
             {[
               { key: 'available', label: 'Disponíveis', count: filteredAvailable.length, color: 'bg-green-500' },
               { key: 'mine', label: 'Meus Leads', count: filteredMyLeads.length, color: 'bg-blue-500', alert: overdueLeads.length > 0 },
