@@ -322,7 +322,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       </header>
 
       {/* Fixed top section - sticky below header */}
-      <div className="shrink-0 px-3 lg:px-4 py-3 space-y-3 sticky top-0 lg:top-[57px] z-10 bg-background">
+      <div className="shrink-0 px-3 lg:px-4 py-2 lg:py-3 space-y-2 lg:space-y-3 sticky top-0 lg:top-[57px] z-10 bg-background">
         {/* Mobile action buttons - moved out of red header */}
         <div className="flex items-center gap-1.5 flex-wrap lg:hidden">
           {isAdmin && (
@@ -390,9 +390,9 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               queuedCount={queuedCount}
             />
             {/* Motivational phrase */}
-            <div className="relative text-center py-4 px-6 my-2 rounded-xl bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 border border-orange-200/60 dark:border-orange-800/40 overflow-hidden">
+            <div className="relative text-center py-3 px-4 sm:py-4 sm:px-6 my-2 rounded-xl bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 border border-orange-200/60 dark:border-orange-800/40 overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-400/5 via-transparent to-transparent" />
-              <p className="relative text-lg lg:text-2xl font-extrabold bg-gradient-to-r from-orange-600 via-red-500 to-orange-600 bg-clip-text text-transparent tracking-tight">
+              <p className="relative text-sm sm:text-lg lg:text-2xl font-extrabold bg-gradient-to-r from-orange-600 via-red-500 to-orange-600 bg-clip-text text-transparent tracking-tight">
                 🔥 Cada lead é um paciente buscando transformação
               </p>
             </div>
