@@ -1,6 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface TopLicensee {
+  user_id: string;
+  full_name: string;
+  email: string;
+  avatar_url: string | null;
+  total_claimed: number;
+  first_claim: string;
+  last_claim: string;
+}
+
 export interface AllLeadStats {
   total: number;
   queued: number;
@@ -9,27 +19,70 @@ export interface AllLeadStats {
   byState: { state: string; total: number; available: number; claimed: number; queued: number }[];
   byCity: { city: string; total: number; available: number; claimed: number }[];
   byDay: { date: string; total: number; claimed: number }[];
+  topLicensees: TopLicensee[];
   isLoading: boolean;
 }
 
 export function useAllLeadStats(): AllLeadStats {
   const [leads, setLeads] = useState<any[]>([]);
+  const [topLicensees, setTopLicensees] = useState<TopLicensee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchAll() {
       setIsLoading(true);
-      // Fetch ALL leads (including queued) - only the fields we need for stats
-      const { data, error } = await supabase
-        .from('leads')
-        .select('state, city, release_status, claimed_by, created_at')
-        .in('source', ['planilha', 'n8n'])
-        .order('created_at', { ascending: false })
-        .limit(50000);
+      
+      // Fetch leads and licensee data in parallel
+      const [leadsResult, licenseeResult] = await Promise.all([
+        supabase
+          .from('leads')
+          .select('state, city, release_status, claimed_by, created_at, claimed_at')
+          .in('source', ['planilha', 'n8n'])
+          .order('created_at', { ascending: false })
+          .limit(50000),
+        supabase
+          .from('neohub_users')
+          .select(`
+            user_id, full_name, email, avatar_url,
+            neohub_user_profiles!inner(profile, is_active)
+          `)
+          .eq('neohub_user_profiles.profile', 'licenciado')
+          .eq('neohub_user_profiles.is_active', true)
+          .eq('is_active', true),
+      ]);
 
-      if (!error && data) {
-        setLeads(data);
-      }
+      const leadsData = leadsResult.data || [];
+      const licensees = licenseeResult.data || [];
+      
+      setLeads(leadsData);
+
+      // Calculate top licensees from leads data
+      const claimMap: Record<string, { count: number; first: string; last: string }> = {};
+      leadsData.forEach(l => {
+        if (l.claimed_by) {
+          if (!claimMap[l.claimed_by]) {
+            claimMap[l.claimed_by] = { count: 0, first: l.claimed_at || l.created_at, last: l.claimed_at || l.created_at };
+          }
+          claimMap[l.claimed_by].count++;
+          const claimDate = l.claimed_at || l.created_at;
+          if (claimDate < claimMap[l.claimed_by].first) claimMap[l.claimed_by].first = claimDate;
+          if (claimDate > claimMap[l.claimed_by].last) claimMap[l.claimed_by].last = claimDate;
+        }
+      });
+
+      // Merge with licensee names - include all licensees even with 0 claims
+      const allLicensees: TopLicensee[] = licensees.map((lic: any) => ({
+        user_id: lic.user_id,
+        full_name: lic.full_name || lic.email,
+        email: lic.email,
+        avatar_url: lic.avatar_url,
+        total_claimed: claimMap[lic.user_id]?.count || 0,
+        first_claim: claimMap[lic.user_id]?.first || '',
+        last_claim: claimMap[lic.user_id]?.last || '',
+      }));
+
+      allLicensees.sort((a, b) => b.total_claimed - a.total_claimed);
+      setTopLicensees(allLicensees);
       setIsLoading(false);
     }
     fetchAll();
@@ -90,8 +143,8 @@ export function useAllLeadStats(): AllLeadStats {
       ...v,
     }));
 
-    return { total, queued, available, claimed, byState, byCity, byDay, isLoading };
-  }, [leads, isLoading]);
+    return { total, queued, available, claimed, byState, byCity, byDay, topLicensees, isLoading };
+  }, [leads, topLicensees, isLoading]);
 
   return stats;
 }
