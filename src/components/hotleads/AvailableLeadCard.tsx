@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, ShoppingCart, Calendar, Timer } from 'lucide-react';
+import { MapPin, ShoppingCart, Calendar, Timer, Eye, EyeOff, Phone, Mail } from 'lucide-react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useAuth } from '@/contexts/AuthContext';
 import type { HotLead } from '@/hooks/useHotLeads';
 
 interface AvailableLeadCardProps {
@@ -12,10 +13,6 @@ interface AvailableLeadCardProps {
   formatCooldown?: (seconds: number) => string;
 }
 
-/**
- * Masks a name: first name shown fully, remaining parts show first 3 chars + asterisks.
- * Example: "Maria Santos Lima" -> "Maria San*** Lim***"
- */
 function maskName(fullName: string): string {
   if (!fullName) return '***';
   const parts = fullName.trim().split(/\s+/);
@@ -27,10 +24,11 @@ function maskName(fullName: string): string {
 }
 
 export function AvailableLeadCard({ lead, onAcquire, cooldownRemaining = 0, formatCooldown }: AvailableLeadCardProps) {
+  const { isAdmin } = useAuth();
+  const [expanded, setExpanded] = useState(false);
   const location = [lead.city, lead.state].filter(Boolean).join(' - ');
   const maskedName = maskName(lead.name);
   
-  // Format arrival date - use available_at (when released to pool) instead of created_at
   const dateToShow = lead.available_at || lead.created_at;
   const arrivalDate = dateToShow
     ? format(new Date(dateToShow), "dd/MM/yyyy")
@@ -41,7 +39,18 @@ export function AvailableLeadCard({ lead, onAcquire, cooldownRemaining = 0, form
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate">{maskedName}</h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-semibold text-sm truncate">{expanded ? lead.name : maskedName}</h3>
+              {isAdmin && (
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                  title={expanded ? 'Ocultar dados' : 'Ver dados completos'}
+                >
+                  {expanded ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </button>
+              )}
+            </div>
             {location && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <MapPin className="h-3 w-3 shrink-0" />
@@ -53,6 +62,27 @@ export function AvailableLeadCard({ lead, onAcquire, cooldownRemaining = 0, form
                 <Calendar className="h-3 w-3 shrink-0" />
                 {arrivalDate}
               </p>
+            )}
+            {expanded && isAdmin && (
+              <div className="mt-2 pt-2 border-t border-dashed space-y-1">
+                {lead.phone && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Phone className="h-3 w-3 shrink-0" />
+                    {lead.phone}
+                  </p>
+                )}
+                {lead.email && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Mail className="h-3 w-3 shrink-0" />
+                    {lead.email}
+                  </p>
+                )}
+                {lead.tags && lead.tags.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Tags: {lead.tags.join(', ')}
+                  </p>
+                )}
+              </div>
             )}
           </div>
           {cooldownRemaining > 0 ? (

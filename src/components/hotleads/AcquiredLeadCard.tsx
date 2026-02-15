@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Lock, User, Calendar, Mail, Loader2, Undo2 } from 'lucide-react';
+import { MapPin, Lock, User, Calendar, Mail, Loader2, Undo2, Eye, EyeOff, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,6 +28,7 @@ function maskName(fullName: string): string {
 export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease }: AcquiredLeadCardProps) {
   const { user, isAdmin } = useAuth();
   const [isSending, setIsSending] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const location = [lead.city, lead.state].filter(Boolean).join(' - ');
   const maskedName = maskName(lead.name);
   
@@ -58,7 +59,18 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease }: Acqu
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate">{maskedName}</h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-semibold text-sm truncate">{expanded ? lead.name : maskedName}</h3>
+              {isAdmin && (
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                  title={expanded ? 'Ocultar dados' : 'Ver dados completos'}
+                >
+                  {expanded ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </button>
+              )}
+            </div>
             {location && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <MapPin className="h-3 w-3 shrink-0" />
@@ -75,6 +87,27 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease }: Acqu
               <User className="h-3 w-3 shrink-0" />
               Adquirido por: <span className="font-medium">{claimerName}</span>
             </p>
+            {expanded && isAdmin && (
+              <div className="mt-2 pt-2 border-t border-dashed space-y-1">
+                {lead.phone && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Phone className="h-3 w-3 shrink-0" />
+                    {lead.phone}
+                  </p>
+                )}
+                {lead.email && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Mail className="h-3 w-3 shrink-0" />
+                    {lead.email}
+                  </p>
+                )}
+                {lead.tags && lead.tags.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Tags: {lead.tags.join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <div className="shrink-0 flex flex-col items-end gap-2">
             <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
