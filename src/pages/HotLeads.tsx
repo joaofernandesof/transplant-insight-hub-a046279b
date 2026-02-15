@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, LayoutGrid, List, Award } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -26,13 +26,13 @@ import { BulkActionsBar } from '@/components/hotleads/BulkActionsBar';
 import { AdminManualReleaseDialog } from '@/components/hotleads/AdminManualReleaseDialog';
 import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashboard';
-import { LicenseeDashboard } from '@/components/hotleads/LicenseeDashboard';
+
 import type { HotLead, LeadTab } from '@/hooks/useHotLeads';
 
 const ITEMS_PER_PAGE = 10;
 
 interface HotLeadsProps {
-  initialView?: 'marketplace' | 'dashboard' | 'settings' | 'my-dashboard';
+  initialView?: 'marketplace' | 'dashboard' | 'settings';
 }
 
 export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps) {
@@ -81,7 +81,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
-  const adminView = initialView === 'dashboard' ? 'dashboard' : initialView === 'my-dashboard' ? 'my-dashboard' : 'marketplace';
+  const adminView = initialView === 'dashboard' ? 'dashboard' : 'marketplace';
 
   // Sound + browser notification for new leads
   useLeadNotificationSound({
@@ -410,24 +410,14 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 </>
               )}
               {!isAdmin && (
-                <>
-                  <Button
-                    variant={adminView === 'my-dashboard' ? 'secondary' : 'outline'}
-                    size="sm"
-                    onClick={() => navigate('/hotleads/my-dashboard')}
-                  >
-                    <Award className="h-4 w-4 mr-1.5" />
-                    <span className="hidden sm:inline">Meu Painel</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsSettingsOpen(true)}
-                  >
-                    <Settings className="h-4 w-4 mr-1.5" />
-                    <span className="hidden sm:inline">Config</span>
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSettingsOpen(true)}
+                >
+                  <Settings className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Config</span>
+                </Button>
               )}
               <Button
                 variant="outline"
@@ -469,16 +459,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </>
           )}
           {!isAdmin && (
-            <>
-              <Button variant={adminView === 'my-dashboard' ? 'secondary' : 'outline'} size="sm" onClick={() => navigate('/hotleads/my-dashboard')}>
-                <Award className="h-4 w-4 mr-1.5" />
-                <span className="hidden sm:inline">Meu Painel</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setIsSettingsOpen(true)}>
-                <Settings className="h-4 w-4 mr-1.5" />
-                <span className="hidden sm:inline">Config</span>
-              </Button>
-            </>
+            <Button variant="outline" size="sm" onClick={() => setIsSettingsOpen(true)}>
+              <Settings className="h-4 w-4 mr-1.5" />
+              <span className="hidden sm:inline">Config</span>
+            </Button>
           )}
           <Button variant="outline" size="sm" onClick={() => fetchLeads(true)} disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -487,13 +471,9 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         </div>
 
         {/* Dashboard Views */}
-        {(isAdmin && adminView === 'dashboard') || adminView === 'my-dashboard' ? (
+        {isAdmin && adminView === 'dashboard' ? (
           <div className="mt-2">
-            {isAdmin && adminView === 'dashboard' ? (
-              <HotLeadsAdminDashboard />
-            ) : (
-              <LicenseeDashboard myLeads={myLeads} allLeads={leads} userId={user?.id || ''} />
-            )}
+            <HotLeadsAdminDashboard />
           </div>
         ) : (
           <>
