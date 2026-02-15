@@ -159,16 +159,32 @@ serve(async (req) => {
 // Helper: get current BRT date as YYYY-MM-DD string
 function getBrtDate(): { dateStr: string; brtHour: number; brtMinutes: number } {
   const now = new Date();
-  // Convert to BRT (UTC-3) using Intl
-  const brtString = now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
-  const brt = new Date(brtString);
-  const year = brt.getFullYear();
-  const month = String(brt.getMonth() + 1).padStart(2, "0");
-  const day = String(brt.getDate()).padStart(2, "0");
+  // BRT = UTC-3 (fixed offset, Brazil no longer uses daylight saving time)
+  // Calculate BRT by subtracting 3 hours from UTC directly
+  const utcHours = now.getUTCHours();
+  const utcMinutes = now.getUTCMinutes();
+  let brtHour = utcHours - 3;
+  let brtDay = now.getUTCDate();
+  let brtMonth = now.getUTCMonth(); // 0-indexed
+  let brtYear = now.getUTCFullYear();
+  
+  if (brtHour < 0) {
+    brtHour += 24;
+    // Go to previous day
+    const brtDate = new Date(Date.UTC(brtYear, brtMonth, brtDay - 1));
+    brtDay = brtDate.getUTCDate();
+    brtMonth = brtDate.getUTCMonth();
+    brtYear = brtDate.getUTCFullYear();
+  }
+  
+  const dateStr = `${brtYear}-${String(brtMonth + 1).padStart(2, "0")}-${String(brtDay).padStart(2, "0")}`;
+  
+  console.log(`[getBrtDate] UTC=${now.toISOString()} BRT_hour=${brtHour}:${String(utcMinutes).padStart(2, "0")} date=${dateStr}`);
+  
   return {
-    dateStr: `${year}-${month}-${day}`,
-    brtHour: brt.getHours(),
-    brtMinutes: brt.getMinutes(),
+    dateStr,
+    brtHour,
+    brtMinutes: utcMinutes,
   };
 }
 
