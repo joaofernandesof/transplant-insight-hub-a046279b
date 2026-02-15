@@ -46,6 +46,9 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     releaseLead,
     importLeads,
     getClaimerName,
+    updateLeadOutcome,
+    overdueLeads,
+    isBlocked,
   } = useHotLeads();
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
 
@@ -202,6 +205,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   useEffect(() => { setActivePage(1); }, [activeTab, searchTerm, stateFilter, cityFilter, periodFilter, sortBy]);
 
   const handleAcquireClick = (lead: HotLead) => {
+    if (isBlocked) {
+      toast.error('Você precisa informar o destino dos seus leads pendentes antes de adquirir novos.');
+      setActiveTab('mine');
+      return;
+    }
     if (!settings) {
       setSelectedLead(lead);
       setShowSettingsRequired(true);
@@ -394,18 +402,41 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       {/* Toggle + Grid layout */}
       {(!isAdmin || adminView === 'marketplace') && (
         <div className="flex-1 px-3 lg:px-4 pb-4">
+          {/* Blocking banner when overdue leads exist */}
+          {isBlocked && (
+            <div className="mb-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 flex items-start gap-3">
+              <div className="shrink-0 h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                <span className="text-xl">⚠️</span>
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-amber-800 dark:text-amber-200 text-sm">
+                  Você possui {overdueLeads.length} {overdueLeads.length === 1 ? 'lead' : 'leads'} sem destino definido
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  Informe se o lead foi <strong>Vendido</strong>, está <strong>Em Atendimento</strong> ou foi <strong>Descartado</strong> para desbloquear a aquisição de novos leads.
+                </p>
+                <button
+                  onClick={() => setActiveTab('mine')}
+                  className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
+                >
+                  Ver meus leads pendentes →
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Pill toggle buttons */}
           <div className="flex flex-wrap gap-2 mb-4">
             {[
               { key: 'available', label: 'Disponíveis', count: filteredAvailable.length, color: 'bg-green-500' },
-              { key: 'mine', label: 'Meus Leads', count: filteredMyLeads.length, color: 'bg-blue-500' },
+              { key: 'mine', label: 'Meus Leads', count: filteredMyLeads.length, color: 'bg-blue-500', alert: overdueLeads.length > 0 },
               { key: 'lost', label: 'Perdidos', count: filteredAcquired.length, color: 'bg-red-500' },
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as 'available' | 'mine' | 'lost')}
                 className={`
-                  inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all
+                  relative inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all
                   ${activeTab === tab.key
                     ? 'bg-foreground text-background shadow-md scale-[1.02]'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -420,6 +451,9 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 `}>
                   {tab.count}
                 </span>
+                {'alert' in tab && tab.alert && (
+                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 border-2 border-background animate-pulse" />
+                )}
               </button>
             ))}
           </div>
@@ -442,7 +476,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {paginatedActive.map((lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} />
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} onUpdateOutcome={updateLeadOutcome} />
                 ))}
               </div>
             )

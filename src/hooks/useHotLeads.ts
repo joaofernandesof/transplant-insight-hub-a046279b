@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+export type LeadOutcome = 'vendido' | 'descartado' | 'em_atendimento';
+
 export interface HotLead {
   id: string;
   name: string;
@@ -18,6 +20,8 @@ export interface HotLead {
   tags: string[] | null;
   release_status: string | null;
   available_at: string | null;
+  lead_outcome: LeadOutcome | null;
+  outcome_at: string | null;
 }
 
 export function useHotLeads() {
@@ -38,7 +42,7 @@ export function useHotLeads() {
       // Fetch available/claimed leads (not queued) - these are the ones shown in the UI
       const { data: activeData, error: activeError } = await supabase
         .from('leads')
-        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags, available_at')
+        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags, available_at, lead_outcome, outcome_at')
         .in('source', ['planilha', 'n8n'])
         .neq('release_status', 'queued')
         .order('created_at', { ascending: false })
@@ -236,6 +240,51 @@ export function useHotLeads() {
     return profiles[userId] || 'Licenciado';
   }, [profiles]);
 
+  // Leads that are overdue (claimed > 7 days ago, no outcome set, owned by current user)
+  const OVERDUE_DAYS = 7;
+  const overdueLeads = useMemo(() => {
+    if (!user?.id) return [];
+    const cutoff = Date.now() - OVERDUE_DAYS * 24 * 60 * 60 * 1000;
+    return myLeads.filter(l => {
+      if (l.lead_outcome) return false; // already has outcome
+      const claimedTime = l.claimed_at ? new Date(l.claimed_at).getTime() : new Date(l.created_at).getTime();
+      return claimedTime < cutoff;
+    });
+  }, [myLeads, user?.id]);
+
+  const isBlocked = overdueLeads.length > 0;
+
+  const updateLeadOutcome = useCallback(async (leadId: string, outcome: LeadOutcome): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({ 
+          lead_outcome: outcome, 
+          outcome_at: new Date().toISOString(),
+          status: outcome === 'vendido' ? 'converted' : outcome === 'descartado' ? 'lost' : 'contacted'
+        } as any)
+        .eq('id', leadId);
+
+      if (error) throw error;
+
+      const labels: Record<LeadOutcome, string> = {
+        vendido: '✅ Lead marcado como Vendido!',
+        descartado: '❌ Lead marcado como Descartado',
+        em_atendimento: '🔄 Lead marcado como Em Atendimento',
+      };
+      toast.success(labels[outcome]);
+
+      setLeads(prev => prev.map(l =>
+        l.id === leadId ? { ...l, lead_outcome: outcome, outcome_at: new Date().toISOString() } : l
+      ));
+      return true;
+    } catch (error) {
+      console.error('Error updating lead outcome:', error);
+      toast.error('Erro ao atualizar status do lead.');
+      return false;
+    }
+  }, []);
+
   return {
     leads,
     availableLeads,
@@ -250,5 +299,8 @@ export function useHotLeads() {
     releaseLead,
     importLeads,
     getClaimerName,
+    updateLeadOutcome,
+    overdueLeads,
+    isBlocked,
   };
 }
