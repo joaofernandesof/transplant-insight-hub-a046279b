@@ -167,6 +167,23 @@ export function useLeadRelease() {
 
   const releaseNow = useCallback(() => doRelease('manual_admin'), [doRelease]);
 
+  const setNextReleaseIn = useCallback(async (seconds: number) => {
+    const nextAt = new Date(Date.now() + seconds * 1000).toISOString();
+    try {
+      const { error } = await supabase
+        .from('lead_release_daily')
+        .update({ next_release_at: nextAt })
+        .not('release_date', 'is', null)
+        .order('release_date', { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      await fetchInfo();
+    } catch (err) {
+      console.error('Error updating next release time:', err);
+      throw err;
+    }
+  }, [fetchInfo]);
+
   const clearNewLead = useCallback(() => {
     setNewlyReleasedLeadId(null);
   }, []);
@@ -183,6 +200,7 @@ export function useLeadRelease() {
     formatCountdown,
     isReleasing,
     releaseNow,
+    setNextReleaseIn,
     newlyReleasedLeadId,
     showConfetti,
     clearNewLead,

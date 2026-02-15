@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Zap, Users, Timer, Sparkles, Flame, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Zap, Users, Timer, Sparkles, Flame, CheckCircle2, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLeadRelease } from '@/hooks/useLeadRelease';
@@ -19,12 +19,47 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
     formatCountdown,
     isReleasing,
     releaseNow,
+    setNextReleaseIn,
     newlyReleasedLeadId,
     clearNewLead,
   } = useLeadRelease();
 
   const [justReleased, setJustReleased] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const [editMinutes, setEditMinutes] = useState('');
+  const [editSeconds, setEditSeconds] = useState('');
+  const minutesRef = useRef<HTMLInputElement>(null);
+
+  const startEditing = () => {
+    if (!isAdmin) return;
+    const m = Math.floor(countdown / 60);
+    const s = countdown % 60;
+    setEditMinutes(String(m).padStart(2, '0'));
+    setEditSeconds(String(s).padStart(2, '0'));
+    setIsEditingTime(true);
+    setTimeout(() => minutesRef.current?.select(), 50);
+  };
+
+  const confirmEdit = async () => {
+    const totalSeconds = (parseInt(editMinutes) || 0) * 60 + (parseInt(editSeconds) || 0);
+    if (totalSeconds < 5) {
+      toast.error('Mínimo de 5 segundos');
+      return;
+    }
+    try {
+      await setNextReleaseIn(totalSeconds);
+      toast.success(`Próximo lead em ${formatCountdown(totalSeconds)}`);
+    } catch {
+      toast.error('Erro ao atualizar tempo');
+    }
+    setIsEditingTime(false);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') confirmEdit();
+    if (e.key === 'Escape') setIsEditingTime(false);
+  };
 
   // Show "released" state for 3s when a new lead appears
   useEffect(() => {
@@ -72,7 +107,36 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
           <Sparkles className="h-4 w-4" />
           Próximo Lead
           {countdown > 0 && (
-            <span className="font-mono text-xs tabular-nums">{formatCountdown(countdown)}</span>
+            isAdmin && isEditingTime ? (
+              <span className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+                <input
+                  ref={minutesRef}
+                  value={editMinutes}
+                  onChange={e => setEditMinutes(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                  onKeyDown={handleEditKeyDown}
+                  onBlur={confirmEdit}
+                  className="w-6 text-center font-mono text-xs bg-transparent border-b border-orange-400 outline-none tabular-nums"
+                  maxLength={2}
+                />
+                <span>:</span>
+                <input
+                  value={editSeconds}
+                  onChange={e => setEditSeconds(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                  onKeyDown={handleEditKeyDown}
+                  onBlur={confirmEdit}
+                  className="w-6 text-center font-mono text-xs bg-transparent border-b border-orange-400 outline-none tabular-nums"
+                  maxLength={2}
+                />
+              </span>
+            ) : (
+              <span
+                className={cn("font-mono text-xs tabular-nums", isAdmin && "cursor-pointer hover:underline")}
+                onClick={isAdmin ? (e) => { e.stopPropagation(); startEditing(); } : undefined}
+                title={isAdmin ? "Clique para editar" : undefined}
+              >
+                {formatCountdown(countdown)}
+              </span>
+            )
           )}
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
@@ -163,9 +227,43 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
 
         <div className="flex items-center gap-3">
           {countdown > 0 && !isReleasing && (
-            <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2 border transition-all duration-300", isUrgent ? "bg-red-500/10 border-red-500/30" : "bg-background/80 border-border")}>
+            <div
+              className={cn(
+                "flex items-center gap-2 rounded-lg px-3 py-2 border transition-all duration-300",
+                isUrgent ? "bg-red-500/10 border-red-500/30" : "bg-background/80 border-border",
+                isAdmin && !isEditingTime && "cursor-pointer hover:border-orange-400"
+              )}
+              onClick={isAdmin && !isEditingTime ? startEditing : undefined}
+              title={isAdmin ? "Clique para editar o tempo" : undefined}
+            >
               <Timer className={cn("h-4 w-4 transition-colors", isUrgent ? "text-red-500" : "text-orange-500")} />
-              <span className={cn("font-mono text-lg font-bold tabular-nums transition-colors", isUrgent ? "text-red-600" : "text-orange-600")}>{formatCountdown(countdown)}</span>
+              {isAdmin && isEditingTime ? (
+                <span className="flex items-center gap-0.5">
+                  <input
+                    ref={minutesRef}
+                    value={editMinutes}
+                    onChange={e => setEditMinutes(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                    onKeyDown={handleEditKeyDown} 
+                    onBlur={confirmEdit}
+                    className="w-7 text-center font-mono text-lg font-bold bg-transparent border-b-2 border-orange-400 outline-none tabular-nums"
+                    maxLength={2}
+                  />
+                  <span className="font-mono text-lg font-bold">:</span>
+                  <input
+                    value={editSeconds}
+                    onChange={e => setEditSeconds(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                    onKeyDown={handleEditKeyDown}
+                    onBlur={confirmEdit}
+                    className="w-7 text-center font-mono text-lg font-bold bg-transparent border-b-2 border-orange-400 outline-none tabular-nums"
+                    maxLength={2}
+                  />
+                </span>
+              ) : (
+                <span className={cn("font-mono text-lg font-bold tabular-nums transition-colors", isUrgent ? "text-red-600" : "text-orange-600")}>
+                  {formatCountdown(countdown)}
+                </span>
+              )}
+              {isAdmin && !isEditingTime && <Pencil className="h-3 w-3 text-muted-foreground" />}
             </div>
           )}
 
