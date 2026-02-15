@@ -491,96 +491,103 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </div>
           )}
 
-          {/* Pill toggle buttons + filters - sticky */}
-          <div className="flex flex-wrap items-center gap-1.5 mb-4 sticky top-0 z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
-            {TAB_CONFIG.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`
-                  relative inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all shrink-0
-                  ${activeTab === tab.key
-                    ? 'bg-orange-600 text-white shadow-md scale-[1.02]'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }
-                `}
-              >
-                <span className={`h-2 w-2 rounded-full ${tab.color}`} />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.length > 10 ? tab.label.slice(0, 8) + '…' : tab.label}</span>
-                <span className={`
-                  ml-0.5 text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full
-                  ${activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-background text-foreground'}
-                `}>
-                  {getTabCount(tab.key)}
-                </span>
-                {tab.alert && (
-                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 border-2 border-background animate-pulse" />
-                )}
-              </button>
-            ))}
-
-            <div className="flex-1" />
-
-            {/* Inline filters */}
-            <div className="hidden sm:flex items-center gap-2 shrink-0">
-              <HotLeadsGlobalFilters
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                stateFilter={stateFilter}
-                setStateFilter={setStateFilter}
-                cityFilter={cityFilter}
-                setCityFilter={setCityFilter}
-                periodFilter={periodFilter}
-                setPeriodFilter={setPeriodFilter}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                availableStates={availableStates}
-                availableCities={availableCities}
-                userFilter={userFilter}
-                setUserFilter={setUserFilter}
-                availableUsers={availableUsers}
-                isAdmin={isAdmin}
-                inline
-              />
-            </div>
-            <div className="sm:hidden w-full">
-              <HotLeadsGlobalFilters
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                stateFilter={stateFilter}
-                setStateFilter={setStateFilter}
-                cityFilter={cityFilter}
-                setCityFilter={setCityFilter}
-                periodFilter={periodFilter}
-                setPeriodFilter={setPeriodFilter}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                availableStates={availableStates}
-                availableCities={availableCities}
-                userFilter={userFilter}
-                setUserFilter={setUserFilter}
-                availableUsers={availableUsers}
-                isAdmin={isAdmin}
-              />
+          {/* Step-style tabs - full width sticky */}
+          <div className="flex flex-col gap-2 mb-4 sticky top-0 z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-0 w-full rounded-xl overflow-hidden border border-border shadow-sm">
+              {TAB_CONFIG.map((tab, index) => {
+                const isActive = activeTab === tab.key;
+                const count = getTabCount(tab.key);
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`
+                      relative flex items-center justify-center gap-1.5 px-2 py-3 text-xs sm:text-sm font-semibold transition-all
+                      ${index > 0 ? 'border-l border-border/50' : ''}
+                      ${isActive
+                        ? 'bg-orange-600 text-white shadow-inner'
+                        : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                      }
+                    `}
+                  >
+                    <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${isActive ? 'ring-2 ring-white/40' : ''} ${tab.color}`} />
+                    <span className="hidden sm:inline truncate">{tab.label}</span>
+                    <span className="sm:hidden truncate">{tab.label.length > 8 ? tab.label.slice(0, 6) + '…' : tab.label}</span>
+                    <span className={`
+                      ml-0.5 text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px]
+                      ${isActive ? 'bg-white/25 text-white' : 'bg-background text-foreground'}
+                    `}>
+                      {count}
+                    </span>
+                    {tab.alert && (
+                      <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-amber-500 border-2 border-background animate-pulse" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* View toggle */}
-            <div className="flex items-center border rounded-lg overflow-hidden shrink-0">
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`p-1.5 transition-colors ${viewMode === 'cards' ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}
-                title="Cards"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-1.5 transition-colors ${viewMode === 'list' ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}
-                title="Lista"
-              >
-                <List className="h-4 w-4" />
-              </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Inline filters */}
+              <div className="hidden sm:flex items-center gap-2 shrink-0">
+                <HotLeadsGlobalFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  stateFilter={stateFilter}
+                  setStateFilter={setStateFilter}
+                  cityFilter={cityFilter}
+                  setCityFilter={setCityFilter}
+                  periodFilter={periodFilter}
+                  setPeriodFilter={setPeriodFilter}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  availableStates={availableStates}
+                  availableCities={availableCities}
+                  userFilter={userFilter}
+                  setUserFilter={setUserFilter}
+                  availableUsers={availableUsers}
+                  isAdmin={isAdmin}
+                  inline
+                />
+              </div>
+              <div className="sm:hidden w-full">
+                <HotLeadsGlobalFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  stateFilter={stateFilter}
+                  setStateFilter={setStateFilter}
+                  cityFilter={cityFilter}
+                  setCityFilter={setCityFilter}
+                  periodFilter={periodFilter}
+                  setPeriodFilter={setPeriodFilter}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  availableStates={availableStates}
+                  availableCities={availableCities}
+                  userFilter={userFilter}
+                  setUserFilter={setUserFilter}
+                  availableUsers={availableUsers}
+                  isAdmin={isAdmin}
+                />
+              </div>
+
+              {/* View toggle */}
+              <div className="flex items-center border rounded-lg overflow-hidden shrink-0">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`p-1.5 transition-colors ${viewMode === 'cards' ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}
+                  title="Cards"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 transition-colors ${viewMode === 'list' ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}
+                  title="Lista"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
