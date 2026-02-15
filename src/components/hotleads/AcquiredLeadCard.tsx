@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { MapPin, Lock, Calendar, Mail, Loader2, Undo2, Eye, EyeOff, Phone, CheckCircle2, XCircle, Clock, AlertTriangle, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,8 @@ interface AcquiredLeadCardProps {
   isOwned?: boolean;
   onRelease?: (leadId: string) => void;
   onUpdateOutcome?: (leadId: string, outcome: LeadOutcome) => Promise<boolean>;
+  selected?: boolean;
+  onSelect?: (id: string) => void;
 }
 
 function maskName(fullName: string): string {
@@ -49,7 +52,7 @@ const OUTCOME_CONFIG: Record<LeadOutcome, { label: string; icon: typeof CheckCir
   em_atendimento: { label: 'Em Atendimento', icon: Clock, color: 'text-blue-500', bgColor: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800', accentColor: 'from-blue-400 to-cyan-500' },
 };
 
-export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpdateOutcome }: AcquiredLeadCardProps) {
+export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpdateOutcome, selected, onSelect }: AcquiredLeadCardProps) {
   const { user, isAdmin } = useAuth();
   const [isSending, setIsSending] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -97,7 +100,7 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
   };
 
   return (
-    <Card className={`group border border-border/60 transition-all duration-200 overflow-hidden ${overdue ? 'ring-1 ring-amber-300 border-amber-300/60' : ''} ${!isOwned ? 'opacity-75' : 'hover:shadow-lg'}`}>
+    <Card className={`group border border-border/60 transition-all duration-200 overflow-hidden ${overdue ? 'ring-1 ring-amber-300 border-amber-300/60' : ''} ${!isOwned ? 'opacity-75' : 'hover:shadow-lg'} ${selected ? 'ring-2 ring-primary' : ''}`}>
       <CardContent className="p-0">
         {/* Top accent bar */}
         <div className={`h-1 bg-gradient-to-r ${accentGradient}`} />
@@ -105,6 +108,9 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
         <div className="p-4">
           {/* Avatar + Name row */}
           <div className="flex items-center gap-3 mb-3">
+            {onSelect && (
+              <Checkbox checked={selected} onCheckedChange={() => onSelect(lead.id)} className="shrink-0" />
+            )}
             <div className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center border-2 ${
               isOwned ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800' : 'bg-muted border-border'
             }`}>
