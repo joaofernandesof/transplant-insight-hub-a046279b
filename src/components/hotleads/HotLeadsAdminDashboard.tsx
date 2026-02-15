@@ -338,36 +338,8 @@ export function HotLeadsAdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Top Cities */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-blue-500" />
-            Top 20 Cidades
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={Math.max(400, stats.byCity.length * 28)}>
-            <BarChart data={stats.byCity} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis type="number" fontSize={10} tickLine={false} axisLine={false} />
-              <YAxis
-                dataKey="city"
-                type="category"
-                width={130}
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(v: string) => v.length > 18 ? v.slice(0, 18) + '…' : v}
-              />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend fontSize={11} />
-              <Bar dataKey="available" stackId="a" fill="#22c55e" name="Disponíveis" />
-              <Bar dataKey="claimed" stackId="a" fill="#3b82f6" name="Adquiridos" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+
+
       {/* Top Licensees Ranking */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-background via-background to-amber-50/30 dark:to-amber-950/10 overflow-hidden">
         <CardHeader className="pb-2 border-b bg-gradient-to-r from-amber-500/5 to-orange-500/5">
