@@ -116,6 +116,33 @@ serve(async (req) => {
       });
     }
 
+    if (action === "get_default_interval") {
+      const { data } = await supabase
+        .from("admin_settings")
+        .select("value")
+        .eq("key", "hotleads_release_interval_seconds")
+        .single();
+      return new Response(JSON.stringify({ interval_seconds: data?.value ? Number(data.value) : 300 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "set_default_interval") {
+      const seconds = body.seconds;
+      if (!seconds || seconds < 5) {
+        return new Response(JSON.stringify({ error: "Minimum 5 seconds" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await supabase
+        .from("admin_settings")
+        .upsert({ key: "hotleads_release_interval_seconds", value: String(seconds), updated_at: new Date().toISOString() }, { onConflict: "key" });
+      return new Response(JSON.stringify({ success: true, interval_seconds: seconds }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Invalid action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -190,7 +217,6 @@ async function calculateNextRelease(supabase: any) {
   const now = new Date();
   const { dateStr, brtHour, brtMinutes } = getBrtDate();
   
-  // Get current daily info (BRT date)
   const { data: daily } = await supabase
     .from("lead_release_daily")
     .select("*")
@@ -205,15 +231,18 @@ async function calculateNextRelease(supabase: any) {
     return { next_release_at: null, remaining: 0 };
   }
 
-  // Calculate remaining minutes until midnight BRT
-  const minutesLeftInDay = Math.max(1, (24 - brtHour) * 60 - brtMinutes);
-  const msRemaining = minutesLeftInDay * 60 * 1000;
-  const intervalMs = msRemaining / remaining;
-  // Add random jitter: 30%-70% of interval
-  const jitter = intervalMs * (0.3 + Math.random() * 0.4);
+  // Read default interval from admin_settings
+  const { data: setting } = await supabase
+    .from("admin_settings")
+    .select("value")
+    .eq("key", "hotleads_release_interval_seconds")
+    .single();
+
+  const defaultIntervalMs = (setting?.value ? Number(setting.value) : 300) * 1000;
+  // Add random jitter: ±20% of interval
+  const jitter = defaultIntervalMs * (0.8 + Math.random() * 0.4);
   const nextReleaseAt = new Date(now.getTime() + jitter);
 
-  // Update the daily record
   await supabase
     .from("lead_release_daily")
     .upsert({

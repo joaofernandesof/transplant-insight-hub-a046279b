@@ -22,6 +22,7 @@ export function useLeadRelease() {
   const [countdown, setCountdown] = useState<number>(0);
   const [newlyReleasedLeadId, setNewlyReleasedLeadId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [defaultInterval, setDefaultIntervalState] = useState<number>(300);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const autoReleaseTriggeredRef = useRef<string | null>(null);
 
@@ -152,6 +153,7 @@ export function useLeadRelease() {
   // Initial fetch + periodic refresh
   useEffect(() => {
     fetchInfo();
+    fetchDefaultInterval();
     const interval = setInterval(fetchInfo, 30000);
     return () => clearInterval(interval);
   }, [fetchInfo]);
@@ -165,24 +167,29 @@ export function useLeadRelease() {
     }
   }, [info, fetchInfo]);
 
-  const releaseNow = useCallback(() => doRelease('manual_admin'), [doRelease]);
-
-  const setNextReleaseIn = useCallback(async (seconds: number) => {
-    const nextAt = new Date(Date.now() + seconds * 1000).toISOString();
+  const fetchDefaultInterval = useCallback(async () => {
     try {
-      const { error } = await supabase
-        .from('lead_release_daily')
-        .update({ next_release_at: nextAt })
-        .not('release_date', 'is', null)
-        .order('release_date', { ascending: false })
-        .limit(1);
-      if (error) throw error;
-      await fetchInfo();
+      const { data, error } = await supabase.functions.invoke('hotleads-release', {
+        body: { action: 'get_default_interval' },
+      });
+      if (!error && data?.interval_seconds) {
+        setDefaultIntervalState(data.interval_seconds);
+      }
     } catch (err) {
-      console.error('Error updating next release time:', err);
-      throw err;
+      console.error('Error fetching default interval:', err);
     }
-  }, [fetchInfo]);
+  }, []);
+
+  const setDefaultInterval = useCallback(async (seconds: number) => {
+    const { data, error } = await supabase.functions.invoke('hotleads-release', {
+      body: { action: 'set_default_interval', seconds },
+    });
+    if (error) throw error;
+    setDefaultIntervalState(seconds);
+    return data;
+  }, []);
+
+  const releaseNow = useCallback(() => doRelease('manual_admin'), [doRelease]);
 
   const clearNewLead = useCallback(() => {
     setNewlyReleasedLeadId(null);
@@ -200,7 +207,8 @@ export function useLeadRelease() {
     formatCountdown,
     isReleasing,
     releaseNow,
-    setNextReleaseIn,
+    defaultInterval,
+    setDefaultInterval,
     newlyReleasedLeadId,
     showConfetti,
     clearNewLead,

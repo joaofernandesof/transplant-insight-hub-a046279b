@@ -19,7 +19,8 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
     formatCountdown,
     isReleasing,
     releaseNow,
-    setNextReleaseIn,
+    defaultInterval,
+    setDefaultInterval,
     newlyReleasedLeadId,
     clearNewLead,
   } = useLeadRelease();
@@ -32,8 +33,8 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
 
   const startEditing = () => {
     if (!isAdmin) return;
-    const m = Math.floor(countdown / 60);
-    const s = countdown % 60;
+    const m = Math.floor(defaultInterval / 60);
+    const s = defaultInterval % 60;
     setEditMinutes(String(m).padStart(2, '0'));
     setEditSeconds(String(s).padStart(2, '0'));
     setIsEditingTime(true);
@@ -47,10 +48,10 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
       return;
     }
     try {
-      await setNextReleaseIn(totalSeconds);
-      toast.success(`Próximo lead em ${formatCountdown(totalSeconds)}`);
+      await setDefaultInterval(totalSeconds);
+      toast.success(`Intervalo padrão: ${formatCountdown(totalSeconds)}`);
     } catch {
-      toast.error('Erro ao atualizar tempo');
+      toast.error('Erro ao atualizar intervalo');
     }
     setIsEditingTime(false);
   };
@@ -175,18 +176,27 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
         </div>
 
         <div className="flex items-center gap-3">
-          {countdown > 0 && !isReleasing && (
+          {countdown > 0 && !isReleasing && !justReleased && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Timer className="h-3.5 w-3.5 text-orange-500" />
+              <span className={cn("font-mono font-semibold tabular-nums", isUrgent ? "text-red-600" : "text-orange-600")}>
+                {formatCountdown(countdown)}
+              </span>
+            </div>
+          )}
+
+          {!isReleasing && !justReleased && isAdmin && (
             <div
               className={cn(
                 "flex items-center gap-2 rounded-lg px-3 py-2 border transition-all duration-300",
-                isUrgent ? "bg-red-500/10 border-red-500/30" : "bg-background/80 border-border",
-                isAdmin && !isEditingTime && "cursor-pointer hover:border-orange-400"
+                "bg-background/80 border-border",
+                !isEditingTime && "cursor-pointer hover:border-orange-400"
               )}
-              onClick={isAdmin && !isEditingTime ? startEditing : undefined}
-              title={isAdmin ? "Clique para editar o tempo" : undefined}
+              onClick={!isEditingTime ? startEditing : undefined}
+              title="Clique para editar o intervalo padrão"
             >
-              <Timer className={cn("h-4 w-4 transition-colors", isUrgent ? "text-red-500" : "text-orange-500")} />
-              {isAdmin && isEditingTime ? (
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Intervalo</span>
+              {isEditingTime ? (
                 <span className="flex items-center gap-0.5">
                   <input
                     ref={minutesRef}
@@ -208,11 +218,11 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
                   />
                 </span>
               ) : (
-                <span className={cn("font-mono text-lg font-bold tabular-nums transition-colors", isUrgent ? "text-red-600" : "text-orange-600")}>
-                  {formatCountdown(countdown)}
+                <span className="font-mono text-lg font-bold tabular-nums text-orange-600">
+                  {formatCountdown(defaultInterval)}
                 </span>
               )}
-              {isAdmin && !isEditingTime && <Pencil className="h-3 w-3 text-muted-foreground" />}
+              {!isEditingTime && <Pencil className="h-3 w-3 text-muted-foreground" />}
             </div>
           )}
 
