@@ -156,28 +156,61 @@ export function HotLeadsAdminDashboard({ leads, queuedCount }: HotLeadsAdminDash
         ))}
       </div>
 
-      {/* Geography summary */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Geography summary - Top States & Cities */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
-          <CardContent className="pt-4 pb-3 flex items-center gap-3">
-            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-              <MapPin className="h-5 w-5 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{uniqueStates}</p>
-              <p className="text-xs text-muted-foreground">Estados com leads</p>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-orange-500" />
+              Top Estados
+              <span className="ml-auto text-xs font-normal text-muted-foreground">{uniqueStates} estados</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {stateData.slice(0, 6).map((s) => {
+              const max = stateData[0]?.total || 1;
+              return (
+                <div key={s.state} className="flex items-center gap-2">
+                  <span className="text-xs font-semibold w-8 text-right">{s.state}</span>
+                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-600 transition-all"
+                      style={{ width: `${(s.total / max) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold w-10 text-right">{s.total}</span>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-4 pb-3 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Building2 className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{uniqueCities}</p>
-              <p className="text-xs text-muted-foreground">Cidades com leads</p>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-blue-500" />
+              Top Cidades
+              <span className="ml-auto text-xs font-normal text-muted-foreground">{uniqueCities} cidades</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(() => {
+              const cityMap: Record<string, number> = {};
+              leads.forEach(l => { if (l.city) cityMap[l.city] = (cityMap[l.city] || 0) + 1; });
+              const topCities = Object.entries(cityMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
+              const maxCity = topCities[0]?.[1] || 1;
+              return topCities.map(([city, count]) => (
+                <div key={city} className="flex items-center gap-2">
+                  <span className="text-xs font-semibold w-24 truncate text-right">{city}</span>
+                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all"
+                      style={{ width: `${(count / maxCity) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold w-10 text-right">{count}</span>
+                </div>
+              ));
+            })()}
           </CardContent>
         </Card>
       </div>
