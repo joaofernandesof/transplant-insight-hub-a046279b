@@ -49,38 +49,46 @@ import {
   MessageSquare,
   Stethoscope,
   CreditCard,
+  Flame,
+  Building2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const PORTAL_COLORS: Record<string, string> = {
-  academy: '#10b981',
-  neoteam: '#3b82f6',
   neocare: '#f43f5e',
+  neoteam: '#3b82f6',
+  academy: '#10b981',
+  neolicense: '#f59e0b',
+  hotleads: '#f97316',
   avivar: '#8b5cf6',
   ipromed: '#6366f1',
   vision: '#ec4899',
-  neolicense: '#f59e0b',
+  neopay: '#22c55e',
 };
 
 const PORTAL_ICONS: Record<string, React.ElementType> = {
-  academy: GraduationCap,
-  neoteam: Users,
   neocare: Heart,
+  neoteam: Users,
+  academy: GraduationCap,
+  neolicense: Building2,
+  hotleads: Flame,
   avivar: Zap,
   ipromed: Scale,
   vision: Eye,
-  neolicense: Award,
+  neopay: CreditCard,
 };
 
 const PORTAL_PATHS: Record<string, string> = {
-  academy: '/academy',
-  neoteam: '/neoteam',
   neocare: '/neocare',
+  neoteam: '/neoteam',
+  academy: '/academy',
+  neolicense: '/neolicense',
+  hotleads: '/hotleads',
   avivar: '/avivar',
   ipromed: '/ipromed',
   vision: '/vision',
-  neolicense: '/neolicense',
+  neopay: '/neopay',
 };
 
 export function GlobalDashboard() {
@@ -256,7 +264,7 @@ export function GlobalDashboard() {
               <Activity className="h-3 w-3 text-blue-400" />
               <span className="text-xs font-medium text-white">Atividade por Portal</span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-9 gap-2">
               {metrics.portals.map((portal) => {
                 const Icon = PORTAL_ICONS[portal.id] || Users;
                 return (
