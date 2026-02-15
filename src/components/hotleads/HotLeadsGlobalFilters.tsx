@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X, Calendar, MapPin, ArrowUpDown, Building2 } from 'lucide-react';
+import { X, Calendar, MapPin, ArrowUpDown, Building2, Users } from 'lucide-react';
 
 interface HotLeadsGlobalFiltersProps {
   searchTerm: string;
@@ -23,6 +23,10 @@ interface HotLeadsGlobalFiltersProps {
   availableStates: string[];
   availableCities: string[];
   inline?: boolean;
+  userFilter?: string;
+  setUserFilter?: (value: string) => void;
+  availableUsers?: { id: string; name: string }[];
+  isAdmin?: boolean;
 }
 
 export function HotLeadsGlobalFilters({
@@ -39,6 +43,10 @@ export function HotLeadsGlobalFilters({
   availableStates,
   availableCities,
   inline = false,
+  userFilter = 'all',
+  setUserFilter,
+  availableUsers = [],
+  isAdmin = false,
 }: HotLeadsGlobalFiltersProps) {
   // Filters always visible on mobile (no toggle)
 
@@ -46,8 +54,9 @@ export function HotLeadsGlobalFilters({
   const isStateActive = stateFilter !== 'all';
   const isCityActive = cityFilter !== 'all';
   const isSortActive = sortBy !== 'recent';
-  const hasFilters = isPeriodActive || isStateActive || isCityActive || isSortActive;
-  const activeFilterCount = [isPeriodActive, isStateActive, isCityActive, isSortActive].filter(Boolean).length;
+  const isUserActive = userFilter !== 'all';
+  const hasFilters = isPeriodActive || isStateActive || isCityActive || isSortActive || isUserActive;
+  const activeFilterCount = [isPeriodActive, isStateActive, isCityActive, isSortActive, isUserActive].filter(Boolean).length;
 
   const activeStyle = 'border-primary bg-primary/10 ring-1 ring-primary/30';
   const inactiveStyle = '';
@@ -58,7 +67,23 @@ export function HotLeadsGlobalFilters({
     setCityFilter('all');
     setPeriodFilter('all');
     setSortBy('recent');
+    setUserFilter?.('all');
   };
+
+  const userSelect = isAdmin && setUserFilter && availableUsers.length > 0 ? (
+    <Select value={userFilter} onValueChange={setUserFilter}>
+      <SelectTrigger className={`${inline ? 'w-[130px]' : 'w-full sm:w-[150px]'} h-9 text-xs transition-colors ${isUserActive ? activeStyle : inactiveStyle}`}>
+        <Users className={`h-3.5 w-3.5 mr-1 shrink-0 ${isUserActive ? 'text-primary' : 'text-muted-foreground'}`} />
+        <SelectValue placeholder="Usuário" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">Todos usuários</SelectItem>
+        {availableUsers.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map(u => (
+          <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  ) : null;
 
   if (inline) {
     return (
@@ -117,6 +142,8 @@ export function HotLeadsGlobalFilters({
             <SelectItem value="state_asc">Estado A-Z</SelectItem>
           </SelectContent>
         </Select>
+
+        {userSelect}
 
         {hasFilters && (
           <Button variant="destructive" size="sm" onClick={clearFilters} className="shrink-0 h-9 gap-1">
@@ -185,6 +212,8 @@ export function HotLeadsGlobalFilters({
               <SelectItem value="state_asc">Estado A-Z</SelectItem>
             </SelectContent>
           </Select>
+
+          {userSelect}
         </div>
 
         {hasFilters && (
