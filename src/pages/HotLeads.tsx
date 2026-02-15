@@ -458,12 +458,12 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             ))}
           </div>
 
-          {/* 2-column card grid */}
+          {/* 4-column card grid */}
           {activeTab === 'available' && (
             filteredAvailable.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-12">Nenhum lead disponível no momento.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {paginatedActive.map((lead) => (
                   <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} cooldownRemaining={cooldownRemaining} formatCooldown={formatCooldown} />
                 ))}
@@ -474,7 +474,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             filteredMyLeads.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-12">Você ainda não adquiriu nenhum lead.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {paginatedActive.map((lead) => (
                   <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} isOwned onRelease={releaseLead} onUpdateOutcome={updateLeadOutcome} />
                 ))}
@@ -485,7 +485,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             filteredAcquired.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-12">Nenhuma oportunidade perdida no momento.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {paginatedActive.map((lead) => (
                   <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} onRelease={releaseLead} />
                 ))}

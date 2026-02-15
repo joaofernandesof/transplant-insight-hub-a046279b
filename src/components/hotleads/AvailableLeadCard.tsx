@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, ShoppingCart, Calendar, Timer, Eye, EyeOff, Phone, Mail } from 'lucide-react';
+import { MapPin, ShoppingCart, Calendar, Timer, Eye, EyeOff, Phone, Mail, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import type { HotLead } from '@/hooks/useHotLeads';
@@ -35,73 +35,87 @@ export function AvailableLeadCard({ lead, onAcquire, cooldownRemaining = 0, form
     : null;
 
   return (
-    <Card className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h3 className="font-semibold text-sm truncate">{expanded ? lead.name : maskedName}</h3>
-              {isAdmin && (
-                <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="shrink-0 transition-colors"
-                  title={expanded ? 'Ocultar dados' : 'Ver dados completos (admin)'}
-                >
-                  {expanded ? <EyeOff className="h-4 w-4 text-orange-500" /> : <Eye className="h-4 w-4 text-amber-500 hover:text-amber-600" />}
-                </button>
-              )}
+    <Card className="group border border-border/60 hover:border-green-400/60 hover:shadow-lg transition-all duration-200 overflow-hidden">
+      <CardContent className="p-0">
+        {/* Top accent bar */}
+        <div className="h-1 bg-gradient-to-r from-green-400 to-emerald-500" />
+        
+        <div className="p-4">
+          {/* Avatar + Name row */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+              <User className="h-5 w-5 text-muted-foreground" />
             </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-semibold text-sm truncate">{expanded ? lead.name : maskedName}</h3>
+                {isAdmin && (
+                  <button
+                    onClick={() => setExpanded(!expanded)}
+                    className="shrink-0 transition-colors"
+                    title={expanded ? 'Ocultar dados' : 'Ver dados completos (admin)'}
+                  >
+                    {expanded ? <EyeOff className="h-3.5 w-3.5 text-orange-500" /> : <Eye className="h-3.5 w-3.5 text-amber-500 hover:text-amber-600" />}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Info rows */}
+          <div className="space-y-1.5 mb-3">
             {location && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                <MapPin className="h-3 w-3 shrink-0" />
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <MapPin className="h-3 w-3 shrink-0 text-green-500" />
                 {location}
               </p>
             )}
             {arrivalDate && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                <Calendar className="h-3 w-3 shrink-0" />
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Calendar className="h-3 w-3 shrink-0 text-green-500" />
                 {arrivalDate}
               </p>
             )}
-            {expanded && isAdmin && (
-              <div className="mt-2 pt-2 border-t border-dashed space-y-1">
-                {lead.phone && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Phone className="h-3 w-3 shrink-0" />
-                    {lead.phone}
-                  </p>
-                )}
-                {lead.email && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Mail className="h-3 w-3 shrink-0" />
-                    {lead.email}
-                  </p>
-                )}
-                {lead.tags && lead.tags.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Tags: {lead.tags.join(', ')}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
-          {cooldownRemaining > 0 ? (
-            <div className="shrink-0 flex flex-col items-center gap-0.5">
-              <Button
-                size="sm"
-                disabled
-                className="bg-muted text-muted-foreground cursor-not-allowed"
-              >
-                <Timer className="h-4 w-4 mr-1" />
-                {formatCooldown ? formatCooldown(cooldownRemaining) : `${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60).toString().padStart(2, '0')}`}
-              </Button>
-              <span className="text-[10px] text-muted-foreground">Aguarde</span>
+
+          {/* Admin expanded info */}
+          {expanded && isAdmin && (
+            <div className="mb-3 pt-2 border-t border-dashed space-y-1">
+              {lead.phone && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Phone className="h-3 w-3 shrink-0" />
+                  {lead.phone}
+                </p>
+              )}
+              {lead.email && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Mail className="h-3 w-3 shrink-0" />
+                  {lead.email}
+                </p>
+              )}
+              {lead.tags && lead.tags.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Tags: {lead.tags.join(', ')}
+                </p>
+              )}
             </div>
+          )}
+
+          {/* Action button */}
+          {cooldownRemaining > 0 ? (
+            <Button
+              size="sm"
+              disabled
+              className="w-full bg-muted text-muted-foreground cursor-not-allowed"
+            >
+              <Timer className="h-4 w-4 mr-1" />
+              {formatCooldown ? formatCooldown(cooldownRemaining) : `${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60).toString().padStart(2, '0')}`}
+            </Button>
           ) : (
             <Button
               size="sm"
               onClick={() => onAcquire(lead)}
-              className="shrink-0 bg-green-600 hover:bg-green-700 text-white"
+              className="w-full bg-green-600 hover:bg-green-700 text-white shadow-sm"
             >
               <ShoppingCart className="h-4 w-4 mr-1" />
               Adquirir
