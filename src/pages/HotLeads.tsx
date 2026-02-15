@@ -326,7 +326,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-[calc(100dvh-52px)] lg:h-dvh overflow-y-auto lg:overflow-y-hidden">
+    <div className="flex-1 flex flex-col bg-background h-[calc(100dvh-52px)] lg:h-dvh overflow-y-auto">
       {/* Header */}
       <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 sticky top-0 z-20 hidden lg:block">
         <div className="px-4 py-3">
