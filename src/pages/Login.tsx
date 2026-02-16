@@ -101,10 +101,15 @@ export default function Login() {
     }
 
     try {
-      // Use native Supabase password reset (sends email automatically)
+      // Use published URL to avoid Lovable auth bridge interception on preview
+      const publishedUrl = 'https://transplant-insight-hub.lovable.app';
+      const redirectUrl = window.location.hostname.includes('lovable')
+        ? `${publishedUrl}/reset-password`
+        : `${window.location.origin}/reset-password`;
+
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         email.trim().toLowerCase(),
-        { redirectTo: `${window.location.origin}/reset-password` }
+        { redirectTo: redirectUrl }
       );
 
       if (resetError) {
