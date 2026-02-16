@@ -4154,9 +4154,36 @@ serve(async (req) => {
         return true;
       });
 
-      console.log(`[AI Agent] Processing ${filteredToolCalls.length} tool call(s) (round ${toolRound})${currentToolCalls.length !== filteredToolCalls.length ? ` [${currentToolCalls.length - filteredToolCalls.length} blocked]` : ''}`);
+      // Collect blocked tool calls for synthetic feedback
+      const blockedToolCalls = currentToolCalls.filter(tc => !filteredToolCalls.includes(tc));
+      
+      console.log(`[AI Agent] Processing ${filteredToolCalls.length} tool call(s) (round ${toolRound})${blockedToolCalls.length > 0 ? ` [${blockedToolCalls.length} blocked]` : ''}`);
+      
+      // CRITICAL FIX: If ALL tool calls were blocked, inject synthetic feedback and break loop immediately
+      if (filteredToolCalls.length === 0 && currentToolCalls.length > 0) {
+        console.log(`[AI Agent] All ${currentToolCalls.length} tool calls blocked in round ${toolRound}. Injecting synthetic feedback and breaking loop.`);
+        // Add synthetic feedback so the next AI call knows tools were already executed
+        const syntheticFeedback = blockedToolCalls.map(tc => ({
+          role: "tool" as const,
+          content: `[${tc.name}]: [SISTEMA] A ferramenta ${tc.name} já foi executada nesta resposta. Não chame novamente. Prossiga com sua resposta de texto ao cliente.`
+        }));
+        accumulatedMessages.push(
+          { role: "assistant", content: finalResponse || "" },
+          ...syntheticFeedback
+        );
+        break;
+      }
       
       const toolResults: Array<{ role: string; name?: string; content: string }> = [];
+      
+      // Add synthetic feedback for blocked (but not all) tool calls
+      blockedToolCalls.forEach(tc => {
+        toolResults.push({
+          role: "tool",
+          name: tc.name,
+          content: `[SISTEMA] A ferramenta ${tc.name} já foi executada nesta resposta. Prossiga com sua resposta de texto ao cliente.`
+        });
+      });
       
       for (const toolCall of filteredToolCalls) {
         const result = await processToolCall(
@@ -4280,7 +4307,7 @@ serve(async (req) => {
     }
 
     if (!finalResponse || finalResponse.trim() === "") {
-      finalResponse = "Desculpe, não consegui processar sua mensagem. Pode repetir?";
+      finalResponse = "Desculpa, o sistema ficou um pouco instável agora e não consegui carregar sua última mensagem. Pode enviar novamente, por favor?";
     }
 
     // 8. Clean up tool call artifacts, markdown formatting and emojis before sending
