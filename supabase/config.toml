@@ -2,6 +2,7 @@ project_id = "tubzywibnielhcjeswww"
 
 [auth]
 site_url = "https://transplant-insight-hub.lovable.app"
+additional_redirect_urls = ["https://neohub.ibramec.com/reset-password", "https://transplant-insight-hub.lovable.app/reset-password"]
 
 [auth.email]
 enable_signup = true

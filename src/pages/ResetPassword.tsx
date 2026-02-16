@@ -5,6 +5,19 @@ import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
+type PageState = 'checking' | 'recovery' | 'expired' | 'success';
+
+function parseHashParams(hash: string): Record<string, string> {
+  const params: Record<string, string> = {};
+  const cleanHash = hash.startsWith('#') ? hash.substring(1) : hash;
+  if (!cleanHash) return params;
+  cleanHash.split('&').forEach(pair => {
+    const [key, ...rest] = pair.split('=');
+    if (key) params[decodeURIComponent(key)] = decodeURIComponent(rest.join('='));
+  });
+  return params;
+}
+
 export default function ResetPassword() {
   const navigate = useNavigate();
 
@@ -14,38 +27,44 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [isRecoverySession, setIsRecoverySession] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [pageState, setPageState] = useState<PageState>('checking');
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event from Supabase
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsRecoverySession(true);
-        setChecking(false);
+    // 1. Check URL hash for error params (otp_expired, access_denied, etc.)
+    const hashParams = parseHashParams(window.location.hash);
+    
+    if (hashParams.error || hashParams.error_code) {
+      // Link is expired or invalid — sign out any partial session immediately
+      supabase.auth.signOut().then(() => {
+        setPageState('expired');
+      });
+      return;
+    }
+
+    // 2. Listen for PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        setPageState('recovery');
       }
     });
 
-    // Also check if user already has an active session (recovery link already processed)
+    // 3. Check if there's already a recovery session with type=recovery in hash
+    const hasRecoveryType = window.location.hash.includes('type=recovery');
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        // Check hash for type=recovery
-        const hash = window.location.hash;
-        if (hash.includes('type=recovery')) {
-          setIsRecoverySession(true);
-        } else {
-          // Session exists but not recovery - might have been auto-set
-          setIsRecoverySession(true);
-        }
+      if (session && hasRecoveryType) {
+        setPageState('recovery');
+      } else if (!session) {
+        // No session and no recovery params — expired or invalid
+        setPageState('expired');
       }
-      setChecking(false);
+      // If session exists but no recovery type, wait for PASSWORD_RECOVERY event
     });
 
-    // Timeout fallback
+    // Timeout fallback — if nothing happened in 5s, mark as expired
     const timeout = setTimeout(() => {
-      setChecking(false);
-    }, 3000);
+      setPageState(prev => prev === 'checking' ? 'expired' : prev);
+    }, 5000);
 
     return () => {
       subscription.unsubscribe();
@@ -78,12 +97,12 @@ export default function ResetPassword() {
         throw updateError;
       }
 
-      setSuccess(true);
+      setPageState('success');
 
-      // Sign out and redirect to login
+      // Sign out completely and redirect to login
       setTimeout(async () => {
         await supabase.auth.signOut();
-        navigate('/login');
+        navigate('/login', { replace: true });
       }, 3000);
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro. Tente novamente.');
@@ -92,7 +111,13 @@ export default function ResetPassword() {
     }
   };
 
-  if (checking) {
+  // SECURITY: Always sign out before going back to login
+  const handleBackToLogin = async () => {
+    await supabase.auth.signOut();
+    navigate('/login', { replace: true });
+  };
+
+  if (pageState === 'checking') {
     return (
       <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -122,7 +147,7 @@ export default function ResetPassword() {
         </div>
 
         <div className="bg-card rounded-2xl border border-border shadow-xl p-6 sm:p-8">
-          {success ? (
+          {pageState === 'success' ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                 <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
@@ -135,17 +160,17 @@ export default function ResetPassword() {
               </p>
               <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary" />
             </div>
-          ) : !isRecoverySession ? (
+          ) : pageState === 'expired' ? (
             <div className="text-center py-8">
               <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
               <h2 className="text-xl font-semibold text-foreground mb-2">
                 Link inválido ou expirado
               </h2>
               <p className="text-muted-foreground mb-6">
-                Solicite um novo link de recuperação de senha.
+                O link de recuperação expirou ou já foi utilizado. Solicite um novo link na tela de login.
               </p>
               <button
-                onClick={() => navigate('/login')}
+                onClick={handleBackToLogin}
                 className="btn-primary px-6 py-2"
               >
                 Voltar ao Login
