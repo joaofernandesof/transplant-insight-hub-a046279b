@@ -101,18 +101,14 @@ export default function Login() {
     }
 
     try {
-      // Use our custom password reset flow
-      const response = await supabase.functions.invoke('request-password-reset', {
-        body: { 
-          email: email.trim().toLowerCase(),
-          redirectUrl: `${window.location.origin}/reset-password`,
-        },
-      });
+      // Use native Supabase password reset (sends email automatically)
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email.trim().toLowerCase(),
+        { redirectTo: `${window.location.origin}/reset-password` }
+      );
 
-      if (response.error) {
-        setError(response.error.message || 'Erro ao processar solicitação');
-      } else if (response.data?.error) {
-        setError(response.data.error);
+      if (resetError) {
+        setError(resetError.message || 'Erro ao processar solicitação');
       } else {
         setSuccessMessage('Se o email estiver cadastrado, você receberá as instruções de recuperação.');
       }

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get('token');
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,12 +15,43 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isRecoverySession, setIsRecoverySession] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      setError('Link inválido. Solicite um novo link de recuperação.');
-    }
-  }, [token]);
+    // Listen for the PASSWORD_RECOVERY event from Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoverySession(true);
+        setChecking(false);
+      }
+    });
+
+    // Also check if user already has an active session (recovery link already processed)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Check hash for type=recovery
+        const hash = window.location.hash;
+        if (hash.includes('type=recovery')) {
+          setIsRecoverySession(true);
+        } else {
+          // Session exists but not recovery - might have been auto-set
+          setIsRecoverySession(true);
+        }
+      }
+      setChecking(false);
+    });
+
+    // Timeout fallback
+    const timeout = setTimeout(() => {
+      setChecking(false);
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,22 +70,19 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      const response = await supabase.functions.invoke('reset-password', {
-        body: { token, newPassword: password },
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password,
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || 'Erro ao redefinir senha');
-      }
-
-      if (response.data?.error) {
-        throw new Error(response.data.error);
+      if (updateError) {
+        throw updateError;
       }
 
       setSuccess(true);
-      
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
+
+      // Sign out and redirect to login
+      setTimeout(async () => {
+        await supabase.auth.signOut();
         navigate('/login');
       }, 3000);
     } catch (err: any) {
@@ -66,35 +92,35 @@ export default function ResetPassword() {
     }
   };
 
+  if (checking) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen min-h-[100dvh] flex items-center justify-center p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Theme Toggle */}
       <div className="absolute top-4 right-4 z-10">
         <ThemeToggle />
       </div>
 
-      {/* Background decoration */}
       <div className="absolute inset-0 opacity-10 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 p-1 shadow-2xl overflow-hidden">
-            <img 
-              src={iconeNeofolic} 
-              alt="NeoHub" 
-              className="w-full h-full object-cover rounded-full"
-            />
+            <img src={iconeNeofolic} alt="NeoHub" className="w-full h-full object-cover rounded-full" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
             Neo<span className="bg-gradient-to-b from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">Hub</span>
           </h1>
         </div>
 
-        {/* Card */}
         <div className="bg-card rounded-2xl border border-border shadow-xl p-6 sm:p-8">
           {success ? (
             <div className="text-center py-8">
@@ -108,6 +134,22 @@ export default function ResetPassword() {
                 Você será redirecionado para o login em instantes...
               </p>
               <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary" />
+            </div>
+          ) : !isRecoverySession ? (
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                Link inválido ou expirado
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Solicite um novo link de recuperação de senha.
+              </p>
+              <button
+                onClick={() => navigate('/login')}
+                className="btn-primary px-6 py-2"
+              >
+                Voltar ao Login
+              </button>
             </div>
           ) : (
             <>
@@ -125,88 +167,72 @@ export default function ResetPassword() {
                 </div>
               )}
 
-              {!token ? (
-                <div className="text-center py-4">
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="btn-primary px-6 py-2"
-                  >
-                    Voltar ao Login
-                  </button>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Nova Senha</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Digite sua nova senha"
+                      required
+                      minLength={6}
+                      className="input-metric pl-10 pr-10 w-full h-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Nova Senha
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Digite sua nova senha"
-                        required
-                        minLength={6}
-                        className="input-metric pl-10 pr-10 w-full h-12"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Confirmar Senha
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirme sua nova senha"
-                        required
-                        minLength={6}
-                        className="input-metric pl-10 pr-10 w-full h-12"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Confirmar Senha</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirme sua nova senha"
+                      required
+                      minLength={6}
+                      className="input-metric pl-10 pr-10 w-full h-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
+                </div>
 
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="btn-primary w-full py-3.5 text-base font-semibold mt-2 flex items-center justify-center gap-2"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      'Redefinir Senha'
-                    )}
-                  </button>
-                </form>
-              )}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-primary w-full py-3.5 text-base font-semibold mt-2 flex items-center justify-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    'Redefinir Senha'
+                  )}
+                </button>
+              </form>
             </>
           )}
         </div>
 
-        {/* Footer */}
         <p className="text-center text-slate-400 text-xs mt-6">
           © 2025 NeoHub by NeoFolic
         </p>
