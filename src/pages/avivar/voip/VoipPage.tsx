@@ -21,11 +21,13 @@ import VoipHistoryTab from './tabs/VoipHistoryTab';
 import VoipAiAutomationTab from './tabs/VoipAiAutomationTab';
 import VoipAnalyticsTab from './tabs/VoipAnalyticsTab';
 import VoipSettingsTab from './tabs/VoipSettingsTab';
+import VoipCallAnalysisTab from './tabs/VoipCallAnalysisTab';
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'call-center', label: 'Central', icon: Phone },
   { id: 'history', label: 'Histórico', icon: History },
+  { id: 'analysis', label: 'AI Analysis', icon: Sparkles },
   { id: 'ai', label: 'IA & Automação', icon: Bot },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'settings', label: 'Configurações', icon: Settings },
@@ -87,6 +89,10 @@ export default function VoipPage() {
 
         <TabsContent value="history" className="mt-6">
           <VoipHistoryTab />
+        </TabsContent>
+
+        <TabsContent value="analysis" className="mt-6">
+          <VoipCallAnalysisTab />
         </TabsContent>
 
         <TabsContent value="ai" className="mt-6">
