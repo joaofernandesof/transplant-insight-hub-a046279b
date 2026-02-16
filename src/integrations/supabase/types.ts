@@ -2021,6 +2021,228 @@ export type Database = {
           },
         ]
       }
+      avivar_voice_agent_config: {
+        Row: {
+          account_id: string
+          agent_name: string | null
+          auto_schedule_on_qualified: boolean | null
+          auto_trigger_column_ids: string[] | null
+          auto_trigger_enabled: boolean | null
+          business_hours_end: string | null
+          business_hours_start: string | null
+          calls_today: number | null
+          company_name: string | null
+          created_at: string
+          excluded_days: number[] | null
+          greeting_template: string
+          id: string
+          is_active: boolean | null
+          language: string
+          last_reset_date: string | null
+          max_concurrent_calls: number | null
+          max_daily_calls: number | null
+          move_to_column_on_not_qualified: string | null
+          move_to_column_on_qualified: string | null
+          name: string
+          qualification_questions: Json
+          updated_at: string
+          user_id: string
+          vapi_assistant_id: string | null
+          vapi_phone_number_id: string | null
+          voice_id: string
+          voice_provider: string
+        }
+        Insert: {
+          account_id: string
+          agent_name?: string | null
+          auto_schedule_on_qualified?: boolean | null
+          auto_trigger_column_ids?: string[] | null
+          auto_trigger_enabled?: boolean | null
+          business_hours_end?: string | null
+          business_hours_start?: string | null
+          calls_today?: number | null
+          company_name?: string | null
+          created_at?: string
+          excluded_days?: number[] | null
+          greeting_template?: string
+          id?: string
+          is_active?: boolean | null
+          language?: string
+          last_reset_date?: string | null
+          max_concurrent_calls?: number | null
+          max_daily_calls?: number | null
+          move_to_column_on_not_qualified?: string | null
+          move_to_column_on_qualified?: string | null
+          name?: string
+          qualification_questions?: Json
+          updated_at?: string
+          user_id: string
+          vapi_assistant_id?: string | null
+          vapi_phone_number_id?: string | null
+          voice_id?: string
+          voice_provider?: string
+        }
+        Update: {
+          account_id?: string
+          agent_name?: string | null
+          auto_schedule_on_qualified?: boolean | null
+          auto_trigger_column_ids?: string[] | null
+          auto_trigger_enabled?: boolean | null
+          business_hours_end?: string | null
+          business_hours_start?: string | null
+          calls_today?: number | null
+          company_name?: string | null
+          created_at?: string
+          excluded_days?: number[] | null
+          greeting_template?: string
+          id?: string
+          is_active?: boolean | null
+          language?: string
+          last_reset_date?: string | null
+          max_concurrent_calls?: number | null
+          max_daily_calls?: number | null
+          move_to_column_on_not_qualified?: string | null
+          move_to_column_on_qualified?: string | null
+          name?: string
+          qualification_questions?: Json
+          updated_at?: string
+          user_id?: string
+          vapi_assistant_id?: string | null
+          vapi_phone_number_id?: string | null
+          voice_id?: string
+          voice_provider?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_voice_agent_config_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: true
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_voice_calls: {
+        Row: {
+          account_id: string
+          conversation_id: string | null
+          cost_cents: number | null
+          created_at: string
+          direction: string
+          duration_seconds: number | null
+          ended_at: string | null
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          lead_name: string | null
+          meeting_date: string | null
+          meeting_notes: string | null
+          meeting_scheduled: boolean | null
+          moved_to_column_id: string | null
+          phone_number: string
+          qualification_answers: Json | null
+          qualification_result: string | null
+          qualification_score: number | null
+          sentiment: string | null
+          started_at: string | null
+          status: string
+          summary: string | null
+          transcript: string | null
+          transcript_json: Json | null
+          trigger_type: string
+          updated_at: string
+          user_id: string
+          vapi_assistant_id: string | null
+          vapi_call_id: string | null
+        }
+        Insert: {
+          account_id: string
+          conversation_id?: string | null
+          cost_cents?: number | null
+          created_at?: string
+          direction?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          meeting_date?: string | null
+          meeting_notes?: string | null
+          meeting_scheduled?: boolean | null
+          moved_to_column_id?: string | null
+          phone_number: string
+          qualification_answers?: Json | null
+          qualification_result?: string | null
+          qualification_score?: number | null
+          sentiment?: string | null
+          started_at?: string | null
+          status?: string
+          summary?: string | null
+          transcript?: string | null
+          transcript_json?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          user_id: string
+          vapi_assistant_id?: string | null
+          vapi_call_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          conversation_id?: string | null
+          cost_cents?: number | null
+          created_at?: string
+          direction?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          meeting_date?: string | null
+          meeting_notes?: string | null
+          meeting_scheduled?: boolean | null
+          moved_to_column_id?: string | null
+          phone_number?: string
+          qualification_answers?: Json | null
+          qualification_result?: string | null
+          qualification_score?: number | null
+          sentiment?: string | null
+          started_at?: string | null
+          status?: string
+          summary?: string | null
+          transcript?: string | null
+          transcript_json?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+          vapi_assistant_id?: string | null
+          vapi_call_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_voice_calls_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_voice_calls_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "crm_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_voice_calls_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanban_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       banner_clicks: {
         Row: {
           banner_id: string

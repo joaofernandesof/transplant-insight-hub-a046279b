@@ -1,8 +1,8 @@
 /**
- * VoipSettingsTab - Configurações de Integrações, Filas e Compliance
+ * VoipSettingsTab - Now includes Vapi.ai voice agent configuration
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,24 +11,25 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Settings,
   Link2,
   Phone,
   Shield,
   Clock,
-  Database,
-  Webhook,
+  Bot,
   Key,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
   Plus,
   Trash2,
   Edit,
   RefreshCw,
   Users,
-  Volume2
+  Save,
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import {
   Select,
@@ -37,554 +38,278 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-// Mock data
-const providers = [
-  { id: 'twilio', name: 'Twilio', status: 'connected', logo: '🔵' },
-  { id: 'vonage', name: 'Vonage', status: 'disconnected', logo: '🟣' },
-  { id: '8x8', name: '8x8', status: 'disconnected', logo: '🟢' },
-];
-
-const extensions = [
-  { id: '1', extension: '101', user: 'Ana Silva', status: 'active' },
-  { id: '2', extension: '102', user: 'Carlos Santos', status: 'active' },
-  { id: '3', extension: '103', user: 'Maria Oliveira', status: 'active' },
-  { id: '4', extension: '104', user: 'João Pedro', status: 'inactive' },
-  { id: '5', extension: '105', user: 'Fernanda Lima', status: 'active' },
-];
-
-const queues = [
-  { id: '1', name: 'Comercial', strategy: 'longest-idle', agents: 3, status: 'active' },
-  { id: '2', name: 'Suporte', strategy: 'skills-based', agents: 2, status: 'active' },
-  { id: '3', name: 'Pós-Venda', strategy: 'round-robin', agents: 2, status: 'active' },
-  { id: '4', name: 'Agendamento', strategy: 'longest-idle', agents: 1, status: 'active' },
-];
-
-const webhooks = [
-  { id: '1', event: 'call.initiated', url: 'https://api.neohub.com/webhooks/voip/call-started', status: 'active' },
-  { id: '2', event: 'call.completed', url: 'https://api.neohub.com/webhooks/voip/call-ended', status: 'active' },
-  { id: '3', event: 'transcript.ready', url: 'https://api.neohub.com/webhooks/voip/transcript', status: 'active' },
-  { id: '4', event: 'analysis.completed', url: 'https://api.neohub.com/webhooks/voip/analysis', status: 'active' },
-];
+import { useVoiceCalls, type VoiceAgentConfig } from '@/hooks/useVoiceCalls';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 
 export default function VoipSettingsTab() {
-  const [selectedProvider, setSelectedProvider] = useState('twilio');
+  const { accountId } = useAvivarAccount();
+  const { config, saveConfig, isLoading } = useVoiceCalls(accountId || undefined);
+
+  const [localConfig, setLocalConfig] = useState({
+    name: 'Agente de Vendas',
+    vapi_phone_number_id: '',
+    vapi_assistant_id: '',
+    voice_id: 'pFZP5JQG7iQjIQuC4Bku',
+    language: 'pt-BR',
+    greeting_template: 'Olá, {{lead_name}}! Aqui é {{agent_name}} da {{company_name}}. Tudo bem?',
+    company_name: '',
+    agent_name: '',
+    qualification_questions: [
+      { id: 'q1', question: 'Você está buscando esse tipo de serviço para você mesmo(a)?', type: 'open' },
+      { id: 'q2', question: 'Qual é o seu principal objetivo ou preocupação?', type: 'open' },
+      { id: 'q3', question: 'Você tem disponibilidade para uma consulta essa semana?', type: 'open' },
+    ],
+    auto_trigger_enabled: false,
+    max_daily_calls: 50,
+    business_hours_start: '09:00',
+    business_hours_end: '18:00',
+  });
+
+  useEffect(() => {
+    if (config) {
+      setLocalConfig({
+        name: config.name || 'Agente de Vendas',
+        vapi_phone_number_id: config.vapi_phone_number_id || '',
+        vapi_assistant_id: config.vapi_assistant_id || '',
+        voice_id: config.voice_id || 'pFZP5JQG7iQjIQuC4Bku',
+        language: config.language || 'pt-BR',
+        greeting_template: config.greeting_template || localConfig.greeting_template,
+        company_name: config.company_name || '',
+        agent_name: config.agent_name || '',
+        qualification_questions: config.qualification_questions || localConfig.qualification_questions,
+        auto_trigger_enabled: config.auto_trigger_enabled || false,
+        max_daily_calls: config.max_daily_calls || 50,
+        business_hours_start: config.business_hours_start || '09:00',
+        business_hours_end: config.business_hours_end || '18:00',
+      });
+    }
+  }, [config]);
+
+  const handleSave = async () => {
+    await saveConfig(localConfig as any);
+  };
+
+  const updateQuestion = (index: number, question: string) => {
+    const updated = [...localConfig.qualification_questions];
+    updated[index] = { ...updated[index], question };
+    setLocalConfig(prev => ({ ...prev, qualification_questions: updated }));
+  };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center py-12 text-[hsl(var(--avivar-muted-foreground))]">Carregando...</div>;
+  }
 
   return (
-    <Tabs defaultValue="integrations" className="space-y-6">
-      <TabsList className="bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] p-1 flex-wrap">
-        <TabsTrigger 
-          value="integrations" 
-          className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
-        >
-          <Link2 className="h-4 w-4 mr-2" />
-          Integrações
-        </TabsTrigger>
-        <TabsTrigger 
-          value="extensions" 
-          className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
-        >
-          <Phone className="h-4 w-4 mr-2" />
-          Ramais
-        </TabsTrigger>
-        <TabsTrigger 
-          value="queues" 
-          className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
-        >
-          <Users className="h-4 w-4 mr-2" />
-          Filas
-        </TabsTrigger>
-        <TabsTrigger 
-          value="webhooks" 
-          className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
-        >
-          <Webhook className="h-4 w-4 mr-2" />
-          Webhooks
-        </TabsTrigger>
-        <TabsTrigger 
-          value="compliance" 
-          className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
-        >
-          <Shield className="h-4 w-4 mr-2" />
-          Compliance
-        </TabsTrigger>
-        <TabsTrigger 
-          value="retention" 
-          className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
-        >
-          <Database className="h-4 w-4 mr-2" />
-          Retenção
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      {/* Vapi Connection */}
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardHeader>
+          <CardTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+            <Link2 className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+            Conexão Vapi.ai
+          </CardTitle>
+          <CardDescription>Configure sua conta Vapi para chamadas telefônicas com IA</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+            <CheckCircle2 className="h-5 w-5 text-green-500" />
+            <span className="text-green-500 font-medium">API Key configurada</span>
+          </div>
 
-      {/* Integrações CPaaS */}
-      <TabsContent value="integrations" className="space-y-6">
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardHeader>
-            <CardTitle className="text-[hsl(var(--avivar-foreground))]">Provedor de Telefonia (CPaaS)</CardTitle>
-            <CardDescription>Configure a integração com seu provedor de telefonia</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {providers.map((provider) => (
-                <div
-                  key={provider.id}
-                  onClick={() => setSelectedProvider(provider.id)}
-                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                    selectedProvider === provider.id
-                      ? 'bg-[hsl(var(--avivar-primary)/0.1)] border-[hsl(var(--avivar-primary))]'
-                      : 'bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.5)]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-2xl">{provider.logo}</span>
-                    {provider.status === 'connected' ? (
-                      <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Conectado
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-[hsl(var(--avivar-muted-foreground))]">
-                        <XCircle className="h-3 w-3 mr-1" />
-                        Desconectado
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">{provider.name}</p>
-                </div>
-              ))}
-            </div>
-
-            {selectedProvider === 'twilio' && (
-              <div className="p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))] space-y-4">
-                <div className="flex items-center gap-2 text-green-500 mb-4">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span className="font-medium">Twilio conectado</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Account SID</Label>
-                    <Input 
-                      value="AC••••••••••••••••••••••••••••ab12"
-                      disabled
-                      className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Auth Token</Label>
-                    <Input 
-                      type="password"
-                      value="••••••••••••••••••••••••••••••••"
-                      disabled
-                      className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Testar Conexão
-                  </Button>
-                  <Button variant="outline" className="text-red-500 border-red-500/30 hover:bg-red-500/10">
-                    Desconectar
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {selectedProvider !== 'twilio' && (
-              <div className="p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))] space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>API Key / Account ID</Label>
-                    <Input 
-                      placeholder="Insira sua chave de API..."
-                      className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>API Secret / Auth Token</Label>
-                    <Input 
-                      type="password"
-                      placeholder="Insira seu token secreto..."
-                      className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
-                    />
-                  </div>
-                </div>
-                <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]">
-                  <Link2 className="h-4 w-4 mr-2" />
-                  Conectar
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      {/* Ramais */}
-      <TabsContent value="extensions" className="space-y-6">
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-[hsl(var(--avivar-foreground))]">Ramais Virtuais</CardTitle>
-                <CardDescription>Gerencie os ramais dos operadores</CardDescription>
-              </div>
-              <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]">
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Ramal
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-2">
-                {extensions.map((ext) => (
-                  <div
-                    key={ext.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-[hsl(var(--avivar-primary)/0.1)] flex items-center justify-center">
-                        <Phone className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-[hsl(var(--avivar-foreground))]">Ramal {ext.extension}</p>
-                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">{ext.user}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className={
-                        ext.status === 'active' 
-                          ? 'bg-green-500/10 text-green-500 border-green-500/20' 
-                          : 'bg-gray-500/10 text-gray-500 border-gray-500/20'
-                      }>
-                        {ext.status === 'active' ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                      <Button size="icon" variant="ghost">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="text-red-500">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      {/* Filas */}
-      <TabsContent value="queues" className="space-y-6">
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-[hsl(var(--avivar-foreground))]">Filas de Atendimento</CardTitle>
-                <CardDescription>Configure as filas e estratégias de distribuição</CardDescription>
-              </div>
-              <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Fila
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-2">
-                {queues.map((queue) => (
-                  <div
-                    key={queue.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-[hsl(var(--avivar-primary)/0.1)] flex items-center justify-center">
-                        <Users className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-[hsl(var(--avivar-foreground))]">{queue.name}</p>
-                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                          {queue.agents} agentes • {queue.strategy.replace('-', ' ')}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Select defaultValue={queue.strategy}>
-                        <SelectTrigger className="w-[180px] bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="longest-idle">Longest Idle</SelectItem>
-                          <SelectItem value="round-robin">Round Robin</SelectItem>
-                          <SelectItem value="skills-based">Skills Based</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button size="icon" variant="ghost">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      {/* Webhooks */}
-      <TabsContent value="webhooks" className="space-y-6">
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-[hsl(var(--avivar-foreground))]">Webhooks</CardTitle>
-                <CardDescription>Configure endpoints para receber eventos em tempo real</CardDescription>
-              </div>
-              <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]">
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Webhook
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-2">
-                {webhooks.map((webhook) => (
-                  <div
-                    key={webhook.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-[hsl(var(--avivar-primary)/0.1)] flex items-center justify-center">
-                        <Webhook className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-[hsl(var(--avivar-foreground))]">{webhook.event}</p>
-                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] font-mono truncate max-w-[300px]">
-                          {webhook.url}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Ativo
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        Testar
-                      </Button>
-                      <Button size="icon" variant="ghost" className="text-red-500">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      {/* Compliance */}
-      <TabsContent value="compliance" className="space-y-6">
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardHeader>
-            <CardTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
-              <Shield className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-              Configurações de Compliance
-            </CardTitle>
-            <CardDescription>Garanta conformidade com regulamentos de telecomunicações</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]">
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">Gravação Obrigatória</p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    Todas as chamadas serão gravadas automaticamente
-                  </p>
-                </div>
-                <Switch defaultChecked disabled />
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]">
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">Aviso de Gravação</p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    Reproduzir aviso no início de cada chamada
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]">
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">LGPD - Consentimento</p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    Solicitar consentimento para armazenamento de dados
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]">
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">Lista DNC (Do Not Call)</p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    Verificar números contra lista de bloqueio
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Label>Horário de Discagem Permitido</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Início</Label>
-                  <Input 
-                    type="time" 
-                    defaultValue="08:00"
-                    className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Fim</Label>
-                  <Input 
-                    type="time" 
-                    defaultValue="20:00"
-                    className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]"
-                  />
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Phone Number ID (Vapi)</Label>
+              <Input
+                value={localConfig.vapi_phone_number_id}
+                onChange={e => setLocalConfig(prev => ({ ...prev, vapi_phone_number_id: e.target.value }))}
+                placeholder="Seu Phone Number ID do Vapi Dashboard"
+                className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
               <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                Chamadas outbound só serão realizadas dentro deste horário
+                Encontre em dashboard.vapi.ai → Phone Numbers
               </p>
             </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      {/* Retenção de Dados */}
-      <TabsContent value="retention" className="space-y-6">
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardHeader>
-            <CardTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
-              <Database className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-              Políticas de Retenção
-            </CardTitle>
-            <CardDescription>Configure quanto tempo os dados serão armazenados</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4">
-              <div className="p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Volume2 className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-                    <div>
-                      <p className="font-medium text-[hsl(var(--avivar-foreground))]">Gravações de Áudio</p>
-                      <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                        Arquivos de áudio das chamadas
-                      </p>
-                    </div>
-                  </div>
-                  <Select defaultValue="365">
-                    <SelectTrigger className="w-[150px] bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 dias</SelectItem>
-                      <SelectItem value="90">90 dias</SelectItem>
-                      <SelectItem value="180">180 dias</SelectItem>
-                      <SelectItem value="365">1 ano</SelectItem>
-                      <SelectItem value="730">2 anos</SelectItem>
-                      <SelectItem value="forever">Indefinido</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                  <Database className="h-3 w-3" />
-                  <span>Uso atual: 12.5 GB de 50 GB</span>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <MessageSquare className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-                    <div>
-                      <p className="font-medium text-[hsl(var(--avivar-foreground))]">Transcrições</p>
-                      <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                        Texto das transcrições de chamadas
-                      </p>
-                    </div>
-                  </div>
-                  <Select defaultValue="730">
-                    <SelectTrigger className="w-[150px] bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="90">90 dias</SelectItem>
-                      <SelectItem value="180">180 dias</SelectItem>
-                      <SelectItem value="365">1 ano</SelectItem>
-                      <SelectItem value="730">2 anos</SelectItem>
-                      <SelectItem value="forever">Indefinido</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <BarChart3 className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-                    <div>
-                      <p className="font-medium text-[hsl(var(--avivar-foreground))]">Dados Analíticos</p>
-                      <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                        Métricas, scores e insights de IA
-                      </p>
-                    </div>
-                  </div>
-                  <Select defaultValue="forever">
-                    <SelectTrigger className="w-[150px] bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="365">1 ano</SelectItem>
-                      <SelectItem value="730">2 anos</SelectItem>
-                      <SelectItem value="1825">5 anos</SelectItem>
-                      <SelectItem value="forever">Indefinido</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Assistant ID (opcional)</Label>
+              <Input
+                value={localConfig.vapi_assistant_id}
+                onChange={e => setLocalConfig(prev => ({ ...prev, vapi_assistant_id: e.target.value }))}
+                placeholder="Deixe vazio para usar assistente dinâmico"
+                className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
             </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="p-4 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-yellow-500">Atenção</p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    Dados excluídos não podem ser recuperados. Certifique-se de exportar dados importantes antes da exclusão automática.
-                  </p>
-                </div>
-              </div>
+      {/* Agent Identity */}
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardHeader>
+          <CardTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+            <Bot className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+            Identidade do Agente de Voz
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Nome do Agente</Label>
+              <Input
+                value={localConfig.agent_name}
+                onChange={e => setLocalConfig(prev => ({ ...prev, agent_name: e.target.value }))}
+                placeholder="Ex: Ana"
+                className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
             </div>
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Nome da Empresa</Label>
+              <Input
+                value={localConfig.company_name}
+                onChange={e => setLocalConfig(prev => ({ ...prev, company_name: e.target.value }))}
+                placeholder="Ex: NeoFolic"
+                className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
+            </div>
+          </div>
 
-            <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]">
-              Salvar Configurações
-            </Button>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+          <div className="space-y-2">
+            <Label className="text-[hsl(var(--avivar-foreground))]">Saudação Inicial</Label>
+            <Textarea
+              value={localConfig.greeting_template}
+              onChange={e => setLocalConfig(prev => ({ ...prev, greeting_template: e.target.value }))}
+              placeholder="Olá, {{lead_name}}! Aqui é {{agent_name}} da {{company_name}}..."
+              className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] min-h-[80px]"
+            />
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+              Variáveis: {'{{lead_name}}'}, {'{{agent_name}}'}, {'{{company_name}}'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Voz (ElevenLabs)</Label>
+              <Select value={localConfig.voice_id} onValueChange={v => setLocalConfig(prev => ({ ...prev, voice_id: v }))}>
+                <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pFZP5JQG7iQjIQuC4Bku">Lily (PT-BR Feminino)</SelectItem>
+                  <SelectItem value="ErXwobaYiN019PkySvjV">Antoni (Masculino)</SelectItem>
+                  <SelectItem value="EXAVITQu4vr4xnSDxMaL">Bella (Feminino)</SelectItem>
+                  <SelectItem value="onwK4e9ZLuTAKqWW03F9">Daniel (Masculino)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Idioma</Label>
+              <Select value={localConfig.language} onValueChange={v => setLocalConfig(prev => ({ ...prev, language: v }))}>
+                <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pt-BR">Português (BR)</SelectItem>
+                  <SelectItem value="pt">Português (PT)</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="es">Español</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Qualification Questions */}
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardHeader>
+          <CardTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+            Perguntas de Qualificação
+          </CardTitle>
+          <CardDescription>Configure as 3 perguntas que o agente fará durante a ligação</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {localConfig.qualification_questions.map((q, i) => (
+            <div key={q.id} className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-[hsl(var(--avivar-primary))] text-white text-xs flex items-center justify-center">
+                  {i + 1}
+                </span>
+                Pergunta {i + 1}
+              </Label>
+              <Input
+                value={q.question}
+                onChange={e => updateQuestion(i, e.target.value)}
+                className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Operational Settings */}
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardHeader>
+          <CardTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+            <Settings className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+            Configurações Operacionais
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Máx. ligações/dia</Label>
+              <Input
+                type="number"
+                value={localConfig.max_daily_calls}
+                onChange={e => setLocalConfig(prev => ({ ...prev, max_daily_calls: parseInt(e.target.value) || 50 }))}
+                className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Horário início</Label>
+              <Input
+                type="time"
+                value={localConfig.business_hours_start}
+                onChange={e => setLocalConfig(prev => ({ ...prev, business_hours_start: e.target.value }))}
+                className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Horário fim</Label>
+              <Input
+                type="time"
+                value={localConfig.business_hours_end}
+                onChange={e => setLocalConfig(prev => ({ ...prev, business_hours_end: e.target.value }))}
+                className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))]">
+            <div>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">Disparo automático por etapa</p>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                Liga automaticamente quando lead entra em uma coluna específica do Kanban
+              </p>
+            </div>
+            <Switch
+              checked={localConfig.auto_trigger_enabled}
+              onCheckedChange={v => setLocalConfig(prev => ({ ...prev, auto_trigger_enabled: v }))}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSave}
+          className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white px-8"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          Salvar Configurações
+        </Button>
+      </div>
+    </div>
   );
 }
-
-// Import for BarChart3 icon
-import { BarChart3 } from 'lucide-react';
-import { MessageSquare } from 'lucide-react';
