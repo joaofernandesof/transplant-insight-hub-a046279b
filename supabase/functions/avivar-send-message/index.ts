@@ -276,6 +276,7 @@ serve(async (req) => {
         type: uazapiType,
         file: mediaUrl,
         text: content || " ",
+        ...(isAIGenerated ? { delay: 3000 } : {}),
       };
       
       // Add forward flag if needed
@@ -607,6 +608,9 @@ serve(async (req) => {
       messageContent = caption || `📄 ${originalName}`;
     } else {
       // Send text message: POST /send/text
+      // Calculate typing delay based on message length (simulates natural typing)
+      const typingDelay = isAIGenerated ? Math.min(Math.max(content.length * 30, 1500), 8000) : 0;
+      
       uazapiResponse = await fetch(`${uazapiUrl}/send/text`, {
         method: "POST",
         headers: {
@@ -616,6 +620,7 @@ serve(async (req) => {
         body: JSON.stringify({
           number: phone,
           text: content,
+          ...(typingDelay > 0 ? { delay: typingDelay } : {}),
         }),
       });
       await logAttempt("/send/text", uazapiResponse);

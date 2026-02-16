@@ -47,6 +47,10 @@ interface UazAPIMessage {
       fileName?: string;
       mimetype?: string;
     };
+    stickerMessage?: {
+      url?: string;
+      mimetype?: string;
+    };
   };
   messageTimestamp?: number | string;
   status?: number;
@@ -211,6 +215,7 @@ function mapCrmMediaType(mediaType: string | null): string | null {
   // public.crm_messages has a CHECK constraint allowing only these values (or NULL)
   const allowed = new Set(["image", "video", "audio", "document"]);
   if (!mediaType) return null;
+  if (mediaType === "sticker") return "image"; // Stickers are WebP images
   return allowed.has(mediaType) ? mediaType : null;
 }
 
@@ -267,6 +272,15 @@ function extractMessageContent(message: UazAPIMessage["message"]): {
       content: message.documentMessage.fileName || "[Documento]",
       mediaType: "document",
       mediaUrl: message.documentMessage.url || null,
+    };
+  }
+
+  // Sticker message - treat as image (WebP)
+  if (message.stickerMessage) {
+    return {
+      content: "[Figurinha]",
+      mediaType: "image",
+      mediaUrl: message.stickerMessage.url || null,
     };
   }
 
@@ -406,13 +420,23 @@ serve(async (req) => {
                   mimetype: msg.content?.mimetype,
                 },
               };
+            } else if (mediaType === "sticker" || msg.messageType === "StickerMessage") {
+              // Sticker message - treat as image
+              messageContent = {
+                stickerMessage: {
+                  url: mediaUrl || undefined,
+                  mimetype: msg.content?.mimetype || "image/webp",
+                },
+              };
+              console.log(`[UazAPI Webhook] 🎭 Sticker detected, URL: ${mediaUrl?.substring(0, 50)}...`);
             } else {
               // Unknown media type, try to extract URL anyway
               console.log(`[UazAPI Webhook] Unknown media type: ${mediaType}, messageType: ${msg.messageType}`);
               if (mediaUrl) {
                 messageContent = {
-                  audioMessage: {
+                  imageMessage: {
                     url: mediaUrl,
+                    mimetype: msg.content?.mimetype,
                   },
                 };
               }
