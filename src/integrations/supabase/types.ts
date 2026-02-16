@@ -693,6 +693,135 @@ export type Database = {
           },
         ]
       }
+      avivar_call_analyses: {
+        Row: {
+          account_id: string
+          ai_model: string | null
+          auto_applied: boolean | null
+          barriers: string[] | null
+          call_id: string
+          close_probability: number | null
+          created_at: string
+          crm_fields_updated: Json | null
+          discussed_value: string | null
+          dominant_pain: string | null
+          emotional_trigger: string | null
+          executive_summary: string | null
+          followup_arguments: string[] | null
+          followup_script: string | null
+          followup_timing: string | null
+          followup_whatsapp_message: string | null
+          id: string
+          interest_area: string | null
+          keywords: string[] | null
+          meeting_notes: string | null
+          next_action: string | null
+          objections: Json | null
+          processing_time_ms: number | null
+          spin_implication: Json | null
+          spin_missing: string[] | null
+          spin_need: Json | null
+          spin_problem: Json | null
+          spin_score: number | null
+          spin_situation: Json | null
+          spin_suggested_questions: string[] | null
+          suggested_stage: string | null
+          temperature: string | null
+          updated_at: string
+          urgency_level: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          ai_model?: string | null
+          auto_applied?: boolean | null
+          barriers?: string[] | null
+          call_id: string
+          close_probability?: number | null
+          created_at?: string
+          crm_fields_updated?: Json | null
+          discussed_value?: string | null
+          dominant_pain?: string | null
+          emotional_trigger?: string | null
+          executive_summary?: string | null
+          followup_arguments?: string[] | null
+          followup_script?: string | null
+          followup_timing?: string | null
+          followup_whatsapp_message?: string | null
+          id?: string
+          interest_area?: string | null
+          keywords?: string[] | null
+          meeting_notes?: string | null
+          next_action?: string | null
+          objections?: Json | null
+          processing_time_ms?: number | null
+          spin_implication?: Json | null
+          spin_missing?: string[] | null
+          spin_need?: Json | null
+          spin_problem?: Json | null
+          spin_score?: number | null
+          spin_situation?: Json | null
+          spin_suggested_questions?: string[] | null
+          suggested_stage?: string | null
+          temperature?: string | null
+          updated_at?: string
+          urgency_level?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          ai_model?: string | null
+          auto_applied?: boolean | null
+          barriers?: string[] | null
+          call_id?: string
+          close_probability?: number | null
+          created_at?: string
+          crm_fields_updated?: Json | null
+          discussed_value?: string | null
+          dominant_pain?: string | null
+          emotional_trigger?: string | null
+          executive_summary?: string | null
+          followup_arguments?: string[] | null
+          followup_script?: string | null
+          followup_timing?: string | null
+          followup_whatsapp_message?: string | null
+          id?: string
+          interest_area?: string | null
+          keywords?: string[] | null
+          meeting_notes?: string | null
+          next_action?: string | null
+          objections?: Json | null
+          processing_time_ms?: number | null
+          spin_implication?: Json | null
+          spin_missing?: string[] | null
+          spin_need?: Json | null
+          spin_problem?: Json | null
+          spin_score?: number | null
+          spin_situation?: Json | null
+          spin_suggested_questions?: string[] | null
+          suggested_stage?: string | null
+          temperature?: string | null
+          updated_at?: string
+          urgency_level?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_call_analyses_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_call_analyses_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_voice_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_column_checklists: {
         Row: {
           account_id: string
