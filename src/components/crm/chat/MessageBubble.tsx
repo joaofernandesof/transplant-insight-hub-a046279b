@@ -128,7 +128,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         )}
 
         {/* Text content */}
-        {message.content && (
+        {message.content && message.content !== '[Figurinha]' && (
           <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
             {message.content}
           </p>

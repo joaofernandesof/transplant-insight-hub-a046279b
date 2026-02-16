@@ -2119,6 +2119,7 @@ async function sendImage(
         type: "image",
         file: selectedImage.url,
         text: " ", // Caption is for internal AI filtering only - never send to lead
+        delay: 2000, // Show "typing..." before sending
       }),
     });
 
