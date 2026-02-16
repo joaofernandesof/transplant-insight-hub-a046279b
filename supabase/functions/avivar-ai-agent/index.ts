@@ -1290,6 +1290,30 @@ async function createAppointment(
     return "❌ Ocorreu um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato conosco.";
   }
 
+  // Fallback: buscar email do lead no banco se não foi informado pela IA
+  let emailForCalendar = patientEmail;
+  if (!emailForCalendar && leadId) {
+    const { data: leadData } = await supabase
+      .from("leads")
+      .select("email")
+      .eq("id", leadId)
+      .single();
+    emailForCalendar = leadData?.email || undefined;
+    if (emailForCalendar) {
+      console.log(`[AI Agent] Using fallback email from leads table: ${emailForCalendar}`);
+    }
+  }
+
+  // Salvar email no lead quando capturado pela IA (para uso futuro)
+  if (patientEmail && leadId) {
+    await supabase
+      .from("leads")
+      .update({ email: patientEmail })
+      .eq("id", leadId)
+      .is("email", null);
+    console.log(`[AI Agent] Saved captured email to lead ${leadId}: ${patientEmail}`);
+  }
+
   // Sync to Google Calendar and store event ID + meet link
   let meetLink: string | null = null;
   if (agendaId) {
@@ -1301,7 +1325,7 @@ async function createAppointment(
         normalizedDate, normalizedTime, endTime,
         `Paciente: ${patientName}\nTelefone: ${patientPhone}\n${notes || ""}`,
         agendaInfo?.address || agendaInfo?.city || undefined,
-        patientEmail || undefined
+        emailForCalendar || undefined
       );
       if (googleResult && appointment?.id) {
         try {
@@ -3448,6 +3472,14 @@ Se o lead sugerir apenas UMA DATA (sem horário), use get_available_slots com es
   - cancel_appointment CANCELA o agendamento no CRM e REMOVE do Google Calendar automaticamente
   - SEMPRE use cancel_appointment antes de se despedir — nunca apenas diga que vai cancelar sem executar a ferramenta!
   - Após cancelar, mova o lead para a etapa apropriada (ex: desqualificado, perdido, etc.)
+
+### EMAIL PARA CONVITE DO GOOGLE CALENDAR (REGRA OBRIGATÓRIA):
+- ANTES de chamar create_appointment, pergunte ao lead:
+  "Para que voce receba o convite com o link da reuniao no seu email, pode me informar seu email?"
+- Se o lead fornecer o email, inclua no campo patient_email do create_appointment E do propose_slot
+- Se o lead nao quiser informar, prossiga sem o email (nao insista)
+- Se o lead ja informou o email anteriormente na conversa, use-o sem perguntar novamente
+- O email é usado para enviar automaticamente o convite do Google Calendar com link do Google Meet
 </fluxo_agendamento>
 
 <movimentacao_funil>
