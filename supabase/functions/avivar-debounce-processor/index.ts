@@ -334,56 +334,71 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
         .update({ pending_batch_id: null, pending_until: null })
         .eq("id", conversationId);
 
-      // Call AI agent with combined content
-      try {
-        const aiResponse = await fetch(`${supabaseUrl}/functions/v1/avivar-ai-agent`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${supabaseServiceKey}`,
-            apikey: supabaseServiceKey,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            conversationId,
-            messageContent: combinedContent,
-            leadPhone,
-            leadName: safeLeadName,
-            userId,
-            batchedMessages: newMessages.length,
-          }),
-        });
-
-        const aiText = await aiResponse.text();
-        let aiResult: any = null;
+      // Call AI agent with combined content (with retry)
+      const maxRetries = 2;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          aiResult = JSON.parse(aiText);
-        } catch {
-          aiResult = { success: false, error: aiText };
-        }
+          console.log(`[Debounce] Calling AI Agent (attempt ${attempt}/${maxRetries})...`);
+          const aiResponse = await fetch(`${supabaseUrl}/functions/v1/avivar-ai-agent`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${supabaseServiceKey}`,
+              apikey: supabaseServiceKey,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              conversationId,
+              messageContent: combinedContent,
+              leadPhone,
+              leadName: safeLeadName,
+              userId,
+              batchedMessages: newMessages.length,
+            }),
+          });
 
-        const duration = Date.now() - startTime;
-
-        if (aiResponse.ok && aiResult?.success) {
-          console.log(`[Debounce] 🤖 AI Agent responded successfully in ${duration}ms`);
-
+          const aiText = await aiResponse.text();
+          let aiResult: any = null;
           try {
-            await scheduleFollowupForConversation(supabase, conversationId, userId, safeLeadName, leadPhone);
-            console.log(`[Debounce] 📅 Follow-up scheduled for conversation ${conversationId}`);
-          } catch (followupError) {
-            console.error(`[Debounce] Error scheduling follow-up:`, followupError);
+            aiResult = JSON.parse(aiText);
+          } catch {
+            aiResult = { success: false, error: aiText };
           }
 
-          return;
-        }
+          const duration = Date.now() - startTime;
 
-        console.error(
-          `[Debounce] AI Agent call failed: status=${aiResponse.status} body=${String(aiResult?.error || aiText).substring(0, 500)}`,
-        );
-        return;
-      } catch (aiError) {
-        console.error("[Debounce] AI Agent error:", aiError);
-        return;
+          if (aiResponse.ok && aiResult?.success) {
+            console.log(`[Debounce] 🤖 AI Agent responded successfully in ${duration}ms (attempt ${attempt})`);
+
+            try {
+              await scheduleFollowupForConversation(supabase, conversationId, userId, safeLeadName, leadPhone);
+              console.log(`[Debounce] 📅 Follow-up scheduled for conversation ${conversationId}`);
+            } catch (followupError) {
+              console.error(`[Debounce] Error scheduling follow-up:`, followupError);
+            }
+
+            return;
+          }
+
+          console.error(
+            `[Debounce] AI Agent call failed (attempt ${attempt}): status=${aiResponse.status} body=${String(aiResult?.error || aiText).substring(0, 500)}`,
+          );
+
+          // If not last attempt, wait before retrying
+          if (attempt < maxRetries) {
+            console.log(`[Debounce] Retrying in 3s...`);
+            await sleep(3000);
+          }
+        } catch (aiError) {
+          console.error(`[Debounce] AI Agent error (attempt ${attempt}):`, aiError);
+          if (attempt < maxRetries) {
+            console.log(`[Debounce] Retrying in 3s...`);
+            await sleep(3000);
+          }
+        }
       }
+
+      console.error(`[Debounce] ❌ AI Agent failed after ${maxRetries} attempts for conversation ${conversationId}`);
+      return;
     }
 
     console.log(`[Debounce] Batch ${batchId} exceeded max iterations, giving up`);
