@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface ResetPasswordRequest {
@@ -13,7 +13,6 @@ interface ResetPasswordRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -25,34 +24,50 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Get the authorization header
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
         JSON.stringify({ error: "Não autorizado" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create client with user's token to verify they are admin
+    // Create client with user's token to verify identity
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Get the current user
-    const { data: { user: currentUser }, error: userError } = await userClient.auth.getUser();
-    if (userError || !currentUser) {
+    // Validate JWT using getClaims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+
+    if (claimsError || !claimsData?.claims) {
+      console.error("[admin-reset-password] Claims error:", claimsError);
       return new Response(
-        JSON.stringify({ error: "Usuário não autenticado" }),
+        JSON.stringify({ error: "Token inválido ou expirado" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Check if user is admin
-    const { data: isAdmin, error: roleError } = await userClient.rpc('has_role', {
-      _user_id: currentUser.id,
-      _role: 'admin'
+    const currentUserId = claimsData.claims.sub;
+    const currentEmail = claimsData.claims.email;
+
+    // Create admin client for checks and operations
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    if (roleError || !isAdmin) {
+    // Check if user is admin (via user_roles OR neohub admin)
+    const { data: isAdmin } = await adminClient.rpc('has_role', {
+      _user_id: currentUserId,
+      _role: 'admin',
+    });
+
+    const { data: isNeohubAdmin } = await adminClient.rpc('is_neohub_admin', {
+      _user_id: currentUserId,
+    });
+
+    if (!isAdmin && !isNeohubAdmin) {
+      console.warn(`[admin-reset-password] Unauthorized attempt by ${currentEmail}`);
       return new Response(
         JSON.stringify({ error: "Apenas administradores podem redefinir senhas" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -76,14 +91,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create admin client with service role key
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
     // Update the user's password
     const { error: updateError } = await adminClient.auth.admin.updateUserById(
       target_user_id,
@@ -91,7 +98,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     if (updateError) {
-      console.error("Error updating password:", updateError);
+      console.error("[admin-reset-password] Error updating password:", updateError);
       return new Response(
         JSON.stringify({ error: "Erro ao atualizar senha: " + updateError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -105,17 +112,17 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('user_id', target_user_id)
       .single();
 
-    console.log(`Password reset by admin ${currentUser.email} for user ${targetProfile?.email || target_user_id}`);
+    console.log(`[admin-reset-password] Password reset by ${currentEmail} for ${targetProfile?.email || target_user_id}`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: `Senha de ${targetProfile?.name || 'usuário'} redefinida com sucesso` 
+      JSON.stringify({
+        success: true,
+        message: `Senha de ${targetProfile?.name || 'usuário'} redefinida com sucesso`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
-    console.error("Error in admin-reset-password function:", error);
+    console.error("[admin-reset-password] Fatal error:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Erro interno do servidor" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
