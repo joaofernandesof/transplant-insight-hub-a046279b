@@ -1,57 +1,40 @@
 
 
-## Correção da Causa Raiz: Loop de Ferramentas Bloqueadas + Fallback Natural
+## Correção: Não enviar lembretes cujo tempo já passou
 
-### O Problema
+### Problema atual
 
-Quando a IA chama uma ferramenta que é bloqueada pelo sistema (ex: `send_fluxo_media` duplicada), a chamada é descartada silenciosamente. A IA não recebe feedback, então repete a mesma chamada por 5 rodadas até cair no fallback genérico "Desculpe, não consegui processar sua mensagem."
+Quando um agendamento é criado e faltam menos de 24h para o evento, o lembrete de "24h antes" é criado com `scheduled_for = now()` (envio imediato). Isso acontece neste trecho do trigger:
 
-### 3 Correções no arquivo `supabase/functions/avivar-ai-agent/index.ts`
-
----
-
-#### 1. Feedback sintético para ferramentas bloqueadas (causa raiz)
-
-Após a filtragem de tool calls (linha ~4155), coletar as chamadas bloqueadas e gerar resultados sintéticos informando a IA que a ação já foi executada. Isso faz a IA parar de repetir e gerar texto.
-
-```typescript
-// Coletar bloqueadas
-const blockedToolCalls = currentToolCalls.filter(tc => !filteredToolCalls.includes(tc));
-
-// Gerar feedback para cada bloqueada
-blockedToolCalls.forEach(tc => {
-  toolResults.push({
-    role: "tool",
-    name: tc.name,
-    content: `[SISTEMA] A ferramenta ${tc.name} já foi executada nesta resposta. Prossiga com sua resposta de texto ao cliente.`
-  });
-});
+```sql
+IF v_scheduled_for <= now() THEN
+  v_scheduled_for := now();  -- Envia imediatamente
+END IF;
 ```
 
-#### 2. Quebrar o loop quando TODAS as chamadas são bloqueadas
+### Correção
 
-Se nenhuma ferramenta passou pelo filtro, sair do loop imediatamente (linha ~4157):
+Trocar a lógica para simplesmente **pular** o lembrete quando o tempo já passou, em vez de enviá-lo imediatamente. O `IF v_scheduled_for <= now()` deve resultar em um `CONTINUE` (pular para a próxima regra) em vez de reatribuir para `now()`.
 
-```typescript
-if (filteredToolCalls.length === 0 && currentToolCalls.length > 0) {
-  console.log(`[AI Agent] All tool calls blocked. Breaking loop.`);
-  // Ainda injeta os feedbacks sintéticos para a próxima chamada
-  break;
-}
+```sql
+-- ANTES (envia imediatamente):
+IF v_scheduled_for <= now() THEN
+  v_scheduled_for := now();
+END IF;
+
+-- DEPOIS (pula o lembrete):
+IF v_scheduled_for <= now() THEN
+  CONTINUE;  -- Não cria o lembrete, passa para a próxima regra
+END IF;
 ```
 
-#### 3. Mensagem de fallback natural (linha 4283)
+### Arquivo a modificar
 
-Trocar a mensagem genérica por algo que peça ao lead para reenviar:
+Uma migração SQL que faz `CREATE OR REPLACE FUNCTION` da função `generate_reminders_for_appointment()` com essa única alteração na lógica (linhas 47-49 da versão atual).
 
-```
-"Desculpa, o sistema ficou um pouco instável agora e não consegui carregar sua última mensagem. Pode enviar novamente, por favor? 🙏"
-```
+### Resultado
 
----
+- Lembrete de 24h antes: só é criado se realmente faltam 24h+ para o evento
+- Lembrete de 1h antes: só é criado se falta 1h+ para o evento
+- Nenhum lembrete "atrasado" será enviado imediatamente após o agendamento
 
-### Resultado esperado
-
-- A IA recebe feedback quando uma ferramenta é bloqueada e gera texto em vez de repetir
-- Loops de 5 rodadas vazias são eliminados
-- Se tudo falhar, o lead recebe uma mensagem natural pedindo para reenviar
