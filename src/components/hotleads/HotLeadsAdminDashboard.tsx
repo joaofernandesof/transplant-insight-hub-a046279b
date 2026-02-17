@@ -358,14 +358,14 @@ export function HotLeadsAdminDashboard() {
           </div>
         </CardHeader>
         <CardContent className="pt-4">
-          <div className="rounded-xl border overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-xl border overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
                   <th className="text-center py-3 px-3 w-12 font-bold text-xs uppercase tracking-wider text-muted-foreground">#</th>
                   <th className="text-left py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Licenciado</th>
-                  <th className="text-left py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground hidden md:table-cell">Cidade</th>
-                  <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground hidden md:table-cell">UF</th>
+                  <th className="text-left py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Cidade</th>
+                  <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">UF</th>
                   <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Leads Captados</th>
                   <th className="text-center py-3 px-3 font-bold text-xs uppercase tracking-wider text-muted-foreground">Tempo Online</th>
                 </tr>
@@ -405,10 +405,10 @@ export function HotLeadsAdminDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-3 hidden md:table-cell">
+                      <td className="py-3 px-3">
                         <span className="text-xs text-muted-foreground">{lic.city || '—'}</span>
                       </td>
-                      <td className="text-center py-3 px-3 hidden md:table-cell">
+                      <td className="text-center py-3 px-3">
                         <span className="text-xs text-muted-foreground">{lic.state || '—'}</span>
                       </td>
                       <td className="text-center py-3 px-3">
