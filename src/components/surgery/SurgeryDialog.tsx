@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -29,8 +29,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, User, DollarSign, CheckSquare, FileText } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, User, DollarSign, CheckSquare, FileText, ShieldAlert } from "lucide-react";
 import { SurgerySchedule } from "@/hooks/useSurgerySchedule";
+import { useValidateScheduleRotation, CIDADES, MEDICOS, TIPOS_AGENDAMENTO, CATEGORIAS_RODIZIO, getSemanaDOMes } from "@/hooks/useWeeklyScheduleRules";
 
 const formSchema = z.object({
   surgery_date: z.string().min(1, "Data obrigatória"),
@@ -41,6 +43,10 @@ const formSchema = z.object({
   category: z.string().optional(),
   procedure_type: z.string().optional(),
   grade: z.coerce.number().optional(),
+  cidade: z.string().optional(),
+  medico: z.string().optional(),
+  tipo_agendamento: z.string().optional(),
+  categoria_rodizio: z.string().optional(),
   initial_value: z.coerce.number().default(0),
   referral_bonus: z.coerce.number().default(0),
   upgrade_value: z.coerce.number().default(0),
@@ -95,6 +101,10 @@ const procedures = [
 ];
 
 export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }: SurgeryDialogProps) {
+  const { validate } = useValidateScheduleRotation();
+  const [blockMessage, setBlockMessage] = useState<string | null>(null);
+  const [currentSemana, setCurrentSemana] = useState<number | null>(null);
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -133,6 +143,10 @@ export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }
         category: surgery.category || "",
         procedure_type: surgery.procedure_type || "",
         grade: surgery.grade || undefined,
+        cidade: surgery.cidade || "",
+        medico: surgery.medico || "",
+        tipo_agendamento: surgery.tipo_agendamento || "",
+        categoria_rodizio: surgery.categoria_rodizio || "",
         initial_value: surgery.initial_value || 0,
         referral_bonus: surgery.referral_bonus || 0,
         upgrade_value: surgery.upgrade_value || 0,
@@ -183,6 +197,7 @@ export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }
         d1_gpi: false,
       });
     }
+    setBlockMessage(null);
   }, [surgery, form]);
 
   // Auto-calculate final value and balance
@@ -196,7 +211,42 @@ export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }
     form.setValue("balance_due", balance);
   }, [watchValues, form]);
 
+  // Watch rotation fields to show semana and run validation
+  const watchDate = form.watch("surgery_date");
+  const watchCidade = form.watch("cidade");
+  const watchTipo = form.watch("tipo_agendamento");
+  const watchCatRodizio = form.watch("categoria_rodizio");
+  const watchMedico = form.watch("medico");
+
+  useEffect(() => {
+    if (watchDate) {
+      setCurrentSemana(getSemanaDOMes(new Date(watchDate + 'T12:00:00')));
+    } else {
+      setCurrentSemana(null);
+    }
+  }, [watchDate]);
+
+  // Get available categories for selected city
+  const availableCategories = watchCidade ? (CATEGORIAS_RODIZIO[watchCidade] || []) : [];
+
   const handleSubmit = async (data: FormData) => {
+    // Validate rotation rules if rotation fields are filled
+    if (data.cidade && data.surgery_date && data.tipo_agendamento) {
+      const result = await validate({
+        cidade: data.cidade,
+        surgery_date: data.surgery_date,
+        tipo: data.tipo_agendamento,
+        categoria: data.categoria_rodizio || undefined,
+        medico: data.medico || undefined,
+      });
+
+      if (!result.permitido) {
+        setBlockMessage(result.mensagem);
+        return;
+      }
+    }
+
+    setBlockMessage(null);
     await onSave(data);
   };
 
@@ -233,6 +283,124 @@ export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }
                 </TabsList>
 
                 <TabsContent value="patient" className="space-y-4 mt-4">
+                  {/* Block message */}
+                  {blockMessage && (
+                    <Alert variant="destructive">
+                      <ShieldAlert className="h-4 w-4" />
+                      <AlertDescription>{blockMessage}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Semana badge */}
+                  {currentSemana && watchCidade && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+                        Semana {currentSemana} do mês
+                      </span>
+                      {watchCidade && (
+                        <span className="bg-muted px-3 py-1 rounded-full">
+                          {watchCidade}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Rotation fields */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-3 border rounded-lg bg-muted/30">
+                    <FormField
+                      control={form.control}
+                      name="cidade"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cidade</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {CIDADES.map(c => (
+                                <SelectItem key={c} value={c}>{c}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="tipo_agendamento"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {TIPOS_AGENDAMENTO.map(t => (
+                                <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {watchTipo === 'consulta' && (
+                      <FormField
+                        control={form.control}
+                        name="medico"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Médico</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {MEDICOS.map(m => (
+                                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    {(watchTipo === 'transplante' || watchTipo === 'retorno') && availableCategories.length > 0 && (
+                      <FormField
+                        control={form.control}
+                        name="categoria_rodizio"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Categoria Rodízio</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {availableCategories.map(c => (
+                                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
