@@ -12,6 +12,7 @@ import {
   ArrowRight,
   CreditCard,
   Leaf,
+  Flame,
 } from 'lucide-react';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -27,6 +28,7 @@ const modules = [
   { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Proteção Médico-Legal' },
   { id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico por IA' },
   { id: 'neopay', name: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', description: 'Gateway de Pagamentos' },
+  { id: 'hotleads', name: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', description: 'Marketplace de Leads' },
   { id: 'neohair', name: 'NeoHair', icon: Leaf, gradient: 'from-teal-500 to-cyan-500', description: 'Tratamento Capilar' },
 ];
 
