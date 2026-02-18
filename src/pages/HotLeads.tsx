@@ -233,9 +233,14 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   }, [leads, searchTerm, stateFilter, cityFilter, periodFilter, sortBy, userFilter]);
 
   // ── Tab subsets ──
-  // Disponíveis: unclaimed, available
-  const filteredAvailable = useMemo(() => 
-    filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available'), [filteredLeads]);
+  // Disponíveis: unclaimed, available — non-admins only see leads from their state
+  const filteredAvailable = useMemo(() => {
+    const base = filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available');
+    if (isAdmin) return base;
+    const userState = user?.state;
+    if (!userState) return base;
+    return base.filter(l => !l.state || l.state === userState);
+  }, [filteredLeads, isAdmin, user?.state]);
   
   // Adquiridos: claimed by me, NO outcome yet
   const filteredAcquired = useMemo(() => 
@@ -535,7 +540,18 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </div>
           )}
 
-          {/* Step-style tabs - full width sticky */}
+          {/* State restriction banner for non-admin users */}
+          {!isAdmin && user?.state && (
+            <div className="mb-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 flex items-center gap-3">
+              <div className="shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                <span className="text-sm">📍</span>
+              </div>
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Exibindo apenas leads do estado <strong>{user.state}</strong>. Leads de outros estados estão restritos à sua região.
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-col gap-2 mb-4 sticky top-0 z-10 bg-background py-3 -mx-3 px-3 lg:-mx-4 lg:px-4 border-b border-border/40">
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-0 w-full rounded-xl overflow-hidden border border-border shadow-sm">
               {TAB_CONFIG.map((tab, index) => {

@@ -55,6 +55,38 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
+    // Check user's state from neohub_users
+    const { data: userProfile } = await supabaseAdmin
+      .from('neohub_users')
+      .select('address_state, user_id')
+      .eq('user_id', userId)
+      .single()
+
+    // Check if user is admin (admins bypass state restriction)
+    const isAdmin = await supabaseAdmin.rpc('is_neohub_admin', { _user_id: userId })
+    const userIsAdmin = isAdmin?.data === true
+
+    // If not admin, validate state match
+    if (!userIsAdmin && userProfile?.address_state) {
+      // Get lead's state first
+      const { data: leadData } = await supabaseAdmin
+        .from('leads')
+        .select('state')
+        .eq('id', lead_id)
+        .single()
+
+      if (leadData?.state && leadData.state !== userProfile.address_state) {
+        console.log(`[hotleads-acquire] State mismatch: user=${userProfile.address_state}, lead=${leadData.state}`)
+        return new Response(
+          JSON.stringify({ error: 'Você só pode capturar leads do seu estado.' }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+    }
+
     // Atomic claim: only succeeds if claimed_by IS NULL
     const { data: claimedLead, error: claimError } = await supabaseAdmin
       .from('leads')

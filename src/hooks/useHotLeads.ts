@@ -100,9 +100,14 @@ export function useHotLeads() {
     fetchProfiles();
   }, [fetchLeads, fetchProfiles, user]);
 
-  // Leads available (unclaimed)
-  const availableLeads = useMemo(() =>
-    leads.filter(l => !l.claimed_by && l.release_status !== 'queued'), [leads]);
+  // Leads available (unclaimed) - non-admins only see leads from their state
+  const availableLeads = useMemo(() => {
+    const unclaimed = leads.filter(l => !l.claimed_by && l.release_status !== 'queued');
+    if (isAdmin) return unclaimed;
+    const userState = user?.state;
+    if (!userState) return unclaimed; // If user has no state, show all (edge case)
+    return unclaimed.filter(l => !l.state || l.state === userState);
+  }, [leads, isAdmin, user?.state]);
 
   // My leads by category
   const myLeads = useMemo(() =>
