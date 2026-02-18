@@ -15988,6 +15988,45 @@ export type Database = {
         }
         Relationships: []
       }
+      schedule_block_logs: {
+        Row: {
+          blocked_reason: string
+          categoria: string | null
+          cidade: string
+          created_at: string
+          id: string
+          medico: string | null
+          semana_do_mes: number
+          surgery_date: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          blocked_reason: string
+          categoria?: string | null
+          cidade: string
+          created_at?: string
+          id?: string
+          medico?: string | null
+          semana_do_mes: number
+          surgery_date: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          blocked_reason?: string
+          categoria?: string | null
+          cidade?: string
+          created_at?: string
+          id?: string
+          medico?: string | null
+          semana_do_mes?: number
+          surgery_date?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sentinel_alert_recipients: {
         Row: {
           created_at: string
@@ -16721,8 +16760,10 @@ export type Database = {
       surgery_schedule: {
         Row: {
           balance_due: number | null
+          categoria_rodizio: string | null
           category: string | null
           checkin_sent: boolean | null
+          cidade: string | null
           clinic_id: string | null
           companion_name: string | null
           companion_phone: string | null
@@ -16744,6 +16785,7 @@ export type Database = {
           id: string
           initial_value: number | null
           medical_record: string | null
+          medico: string | null
           observations: string | null
           patient_name: string
           patient_phone: string | null
@@ -16754,6 +16796,7 @@ export type Database = {
           scheduling_form: boolean | null
           surgery_date: string
           surgery_time: string | null
+          tipo_agendamento: string | null
           trichotomy_datetime: string | null
           updated_at: string
           upgrade_value: number | null
@@ -16762,8 +16805,10 @@ export type Database = {
         }
         Insert: {
           balance_due?: number | null
+          categoria_rodizio?: string | null
           category?: string | null
           checkin_sent?: boolean | null
+          cidade?: string | null
           clinic_id?: string | null
           companion_name?: string | null
           companion_phone?: string | null
@@ -16785,6 +16830,7 @@ export type Database = {
           id?: string
           initial_value?: number | null
           medical_record?: string | null
+          medico?: string | null
           observations?: string | null
           patient_name: string
           patient_phone?: string | null
@@ -16795,6 +16841,7 @@ export type Database = {
           scheduling_form?: boolean | null
           surgery_date: string
           surgery_time?: string | null
+          tipo_agendamento?: string | null
           trichotomy_datetime?: string | null
           updated_at?: string
           upgrade_value?: number | null
@@ -16803,8 +16850,10 @@ export type Database = {
         }
         Update: {
           balance_due?: number | null
+          categoria_rodizio?: string | null
           category?: string | null
           checkin_sent?: boolean | null
+          cidade?: string | null
           clinic_id?: string | null
           companion_name?: string | null
           companion_phone?: string | null
@@ -16826,6 +16875,7 @@ export type Database = {
           id?: string
           initial_value?: number | null
           medical_record?: string | null
+          medico?: string | null
           observations?: string | null
           patient_name?: string
           patient_phone?: string | null
@@ -16836,6 +16886,7 @@ export type Database = {
           scheduling_form?: boolean | null
           surgery_date?: string
           surgery_time?: string | null
+          tipo_agendamento?: string | null
           trichotomy_datetime?: string | null
           updated_at?: string
           upgrade_value?: number | null
@@ -17936,6 +17987,42 @@ export type Database = {
           },
         ]
       }
+      weekly_schedule_rules: {
+        Row: {
+          categoria: string | null
+          cidade: string
+          created_at: string
+          id: string
+          medico: string | null
+          permitido: boolean
+          semana_do_mes: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string | null
+          cidade: string
+          created_at?: string
+          id?: string
+          medico?: string | null
+          permitido?: boolean
+          semana_do_mes: number
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string | null
+          cidade?: string
+          created_at?: string
+          id?: string
+          medico?: string | null
+          permitido?: boolean
+          semana_do_mes?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       exam_questions_student: {
@@ -18276,6 +18363,7 @@ export type Database = {
         }
       }
       get_portal_user_id: { Args: { _auth_user_id: string }; Returns: string }
+      get_semana_do_mes: { Args: { p_date: string }; Returns: number }
       get_staff_profile: {
         Args: { _user_id: string }
         Returns: {
@@ -18410,6 +18498,16 @@ export type Database = {
           points_earned: number
           points_total: number
         }[]
+      }
+      validate_schedule_rotation: {
+        Args: {
+          p_categoria?: string
+          p_cidade: string
+          p_date: string
+          p_medico?: string
+          p_tipo: string
+        }
+        Returns: Json
       }
     }
     Enums: {

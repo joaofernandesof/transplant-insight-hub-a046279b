@@ -41,6 +41,10 @@ export interface SurgerySchedule {
   observations?: string;
   financial_verification?: string;
   post_sale_notes?: string;
+  cidade?: string;
+  medico?: string;
+  tipo_agendamento?: string;
+  categoria_rodizio?: string;
   created_at: string;
   updated_at: string;
 }

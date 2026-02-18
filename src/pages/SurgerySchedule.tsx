@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   Calendar,
   Plus,
@@ -22,6 +23,7 @@ import {
   SurgeryDetailPanel,
   SurgeryKanban,
 } from "@/components/surgery";
+import { getSemanaDOMes, useWeeklyScheduleRules, getMedicoResponsavel } from "@/hooks/useWeeklyScheduleRules";
 import { parseISO, isToday, isFuture, isPast, isWithinInterval, addDays, startOfMonth, endOfMonth } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
@@ -29,6 +31,8 @@ import { toast } from "sonner";
 export default function SurgerySchedule() {
   const { user } = useAuth();
   const { surgeries, isLoading, stats, createSurgery, updateSurgery, deleteSurgery } = useSurgerySchedule();
+  const { rules } = useWeeklyScheduleRules();
+  const currentSemana = getSemanaDOMes(new Date());
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -197,7 +201,7 @@ export default function SurgerySchedule() {
       <div className="px-4 pt-16 lg:pt-6 pb-6 space-y-6 w-full">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
+             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 <Stethoscope className="h-6 w-6 text-primary" />
                 Agenda NeoCirurgias
@@ -205,6 +209,19 @@ export default function SurgerySchedule() {
               <p className="text-muted-foreground text-sm mt-1">
                 Tudo pronto para a cirurgia. Gerencie com confiança.
               </p>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                  Semana {currentSemana} do mês
+                </Badge>
+                {['Fortaleza', 'Juazeiro', 'São Paulo'].map(cidade => {
+                  const responsavel = getMedicoResponsavel(rules, cidade, currentSemana);
+                  return responsavel ? (
+                    <Badge key={cidade} variant="secondary" className="text-xs">
+                      {cidade}: {responsavel}
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
             </div>
             <Button onClick={handleCreate} className="gap-2">
               <Plus className="h-4 w-4" />
