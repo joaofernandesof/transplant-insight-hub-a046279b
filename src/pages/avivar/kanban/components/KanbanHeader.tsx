@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, ArrowLeft, Search, Filter, RefreshCw,
-  MoreHorizontal, Upload, Download,
+  MoreHorizontal, Upload, Download, Zap,
   Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid as LayoutGridIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -124,6 +124,16 @@ export function KanbanHeader({
         <div className="flex items-center gap-3">
           <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
           
+          {/* Automations Button */}
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/avivar/automations/${kanban.id}`)}
+            className="border-orange-500/30 text-orange-500 hover:bg-orange-500/10 hover:text-orange-600"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Automações
+          </Button>
+
           {/* Primary Action: Add Lead */}
           <Button
             onClick={onAddLead}

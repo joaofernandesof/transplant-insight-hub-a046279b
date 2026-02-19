@@ -766,6 +766,197 @@ export type Database = {
           },
         ]
       }
+      avivar_automation_actions: {
+        Row: {
+          action_config: Json
+          action_type: string
+          automation_id: string
+          created_at: string | null
+          delay_seconds: number | null
+          id: string
+          order_index: number | null
+        }
+        Insert: {
+          action_config?: Json
+          action_type: string
+          automation_id: string
+          created_at?: string | null
+          delay_seconds?: number | null
+          id?: string
+          order_index?: number | null
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          automation_id?: string
+          created_at?: string | null
+          delay_seconds?: number | null
+          id?: string
+          order_index?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_automation_actions_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_automation_executions: {
+        Row: {
+          account_id: string
+          actions_log: Json | null
+          automation_id: string
+          completed_at: string | null
+          conversation_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          max_retries: number | null
+          next_retry_at: string | null
+          retry_count: number | null
+          started_at: string | null
+          status: string | null
+          trigger_data: Json | null
+          trigger_event: string
+        }
+        Insert: {
+          account_id: string
+          actions_log?: Json | null
+          automation_id: string
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          max_retries?: number | null
+          next_retry_at?: string | null
+          retry_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          trigger_data?: Json | null
+          trigger_event: string
+        }
+        Update: {
+          account_id?: string
+          actions_log?: Json | null
+          automation_id?: string
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          max_retries?: number | null
+          next_retry_at?: string | null
+          retry_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          trigger_data?: Json | null
+          trigger_event?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_automation_executions_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_automations: {
+        Row: {
+          account_id: string
+          column_id: string | null
+          conditions: Json | null
+          cooldown_seconds: number | null
+          created_at: string | null
+          created_by: string | null
+          delay_seconds: number | null
+          description: string | null
+          execute_once_per_lead: boolean | null
+          execution_order: number | null
+          id: string
+          is_active: boolean | null
+          is_global: boolean | null
+          kanban_id: string | null
+          max_executions_per_lead: number | null
+          name: string
+          trigger_config: Json | null
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_id: string
+          column_id?: string | null
+          conditions?: Json | null
+          cooldown_seconds?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delay_seconds?: number | null
+          description?: string | null
+          execute_once_per_lead?: boolean | null
+          execution_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_global?: boolean | null
+          kanban_id?: string | null
+          max_executions_per_lead?: number | null
+          name: string
+          trigger_config?: Json | null
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          column_id?: string | null
+          conditions?: Json | null
+          cooldown_seconds?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delay_seconds?: number | null
+          description?: string | null
+          execute_once_per_lead?: boolean | null
+          execution_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_global?: boolean | null
+          kanban_id?: string | null
+          max_executions_per_lead?: number | null
+          name?: string
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_automations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_automations_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanban_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_automations_kanban_id_fkey"
+            columns: ["kanban_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanbans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_call_analyses: {
         Row: {
           account_id: string
