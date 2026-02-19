@@ -38,6 +38,8 @@ import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ApiTokensTab } from './settings/ApiTokensTab';
+import { WebhooksTab } from './settings/WebhooksTab';
 
 export default function AvivarSettings() {
   const navigate = useNavigate();
@@ -199,7 +201,7 @@ export default function AvivarSettings() {
       </div>
 
       <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))]">
+        <TabsList className="bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] flex-wrap h-auto gap-1 p-1">
           <TabsTrigger value="account" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <User className="h-4 w-4 mr-2" />
             Conta
@@ -215,6 +217,10 @@ export default function AvivarSettings() {
           <TabsTrigger value="security" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <Shield className="h-4 w-4 mr-2" />
             Segurança
+          </TabsTrigger>
+          <TabsTrigger value="api" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
+            <Key className="h-4 w-4 mr-2" />
+            API & Webhooks
           </TabsTrigger>
         </TabsList>
 
@@ -588,6 +594,14 @@ export default function AvivarSettings() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
+
+        {/* Aba API & Webhooks */}
+        <TabsContent value="api">
+          <div className="space-y-6">
+            <ApiTokensTab />
+            <WebhooksTab />
           </div>
         </TabsContent>
       </Tabs>
