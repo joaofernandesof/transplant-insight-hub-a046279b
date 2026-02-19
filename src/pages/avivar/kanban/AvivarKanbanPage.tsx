@@ -436,8 +436,13 @@ export default function AvivarKanbanPage() {
                         setIsColumnDialogOpen(true);
                       }}
                       onLeadClick={(lead) => {
-                        setSelectedLead(lead);
-                        setIsLeadDetailOpen(true);
+                        if (lead.phone) {
+                          navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
+                        } else {
+                          // No phone - open detail sheet
+                          setSelectedLead(lead);
+                          setIsLeadDetailOpen(true);
+                        }
                       }}
                     />
                   ))}
@@ -487,8 +492,12 @@ export default function AvivarKanbanPage() {
           onMoveLead={moveLead}
           kanbanId={kanbanId || ''}
           onLeadClick={(lead) => {
-            setSelectedLead(lead);
-            setIsLeadDetailOpen(true);
+            if (lead.phone) {
+              navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
+            } else {
+              setSelectedLead(lead);
+              setIsLeadDetailOpen(true);
+            }
           }}
         />
       )}
