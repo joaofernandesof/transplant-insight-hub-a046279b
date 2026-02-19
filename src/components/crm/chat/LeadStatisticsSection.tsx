@@ -1,11 +1,18 @@
+import { useState } from 'react';
 import {
-  Globe,
   Megaphone,
   Target,
   Search,
   FileText,
   BarChart3,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 interface LeadTrafficSectionProps {
   utmSource?: string | null;
@@ -22,20 +29,31 @@ export function LeadStatisticsSection({
   utmTerm,
   utmContent,
 }: LeadTrafficSectionProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="space-y-2">
-      <span className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
-        <BarChart3 className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-        Estatísticas
-      </span>
-      <div className="space-y-2">
-        <UtmField icon={Megaphone} label="Fonte (source)" value={utmSource} />
-        <UtmField icon={Target} label="Meio (medium)" value={utmMedium} />
-        <UtmField icon={FileText} label="Campanha" value={utmCampaign} />
-        <UtmField icon={Search} label="Termo" value={utmTerm} />
-        <UtmField icon={FileText} label="Conteúdo" value={utmContent} />
-      </div>
-    </div>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <button className="flex items-center justify-between w-full py-2 text-left">
+          <span className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
+            <BarChart3 className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+            Estatísticas
+          </span>
+          {isOpen ? (
+            <ChevronUp className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+          )}
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-2 pt-2">
+        <UtmField icon={Megaphone} label="utm_source" value={utmSource} />
+        <UtmField icon={Target} label="utm_medium" value={utmMedium} />
+        <UtmField icon={FileText} label="utm_campaign" value={utmCampaign} />
+        <UtmField icon={Search} label="utm_term" value={utmTerm} />
+        <UtmField icon={FileText} label="utm_content" value={utmContent} />
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
