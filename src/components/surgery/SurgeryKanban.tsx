@@ -88,6 +88,7 @@ export function SurgeryKanban({ surgeries, onSelectSurgery }: SurgeryKanbanProps
     <StyledKanban
       columns={columns}
       renderCard={renderCard}
+      showSummary={false}
       renderEmptyState={(columnId) => (
         <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
           {columnId === 'today' ? 'Nenhuma cirurgia hoje' :
