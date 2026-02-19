@@ -511,6 +511,7 @@ export type Database = {
           target_kanban_id: string | null
           token_hash: string
           token_prefix: string
+          webhook_slug: string
         }
         Insert: {
           account_id: string
@@ -526,6 +527,7 @@ export type Database = {
           target_kanban_id?: string | null
           token_hash: string
           token_prefix: string
+          webhook_slug: string
         }
         Update: {
           account_id?: string
@@ -541,6 +543,7 @@ export type Database = {
           target_kanban_id?: string | null
           token_hash?: string
           token_prefix?: string
+          webhook_slug?: string
         }
         Relationships: [
           {
@@ -18666,6 +18669,16 @@ export type Database = {
       }
       validate_api_token: {
         Args: { p_token_hash: string }
+        Returns: {
+          account_id: string
+          permissions: string[]
+          target_column_id: string
+          target_kanban_id: string
+          token_id: string
+        }[]
+      }
+      validate_api_token_by_slug: {
+        Args: { p_slug: string }
         Returns: {
           account_id: string
           permissions: string[]

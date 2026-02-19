@@ -9,6 +9,7 @@ export interface AvivarApiToken {
   account_id: string;
   name: string;
   token_prefix: string;
+  webhook_slug: string;
   permissions: string[];
   is_active: boolean;
   last_used_at: string | null;
@@ -17,6 +18,15 @@ export interface AvivarApiToken {
   created_at: string;
   target_kanban_id: string | null;
   target_column_id: string | null;
+}
+
+function generateSlug(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 16; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 function generateToken(): string {
@@ -63,6 +73,7 @@ export function useAvivarApiTokens() {
       const rawToken = generateToken();
       const tokenHash = await hashToken(rawToken);
       const tokenPrefix = rawToken.slice(0, 8);
+      const webhookSlug = generateSlug();
 
       const { error } = await supabase
         .from('avivar_api_tokens')
@@ -71,6 +82,7 @@ export function useAvivarApiTokens() {
           name,
           token_prefix: tokenPrefix,
           token_hash: tokenHash,
+          webhook_slug: webhookSlug,
           permissions,
           created_by: session.user.id,
           target_kanban_id: target_kanban_id || null,
@@ -78,13 +90,13 @@ export function useAvivarApiTokens() {
         } as any);
 
       if (error) throw error;
-      return rawToken; // Return raw token only once
+      return { rawToken, webhookSlug };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-api-tokens'] });
-      toast.success('Token criado com sucesso!');
+      toast.success('Webhook criado com sucesso!');
     },
-    onError: () => toast.error('Erro ao criar token'),
+    onError: () => toast.error('Erro ao criar webhook'),
   });
 
   const deleteToken = useMutation({
