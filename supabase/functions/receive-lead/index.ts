@@ -124,7 +124,15 @@ Deno.serve(async (req) => {
       console.log("Authenticated via API token for account:", tokenAccountId);
     }
 
-    const inputData: LeadData = await req.json();
+    let inputData: LeadData;
+    try {
+      inputData = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid or empty JSON body. Send a JSON object with at least 'name' and 'phone'." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     // Validate required fields
     if (!inputData.name || !inputData.phone) {
