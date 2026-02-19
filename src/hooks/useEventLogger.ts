@@ -29,12 +29,15 @@ export function useEventLogger() {
 
   const logEvent = useCallback(async (params: LogEventParams) => {
     try {
+      // Don't attempt to log if user is not authenticated (RLS will reject)
+      if (!user?.authUserId) return;
+      
       const { eventType, eventCategory, eventName, module, pagePath, metadata } = params;
       
       await supabase.from('system_event_logs').insert({
-        user_id: user?.authUserId || null,
-        user_name: user?.fullName || null,
-        user_email: user?.email || null,
+        user_id: user.authUserId,
+        user_name: user.fullName || null,
+        user_email: user.email || null,
         event_type: eventType,
         event_category: eventCategory,
         event_name: eventName,
@@ -112,10 +115,13 @@ export function useEventLogger() {
 // Standalone function for use outside of React components
 export async function logSystemEvent(params: LogEventParams & { userId?: string; userName?: string; userEmail?: string }) {
   try {
+    // Don't attempt to log without a user ID (RLS will reject)
+    if (!params.userId) return;
+    
     const { eventType, eventCategory, eventName, module, pagePath, metadata, userId, userName, userEmail } = params;
     
     await supabase.from('system_event_logs').insert({
-      user_id: userId || null,
+      user_id: userId,
       user_name: userName || null,
       user_email: userEmail || null,
       event_type: eventType,
