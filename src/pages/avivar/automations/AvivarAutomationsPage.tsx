@@ -1,17 +1,18 @@
 /**
  * AvivarAutomationsPage - Digital Pipeline Automations (Kommo-style)
  * Horizontal pipeline with colorful trigger card grid per stage
+ * Supports multi-column spanning for automations
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft, Plus, Zap, ChevronRight, Trash2, Edit, MoreHorizontal,
-  History, Bot, Tag, MessageSquare, ArrowRight, UserCheck, ListTodo,
+  History, Tag, MessageSquare, ArrowRight, UserCheck, ListTodo,
   StickyNote, Webhook, Plug, UserPlus, Contact, Clock, Search,
   Mail, Hash, CheckSquare, FileText, Pencil, FileX2, X,
-  Settings2, Play, Pause,
+  Settings2, Play, Pause, Save, GripHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -43,20 +45,20 @@ import {
 import type { KanbanColumnData } from '../kanban/AvivarKanbanPage';
 
 // =============================================
-// Kommo-style Trigger Cards definitions
+// Kommo-style Trigger Cards definitions (NO Salesbot)
 // =============================================
 const TRIGGER_CARDS = [
   {
-    id: 'salesbot',
-    label: 'Salesbot',
-    description: 'Bot de vendas automático',
-    icon: Bot,
-    color: 'bg-emerald-500',
-    textColor: 'text-emerald-700',
-    bgLight: 'bg-emerald-50 dark:bg-emerald-950/30',
-    borderColor: 'border-emerald-200 dark:border-emerald-800',
-    triggerType: 'message.received',
-    defaultAction: 'trigger_chatbot',
+    id: 'send_message',
+    label: 'Enviar mensagem',
+    description: 'Enviar WhatsApp ao lead',
+    icon: MessageSquare,
+    color: 'bg-green-500',
+    textColor: 'text-green-700',
+    bgLight: 'bg-green-50 dark:bg-green-950/30',
+    borderColor: 'border-green-200 dark:border-green-800',
+    triggerType: 'lead.moved_to',
+    defaultAction: 'send_message',
   },
   {
     id: 'add_task',
@@ -81,18 +83,6 @@ const TRIGGER_CARDS = [
     borderColor: 'border-violet-200 dark:border-violet-800',
     triggerType: 'lead.moved_to',
     defaultAction: 'create_lead',
-  },
-  {
-    id: 'send_message',
-    label: 'Enviar mensagem',
-    description: 'Enviar WhatsApp ao lead',
-    icon: MessageSquare,
-    color: 'bg-green-500',
-    textColor: 'text-green-700',
-    bgLight: 'bg-green-50 dark:bg-green-950/30',
-    borderColor: 'border-green-200 dark:border-green-800',
-    triggerType: 'lead.moved_to',
-    defaultAction: 'send_message',
   },
   {
     id: 'send_webhook',
@@ -193,13 +183,11 @@ const TRIGGER_CARDS = [
 ];
 
 const getTriggerCard = (automation: AvivarAutomation, actions: AvivarAutomationAction[]) => {
-  // Match by first action type
   const firstAction = actions[0];
   if (firstAction) {
     const card = TRIGGER_CARDS.find(c => c.defaultAction === firstAction.action_type);
     if (card) return card;
   }
-  // Fallback
   return TRIGGER_CARDS[0];
 };
 
@@ -209,6 +197,30 @@ const getTriggerLabel = (triggerType: string) => {
     if (found) return found.label;
   }
   return triggerType;
+};
+
+// =============================================
+// Types for pending changes (batch save)
+// =============================================
+type PendingAutomation = {
+  tempId: string;
+  name: string;
+  trigger_type: string;
+  kanban_id: string;
+  column_id: string;
+  column_ids: string[]; // multi-column span
+  is_global: boolean;
+  delay_seconds: number;
+  execute_once_per_lead: boolean;
+  is_active: boolean;
+  actions: {
+    action_type: string;
+    action_config: Record<string, any>;
+    order_index: number;
+    delay_seconds: number;
+  }[];
+  // Track if this is an existing automation being edited
+  existingId?: string;
 };
 
 // =============================================
@@ -223,9 +235,14 @@ export default function AvivarAutomationsPage() {
     open: boolean;
     columnId: string;
     triggerCard: typeof TRIGGER_CARDS[0] | null;
-    automation: AvivarAutomation | null;
-  }>({ open: false, columnId: '', triggerCard: null, automation: null });
+    pendingIndex: number | null; // index into pendingAutomations
+  }>({ open: false, columnId: '', triggerCard: null, pendingIndex: null });
   const [searchQuery, setSearchQuery] = useState('');
+  const [pendingAutomations, setPendingAutomations] = useState<PendingAutomation[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const { data: kanban } = useQuery({
     queryKey: ['avivar-kanban', kanbanId],
@@ -260,45 +277,202 @@ export default function AvivarAutomationsPage() {
     createAutomation, updateAutomation, deleteAutomation, toggleAutomation,
   } = useAvivarAutomations(kanbanId);
 
+  // Initialize pending automations from DB data
+  useMemo(() => {
+    if (!initialized && automations.length > 0 && columns.length > 0) {
+      const pending: PendingAutomation[] = automations.map(a => {
+        const actions = actionsByAutomation[a.id] || [];
+        // Parse column_ids from conditions or default to single column
+        const triggerConfigColumnIds = (a.trigger_config as any)?.column_ids as string[] | undefined;
+        const columnIds = triggerConfigColumnIds || (a.column_id ? [a.column_id] : []);
+        return {
+          tempId: a.id,
+          existingId: a.id,
+          name: a.name,
+          trigger_type: a.trigger_type,
+          kanban_id: a.kanban_id || kanbanId || '',
+          column_id: a.column_id || '',
+          column_ids: columnIds.length > 0 ? columnIds : (a.column_id ? [a.column_id] : []),
+          is_global: a.is_global,
+          delay_seconds: a.delay_seconds,
+          execute_once_per_lead: a.execute_once_per_lead,
+          is_active: a.is_active,
+          actions: actions.map(act => ({
+            action_type: act.action_type,
+            action_config: act.action_config || {},
+            order_index: act.order_index,
+            delay_seconds: act.delay_seconds || 0,
+          })),
+        };
+      });
+      setPendingAutomations(pending);
+      setInitialized(true);
+    }
+    // If loaded but no automations
+    if (!initialized && !isLoading && columns.length > 0) {
+      setInitialized(true);
+    }
+  }, [automations, actionsByAutomation, columns, initialized, isLoading, kanbanId]);
+
+  // Group pending automations by column (an automation can appear in multiple columns)
   const automationsByColumn = useMemo(() => {
-    const map: Record<string, AvivarAutomation[]> = {};
+    const map: Record<string, PendingAutomation[]> = {};
     columns.forEach(c => { map[c.id] = []; });
-    automations.forEach(a => {
-      if (a.column_id && map[a.column_id]) {
-        map[a.column_id].push(a);
-      }
+    pendingAutomations.forEach(a => {
+      if (deletedIds.includes(a.tempId)) return;
+      const cols = a.column_ids.length > 0 ? a.column_ids : (a.column_id ? [a.column_id] : []);
+      cols.forEach(cId => {
+        if (map[cId]) {
+          // Avoid duplicates
+          if (!map[cId].find(x => x.tempId === a.tempId)) {
+            map[cId].push(a);
+          }
+        }
+      });
     });
     return map;
-  }, [automations, columns]);
+  }, [pendingAutomations, columns, deletedIds]);
+
+  const activePendingAutomations = useMemo(() =>
+    pendingAutomations.filter(a => !deletedIds.includes(a.tempId)),
+    [pendingAutomations, deletedIds]
+  );
 
   const filteredAutomations = useMemo(() => {
-    if (!searchQuery.trim()) return automations;
+    if (!searchQuery.trim()) return activePendingAutomations;
     const q = searchQuery.toLowerCase();
-    return automations.filter(a =>
+    return activePendingAutomations.filter(a =>
       a.name.toLowerCase().includes(q) ||
       getTriggerLabel(a.trigger_type).toLowerCase().includes(q)
     );
-  }, [automations, searchQuery]);
+  }, [activePendingAutomations, searchQuery]);
 
   const handleTriggerSelect = (columnId: string, card: typeof TRIGGER_CARDS[0]) => {
     setTriggerPickerColumn(null);
+    // Create new pending automation
+    const newAutomation: PendingAutomation = {
+      tempId: `new-${Date.now()}`,
+      name: card.label,
+      trigger_type: card.triggerType,
+      kanban_id: kanbanId || '',
+      column_id: columnId,
+      column_ids: [columnId],
+      is_global: false,
+      delay_seconds: 0,
+      execute_once_per_lead: false,
+      is_active: true,
+      actions: [{
+        action_type: card.defaultAction,
+        action_config: {},
+        order_index: 0,
+        delay_seconds: 0,
+      }],
+    };
+    const newList = [...pendingAutomations, newAutomation];
+    setPendingAutomations(newList);
+    setHasUnsavedChanges(true);
+    // Open config dialog
     setConfigDialog({
       open: true,
       columnId,
       triggerCard: card,
-      automation: null,
+      pendingIndex: newList.length - 1,
     });
   };
 
-  const handleEditAutomation = (a: AvivarAutomation) => {
-    const card = getTriggerCard(a, actionsByAutomation[a.id] || []);
+  const handleEditPending = (a: PendingAutomation) => {
+    const idx = pendingAutomations.findIndex(p => p.tempId === a.tempId);
+    const actions = a.actions;
+    const firstAction = actions[0];
+    const card = firstAction
+      ? TRIGGER_CARDS.find(c => c.defaultAction === firstAction.action_type) || TRIGGER_CARDS[0]
+      : TRIGGER_CARDS[0];
     setConfigDialog({
       open: true,
-      columnId: a.column_id || '',
+      columnId: a.column_id,
       triggerCard: card,
-      automation: a,
+      pendingIndex: idx,
     });
   };
+
+  const handleDeletePending = (tempId: string) => {
+    setDeletedIds(prev => [...prev, tempId]);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleTogglePending = (tempId: string, active: boolean) => {
+    setPendingAutomations(prev => prev.map(a =>
+      a.tempId === tempId ? { ...a, is_active: active } : a
+    ));
+    setHasUnsavedChanges(true);
+  };
+
+  const handleUpdatePending = (index: number, data: Partial<PendingAutomation>) => {
+    setPendingAutomations(prev => prev.map((a, i) =>
+      i === index ? { ...a, ...data } : a
+    ));
+    setHasUnsavedChanges(true);
+  };
+
+  // SAVE ALL - batch persist to DB
+  const handleSaveAll = async () => {
+    if (!kanbanId) return;
+    setIsSaving(true);
+    try {
+      // 1. Delete removed automations
+      for (const id of deletedIds) {
+        const existing = pendingAutomations.find(a => a.tempId === id && a.existingId);
+        if (existing?.existingId) {
+          await deleteAutomation.mutateAsync(existing.existingId);
+        }
+      }
+
+      // 2. Create or update automations
+      for (const a of pendingAutomations) {
+        if (deletedIds.includes(a.tempId)) continue;
+
+        const payload = {
+          name: a.name,
+          trigger_type: a.trigger_type,
+          kanban_id: kanbanId,
+          column_id: a.column_ids[0] || a.column_id,
+          is_global: false,
+          delay_seconds: a.delay_seconds,
+          execute_once_per_lead: a.execute_once_per_lead,
+          is_active: a.is_active,
+          trigger_config: { column_ids: a.column_ids },
+          actions: a.actions,
+        };
+
+        if (a.existingId) {
+          await updateAutomation.mutateAsync({ id: a.existingId, ...payload });
+        } else {
+          await createAutomation.mutateAsync(payload as any);
+        }
+      }
+
+      setHasUnsavedChanges(false);
+      setDeletedIds([]);
+      // Re-init from DB
+      setInitialized(false);
+      toast.success('Funil digital salvo com sucesso!');
+    } catch (err: any) {
+      toast.error('Erro ao salvar: ' + (err?.message || 'Tente novamente'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Compute column span info for rendering
+  const getAutomationSpan = useCallback((a: PendingAutomation) => {
+    if (a.column_ids.length <= 1) return null;
+    const indices = a.column_ids
+      .map(cId => columns.findIndex(c => c.id === cId))
+      .filter(i => i >= 0)
+      .sort((x, y) => x - y);
+    if (indices.length < 2) return null;
+    return { start: indices[0], end: indices[indices.length - 1], count: indices[indices.length - 1] - indices[0] + 1 };
+  }, [columns]);
 
   return (
     <div className="flex flex-col h-full bg-[hsl(var(--avivar-background))]">
@@ -323,9 +497,25 @@ export default function AvivarAutomationsPage() {
               </div>
             </div>
           </div>
-          <Badge variant="secondary" className="text-sm">
-            {automations.length} automação{automations.length !== 1 ? 'ões' : ''}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="text-sm">
+              {activePendingAutomations.length} automação{activePendingAutomations.length !== 1 ? 'ões' : ''}
+            </Badge>
+            {hasUnsavedChanges && (
+              <Badge variant="outline" className="text-xs text-amber-500 border-amber-500/50 animate-pulse">
+                Alterações não salvas
+              </Badge>
+            )}
+            <Button
+              onClick={handleSaveAll}
+              disabled={!hasUnsavedChanges || isSaving}
+              className="bg-green-600 hover:bg-green-700 text-white gap-2"
+              size="sm"
+            >
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="px-4">
@@ -343,13 +533,15 @@ export default function AvivarAutomationsPage() {
           <PipelineView
             columns={columns}
             automationsByColumn={automationsByColumn}
-            actionsByAutomation={actionsByAutomation}
+            pendingAutomations={pendingAutomations}
+            deletedIds={deletedIds}
             triggerPickerColumn={triggerPickerColumn}
             onOpenTriggerPicker={setTriggerPickerColumn}
             onSelectTrigger={handleTriggerSelect}
-            onEditAutomation={handleEditAutomation}
-            onToggle={(id, active) => toggleAutomation.mutate({ id, is_active: active })}
-            onDelete={(id) => deleteAutomation.mutate(id)}
+            onEditAutomation={handleEditPending}
+            onToggle={handleTogglePending}
+            onDelete={handleDeletePending}
+            getAutomationSpan={getAutomationSpan}
           />
         )}
         {activeTab === 'list' && (
@@ -371,24 +563,36 @@ export default function AvivarAutomationsPage() {
             ) : (
               <div className="space-y-2">
                 {filteredAutomations.map(a => {
-                  const card = getTriggerCard(a, actionsByAutomation[a.id] || []);
-                  const actions = actionsByAutomation[a.id] || [];
+                  const firstAction = a.actions[0];
+                  const card = firstAction
+                    ? TRIGGER_CARDS.find(c => c.defaultAction === firstAction.action_type) || TRIGGER_CARDS[0]
+                    : TRIGGER_CARDS[0];
+                  const spanCols = a.column_ids.length > 1
+                    ? a.column_ids.map(cId => columns.find(c => c.id === cId)?.name).filter(Boolean).join(' → ')
+                    : columns.find(c => c.id === a.column_id)?.name || '';
                   return (
                     <div
-                      key={a.id}
+                      key={a.tempId}
                       className={`flex items-center gap-3 p-3 rounded-lg border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] hover:border-[hsl(var(--avivar-primary)/0.5)] cursor-pointer transition-all ${!a.is_active ? 'opacity-50' : ''}`}
-                      onClick={() => handleEditAutomation(a)}
+                      onClick={() => handleEditPending(a)}
                     >
                       <div className={`w-9 h-9 rounded-lg ${card.color} flex items-center justify-center flex-shrink-0`}>
                         <card.icon className="h-4.5 w-4.5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">{a.name}</p>
-                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{card.label} · {getTriggerLabel(a.trigger_type)}</p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                          {card.label} · {spanCols}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                        <Switch checked={a.is_active} onCheckedChange={(v) => toggleAutomation.mutate({ id: a.id, is_active: v })} className="scale-75" />
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => deleteAutomation.mutate(a.id)}>
+                        {a.column_ids.length > 1 && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {a.column_ids.length} etapas
+                          </Badge>
+                        )}
+                        <Switch checked={a.is_active} onCheckedChange={(v) => handleTogglePending(a.tempId, v)} className="scale-75" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => handleDeletePending(a.tempId)}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -403,24 +607,22 @@ export default function AvivarAutomationsPage() {
       </div>
 
       {/* Trigger Config Dialog */}
-      <TriggerConfigDialog
-        open={configDialog.open}
-        onOpenChange={(open) => setConfigDialog(prev => ({ ...prev, open }))}
-        triggerCard={configDialog.triggerCard}
-        automation={configDialog.automation}
-        columnId={configDialog.columnId}
-        columns={columns}
-        kanbanId={kanbanId || ''}
-        actionsByAutomation={actionsByAutomation}
-        onSave={(data) => {
-          if (configDialog.automation) {
-            updateAutomation.mutate({ id: configDialog.automation.id, ...data });
-          } else {
-            createAutomation.mutate(data as any);
-          }
-          setConfigDialog(prev => ({ ...prev, open: false }));
-        }}
-      />
+      {configDialog.pendingIndex !== null && configDialog.triggerCard && (
+        <TriggerConfigDialog
+          open={configDialog.open}
+          onOpenChange={(open) => setConfigDialog(prev => ({ ...prev, open }))}
+          triggerCard={configDialog.triggerCard}
+          pending={pendingAutomations[configDialog.pendingIndex]}
+          columns={columns}
+          kanbanId={kanbanId || ''}
+          onSave={(data) => {
+            if (configDialog.pendingIndex !== null) {
+              handleUpdatePending(configDialog.pendingIndex, data);
+            }
+            setConfigDialog(prev => ({ ...prev, open: false }));
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -431,162 +633,227 @@ export default function AvivarAutomationsPage() {
 function PipelineView({
   columns,
   automationsByColumn,
-  actionsByAutomation,
+  pendingAutomations,
+  deletedIds,
   triggerPickerColumn,
   onOpenTriggerPicker,
   onSelectTrigger,
   onEditAutomation,
   onToggle,
   onDelete,
+  getAutomationSpan,
 }: {
   columns: KanbanColumnData[];
-  automationsByColumn: Record<string, AvivarAutomation[]>;
-  actionsByAutomation: Record<string, AvivarAutomationAction[]>;
+  automationsByColumn: Record<string, PendingAutomation[]>;
+  pendingAutomations: PendingAutomation[];
+  deletedIds: string[];
   triggerPickerColumn: string | null;
   onOpenTriggerPicker: (columnId: string | null) => void;
   onSelectTrigger: (columnId: string, card: typeof TRIGGER_CARDS[0]) => void;
-  onEditAutomation: (a: AvivarAutomation) => void;
+  onEditAutomation: (a: PendingAutomation) => void;
   onToggle: (id: string, active: boolean) => void;
   onDelete: (id: string) => void;
+  getAutomationSpan: (a: PendingAutomation) => { start: number; end: number; count: number } | null;
 }) {
+  // Track which automations span and should show a bar across columns
+  const spanningAutomations = useMemo(() => {
+    return pendingAutomations
+      .filter(a => !deletedIds.includes(a.tempId) && a.column_ids.length > 1)
+      .map(a => ({ automation: a, span: getAutomationSpan(a) }))
+      .filter(x => x.span !== null) as { automation: PendingAutomation; span: { start: number; end: number; count: number } }[];
+  }, [pendingAutomations, deletedIds, getAutomationSpan]);
+
+  // Deduplicate: don't show spanning automations in individual column cards
+  const isSpanningAutomation = useCallback((tempId: string) => {
+    return spanningAutomations.some(s => s.automation.tempId === tempId);
+  }, [spanningAutomations]);
+
+  const COL_WIDTH = 180;
+  const COL_GAP = 0;
+
   return (
     <div className="p-4">
       <ScrollArea className="w-full">
-        <div className="flex gap-0 min-w-max pb-4">
-          {columns.map((col, idx) => {
-            const colAutomations = automationsByColumn[col.id] || [];
-            const isPickerOpen = triggerPickerColumn === col.id;
+        <div className="relative min-w-max pb-4">
+          {/* Column headers and cards */}
+          <div className="flex gap-0">
+            {columns.map((col, idx) => {
+              const colAutomations = (automationsByColumn[col.id] || [])
+                .filter(a => !isSpanningAutomation(a.tempId));
+              const isPickerOpen = triggerPickerColumn === col.id;
 
-            return (
-              <div key={col.id} className="flex flex-col items-stretch" style={{ minWidth: 220, maxWidth: 260 }}>
-                {/* Stage Header - Kommo style colored bar */}
-                <div
-                  className="relative px-3 py-2.5 flex items-center justify-between"
-                  style={{
-                    backgroundColor: col.color || '#8b5cf6',
-                    borderRadius: idx === 0 ? '8px 0 0 0' : idx === columns.length - 1 ? '0 8px 0 0' : '0',
-                  }}
-                >
-                  <span className="font-semibold text-sm text-white truncate">{col.name}</span>
-                  <Badge
-                    variant="secondary"
-                    className="text-[10px] px-1.5 py-0 bg-white/20 text-white border-0 ml-1.5"
+              return (
+                <div key={col.id} className="flex flex-col items-stretch" style={{ minWidth: COL_WIDTH, maxWidth: 240 }}>
+                  {/* Stage Header */}
+                  <div
+                    className="relative px-3 py-2.5 flex items-center justify-between"
+                    style={{
+                      backgroundColor: col.color || '#8b5cf6',
+                      borderRadius: idx === 0 ? '8px 0 0 0' : idx === columns.length - 1 ? '0 8px 0 0' : '0',
+                    }}
                   >
-                    {colAutomations.length}
-                  </Badge>
-                  {/* Arrow connector */}
-                  {idx < columns.length - 1 && (
-                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 z-10">
-                      <ChevronRight className="h-4 w-4 text-white/70" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Automation Cards */}
-                <div className="border-x border-b border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] flex-1 p-2 space-y-1.5"
-                  style={{
-                    borderRadius: idx === 0 ? '0 0 0 8px' : idx === columns.length - 1 ? '0 0 8px 0' : '0',
-                  }}
-                >
-                  {colAutomations.map(a => {
-                    const card = getTriggerCard(a, actionsByAutomation[a.id] || []);
-                    const actions = actionsByAutomation[a.id] || [];
-                    const messageAction = actions.find(act => act.action_type === 'send_message');
-                    const messagePreview = messageAction?.action_config?.message as string | undefined;
-
-                    return (
-                      <div
-                        key={a.id}
-                        className={`group relative rounded-lg border ${card.borderColor} ${card.bgLight} p-2 cursor-pointer transition-all hover:shadow-md ${!a.is_active ? 'opacity-40' : ''}`}
-                        onClick={() => onEditAutomation(a)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-7 h-7 rounded-md ${card.color} flex items-center justify-center flex-shrink-0`}>
-                            <card.icon className="h-3.5 w-3.5 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-xs text-[hsl(var(--avivar-foreground))] truncate leading-tight">
-                              {a.name}
-                            </p>
-                            <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] leading-tight">
-                              {card.label}
-                            </p>
-                          </div>
-                          {/* Quick actions on hover */}
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                            <Switch
-                              checked={a.is_active}
-                              onCheckedChange={(v) => onToggle(a.id, v)}
-                              className="scale-[0.6]"
-                            />
-                            <Button variant="ghost" size="icon" className="h-5 w-5 text-red-400 hover:text-red-500" onClick={() => onDelete(a.id)}>
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        {/* Message preview */}
-                        {messagePreview && (
-                          <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] mt-1 line-clamp-2 pl-9 italic">
-                            "{messagePreview}"
-                          </p>
-                        )}
-                        {/* Delay indicator */}
-                        {a.delay_seconds > 0 && (
-                          <div className="flex items-center gap-0.5 pl-9 mt-0.5">
-                            <Clock className="h-2.5 w-2.5 text-[hsl(var(--avivar-muted-foreground))]" />
-                            <span className="text-[9px] text-[hsl(var(--avivar-muted-foreground))]">
-                              {a.delay_seconds >= 3600
-                                ? `${Math.floor(a.delay_seconds / 3600)}h`
-                                : a.delay_seconds >= 60
-                                ? `${Math.floor(a.delay_seconds / 60)}min`
-                                : `${a.delay_seconds}s`}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* Trigger Picker (Kommo-style grid) */}
-                  {isPickerOpen ? (
-                    <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="flex items-center justify-between px-1">
-                        <p className="text-[10px] font-semibold text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wider">
-                          Selecione o gatilho
-                        </p>
-                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => onOpenTriggerPicker(null)}>
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {TRIGGER_CARDS.map(card => (
-                          <button
-                            key={card.id}
-                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${card.borderColor} ${card.bgLight} hover:shadow-md transition-all text-center cursor-pointer`}
-                            onClick={() => onSelectTrigger(col.id, card)}
-                          >
-                            <div className={`w-8 h-8 rounded-lg ${card.color} flex items-center justify-center`}>
-                              <card.icon className="h-4 w-4 text-white" />
-                            </div>
-                            <span className="text-[10px] font-medium text-[hsl(var(--avivar-foreground))] leading-tight">
-                              {card.label}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      className="w-full flex items-center justify-center gap-1 py-2 rounded-lg border border-dashed border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))] hover:border-[hsl(var(--avivar-primary))] transition-colors text-xs"
-                      onClick={() => onOpenTriggerPicker(col.id)}
+                    <span className="font-semibold text-sm text-white truncate">{col.name}</span>
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] px-1.5 py-0 bg-white/20 text-white border-0 ml-1.5"
                     >
-                      <Plus className="h-3 w-3" /> Automação
-                    </button>
-                  )}
+                      {(automationsByColumn[col.id] || []).length}
+                    </Badge>
+                    {idx < columns.length - 1 && (
+                      <div className="absolute -right-2 top-1/2 -translate-y-1/2 z-10">
+                        <ChevronRight className="h-4 w-4 text-white/70" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Automation Cards */}
+                  <div className="border-x border-b border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] flex-1 p-2 space-y-1.5"
+                    style={{
+                      borderRadius: idx === 0 ? '0 0 0 8px' : idx === columns.length - 1 ? '0 0 8px 0' : '0',
+                      minHeight: 120,
+                    }}
+                  >
+                    {/* Spanning automation bars that START at this column */}
+                    {spanningAutomations
+                      .filter(s => s.span.start === idx)
+                      .map(({ automation: a, span }) => {
+                        const firstAction = a.actions[0];
+                        const card = firstAction
+                          ? TRIGGER_CARDS.find(c => c.defaultAction === firstAction.action_type) || TRIGGER_CARDS[0]
+                          : TRIGGER_CARDS[0];
+                        const spanWidth = span.count * COL_WIDTH + (span.count - 1) * COL_GAP - 8;
+                        return (
+                          <div
+                            key={a.tempId}
+                            className={`relative z-10 group rounded-lg border-2 ${card.borderColor} ${card.bgLight} p-2 cursor-pointer transition-all hover:shadow-lg ${!a.is_active ? 'opacity-40' : ''}`}
+                            style={{ width: spanWidth }}
+                            onClick={() => onEditAutomation(a)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className={`w-7 h-7 rounded-md ${card.color} flex items-center justify-center flex-shrink-0`}>
+                                <card.icon className="h-3.5 w-3.5 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-xs text-[hsl(var(--avivar-foreground))] truncate leading-tight">
+                                  {a.name}
+                                </p>
+                                <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] leading-tight flex items-center gap-1">
+                                  <GripHorizontal className="h-2.5 w-2.5" />
+                                  {span.count} etapas
+                                </p>
+                              </div>
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+                                <Switch checked={a.is_active} onCheckedChange={(v) => onToggle(a.tempId, v)} className="scale-[0.6]" />
+                                <Button variant="ghost" size="icon" className="h-5 w-5 text-red-400 hover:text-red-500" onClick={() => onDelete(a.tempId)}>
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                            {/* Message preview */}
+                            {a.actions[0]?.action_config?.message && (
+                              <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] mt-1 line-clamp-2 pl-9 italic">
+                                "{a.actions[0].action_config.message}"
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                    {/* Regular single-column automations */}
+                    {colAutomations.map(a => {
+                      const firstAction = a.actions[0];
+                      const card = firstAction
+                        ? TRIGGER_CARDS.find(c => c.defaultAction === firstAction.action_type) || TRIGGER_CARDS[0]
+                        : TRIGGER_CARDS[0];
+                      const messagePreview = a.actions.find(act => act.action_type === 'send_message')?.action_config?.message as string | undefined;
+
+                      return (
+                        <div
+                          key={a.tempId}
+                          className={`group relative rounded-lg border ${card.borderColor} ${card.bgLight} p-2 cursor-pointer transition-all hover:shadow-md ${!a.is_active ? 'opacity-40' : ''}`}
+                          onClick={() => onEditAutomation(a)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className={`w-7 h-7 rounded-md ${card.color} flex items-center justify-center flex-shrink-0`}>
+                              <card.icon className="h-3.5 w-3.5 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-xs text-[hsl(var(--avivar-foreground))] truncate leading-tight">
+                                {a.name}
+                              </p>
+                              <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] leading-tight">
+                                {card.label}
+                              </p>
+                            </div>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+                              <Switch checked={a.is_active} onCheckedChange={(v) => onToggle(a.tempId, v)} className="scale-[0.6]" />
+                              <Button variant="ghost" size="icon" className="h-5 w-5 text-red-400 hover:text-red-500" onClick={() => onDelete(a.tempId)}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          {messagePreview && (
+                            <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] mt-1 line-clamp-2 pl-9 italic">
+                              "{messagePreview}"
+                            </p>
+                          )}
+                          {a.delay_seconds > 0 && (
+                            <div className="flex items-center gap-0.5 pl-9 mt-0.5">
+                              <Clock className="h-2.5 w-2.5 text-[hsl(var(--avivar-muted-foreground))]" />
+                              <span className="text-[9px] text-[hsl(var(--avivar-muted-foreground))]">
+                                {a.delay_seconds >= 3600
+                                  ? `${Math.floor(a.delay_seconds / 3600)}h`
+                                  : a.delay_seconds >= 60
+                                  ? `${Math.floor(a.delay_seconds / 60)}min`
+                                  : `${a.delay_seconds}s`}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {/* Trigger Picker */}
+                    {isPickerOpen ? (
+                      <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="flex items-center justify-between px-1">
+                          <p className="text-[10px] font-semibold text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wider">
+                            Selecione o gatilho
+                          </p>
+                          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => onOpenTriggerPicker(null)}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {TRIGGER_CARDS.map(card => (
+                            <button
+                              key={card.id}
+                              className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${card.borderColor} ${card.bgLight} hover:shadow-md transition-all text-center cursor-pointer`}
+                              onClick={() => onSelectTrigger(col.id, card)}
+                            >
+                              <div className={`w-8 h-8 rounded-lg ${card.color} flex items-center justify-center`}>
+                                <card.icon className="h-4 w-4 text-white" />
+                              </div>
+                              <span className="text-[10px] font-medium text-[hsl(var(--avivar-foreground))] leading-tight">
+                                {card.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        className="w-full flex items-center justify-center gap-1 py-2 rounded-lg border border-dashed border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))] hover:border-[hsl(var(--avivar-primary))] transition-colors text-xs"
+                        onClick={() => onOpenTriggerPicker(col.id)}
+                      >
+                        <Plus className="h-3 w-3" /> Automação
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </ScrollArea>
     </div>
@@ -594,54 +861,48 @@ function PipelineView({
 }
 
 // =============================================
-// Trigger Config Dialog
+// Trigger Config Dialog - with multi-column selection
 // =============================================
 function TriggerConfigDialog({
   open,
   onOpenChange,
   triggerCard,
-  automation,
-  columnId,
+  pending,
   columns,
   kanbanId,
-  actionsByAutomation,
   onSave,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  triggerCard: typeof TRIGGER_CARDS[0] | null;
-  automation: AvivarAutomation | null;
-  columnId: string;
+  triggerCard: typeof TRIGGER_CARDS[0];
+  pending: PendingAutomation;
   columns: KanbanColumnData[];
   kanbanId: string;
-  actionsByAutomation: Record<string, AvivarAutomationAction[]>;
-  onSave: (data: any) => void;
+  onSave: (data: Partial<PendingAutomation>) => void;
 }) {
-  const isEditing = !!automation;
-  const [name, setName] = useState('');
-  const [triggerType, setTriggerType] = useState('');
-  const [delaySeconds, setDelaySeconds] = useState(0);
-  const [executeOnce, setExecuteOnce] = useState(false);
-  const [actionConfig, setActionConfig] = useState<Record<string, any>>({});
+  const [name, setName] = useState(pending.name);
+  const [triggerType, setTriggerType] = useState(pending.trigger_type);
+  const [delaySeconds, setDelaySeconds] = useState(pending.delay_seconds);
+  const [executeOnce, setExecuteOnce] = useState(pending.execute_once_per_lead);
+  const [selectedColumnIds, setSelectedColumnIds] = useState<string[]>(pending.column_ids);
+  const [actionConfig, setActionConfig] = useState<Record<string, any>>(pending.actions[0]?.action_config || {});
 
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
-      if (automation) {
-        setName(automation.name);
-        setTriggerType(automation.trigger_type);
-        setDelaySeconds(automation.delay_seconds);
-        setExecuteOnce(automation.execute_once_per_lead);
-        const existingActions = actionsByAutomation[automation.id] || [];
-        setActionConfig(existingActions[0]?.action_config || {});
-      } else if (triggerCard) {
-        setName(triggerCard.label);
-        setTriggerType(triggerCard.triggerType);
-        setDelaySeconds(0);
-        setExecuteOnce(false);
-        setActionConfig({});
-      }
+      setName(pending.name);
+      setTriggerType(pending.trigger_type);
+      setDelaySeconds(pending.delay_seconds);
+      setExecuteOnce(pending.execute_once_per_lead);
+      setSelectedColumnIds(pending.column_ids);
+      setActionConfig(pending.actions[0]?.action_config || {});
     }
     onOpenChange(isOpen);
+  };
+
+  const toggleColumn = (colId: string) => {
+    setSelectedColumnIds(prev =>
+      prev.includes(colId) ? prev.filter(c => c !== colId) : [...prev, colId]
+    );
   };
 
   const handleSave = () => {
@@ -649,17 +910,19 @@ function TriggerConfigDialog({
       toast.error('Preencha o nome');
       return;
     }
-    const defaultAction = triggerCard?.defaultAction || 'send_message';
+    if (selectedColumnIds.length === 0) {
+      toast.error('Selecione pelo menos uma etapa');
+      return;
+    }
     onSave({
       name,
       trigger_type: triggerType,
-      kanban_id: kanbanId,
-      column_id: columnId,
-      is_global: false,
+      column_id: selectedColumnIds[0],
+      column_ids: selectedColumnIds,
       delay_seconds: delaySeconds,
       execute_once_per_lead: executeOnce,
       actions: [{
-        action_type: defaultAction,
+        action_type: triggerCard.defaultAction,
         action_config: actionConfig,
         order_index: 0,
         delay_seconds: 0,
@@ -667,13 +930,9 @@ function TriggerConfigDialog({
     });
   };
 
-  if (!triggerCard) return null;
-
-  const columnName = columns.find(c => c.id === columnId)?.name || '';
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-lg ${triggerCard.color} flex items-center justify-center`}>
@@ -681,10 +940,12 @@ function TriggerConfigDialog({
             </div>
             <div>
               <DialogTitle className="text-base">
-                {isEditing ? 'Editar' : 'Configurar'} {triggerCard.label}
+                Configurar {triggerCard.label}
               </DialogTitle>
               <DialogDescription className="text-xs">
-                Etapa: {columnName}
+                {selectedColumnIds.length > 1
+                  ? `${selectedColumnIds.length} etapas selecionadas`
+                  : columns.find(c => c.id === selectedColumnIds[0])?.name || ''}
               </DialogDescription>
             </div>
           </div>
@@ -696,6 +957,42 @@ function TriggerConfigDialog({
             <div className="space-y-1.5">
               <Label className="text-xs">Nome</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome da automação" className="text-sm" />
+            </div>
+
+            {/* Column selection - multi-select with checkboxes */}
+            <div className="space-y-2">
+              <Label className="text-xs">Etapas aplicáveis</Label>
+              <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+                Selecione uma ou mais etapas para expandir a automação
+              </p>
+              <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto">
+                {columns.map(col => {
+                  const isSelected = selectedColumnIds.includes(col.id);
+                  return (
+                    <button
+                      key={col.id}
+                      type="button"
+                      className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-left text-xs transition-all ${
+                        isSelected
+                          ? 'border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)] text-[hsl(var(--avivar-foreground))]'
+                          : 'border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] text-[hsl(var(--avivar-muted-foreground))] hover:border-[hsl(var(--avivar-primary)/0.3)]'
+                      }`}
+                      onClick={() => toggleColumn(col.id)}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-sm border-2 flex items-center justify-center flex-shrink-0"
+                        style={{
+                          borderColor: isSelected ? (col.color || '#8b5cf6') : 'hsl(var(--avivar-border))',
+                          backgroundColor: isSelected ? (col.color || '#8b5cf6') : 'transparent',
+                        }}
+                      >
+                        {isSelected && <CheckSquare className="h-2 w-2 text-white" />}
+                      </div>
+                      <span className="truncate">{col.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Trigger */}
@@ -746,19 +1043,11 @@ function TriggerConfigDialog({
                     value={actionConfig.message || ''}
                     onChange={(e) => setActionConfig(prev => ({ ...prev, message: e.target.value }))}
                     placeholder="Digite a mensagem que será enviada ao lead...&#10;&#10;Use variáveis: {{nome}}, {{primeiro_nome}}, {{procedimento}}"
-                    rows={4}
+                    rows={5}
                     className="text-sm"
                   />
                   <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
                     Variáveis disponíveis: {'{{nome}}'}, {'{{primeiro_nome}}'}, {'{{procedimento}}'}, {'{{empresa}}'}
-                  </p>
-                </div>
-              )}
-
-              {triggerCard.defaultAction === 'trigger_chatbot' && (
-                <div className="mt-3">
-                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                    O Salesbot configurado no agente IA será ativado automaticamente quando o gatilho disparar.
                   </p>
                 </div>
               )}
@@ -887,7 +1176,7 @@ function TriggerConfigDialog({
             onClick={handleSave}
             className={`${triggerCard.color} hover:opacity-90 text-white`}
           >
-            {isEditing ? 'Salvar' : 'Adicionar'}
+            Aplicar
           </Button>
         </DialogFooter>
       </DialogContent>
