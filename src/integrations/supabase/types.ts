@@ -18669,6 +18669,8 @@ export type Database = {
         Returns: {
           account_id: string
           permissions: string[]
+          target_column_id: string
+          target_kanban_id: string
           token_id: string
         }[]
       }
