@@ -24,7 +24,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Key, Plus, Trash2, Copy, Loader2, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Key, Plus, Trash2, Copy, Loader2, CheckCircle2, Eye, EyeOff, BookOpen, ChevronDown, Code2, Send, ShieldCheck, Webhook } from 'lucide-react';
 import { useAvivarApiTokens } from '@/hooks/useAvivarApiTokens';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -126,10 +131,9 @@ export function ApiTokensTab() {
 
         {/* Instruções de uso */}
         <Separator className="bg-[hsl(var(--avivar-border))]" />
-        <div className="text-xs text-[hsl(var(--avivar-muted-foreground))] space-y-1">
-          <p className="font-medium">Como usar:</p>
-          <p>Envie o header <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">X-API-Key: avr_seutoken</code> nas requisições para os endpoints da API.</p>
-        </div>
+        
+        {/* Documentação completa de uso */}
+        <ApiDocsSection />
       </CardContent>
 
       {/* Dialog Criar Token */}
@@ -211,5 +215,294 @@ export function ApiTokensTab() {
         </AlertDialogContent>
       </AlertDialog>
     </Card>
+  );
+}
+
+function CodeBlock({ children }: { children: string }) {
+  const handleCopy = () => {
+    navigator.clipboard.writeText(children);
+    toast.success('Código copiado!');
+  };
+
+  return (
+    <div className="relative group">
+      <pre className="bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))] rounded-lg p-3 text-xs font-mono text-[hsl(var(--avivar-foreground))] overflow-x-auto whitespace-pre-wrap break-all">
+        {children}
+      </pre>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={handleCopy}
+      >
+        <Copy className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
+
+function DocSection({ icon: Icon, title, children, defaultOpen = false }: { icon: React.ElementType; title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left py-2 group">
+        <ChevronDown className={`h-4 w-4 text-[hsl(var(--avivar-muted-foreground))] transition-transform ${open ? '' : '-rotate-90'}`} />
+        <Icon className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+        <span className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">{title}</span>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pl-10 space-y-3 pb-3">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function ApiDocsSection() {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://seu-projeto.supabase.co';
+  const baseUrl = `${supabaseUrl}/functions/v1`;
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2 mb-3">
+        <BookOpen className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+        <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">Documentação da API</p>
+      </div>
+
+      <DocSection icon={ShieldCheck} title="Autenticação" defaultOpen>
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+          Todas as requisições devem incluir o header <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">X-API-Key</code> com seu token de API.
+        </p>
+        <CodeBlock>{`curl -X POST ${baseUrl}/receive-lead \\
+  -H "Content-Type: application/json" \\
+  -H "X-API-Key: avr_seutoken" \\
+  -d '{"name": "João", "phone": "11999998888"}'`}</CodeBlock>
+        <div className="text-xs text-[hsl(var(--avivar-muted-foreground))] space-y-1">
+          <p>• O token começa com o prefixo <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">avr_</code></p>
+          <p>• Tokens inválidos ou inativos retornam <Badge variant="destructive" className="text-[10px] px-1.5 py-0">401</Badge></p>
+          <p>• Cada token registra a data do último uso automaticamente</p>
+        </div>
+      </DocSection>
+
+      <Separator className="bg-[hsl(var(--avivar-border))]" />
+
+      <DocSection icon={Send} title="Endpoint: Receber Lead">
+        <div className="flex items-center gap-2 mb-1">
+          <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0">POST</Badge>
+          <code className="text-xs font-mono text-[hsl(var(--avivar-foreground))] break-all">{baseUrl}/receive-lead</code>
+        </div>
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Cria um novo lead no CRM. O lead será inserido automaticamente no funil configurado.</p>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Campos obrigatórios:</p>
+        <div className="border border-[hsl(var(--avivar-border))] rounded-lg overflow-hidden text-xs">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-[hsl(var(--avivar-muted))]">
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Campo</th>
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Tipo</th>
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Descrição</th>
+              </tr>
+            </thead>
+            <tbody className="text-[hsl(var(--avivar-muted-foreground))]">
+              <tr className="border-t border-[hsl(var(--avivar-border))]">
+                <td className="p-2 font-mono">name</td>
+                <td className="p-2">string</td>
+                <td className="p-2">Nome do lead (mín. 2 caracteres)</td>
+              </tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]">
+                <td className="p-2 font-mono">phone</td>
+                <td className="p-2">string</td>
+                <td className="p-2">Telefone (10-11 dígitos, formato BR)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Campos opcionais:</p>
+        <div className="border border-[hsl(var(--avivar-border))] rounded-lg overflow-hidden text-xs">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-[hsl(var(--avivar-muted))]">
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Campo</th>
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Tipo</th>
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Descrição</th>
+              </tr>
+            </thead>
+            <tbody className="text-[hsl(var(--avivar-muted-foreground))]">
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">email</td><td className="p-2">string</td><td className="p-2">E-mail do lead</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">city</td><td className="p-2">string</td><td className="p-2">Cidade</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">state</td><td className="p-2">string</td><td className="p-2">Estado (UF, 2 caracteres)</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">source</td><td className="p-2">string</td><td className="p-2">Origem (ex: "landing_page", "instagram")</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">utm_source</td><td className="p-2">string</td><td className="p-2">UTM Source</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">utm_medium</td><td className="p-2">string</td><td className="p-2">UTM Medium</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">utm_campaign</td><td className="p-2">string</td><td className="p-2">UTM Campaign</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">interest_level</td><td className="p-2">string</td><td className="p-2">Nível de interesse (padrão: "warm")</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Exemplo completo:</p>
+        <CodeBlock>{`curl -X POST ${baseUrl}/receive-lead \\
+  -H "Content-Type: application/json" \\
+  -H "X-API-Key: avr_seutoken" \\
+  -d '{
+    "name": "Maria Silva",
+    "phone": "11987654321",
+    "email": "maria@email.com",
+    "city": "São Paulo",
+    "state": "SP",
+    "source": "landing_page",
+    "utm_source": "google",
+    "utm_medium": "cpc",
+    "utm_campaign": "verao2026",
+    "interest_level": "hot"
+  }'`}</CodeBlock>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Respostas:</p>
+        <div className="space-y-2">
+          <div>
+            <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0 mb-1">201 Created</Badge>
+            <CodeBlock>{`{ "success": true, "message": "Lead received successfully", "lead_id": "uuid" }`}</CodeBlock>
+          </div>
+          <div>
+            <Badge variant="destructive" className="text-[10px] px-1.5 py-0 mb-1">400 Bad Request</Badge>
+            <CodeBlock>{`{ "error": "Name and phone are required" }`}</CodeBlock>
+          </div>
+          <div>
+            <Badge variant="destructive" className="text-[10px] px-1.5 py-0 mb-1">401 Unauthorized</Badge>
+            <CodeBlock>{`{ "error": "Invalid API token" }`}</CodeBlock>
+          </div>
+          <div>
+            <Badge variant="destructive" className="text-[10px] px-1.5 py-0 mb-1">429 Too Many Requests</Badge>
+            <CodeBlock>{`{ "error": "Rate limit exceeded. Please try again later." }`}</CodeBlock>
+          </div>
+        </div>
+      </DocSection>
+
+      <Separator className="bg-[hsl(var(--avivar-border))]" />
+
+      <DocSection icon={Code2} title="Exemplos de Integração">
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">JavaScript / Fetch:</p>
+        <CodeBlock>{`const response = await fetch("${baseUrl}/receive-lead", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "avr_seutoken"
+  },
+  body: JSON.stringify({
+    name: "João Silva",
+    phone: "11999998888",
+    source: "meu_site"
+  })
+});
+const data = await response.json();
+console.log(data.lead_id);`}</CodeBlock>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">PHP:</p>
+        <CodeBlock>{`$ch = curl_init("${baseUrl}/receive-lead");
+curl_setopt_array($ch, [
+  CURLOPT_POST => true,
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_HTTPHEADER => [
+    "Content-Type: application/json",
+    "X-API-Key: avr_seutoken"
+  ],
+  CURLOPT_POSTFIELDS => json_encode([
+    "name" => "Maria Santos",
+    "phone" => "11987654321",
+    "source" => "formulario_php"
+  ])
+]);
+$response = curl_exec($ch);
+curl_close($ch);`}</CodeBlock>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Python:</p>
+        <CodeBlock>{`import requests
+
+response = requests.post(
+    "${baseUrl}/receive-lead",
+    headers={
+        "Content-Type": "application/json",
+        "X-API-Key": "avr_seutoken"
+    },
+    json={
+        "name": "Carlos Souza",
+        "phone": "21988887777",
+        "source": "script_python"
+    }
+)
+print(response.json())`}</CodeBlock>
+      </DocSection>
+
+      <Separator className="bg-[hsl(var(--avivar-border))]" />
+
+      <DocSection icon={Webhook} title="Webhooks (Outbound)">
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+          Configure webhooks para receber notificações em tempo real quando eventos ocorrerem no CRM. O sistema enviará um <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">POST</code> para a URL configurada.
+        </p>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Eventos disponíveis:</p>
+        <div className="border border-[hsl(var(--avivar-border))] rounded-lg overflow-hidden text-xs">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-[hsl(var(--avivar-muted))]">
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Evento</th>
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Descrição</th>
+              </tr>
+            </thead>
+            <tbody className="text-[hsl(var(--avivar-muted-foreground))]">
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">lead.created</td><td className="p-2">Novo lead criado</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">lead.updated</td><td className="p-2">Lead atualizado (etapa, dados)</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">message.received</td><td className="p-2">Mensagem recebida de um lead</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">message.sent</td><td className="p-2">Mensagem enviada</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">appointment.created</td><td className="p-2">Agendamento criado</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">appointment.updated</td><td className="p-2">Agendamento atualizado</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Payload de exemplo:</p>
+        <CodeBlock>{`{
+  "event": "lead.created",
+  "timestamp": "2026-02-19T15:30:00Z",
+  "data": {
+    "id": "uuid-do-lead",
+    "name": "Maria Silva",
+    "phone": "11987654321",
+    "source": "landing_page"
+  }
+}`}</CodeBlock>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Segurança (HMAC):</p>
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+          Configure um <strong>secret</strong> no webhook para receber o header <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">X-Webhook-Signature</code> com assinatura HMAC-SHA256:
+        </p>
+        <CodeBlock>{`// Node.js - Validar assinatura
+const crypto = require('crypto');
+
+function verifySignature(payload, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expected)
+  );
+}`}</CodeBlock>
+
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">
+          • Até <strong>3 retentativas</strong> automáticas em caso de falha (status ≥ 400 ou timeout)
+        </p>
+      </DocSection>
+
+      <Separator className="bg-[hsl(var(--avivar-border))]" />
+
+      <div className="text-xs text-[hsl(var(--avivar-muted-foreground))] space-y-1 pt-2">
+        <p className="font-medium text-[hsl(var(--avivar-foreground))]">⚡ Limites:</p>
+        <p>• Rate limit: <strong>10 requisições/hora</strong> por IP no endpoint de leads</p>
+        <p>• Nome: máx. 100 caracteres | Telefone: 10-11 dígitos (BR)</p>
+        <p>• Webhooks: timeout de 10s por requisição, 3 retentativas</p>
+      </div>
+    </div>
   );
 }
