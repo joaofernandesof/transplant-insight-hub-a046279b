@@ -3998,6 +3998,26 @@ serve(async (req) => {
     // 4.7 Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);
 
+    // 4.8 Load persistent context summary and inject into history
+    let existingContextSummary: string | null = null;
+    {
+      const { data: convCtx } = await supabase
+        .from("crm_conversations")
+        .select("context_summary")
+        .eq("id", conversationId)
+        .single();
+      existingContextSummary = convCtx?.context_summary || null;
+    }
+
+    if (existingContextSummary) {
+      console.log(`[AI Agent] Injecting context_summary (${existingContextSummary.length} chars) into conversation`);
+      // Prepend as a system message so AI knows the previous context
+      conversationHistory.unshift({
+        role: "system" as any,
+        content: `## CONTEXTO ANTERIOR DA CONVERSA (RESUMO PERSISTENTE)\n${existingContextSummary}\n\nIMPORTANTE: Esta conversa já está em andamento. NÃO se apresente novamente. NÃO repita perguntas já respondidas. Continue de onde parou conforme o resumo acima.`
+      } as ConversationMessage);
+    }
+
     // 5.5 CRITICAL: Detect desistência patterns BEFORE calling AI
     // This ensures we move to desqualificado even if AI fails
     const isDesistencia = detectDesistencia(messageContent);
@@ -4354,6 +4374,69 @@ serve(async (req) => {
 
     // 9. Send response via WhatsApp
     const sent = await sendWhatsAppMessage(supabaseUrl, supabaseServiceKey, conversationId, finalResponse);
+
+    // 9.5 Generate and save persistent context summary (non-blocking)
+    try {
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (LOVABLE_API_KEY && conversationId) {
+        // Build a compact representation of the conversation for summarization
+        const recentMessages = conversationHistory
+          .filter(m => typeof m.content === "string")
+          .slice(-15)
+          .map(m => `${m.role === "user" ? "Lead" : "IA"}: ${(m.content as string).substring(0, 200)}`)
+          .join("\n");
+
+        const summaryPrompt = `Gere um resumo COMPACTO (3-5 linhas) do estado atual desta conversa de atendimento via WhatsApp. Inclua APENAS fatos confirmados:
+- Nome do lead (se informado)
+- Telefone do lead (se disponível)
+- Procedimento/serviço de interesse
+- Etapa atual do funil (ex: qualificação, agendado, pós-venda)
+- Agendamentos feitos (data, hora, local)
+- Email do lead (se informado)
+- Informações importantes coletadas (dúvidas, objeções, preferências)
+- Estado do atendimento (em andamento, encerrado, aguardando resposta)
+
+Resumo anterior: ${existingContextSummary || "Nenhum (primeira interação)"}
+
+Últimas mensagens:
+${recentMessages}
+
+Última resposta da IA: ${finalResponse.substring(0, 300)}
+
+Responda APENAS com o resumo, sem explicações adicionais.`;
+
+        const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [{ role: "user", content: summaryPrompt }],
+            max_tokens: 300,
+            temperature: 0.3,
+          }),
+        });
+
+        if (summaryResponse.ok) {
+          const summaryData = await summaryResponse.json();
+          const newSummary = summaryData.choices?.[0]?.message?.content?.trim();
+          if (newSummary) {
+            await supabase
+              .from("crm_conversations")
+              .update({ context_summary: newSummary })
+              .eq("id", conversationId);
+            console.log(`[AI Agent] Context summary saved (${newSummary.length} chars)`);
+          }
+        } else {
+          console.warn(`[AI Agent] Summary generation failed: ${summaryResponse.status}`);
+        }
+      }
+    } catch (summaryError) {
+      // Non-blocking: don't fail the response if summary generation fails
+      console.error("[AI Agent] Error generating context summary:", summaryError);
+    }
 
     const duration = Date.now() - startTime;
     console.log(`[AI Agent] Completed in ${duration}ms`);

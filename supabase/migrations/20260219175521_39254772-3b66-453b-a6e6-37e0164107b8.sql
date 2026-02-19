@@ -1,0 +1,1 @@
+ALTER TABLE crm_conversations ADD COLUMN IF NOT EXISTS context_summary TEXT;
