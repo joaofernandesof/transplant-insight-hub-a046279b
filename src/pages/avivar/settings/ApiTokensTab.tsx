@@ -45,7 +45,7 @@ interface ColumnOption { id: string; name: string; kanban_id: string; }
 
 export function ApiTokensTab() {
   const { tokens, isLoading, createToken, deleteToken, toggleToken } = useAvivarApiTokens();
-  const { accountId } = useAvivarAccount();
+  const { accountId, isSuperAdmin } = useAvivarAccount();
   const [showCreate, setShowCreate] = useState(false);
   const [tokenName, setTokenName] = useState('');
   const [targetKanbanId, setTargetKanbanId] = useState('');
@@ -54,20 +54,24 @@ export function ApiTokensTab() {
   const [showToken, setShowToken] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Fetch kanbans for the account
+  // Fetch kanbans - super admin sees all, regular users see their account's
   const { data: kanbans = [] } = useQuery({
-    queryKey: ['avivar-kanbans-list', accountId],
+    queryKey: ['avivar-kanbans-list', accountId, isSuperAdmin],
     queryFn: async () => {
-      if (!accountId) return [];
-      const { data } = await supabase
+      let query = supabase
         .from('avivar_kanbans')
         .select('id, name')
-        .eq('account_id', accountId)
         .eq('is_active', true)
         .order('name');
+      
+      if (!isSuperAdmin && accountId) {
+        query = query.eq('account_id', accountId);
+      }
+      
+      const { data } = await query;
       return (data || []) as KanbanOption[];
     },
-    enabled: !!accountId,
+    enabled: !!accountId || isSuperAdmin,
   });
 
   // Fetch columns for selected kanban
