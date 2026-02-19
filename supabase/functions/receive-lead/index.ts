@@ -116,6 +116,8 @@ Deno.serve(async (req) => {
       }
       
       tokenAccountId = tokenData[0].account_id;
+      tokenTargetKanbanId = tokenData[0].target_kanban_id || null;
+      tokenTargetColumnId = tokenData[0].target_column_id || null;
       
       // Update last_used_at
       await supabase
@@ -123,7 +125,7 @@ Deno.serve(async (req) => {
         .update({ last_used_at: new Date().toISOString() } as any)
         .eq('id', tokenData[0].token_id);
       
-      console.log("Authenticated via API token for account:", tokenAccountId);
+      console.log("Authenticated via API token for account:", tokenAccountId, "target_kanban:", tokenTargetKanbanId);
     }
 
     let inputData: LeadData;
@@ -201,6 +203,33 @@ Deno.serve(async (req) => {
     }
 
     console.log("Lead inserted:", lead.id);
+
+    // Auto-create kanban lead if token has target funnel configured
+    if (tokenAccountId && tokenTargetKanbanId && tokenTargetColumnId) {
+      try {
+        const { error: kanbanError } = await supabase
+          .from("avivar_kanban_leads")
+          .insert({
+            account_id: tokenAccountId,
+            kanban_id: tokenTargetKanbanId,
+            column_id: tokenTargetColumnId,
+            name: lead.name,
+            phone: lead.phone,
+            email: lead.email || null,
+            lead_code: lead.lead_code,
+            source: lead.source || 'api',
+            user_id: (await supabase.from('avivar_accounts').select('owner_user_id').eq('id', tokenAccountId).single()).data?.owner_user_id,
+          } as any);
+
+        if (kanbanError) {
+          console.error("Error creating kanban lead:", kanbanError);
+        } else {
+          console.log("Kanban lead created in funnel:", tokenTargetKanbanId);
+        }
+      } catch (kanbanErr) {
+        console.error("Error creating kanban lead:", kanbanErr);
+      }
+    }
 
     // Dispatch webhook event 'lead.created' if authenticated via API token
     if (tokenAccountId) {

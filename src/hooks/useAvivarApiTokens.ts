@@ -15,6 +15,8 @@ export interface AvivarApiToken {
   expires_at: string | null;
   created_by: string | null;
   created_at: string;
+  target_kanban_id: string | null;
+  target_column_id: string | null;
 }
 
 function generateToken(): string {
@@ -55,7 +57,7 @@ export function useAvivarApiTokens() {
   });
 
   const createToken = useMutation({
-    mutationFn: async ({ name, permissions }: { name: string; permissions: string[] }) => {
+    mutationFn: async ({ name, permissions, target_kanban_id, target_column_id }: { name: string; permissions: string[]; target_kanban_id?: string; target_column_id?: string }) => {
       if (!accountId || !session?.user) throw new Error('Not authenticated');
       
       const rawToken = generateToken();
@@ -71,6 +73,8 @@ export function useAvivarApiTokens() {
           token_hash: tokenHash,
           permissions,
           created_by: session.user.id,
+          target_kanban_id: target_kanban_id || null,
+          target_column_id: target_column_id || null,
         } as any);
 
       if (error) throw error;

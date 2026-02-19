@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -30,23 +31,71 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Key, Plus, Trash2, Copy, Loader2, CheckCircle2, Eye, EyeOff, BookOpen, ChevronDown, Code2, Send, ShieldCheck, Webhook, ExternalLink, AlertTriangle, Zap, TestTube, Globe, FileJson } from 'lucide-react';
+import { Key, Plus, Trash2, Copy, Loader2, CheckCircle2, Eye, EyeOff, BookOpen, ChevronDown, Code2, Send, ShieldCheck, Webhook, ExternalLink, AlertTriangle, Zap, TestTube, Globe, FileJson, GitBranch } from 'lucide-react';
 import { useAvivarApiTokens } from '@/hooks/useAvivarApiTokens';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+
+interface KanbanOption { id: string; name: string; }
+interface ColumnOption { id: string; name: string; kanban_id: string; }
 
 export function ApiTokensTab() {
   const { tokens, isLoading, createToken, deleteToken, toggleToken } = useAvivarApiTokens();
+  const { accountId } = useAvivarAccount();
   const [showCreate, setShowCreate] = useState(false);
   const [tokenName, setTokenName] = useState('');
+  const [targetKanbanId, setTargetKanbanId] = useState('');
+  const [targetColumnId, setTargetColumnId] = useState('');
   const [newToken, setNewToken] = useState<string | null>(null);
   const [showToken, setShowToken] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // Fetch kanbans for the account
+  const { data: kanbans = [] } = useQuery({
+    queryKey: ['avivar-kanbans-list', accountId],
+    queryFn: async () => {
+      if (!accountId) return [];
+      const { data } = await supabase
+        .from('avivar_kanbans')
+        .select('id, name')
+        .eq('account_id', accountId)
+        .eq('is_active', true)
+        .order('name');
+      return (data || []) as KanbanOption[];
+    },
+    enabled: !!accountId,
+  });
+
+  // Fetch columns for selected kanban
+  const { data: columns = [] } = useQuery({
+    queryKey: ['avivar-columns-list', targetKanbanId],
+    queryFn: async () => {
+      if (!targetKanbanId) return [];
+      const { data } = await supabase
+        .from('avivar_kanban_columns')
+        .select('id, name, kanban_id')
+        .eq('kanban_id', targetKanbanId)
+        .order('order_index');
+      return (data || []) as ColumnOption[];
+    },
+    enabled: !!targetKanbanId,
+  });
+
+  // Reset column when kanban changes
+  useEffect(() => { setTargetColumnId(''); }, [targetKanbanId]);
+
   const handleCreate = async () => {
     if (!tokenName.trim()) return;
-    const raw = await createToken.mutateAsync({ name: tokenName.trim(), permissions: ['receive_lead'] });
+    const raw = await createToken.mutateAsync({
+      name: tokenName.trim(),
+      permissions: ['receive_lead'],
+      target_kanban_id: targetKanbanId || undefined,
+      target_column_id: targetColumnId || undefined,
+    });
     setNewToken(raw);
     setTokenName('');
   };
@@ -161,17 +210,25 @@ export function ApiTokensTab() {
               <p className="text-xs mt-1">Crie um token para começar a receber leads via API</p>
             </div>
           ) : (
-            tokens.map((token) => (
+            tokens.map((token) => {
+              const kanban = kanbans.find(k => k.id === token.target_kanban_id);
+              return (
               <div
                 key={token.id}
                 className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-[hsl(var(--avivar-foreground))]">{token.name}</p>
                     <Badge variant={token.is_active ? 'default' : 'secondary'} className="text-xs">
                       {token.is_active ? 'Ativo' : 'Inativo'}
                     </Badge>
+                    {kanban && (
+                      <Badge variant="outline" className="text-xs gap-1">
+                        <GitBranch className="h-3 w-3" />
+                        {kanban.name}
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] font-mono mt-1">
                     {token.token_prefix}••••••••
@@ -196,7 +253,8 @@ export function ApiTokensTab() {
                   </Button>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </CardContent>
       </Card>
@@ -685,12 +743,12 @@ X-API-Key: avr_seutoken_aqui`}</CodeBlock>
       </Card>
 
       {/* Dialog Criar Token */}
-      <Dialog open={showCreate} onOpenChange={(open) => { setShowCreate(open); if (!open) { setNewToken(null); setShowToken(false); } }}>
-        <DialogContent>
+      <Dialog open={showCreate} onOpenChange={(open) => { setShowCreate(open); if (!open) { setNewToken(null); setShowToken(false); setTargetKanbanId(''); setTargetColumnId(''); } }}>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Criar Token de API</DialogTitle>
+            <DialogTitle>Criar Webhook / Token de API</DialogTitle>
             <DialogDescription>
-              O token será exibido apenas uma vez. Copie e guarde em local seguro.
+              Configure o destino do lead no CRM. O token será exibido apenas uma vez.
             </DialogDescription>
           </DialogHeader>
           {newToken ? (
@@ -714,18 +772,84 @@ X-API-Key: avr_seutoken_aqui`}</CodeBlock>
                   </Button>
                 </div>
               </div>
+
+              <div className="bg-[hsl(var(--avivar-muted))] rounded-lg p-3 space-y-2">
+                <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">📋 URL do Webhook para WordPress/n8n:</p>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs font-mono bg-[hsl(var(--avivar-background))] px-2 py-1.5 rounded break-all flex-1">
+                    {baseUrl}/receive-lead
+                  </code>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { navigator.clipboard.writeText(`${baseUrl}/receive-lead`); toast.success('URL copiada!'); }}>
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+                  Header: <code>X-API-Key: {showToken ? newToken : `${newToken?.slice(0, 8)}••••`}</code>
+                </p>
+              </div>
+
               <p className="text-xs text-destructive">⚠️ Este token não será exibido novamente.</p>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Nome do token</Label>
+                <Label>Nome do webhook / token</Label>
                 <Input
-                  placeholder="Ex: Integração Landing Page"
+                  placeholder="Ex: Formulário Site Principal"
                   value={tokenName}
                   onChange={(e) => setTokenName(e.target.value)}
                 />
               </div>
+
+              <Separator className="bg-[hsl(var(--avivar-border))]" />
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+                  <GitBranch className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                  Destino no CRM
+                </p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                  Leads recebidos por este webhook serão adicionados automaticamente ao funil e coluna selecionados.
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-xs">Funil de destino</Label>
+                  <Select value={targetKanbanId} onValueChange={setTargetKanbanId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o funil" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {kanbans.map((k) => (
+                        <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs">Coluna de entrada</Label>
+                  <Select value={targetColumnId} onValueChange={setTargetColumnId} disabled={!targetKanbanId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={targetKanbanId ? "Selecione a coluna" : "Selecione o funil primeiro"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {columns.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {!targetKanbanId && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Sem funil selecionado, o lead será criado apenas na lista geral de leads.
+                </p>
+              )}
+
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowCreate(false)}>Cancelar</Button>
                 <Button
@@ -734,7 +858,7 @@ X-API-Key: avr_seutoken_aqui`}</CodeBlock>
                   className="bg-[hsl(var(--avivar-primary))] text-white"
                 >
                   {createToken.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Gerar Token
+                  Criar Webhook
                 </Button>
               </DialogFooter>
             </div>
