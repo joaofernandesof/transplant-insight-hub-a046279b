@@ -40,6 +40,7 @@ import { KanbanHeader } from './components/KanbanHeader';
 import { AddLeadDialog } from './components/AddLeadDialog';
 import { useKanbanLeads, KanbanLead } from './hooks/useKanbanLeads';
 import { LeadCard } from './components/LeadCard';
+import { LeadDetailSheet } from './components/LeadDetailSheet';
 
 export interface KanbanColumnData {
   id: string;
@@ -70,6 +71,8 @@ export default function AvivarKanbanPage() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isAddLeadDialogOpen, setIsAddLeadDialogOpen] = useState(false);
   const [activeLead, setActiveLead] = useState<KanbanLead | null>(null);
+  const [selectedLead, setSelectedLead] = useState<KanbanLead | null>(null);
+  const [isLeadDetailOpen, setIsLeadDetailOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleColumns, setVisibleColumns] = useState<string[]>([]);
   const [insertAfterOrderIndex, setInsertAfterOrderIndex] = useState<number | null>(null);
@@ -433,11 +436,8 @@ export default function AvivarKanbanPage() {
                         setIsColumnDialogOpen(true);
                       }}
                       onLeadClick={(lead) => {
-                        if (lead.phone) {
-                          navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
-                        } else {
-                          toast.error('Lead não possui telefone cadastrado');
-                        }
+                        setSelectedLead(lead);
+                        setIsLeadDetailOpen(true);
                       }}
                     />
                   ))}
@@ -486,6 +486,10 @@ export default function AvivarKanbanPage() {
           onDeleteLead={deleteLead}
           onMoveLead={moveLead}
           kanbanId={kanbanId || ''}
+          onLeadClick={(lead) => {
+            setSelectedLead(lead);
+            setIsLeadDetailOpen(true);
+          }}
         />
       )}
 
@@ -528,6 +532,14 @@ export default function AvivarKanbanPage() {
           columns={columns}
         />
       )}
+
+      {/* Lead Detail Sheet */}
+      <LeadDetailSheet
+        lead={selectedLead}
+        open={isLeadDetailOpen}
+        onOpenChange={setIsLeadDetailOpen}
+        onLeadUpdated={refetch}
+      />
     </div>
   );
 }

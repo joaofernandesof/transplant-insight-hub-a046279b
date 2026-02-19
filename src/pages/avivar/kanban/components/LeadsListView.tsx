@@ -52,6 +52,7 @@ interface LeadsListViewProps {
   onRefresh: () => void;
   onDeleteLead?: (leadId: string) => void;
   onMoveLead?: (params: { leadId: string; columnId: string }) => void;
+  onLeadClick?: (lead: KanbanLead) => void;
   kanbanId: string;
 }
 
@@ -91,7 +92,7 @@ const getSourceColor = (source: string | null) => {
   return sourceColors[normalized] || sourceColors.default;
 };
 
-export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onAddLead, onRefresh, onDeleteLead, onMoveLead, kanbanId }: LeadsListViewProps) {
+export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onAddLead, onRefresh, onDeleteLead, onMoveLead, onLeadClick, kanbanId }: LeadsListViewProps) {
   const navigate = useNavigate();
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; leadId?: string } | null>(null);
@@ -133,10 +134,9 @@ export function LeadsListView({ columns, leads, searchQuery, onSearchChange, onA
   const hasSelection = selectedLeads.length > 0;
 
   const handleLeadClick = (lead: KanbanLead) => {
-    if (lead.phone) {
-      navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
-    } else {
-      toast.error('Lead não possui telefone cadastrado');
+    // Open lead detail sheet via parent callback
+    if (onLeadClick) {
+      onLeadClick(lead);
     }
   };
 
