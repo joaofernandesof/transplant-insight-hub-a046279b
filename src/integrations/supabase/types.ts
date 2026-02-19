@@ -2496,6 +2496,69 @@ export type Database = {
           },
         ]
       }
+      avivar_webhook_request_logs: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          lead_action: string | null
+          lead_id: string | null
+          method: string
+          request_body: Json | null
+          request_headers: Json | null
+          response_body: Json | null
+          response_status: number | null
+          token_id: string | null
+          webhook_slug: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          lead_action?: string | null
+          lead_id?: string | null
+          method: string
+          request_body?: Json | null
+          request_headers?: Json | null
+          response_body?: Json | null
+          response_status?: number | null
+          token_id?: string | null
+          webhook_slug?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          lead_action?: string | null
+          lead_id?: string | null
+          method?: string
+          request_body?: Json | null
+          request_headers?: Json | null
+          response_body?: Json | null
+          response_status?: number | null
+          token_id?: string | null
+          webhook_slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_webhook_request_logs_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_webhook_request_logs_token_id_fkey"
+            columns: ["token_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_api_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_webhooks: {
         Row: {
           account_id: string
