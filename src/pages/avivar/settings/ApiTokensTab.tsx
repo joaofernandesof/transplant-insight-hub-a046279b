@@ -51,6 +51,7 @@ export function ApiTokensTab() {
   const [targetKanbanId, setTargetKanbanId] = useState('');
   const [targetColumnId, setTargetColumnId] = useState('');
   const [newToken, setNewToken] = useState<string | null>(null);
+  const [newWebhookSlug, setNewWebhookSlug] = useState<string | null>(null);
   const [showToken, setShowToken] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -94,13 +95,14 @@ export function ApiTokensTab() {
 
   const handleCreate = async () => {
     if (!tokenName.trim()) return;
-    const raw = await createToken.mutateAsync({
+    const result = await createToken.mutateAsync({
       name: tokenName.trim(),
       permissions: ['receive_lead'],
       target_kanban_id: targetKanbanId || undefined,
       target_column_id: targetColumnId || undefined,
     });
-    setNewToken(raw);
+    setNewToken(result.rawToken);
+    setNewWebhookSlug(result.webhookSlug);
     setTokenName('');
   };
 
@@ -125,9 +127,9 @@ export function ApiTokensTab() {
             </div>
             <div className="flex-1 space-y-3">
               <div>
-                <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">🚀 Quick Start — Enviar lead via API</h3>
+                <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">🚀 Quick Start — Receber leads via Webhook</h3>
                 <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] mt-1">
-                  Integre seu site, landing page ou sistema externo em 3 passos simples.
+                  Funciona como o n8n: crie um webhook, copie a URL e cole no WordPress. Sem tokens, sem headers.
                 </p>
               </div>
 
@@ -135,44 +137,23 @@ export function ApiTokensTab() {
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))]">
                   <span className="font-bold text-[hsl(var(--avivar-primary))] text-lg">1</span>
                   <div>
-                    <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">Crie um Token</p>
-                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Clique em "Novo Token" abaixo</p>
+                    <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">Crie um Webhook</p>
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Clique em "Novo Webhook" abaixo</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))]">
                   <span className="font-bold text-[hsl(var(--avivar-primary))] text-lg">2</span>
                   <div>
-                    <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">Envie um POST</p>
-                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Use o header X-API-Key</p>
+                    <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">Copie a URL</p>
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">URL única gerada automaticamente</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))]">
                   <span className="font-bold text-[hsl(var(--avivar-primary))] text-lg">3</span>
                   <div>
-                    <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">Lead no CRM ✓</p>
-                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Aparece automaticamente no funil</p>
+                    <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">Cole no WordPress ✓</p>
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Lead chega direto no funil</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className="bg-green-600 text-white text-[10px] px-2 py-0.5">POST</Badge>
-                  <code className="text-xs font-mono text-[hsl(var(--avivar-foreground))] break-all">{baseUrl}/receive-lead</code>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 shrink-0"
-                    onClick={() => { navigator.clipboard.writeText(`${baseUrl}/receive-lead`); toast.success('URL copiada!'); }}
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded bg-amber-500/10 border border-amber-500/20">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                  <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                    <strong>Somente método POST.</strong> Requisições GET, PUT ou DELETE retornam erro <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">405 Method Not Allowed</code>.
-                  </p>
                 </div>
               </div>
             </div>
@@ -216,12 +197,13 @@ export function ApiTokensTab() {
           ) : (
             tokens.map((token) => {
               const kanban = kanbans.find(k => k.id === token.target_kanban_id);
+              const webhookUrl = `${baseUrl}/receive-lead/${token.webhook_slug}`;
               return (
               <div
                 key={token.id}
-                className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]"
+                className="p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] space-y-2"
               >
-                <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-[hsl(var(--avivar-foreground))]">{token.name}</p>
                     <Badge variant={token.is_active ? 'default' : 'secondary'} className="text-xs">
@@ -234,28 +216,37 @@ export function ApiTokensTab() {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] font-mono mt-1">
-                    {token.token_prefix}••••••••
-                  </p>
-                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">
-                    Criado em {format(new Date(token.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                    {token.last_used_at && ` · Último uso: ${format(new Date(token.last_used_at), "dd/MM HH:mm", { locale: ptBR })}`}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={token.is_active}
+                      onCheckedChange={(checked) => toggleToken.mutate({ id: token.id, is_active: checked })}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteId(token.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={token.is_active}
-                    onCheckedChange={(checked) => toggleToken.mutate({ id: token.id, is_active: checked })}
-                  />
+                <div className="flex items-center gap-2 bg-[hsl(var(--avivar-muted))] rounded-lg p-2">
+                  <Webhook className="h-3.5 w-3.5 text-[hsl(var(--avivar-primary))] shrink-0" />
+                  <code className="text-xs font-mono text-[hsl(var(--avivar-foreground))] break-all flex-1">{webhookUrl}</code>
                   <Button
-                    variant="ghost"
                     size="icon"
-                    onClick={() => setDeleteId(token.id)}
-                    className="text-destructive hover:text-destructive"
+                    variant="ghost"
+                    className="h-6 w-6 shrink-0"
+                    onClick={() => { navigator.clipboard.writeText(webhookUrl); toast.success('URL do webhook copiada!'); }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Copy className="h-3 w-3" />
                   </Button>
                 </div>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                  Criado em {format(new Date(token.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                  {token.last_used_at && ` · Último uso: ${format(new Date(token.last_used_at), "dd/MM HH:mm", { locale: ptBR })}`}
+                </p>
               </div>
               );
             })
@@ -747,69 +738,65 @@ X-API-Key: avr_seutoken_aqui`}</CodeBlock>
       </Card>
 
       {/* Dialog Criar Token */}
-      <Dialog open={showCreate} onOpenChange={(open) => { setShowCreate(open); if (!open) { setNewToken(null); setShowToken(false); setTargetKanbanId(''); setTargetColumnId(''); } }}>
+      <Dialog open={showCreate} onOpenChange={(open) => { setShowCreate(open); if (!open) { setNewToken(null); setNewWebhookSlug(null); setShowToken(false); setTargetKanbanId(''); setTargetColumnId(''); } }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Criar Webhook / Token de API</DialogTitle>
+            <DialogTitle>Criar Webhook</DialogTitle>
             <DialogDescription>
-              Configure o destino do lead no CRM. O token será exibido apenas uma vez.
+              Configure o destino do lead no CRM. Uma URL única será gerada para colar no WordPress.
             </DialogDescription>
           </DialogHeader>
-          {newToken ? (
+          {newToken && newWebhookSlug ? (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <p className="font-medium">Token criado com sucesso!</p>
-              </div>
-              <div className="relative">
-                <Input
-                  readOnly
-                  value={showToken ? newToken : '••••••••••••••••••••••••••••••••••••'}
-                  className="font-mono pr-20"
-                />
-                <div className="absolute right-1 top-1 flex gap-1">
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setShowToken(!showToken)}>
-                    {showToken ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={copyToken}>
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
+                <p className="font-medium">Webhook criado com sucesso!</p>
               </div>
 
               <div className="bg-[hsl(var(--avivar-muted))] rounded-lg p-3 space-y-3">
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">🔗 URL para WordPress (cole direto no formulário):</p>
+                  <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">🔗 URL do Webhook (cole no WordPress):</p>
                   <div className="flex items-center gap-2">
                     <code className="text-xs font-mono bg-[hsl(var(--avivar-background))] px-2 py-1.5 rounded break-all flex-1">
-                      {baseUrl}/receive-lead?api_key={showToken ? newToken : `${newToken?.slice(0, 8)}••••`}
+                      {baseUrl}/receive-lead/{newWebhookSlug}
                     </code>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { navigator.clipboard.writeText(`${baseUrl}/receive-lead?api_key=${newToken}`); toast.success('URL com token copiada!'); }}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { navigator.clipboard.writeText(`${baseUrl}/receive-lead/${newWebhookSlug}`); toast.success('URL do webhook copiada!'); }}>
                       <Copy className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="text-[10px] text-green-500">✅ Basta colar esta URL como Action do formulário no WordPress. Não precisa configurar headers!</p>
+                  <p className="text-[10px] text-green-600 dark:text-green-400">✅ Cole esta URL como Webhook no Elementor, Contact Form 7, WPForms ou qualquer plugin. Sem headers, sem token exposto!</p>
                 </div>
 
                 <Separator className="bg-[hsl(var(--avivar-border))/0.3]" />
 
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))]">Alternativa (n8n / integração avançada):</p>
-                  <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-[hsl(var(--avivar-background))] px-2 py-1.5 rounded break-all flex-1">
-                      {baseUrl}/receive-lead
-                    </code>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { navigator.clipboard.writeText(`${baseUrl}/receive-lead`); toast.success('URL copiada!'); }}>
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
-                    Header: <code>X-API-Key: {showToken ? newToken : `${newToken?.slice(0, 8)}••••`}</code>
-                  </p>
-                </div>
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center gap-1 text-xs text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]">
+                    <ChevronDown className="h-3 w-3" />
+                    Token para integração avançada (n8n, Postman)
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 space-y-2">
+                    <div className="relative">
+                      <Input
+                        readOnly
+                        value={showToken ? newToken : '••••••••••••••••••••••••••••••••••••'}
+                        className="font-mono pr-20 text-xs"
+                      />
+                      <div className="absolute right-1 top-1 flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setShowToken(!showToken)}>
+                          {showToken ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={copyToken}>
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+                      Header: <code>X-API-Key: {showToken ? newToken : `${newToken?.slice(0, 8)}••••`}</code>
+                    </p>
+                    <p className="text-[10px] text-destructive">⚠️ Este token não será exibido novamente.</p>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
-
-              <p className="text-xs text-destructive">⚠️ Este token não será exibido novamente.</p>
             </div>
           ) : (
             <div className="space-y-4">

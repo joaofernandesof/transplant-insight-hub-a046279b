@@ -92,14 +92,42 @@ Deno.serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // API Token authentication via X-API-Key header OR ?api_key= query param
+    // Authentication: slug in URL path, X-API-Key header, or ?api_key= query param
     let tokenAccountId: string | null = null;
     let tokenTargetKanbanId: string | null = null;
     let tokenTargetColumnId: string | null = null;
     const url = new URL(req.url);
+    
+    // Extract slug from URL path: /receive-lead/SLUG
+    const pathParts = url.pathname.split('/');
+    const slug = pathParts[pathParts.length - 1] !== 'receive-lead' ? pathParts[pathParts.length - 1] : null;
+    
     const apiKey = req.headers.get('x-api-key') || url.searchParams.get('api_key');
-    if (apiKey) {
-      // Hash the token to compare
+    
+    if (slug && slug.length > 0) {
+      // Slug-based auth (n8n/WordPress model) — URL IS the authentication
+      const { data: tokenData, error: tokenErr } = await supabase
+        .rpc('validate_api_token_by_slug', { p_slug: slug });
+      
+      if (tokenErr || !tokenData || tokenData.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Invalid webhook URL" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      tokenAccountId = tokenData[0].account_id;
+      tokenTargetKanbanId = tokenData[0].target_kanban_id || null;
+      tokenTargetColumnId = tokenData[0].target_column_id || null;
+      
+      await supabase
+        .from('avivar_api_tokens')
+        .update({ last_used_at: new Date().toISOString() } as any)
+        .eq('id', tokenData[0].token_id);
+      
+      console.log("Authenticated via webhook slug for account:", tokenAccountId);
+    } else if (apiKey) {
+      // Header/query param auth (legacy + advanced integrations)
       const encoder = new TextEncoder();
       const data = encoder.encode(apiKey);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -120,13 +148,12 @@ Deno.serve(async (req) => {
       tokenTargetKanbanId = tokenData[0].target_kanban_id || null;
       tokenTargetColumnId = tokenData[0].target_column_id || null;
       
-      // Update last_used_at
       await supabase
         .from('avivar_api_tokens')
         .update({ last_used_at: new Date().toISOString() } as any)
         .eq('id', tokenData[0].token_id);
       
-      console.log("Authenticated via API token for account:", tokenAccountId, "target_kanban:", tokenTargetKanbanId);
+      console.log("Authenticated via API token for account:", tokenAccountId);
     }
 
     let inputData: LeadData;
