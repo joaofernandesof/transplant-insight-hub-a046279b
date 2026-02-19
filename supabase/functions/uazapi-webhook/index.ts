@@ -724,6 +724,37 @@ serve(async (req) => {
                   syncedToInbox = true;
                   console.log(`[UazAPI Webhook] ✅ Message stored in crm_messages: ${msg.key.id}`);
 
+                  // Dispatch webhook for message events
+                  const messageEvent = msg.key.fromMe ? "message.sent" : "message.received";
+                  try {
+                    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+                    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+                    await fetch(
+                      `${supabaseUrl}/functions/v1/avivar-webhook-dispatch`,
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "Authorization": `Bearer ${supabaseServiceKey}`,
+                        },
+                        body: JSON.stringify({
+                          event: messageEvent,
+                          account_id: accountId,
+                          payload: {
+                            conversation_id: crmConversationId,
+                            direction: msg.key.fromMe ? "outbound" : "inbound",
+                            content: content?.slice(0, 500),
+                            sender_name: msg.key.fromMe ? "Operador" : msg.pushName || null,
+                            phone,
+                            timestamp,
+                          },
+                        }),
+                      }
+                    );
+                  } catch (whErr) {
+                    console.error("[UazAPI Webhook] Message webhook dispatch error:", whErr);
+                  }
+
                   // 🤖 Trigger AI Agent for inbound messages with 30s debounce
                   if (!msg.key.fromMe && content) {
                     // ⏹️ Cancel any scheduled follow-ups for this conversation (lead responded)
@@ -979,6 +1010,38 @@ serve(async (req) => {
                       console.error("[UazAPI Webhook] Error creating kanban lead:", kanbanLeadError);
                     } else {
                       console.log(`[UazAPI Webhook] ✅ Kanban lead created for contact: ${contactId}`);
+                      
+                      // Dispatch webhook event 'lead.created'
+                      try {
+                        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+                        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+                        const webhookPayload = {
+                          lead_id: contactId,
+                          name: contactName || `WhatsApp ${phone}`,
+                          phone,
+                          source: "whatsapp_auto",
+                          kanban_id: firstKanban.id,
+                          column_id: firstColumn.id,
+                          created_at: new Date().toISOString(),
+                        };
+                        await fetch(
+                          `${supabaseUrl}/functions/v1/avivar-webhook-dispatch`,
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              "Authorization": `Bearer ${supabaseServiceKey}`,
+                            },
+                            body: JSON.stringify({
+                              event: "lead.created",
+                              account_id: accountId,
+                              payload: webhookPayload,
+                            }),
+                          }
+                        );
+                      } catch (whErr) {
+                        console.error("[UazAPI Webhook] Webhook dispatch error:", whErr);
+                      }
                     }
                   }
                 }
