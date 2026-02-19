@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card';
 import { useCrmConversations } from '@/hooks/useCrmConversations';
 import { usePatientJourneys } from '@/pages/avivar/journey/hooks/usePatientJourneys';
 import { useConversationTasks, ConversationTask } from '@/hooks/useConversationTasks';
+import { supabase } from '@/integrations/supabase/client';
 
 // Componentes focados
 import { ConversationList } from './chat/ConversationList';
@@ -31,6 +32,7 @@ interface CrmInboxProps {
 export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showLeadWithoutConversation, setShowLeadWithoutConversation] = useState(false);
+  const [phoneLead, setPhoneLead] = useState<{ id: string; name: string; phone: string } | null>(null);
    const [showTaskInput, setShowTaskInput] = useState(false);
   const [editingTask, setEditingTask] = useState<ConversationTask | null>(null);
 
@@ -80,6 +82,27 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
     if (conversationByPhone) {
       setSelectedConversation(conversationByPhone.id);
       setShowLeadWithoutConversation(false);
+      setPhoneLead(null);
+    } else {
+      // No conversation found - look up lead by phone to show "new conversation" panel
+      const findLeadByPhone = async () => {
+        const { data } = await supabase
+          .from('avivar_kanban_leads')
+          .select('id, name, phone')
+          .eq('phone', initialPhone)
+          .limit(1)
+          .maybeSingle();
+        
+        if (data) {
+          setPhoneLead({ id: data.id, name: data.name, phone: data.phone || initialPhone });
+        } else {
+          // Try normalized phone match
+          setPhoneLead({ id: '', name: initialPhone, phone: initialPhone });
+        }
+        setSelectedConversation(null);
+        setShowLeadWithoutConversation(true);
+      };
+      findLeadByPhone();
     }
   }, [initialPhone, conversations, isLoadingConversations]);
 
@@ -132,7 +155,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
           onSuccess: (data) => {
             setSelectedConversation(data.id);
             setShowLeadWithoutConversation(false);
-            // Now send the message
+            setPhoneLead(null);
             sendMessage.mutate({
               conversationId: data.id,
               content,
@@ -140,6 +163,46 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
           },
         }
       );
+      return;
+    }
+
+    // Phone-based lead without conversation - find lead in `leads` table by phone
+    if (showLeadWithoutConversation && phoneLead?.phone) {
+      try {
+        const normalizedPhone = phoneLead.phone.replace(/\D/g, '');
+        // Find or create lead in leads table
+        const { data: existingLead } = await supabase
+          .from('leads')
+          .select('id')
+          .or(`phone.eq.${phoneLead.phone},phone.eq.${normalizedPhone}`)
+          .limit(1)
+          .maybeSingle();
+
+        const leadId = existingLead?.id;
+        
+        if (leadId) {
+          createConversation.mutate(
+            { leadId, channel: 'whatsapp' },
+            {
+              onSuccess: (data) => {
+                setSelectedConversation(data.id);
+                setShowLeadWithoutConversation(false);
+                setPhoneLead(null);
+                sendMessage.mutate({
+                  conversationId: data.id,
+                  content,
+                });
+              },
+            }
+          );
+        } else {
+          // No lead found in leads table - show error
+          const { toast } = await import('sonner');
+          toast.error('Lead não encontrado na base de dados. Verifique o cadastro.');
+        }
+      } catch (err) {
+        console.error('Error finding lead by phone:', err);
+      }
       return;
     }
 
@@ -287,7 +350,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   }
 
   // Estado vazio - sem conversas e sem lead selecionado
-  if (conversations.length === 0 && !initialLeadId) {
+  if (conversations.length === 0 && !initialLeadId && !initialPhone) {
     return (
       <Card className="flex flex-col items-center justify-center p-8 text-center h-full bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
         <div className="w-20 h-20 rounded-full bg-[hsl(var(--avivar-primary)/0.1)] flex items-center justify-center mb-6">
@@ -307,7 +370,13 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   }
 
   // Lead novo sem conversa - mostrar layout com painel de edição e chat vazio
-  if (showLeadWithoutConversation && directJourney) {
+  const noConvoLead = directJourney 
+    ? { name: directJourney.patient_name, phone: directJourney.patient_phone } 
+    : phoneLead 
+    ? { name: phoneLead.name, phone: phoneLead.phone } 
+    : null;
+
+  if (showLeadWithoutConversation && noConvoLead) {
     return (
       <div className="h-full max-h-full min-h-0 flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
         {/* Coluna 1: Lista de Conversas - scroll independente */}
@@ -318,15 +387,18 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
             onSelect={(id) => {
               setSelectedConversation(id);
               setShowLeadWithoutConversation(false);
+              setPhoneLead(null);
             }}
             isLoading={isLoadingConversations}
           />
         </div>
 
-        {/* Coluna 2: Detalhes do Lead (Patient Journey) - scroll independente */}
-        <div className="hidden lg:flex w-[300px] h-full shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col min-h-0 max-h-full overflow-hidden">
-          <PatientJourneyDetailsSidebar journey={directJourney} />
-        </div>
+        {/* Coluna 2: Detalhes do Lead - scroll independente */}
+        {directJourney && (
+          <div className="hidden lg:flex w-[300px] h-full shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col min-h-0 max-h-full overflow-hidden">
+            <PatientJourneyDetailsSidebar journey={directJourney} />
+          </div>
+        )}
 
         {/* Coluna 3: Chat vazio - scroll independente */}
         <div className="flex-1 h-full flex flex-col min-w-0 min-h-0 max-h-full overflow-hidden bg-[hsl(var(--avivar-card))]">
@@ -336,12 +408,12 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
               <User className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
             </div>
             <div>
-              <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">{directJourney.patient_name}</h3>
+              <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">{noConvoLead.name}</h3>
               <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Novo lead - Sem conversas anteriores</p>
             </div>
           </div>
 
-          {/* Área de chat vazia com mensagem UX - flex-1 para ocupar espaço disponível */}
+          {/* Área de chat vazia com mensagem UX */}
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8 min-h-0 overflow-auto">
             <div className="w-20 h-20 rounded-full bg-[hsl(var(--avivar-muted))] flex items-center justify-center mb-6">
               <MessageCircle className="h-10 w-10 text-[hsl(var(--avivar-muted-foreground))] opacity-50" />
@@ -350,7 +422,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
               Este lead ainda não possui conversas registradas
             </h3>
             <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] max-w-md">
-              Inicie o atendimento para começar o histórico. Você pode editar os dados do lead na coluna ao lado.
+              Inicie o atendimento para começar o histórico.
             </p>
           </div>
 
@@ -359,7 +431,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
             <MessageInput
               onSend={handleSendMessage}
               disabled={createConversation.isPending || sendMessage.isPending}
-              placeholder={`Iniciar conversa com ${directJourney.patient_name}...`}
+              placeholder={`Iniciar conversa com ${noConvoLead.name}...`}
             />
           </div>
         </div>
