@@ -94,6 +94,8 @@ Deno.serve(async (req) => {
 
     // API Token authentication via X-API-Key header
     let tokenAccountId: string | null = null;
+    let tokenTargetKanbanId: string | null = null;
+    let tokenTargetColumnId: string | null = null;
     const apiKey = req.headers.get('x-api-key');
     if (apiKey) {
       // Hash the token to compare

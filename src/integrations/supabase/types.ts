@@ -507,6 +507,8 @@ export type Database = {
           last_used_at: string | null
           name: string
           permissions: string[] | null
+          target_column_id: string | null
+          target_kanban_id: string | null
           token_hash: string
           token_prefix: string
         }
@@ -520,6 +522,8 @@ export type Database = {
           last_used_at?: string | null
           name: string
           permissions?: string[] | null
+          target_column_id?: string | null
+          target_kanban_id?: string | null
           token_hash: string
           token_prefix: string
         }
@@ -533,6 +537,8 @@ export type Database = {
           last_used_at?: string | null
           name?: string
           permissions?: string[] | null
+          target_column_id?: string | null
+          target_kanban_id?: string | null
           token_hash?: string
           token_prefix?: string
         }
@@ -542,6 +548,20 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_api_tokens_target_column_id_fkey"
+            columns: ["target_column_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanban_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_api_tokens_target_kanban_id_fkey"
+            columns: ["target_kanban_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanbans"
             referencedColumns: ["id"]
           },
         ]
