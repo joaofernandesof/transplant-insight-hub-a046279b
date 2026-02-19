@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   LayoutList,
   Stethoscope,
+  MapPin,
 } from "lucide-react";
 
 import { useSurgerySchedule, SurgerySchedule as SurgeryType } from "@/hooks/useSurgerySchedule";
@@ -23,7 +24,7 @@ import {
   SurgeryDetailPanel,
   SurgeryKanban,
 } from "@/components/surgery";
-import { getSemanaDOMes, useWeeklyScheduleRules, getMedicoResponsavel } from "@/hooks/useWeeklyScheduleRules";
+import { getSemanaDOMes, useWeeklyScheduleRules, getMedicoResponsavel, CIDADES } from "@/hooks/useWeeklyScheduleRules";
 import { parseISO, isToday, isFuture, isPast, isWithinInterval, addDays, startOfMonth, endOfMonth } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ export default function SurgerySchedule() {
   
   // View state
   const [activeView, setActiveView] = useState<"table" | "calendar" | "kanban">("kanban");
+  const [cityFilter, setCityFilter] = useState<string>("all");
 
   // Enhanced filtering logic
   const filteredSurgeries = useMemo(() => {
@@ -61,6 +63,9 @@ export default function SurgerySchedule() {
         surgery.medical_record?.toLowerCase().includes(searchTerm.toLowerCase());
       
       if (!matchesSearch) return false;
+
+      // City filter
+      if (cityFilter !== "all" && surgery.cidade !== cityFilter) return false;
 
       // Date filter
       const surgeryDate = parseISO(surgery.surgery_date);
@@ -127,7 +132,7 @@ export default function SurgerySchedule() {
 
       return true;
     });
-  }, [surgeries, searchTerm, dateFilter, categoryFilter, statusFilter, dateRange]);
+  }, [surgeries, searchTerm, dateFilter, categoryFilter, statusFilter, dateRange, cityFilter]);
 
   // Enhanced stats
   const enhancedStats = useMemo(() => {
@@ -253,6 +258,31 @@ export default function SurgerySchedule() {
               />
             </CardContent>
           </Card>
+
+          {/* City Filter Buttons */}
+          <div className="flex justify-center gap-2">
+            <Button
+              variant={cityFilter === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCityFilter("all")}
+              className="gap-1.5"
+            >
+              <MapPin className="h-3.5 w-3.5" />
+              Todas
+            </Button>
+            {CIDADES.map((cidade) => (
+              <Button
+                key={cidade}
+                variant={cityFilter === cidade ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCityFilter(cidade)}
+                className="gap-1.5"
+              >
+                <MapPin className="h-3.5 w-3.5" />
+                {cidade}
+              </Button>
+            ))}
+          </div>
 
           {/* View Toggle */}
           <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="space-y-4">
