@@ -12,6 +12,11 @@ interface KanbanInfo {
   kanbanId: string | null;
   columnId: string | null;
   tags: string[];
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmTerm: string | null;
+  utmContent: string | null;
 }
 
 export function useLeadKanbanInfo(phone: string | undefined | null) {
@@ -19,7 +24,7 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
     queryKey: ['lead-kanban-info', phone],
     queryFn: async (): Promise<KanbanInfo> => {
       if (!phone) {
-        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [] };
+        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [], utmSource: null, utmMedium: null, utmCampaign: null, utmTerm: null, utmContent: null };
       }
 
       // Buscar o lead no kanban pelo telefone
@@ -31,6 +36,11 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
           kanban_id,
           column_id,
           tags,
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_term,
+          utm_content,
           kanban:avivar_kanbans(id, name, order_index),
           column:avivar_kanban_columns(id, name)
         `)
@@ -40,7 +50,7 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
         .maybeSingle();
 
       if (leadError || !kanbanLead) {
-        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [] };
+        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [], utmSource: null, utmMedium: null, utmCampaign: null, utmTerm: null, utmContent: null };
       }
 
       const kanban = kanbanLead.kanban as { id: string; name: string; order_index: number } | null;
@@ -53,6 +63,11 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
         kanbanId: kanban?.id || null,
         columnId: column?.id || null,
         tags,
+        utmSource: (kanbanLead as any).utm_source || null,
+        utmMedium: (kanbanLead as any).utm_medium || null,
+        utmCampaign: (kanbanLead as any).utm_campaign || null,
+        utmTerm: (kanbanLead as any).utm_term || null,
+        utmContent: (kanbanLead as any).utm_content || null,
       };
     },
     enabled: !!phone,

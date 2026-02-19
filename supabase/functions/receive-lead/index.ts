@@ -15,6 +15,8 @@ interface LeadData {
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
   interest_level?: string;
   procedure?: string;
   service_type?: string;
@@ -249,6 +251,8 @@ Deno.serve(async (req) => {
             utm_source: rawBody.utm_source || undefined,
             utm_medium: rawBody.utm_medium || undefined,
             utm_campaign: rawBody.utm_campaign || undefined,
+            utm_term: rawBody.utm_term || undefined,
+            utm_content: rawBody.utm_content || undefined,
             interest_level: rawBody.interest_level || undefined,
           };
         }
@@ -425,6 +429,7 @@ Deno.serve(async (req) => {
           .maybeSingle();
 
         if (!existingKanbanLead) {
+          const ownerData = await supabase.from('avivar_accounts').select('owner_user_id').eq('id', tokenAccountId).single();
           const { error: kanbanError } = await supabase
             .from("avivar_kanban_leads")
             .insert({
@@ -437,7 +442,12 @@ Deno.serve(async (req) => {
               lead_code: lead.lead_code,
               source: lead.source || 'api',
               notes: inputData.procedure ? `Procedimento: ${sanitizeString(inputData.procedure, 200)}` : null,
-              user_id: (await supabase.from('avivar_accounts').select('owner_user_id').eq('id', tokenAccountId).single()).data?.owner_user_id,
+              utm_source: inputData.utm_source ? sanitizeString(inputData.utm_source, 100) : null,
+              utm_medium: inputData.utm_medium ? sanitizeString(inputData.utm_medium, 100) : null,
+              utm_campaign: inputData.utm_campaign ? sanitizeString(inputData.utm_campaign, 100) : null,
+              utm_term: inputData.utm_term ? sanitizeString(inputData.utm_term, 100) : null,
+              utm_content: inputData.utm_content ? sanitizeString(inputData.utm_content, 100) : null,
+              user_id: ownerData.data?.owner_user_id,
             } as any);
           if (kanbanError) console.error("Error creating kanban lead:", kanbanError);
           else console.log("Kanban lead created in funnel:", tokenTargetKanbanId);
