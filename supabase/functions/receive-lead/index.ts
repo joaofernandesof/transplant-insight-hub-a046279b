@@ -92,11 +92,12 @@ Deno.serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // API Token authentication via X-API-Key header
+    // API Token authentication via X-API-Key header OR ?api_key= query param
     let tokenAccountId: string | null = null;
     let tokenTargetKanbanId: string | null = null;
     let tokenTargetColumnId: string | null = null;
-    const apiKey = req.headers.get('x-api-key');
+    const url = new URL(req.url);
+    const apiKey = req.headers.get('x-api-key') || url.searchParams.get('api_key');
     if (apiKey) {
       // Hash the token to compare
       const encoder = new TextEncoder();
@@ -129,11 +130,39 @@ Deno.serve(async (req) => {
     }
 
     let inputData: LeadData;
+    const contentType = req.headers.get('content-type') || '';
+    
     try {
-      inputData = await req.json();
+      if (contentType.includes('application/x-www-form-urlencoded')) {
+        // WordPress forms send data as form-urlencoded
+        const formData = await req.text();
+        const params = new URLSearchParams(formData);
+        inputData = {
+          name: params.get('name') || params.get('your-name') || params.get('field_name') || '',
+          phone: params.get('phone') || params.get('your-phone') || params.get('tel') || params.get('field_phone') || '',
+          email: params.get('email') || params.get('your-email') || params.get('field_email') || undefined,
+          city: params.get('city') || params.get('field_city') || undefined,
+          state: params.get('state') || params.get('field_state') || undefined,
+          source: params.get('source') || 'wordpress',
+        };
+      } else if (contentType.includes('multipart/form-data')) {
+        // Some WordPress forms use multipart
+        const formData = await req.formData();
+        inputData = {
+          name: (formData.get('name') || formData.get('your-name') || formData.get('field_name') || '') as string,
+          phone: (formData.get('phone') || formData.get('your-phone') || formData.get('tel') || formData.get('field_phone') || '') as string,
+          email: (formData.get('email') || formData.get('your-email') || formData.get('field_email') || undefined) as string | undefined,
+          city: (formData.get('city') || formData.get('field_city') || undefined) as string | undefined,
+          state: (formData.get('state') || formData.get('field_state') || undefined) as string | undefined,
+          source: (formData.get('source') || 'wordpress') as string,
+        };
+      } else {
+        // JSON (n8n, Postman, custom integrations)
+        inputData = await req.json();
+      }
     } catch {
       return new Response(
-        JSON.stringify({ error: "Invalid or empty JSON body. Send a JSON object with at least 'name' and 'phone'." }),
+        JSON.stringify({ error: "Invalid request body. Send JSON, form-urlencoded, or multipart form data with at least 'name' and 'phone'." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
