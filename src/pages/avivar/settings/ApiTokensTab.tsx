@@ -813,41 +813,55 @@ X-API-Key: avr_seutoken_aqui`}</CodeBlock>
                 </p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-xs">Funil de destino</Label>
-                  <Select value={targetKanbanId} onValueChange={setTargetKanbanId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o funil" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {kanbans.map((k) => (
-                        <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {kanbans.length === 0 ? (
+                <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/10">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    Nenhum funil encontrado. Crie um funil no CRM primeiro para configurar o destino automático.
+                  </p>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">
+                    O lead será criado apenas na lista geral de leads.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Funil de destino</Label>
+                      <Select value={targetKanbanId} onValueChange={setTargetKanbanId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o funil" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {kanbans.map((k) => (
+                            <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs">Coluna de entrada</Label>
-                  <Select value={targetColumnId} onValueChange={setTargetColumnId} disabled={!targetKanbanId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={targetKanbanId ? "Selecione a coluna" : "Selecione o funil primeiro"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {columns.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Coluna de entrada</Label>
+                      <Select value={targetColumnId} onValueChange={setTargetColumnId} disabled={!targetKanbanId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={targetKanbanId ? "Selecione a coluna" : "Selecione o funil primeiro"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {columns.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              {!targetKanbanId && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Sem funil selecionado, o lead será criado apenas na lista geral de leads.
-                </p>
+                  {!targetKanbanId && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      Sem funil selecionado, o lead será criado apenas na lista geral de leads.
+                    </p>
+                  )}
+                </>
               )}
 
               <DialogFooter>
