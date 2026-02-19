@@ -4388,6 +4388,7 @@ export type Database = {
           assigned_agent_id: string | null
           assigned_to: string | null
           channel: string
+          context_summary: string | null
           created_at: string
           id: string
           last_message_at: string | null
@@ -4405,6 +4406,7 @@ export type Database = {
           assigned_agent_id?: string | null
           assigned_to?: string | null
           channel?: string
+          context_summary?: string | null
           created_at?: string
           id?: string
           last_message_at?: string | null
@@ -4422,6 +4424,7 @@ export type Database = {
           assigned_agent_id?: string | null
           assigned_to?: string | null
           channel?: string
+          context_summary?: string | null
           created_at?: string
           id?: string
           last_message_at?: string | null
