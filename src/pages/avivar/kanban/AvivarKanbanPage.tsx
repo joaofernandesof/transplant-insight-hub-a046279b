@@ -436,12 +436,12 @@ export default function AvivarKanbanPage() {
                         setIsColumnDialogOpen(true);
                       }}
                       onLeadClick={(lead) => {
-                        if (lead.phone) {
-                          navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
+                        // If lead has conversation history, go to inbox
+                        if (lead.last_message !== undefined && lead.last_message !== null) {
+                          navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone!)}`);
                         } else {
-                          // No phone - open detail sheet
-                          setSelectedLead(lead);
-                          setIsLeadDetailOpen(true);
+                          // No conversation - open full lead page
+                          navigate(`/avivar/lead/${lead.id}`);
                         }
                       }}
                     />
@@ -492,11 +492,10 @@ export default function AvivarKanbanPage() {
           onMoveLead={moveLead}
           kanbanId={kanbanId || ''}
           onLeadClick={(lead) => {
-            if (lead.phone) {
-              navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
+            if (lead.last_message !== undefined && lead.last_message !== null) {
+              navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone!)}`);
             } else {
-              setSelectedLead(lead);
-              setIsLeadDetailOpen(true);
+              navigate(`/avivar/lead/${lead.id}`);
             }
           }}
         />
