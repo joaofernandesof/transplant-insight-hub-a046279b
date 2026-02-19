@@ -29,7 +29,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Key, Plus, Trash2, Copy, Loader2, CheckCircle2, Eye, EyeOff, BookOpen, ChevronDown, Code2, Send, ShieldCheck, Webhook } from 'lucide-react';
+import { Key, Plus, Trash2, Copy, Loader2, CheckCircle2, Eye, EyeOff, BookOpen, ChevronDown, Code2, Send, ShieldCheck, Webhook, ExternalLink } from 'lucide-react';
 import { useAvivarApiTokens } from '@/hooks/useAvivarApiTokens';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -260,12 +260,36 @@ function DocSection({ icon: Icon, title, children, defaultOpen = false }: { icon
 function ApiDocsSection() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://seu-projeto.supabase.co';
   const baseUrl = `${supabaseUrl}/functions/v1`;
+  const isProduction = window.location.hostname === 'transplant-insight-hub.lovable.app' || (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('preview'));
+  const appDomain = isProduction ? window.location.origin : window.location.origin;
+  const apiDocsUrl = `${appDomain}/api-docs`;
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center gap-2 mb-3">
-        <BookOpen className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-        <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">Documentação da API</p>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <BookOpen className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+          <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">Documentação da API</p>
+        </div>
+        <a href="/api-docs" target="_blank" rel="noopener noreferrer" className="text-xs text-[hsl(var(--avivar-primary))] hover:underline flex items-center gap-1">
+          <ExternalLink className="h-3 w-3" />
+          Ver documentação completa
+        </a>
+      </div>
+
+      <div className="bg-[hsl(var(--avivar-background))] border border-[hsl(var(--avivar-border))] rounded-lg p-3 mb-3">
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mb-1">🔗 URL Base da API:</p>
+        <div className="flex items-center gap-2">
+          <code className="text-xs font-mono text-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-muted))] px-2 py-1 rounded break-all flex-1">{baseUrl}</code>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 shrink-0"
+            onClick={() => { navigator.clipboard.writeText(baseUrl); toast.success('URL copiada!'); }}
+          >
+            <Copy className="h-3 w-3" />
+          </Button>
+        </div>
       </div>
 
       <DocSection icon={ShieldCheck} title="Autenticação" defaultOpen>
