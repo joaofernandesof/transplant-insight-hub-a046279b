@@ -2,6 +2,7 @@
  * AvivarLeadsSelector - Página de seleção de Kanbans
  * Lista todos os kanbans disponíveis para o usuário escolher
  * Cria kanbans padrão automaticamente para novos usuários
+ * @module AvivarLeadsSelector
  */
 
 import { useState, useEffect } from 'react';
