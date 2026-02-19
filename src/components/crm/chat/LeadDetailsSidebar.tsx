@@ -61,6 +61,7 @@ import { LeadTagsInline } from './LeadTagsInline';
 import { ChecklistFieldRenderer } from './ChecklistFieldRenderer';
 import { ChecklistConfigDialog } from './ChecklistConfigDialog';
 import { ResponsibleSelector } from './ResponsibleSelector';
+import { LeadStatisticsSection } from './LeadStatisticsSection';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -374,6 +375,11 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
               )}
             </CollapsibleContent>
           </Collapsible>
+
+          <Separator className="bg-[hsl(var(--avivar-border))]" />
+
+          {/* Estatísticas */}
+          <LeadStatisticsSection conversationId={conversation.id} leadId={lead.id} />
 
         </div>
       </div>

@@ -92,6 +92,38 @@ Deno.serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // API Token authentication via X-API-Key header
+    let tokenAccountId: string | null = null;
+    const apiKey = req.headers.get('x-api-key');
+    if (apiKey) {
+      // Hash the token to compare
+      const encoder = new TextEncoder();
+      const data = encoder.encode(apiKey);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const tokenHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      const { data: tokenData, error: tokenErr } = await supabase
+        .rpc('validate_api_token', { p_token_hash: tokenHash });
+      
+      if (tokenErr || !tokenData || tokenData.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Invalid API token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      tokenAccountId = tokenData[0].account_id;
+      
+      // Update last_used_at
+      await supabase
+        .from('avivar_api_tokens')
+        .update({ last_used_at: new Date().toISOString() } as any)
+        .eq('id', tokenData[0].token_id);
+      
+      console.log("Authenticated via API token for account:", tokenAccountId);
+    }
+
     const inputData: LeadData = await req.json();
     
     // Validate required fields

@@ -496,6 +496,56 @@ export type Database = {
           },
         ]
       }
+      avivar_api_tokens: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          name: string
+          permissions: string[] | null
+          token_hash: string
+          token_prefix: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name: string
+          permissions?: string[] | null
+          token_hash: string
+          token_prefix: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name?: string
+          permissions?: string[] | null
+          token_hash?: string
+          token_prefix?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_api_tokens_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_appointment_reminders: {
         Row: {
           account_id: string
@@ -2368,6 +2418,110 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "avivar_kanban_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_webhook_logs: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          event: string
+          id: string
+          payload: Json | null
+          response_body: string | null
+          response_status: number | null
+          success: boolean | null
+          webhook_id: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          event: string
+          id?: string
+          payload?: Json | null
+          response_body?: string | null
+          response_status?: number | null
+          success?: boolean | null
+          webhook_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          event?: string
+          id?: string
+          payload?: Json | null
+          response_body?: string | null
+          response_status?: number | null
+          success?: boolean | null
+          webhook_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_webhook_logs_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_webhook_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_webhooks: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          created_by: string | null
+          events: string[]
+          failure_count: number | null
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          name: string
+          secret: string | null
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          created_by?: string | null
+          events: string[]
+          failure_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          name: string
+          secret?: string | null
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          events?: string[]
+          failure_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          name?: string
+          secret?: string | null
+          updated_at?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_webhooks_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -18489,6 +18643,14 @@ export type Database = {
       user_is_flow_project_member: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
+      }
+      validate_api_token: {
+        Args: { p_token_hash: string }
+        Returns: {
+          account_id: string
+          permissions: string[]
+          token_id: string
+        }[]
       }
       validate_exam_answer: {
         Args: {
