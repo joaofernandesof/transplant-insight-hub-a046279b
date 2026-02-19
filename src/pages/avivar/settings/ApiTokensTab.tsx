@@ -461,42 +461,93 @@ print(response.json())`}</CodeBlock>
 
       <DocSection icon={Webhook} title="Webhooks (Outbound)">
         <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-          Configure webhooks para receber notificações em tempo real quando eventos ocorrerem no CRM. O sistema enviará um <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">POST</code> para a URL configurada.
+          Configure webhooks para receber notificações em tempo real quando eventos ocorrerem no CRM. O sistema enviará um <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">POST</code> para a URL configurada — funciona como um nó HTTP Request do n8n.
         </p>
 
-        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Eventos disponíveis:</p>
+        <div className="bg-[hsl(var(--avivar-muted))] rounded-lg p-3 mt-2 text-xs text-[hsl(var(--avivar-foreground))]">
+          <p className="font-medium mb-1">💡 Como funciona:</p>
+          <ol className="list-decimal list-inside space-y-1 text-[hsl(var(--avivar-muted-foreground))]">
+            <li>Um evento ocorre no CRM (ex: lead criado via API ou WhatsApp)</li>
+            <li>O sistema verifica quais webhooks estão ativos para esse evento</li>
+            <li>Um <code className="bg-[hsl(var(--avivar-background))] px-1 rounded">POST</code> é enviado para cada URL cadastrada com os dados do evento</li>
+            <li>Você pode usar para enviar mensagens, atualizar ERPs, notificar equipes, etc.</li>
+          </ol>
+        </div>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-3">Eventos disponíveis:</p>
         <div className="border border-[hsl(var(--avivar-border))] rounded-lg overflow-hidden text-xs">
           <table className="w-full">
             <thead>
               <tr className="bg-[hsl(var(--avivar-muted))]">
                 <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Evento</th>
                 <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Descrição</th>
+                <th className="text-left p-2 font-medium text-[hsl(var(--avivar-foreground))]">Disparado quando</th>
               </tr>
             </thead>
             <tbody className="text-[hsl(var(--avivar-muted-foreground))]">
-              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">lead.created</td><td className="p-2">Novo lead criado</td></tr>
-              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">lead.updated</td><td className="p-2">Lead atualizado (etapa, dados)</td></tr>
-              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">message.received</td><td className="p-2">Mensagem recebida de um lead</td></tr>
-              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">message.sent</td><td className="p-2">Mensagem enviada</td></tr>
-              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">appointment.created</td><td className="p-2">Agendamento criado</td></tr>
-              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">appointment.updated</td><td className="p-2">Agendamento atualizado</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">lead.created</td><td className="p-2">Novo lead criado</td><td className="p-2">Lead chega via API ou WhatsApp</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">lead.updated</td><td className="p-2">Lead atualizado</td><td className="p-2">Etapa, dados ou status alterados</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">message.received</td><td className="p-2">Mensagem recebida</td><td className="p-2">Lead envia mensagem no WhatsApp</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">message.sent</td><td className="p-2">Mensagem enviada</td><td className="p-2">Operador ou IA envia mensagem</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">appointment.created</td><td className="p-2">Agendamento criado</td><td className="p-2">Novo agendamento pelo CRM ou IA</td></tr>
+              <tr className="border-t border-[hsl(var(--avivar-border))]"><td className="p-2 font-mono">appointment.updated</td><td className="p-2">Agendamento atualizado</td><td className="p-2">Confirmação, cancelamento, etc.</td></tr>
             </tbody>
           </table>
         </div>
 
-        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Payload de exemplo:</p>
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-3">Payload de exemplo (lead.created):</p>
         <CodeBlock>{`{
   "event": "lead.created",
   "timestamp": "2026-02-19T15:30:00Z",
   "data": {
-    "id": "uuid-do-lead",
+    "lead_id": "uuid-do-lead",
+    "lead_code": "L00042",
     "name": "Maria Silva",
     "phone": "11987654321",
-    "source": "landing_page"
+    "email": "maria@email.com",
+    "city": "São Paulo",
+    "state": "SP",
+    "source": "landing_page",
+    "interest_level": "warm",
+    "created_at": "2026-02-19T15:30:00Z",
+    "link": "https://seudominio.com/crm/lead/uuid-do-lead"
   }
 }`}</CodeBlock>
 
-        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-2">Segurança (HMAC):</p>
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-3">Payload de exemplo (message.received):</p>
+        <CodeBlock>{`{
+  "event": "message.received",
+  "timestamp": "2026-02-19T15:35:00Z",
+  "data": {
+    "conversation_id": "uuid-da-conversa",
+    "direction": "inbound",
+    "content": "Olá, quero mais informações...",
+    "sender_name": "Maria Silva",
+    "phone": "11987654321",
+    "timestamp": "2026-02-19T15:35:00Z"
+  }
+}`}</CodeBlock>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-3">Exemplo prático — Enviar notificação via n8n/Make:</p>
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+          Configure a URL do webhook no n8n (nó "Webhook") ou no Make (módulo "Custom Webhook"). O CRM enviará automaticamente os dados no formato acima toda vez que o evento ocorrer.
+        </p>
+        <CodeBlock>{`# Exemplo com cURL - simulando o que o CRM envia:
+curl -X POST https://sua-url-n8n.com/webhook/abc123 \\
+  -H "Content-Type: application/json" \\
+  -H "X-Webhook-Signature: hmac_sha256_aqui" \\
+  -d '{
+    "event": "lead.created",
+    "timestamp": "2026-02-19T15:30:00Z",
+    "data": {
+      "lead_id": "uuid",
+      "name": "João Silva",
+      "phone": "11999998888",
+      "link": "https://seudominio.com/crm/lead/uuid"
+    }
+  }'`}</CodeBlock>
+
+        <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))] mt-3">Segurança (HMAC):</p>
         <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
           Configure um <strong>secret</strong> no webhook para receber o header <code className="bg-[hsl(var(--avivar-muted))] px-1 rounded">X-Webhook-Signature</code> com assinatura HMAC-SHA256:
         </p>
@@ -516,6 +567,12 @@ function verifySignature(payload, signature, secret) {
 
         <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">
           • Até <strong>3 retentativas</strong> automáticas em caso de falha (status ≥ 400 ou timeout)
+        </p>
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+          • Timeout de <strong>10 segundos</strong> por requisição
+        </p>
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+          • Logs de entrega disponíveis na aba <strong>Webhooks</strong> (ícone 👁️)
         </p>
       </DocSection>
 

@@ -192,6 +192,44 @@ Deno.serve(async (req) => {
 
     console.log("Lead inserted:", lead.id);
 
+    // Dispatch webhook event 'lead.created' if authenticated via API token
+    if (tokenAccountId) {
+      try {
+        const webhookPayload = {
+          lead_id: lead.id,
+          lead_code: lead.lead_code,
+          name: lead.name,
+          phone: lead.phone,
+          email: lead.email,
+          city: lead.city,
+          state: lead.state,
+          source: lead.source,
+          interest_level: lead.interest_level,
+          created_at: lead.created_at,
+          link: `${supabaseUrl.replace('.supabase.co', '')}/crm/lead/${lead.id}`,
+        };
+
+        const dispatchResp = await fetch(
+          `${supabaseUrl}/functions/v1/avivar-webhook-dispatch`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({
+              event: "lead.created",
+              account_id: tokenAccountId,
+              payload: webhookPayload,
+            }),
+          }
+        );
+        console.log("Webhook dispatch result:", await dispatchResp.json());
+      } catch (whErr) {
+        console.error("Error dispatching webhook:", whErr);
+      }
+    }
+
     // Call notify-lead-arrival function to send notifications
     if (lead.state) {
       try {
