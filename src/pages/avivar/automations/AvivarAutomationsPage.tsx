@@ -354,7 +354,7 @@ export default function AvivarAutomationsPage() {
   return (
     <div className="flex flex-col h-full bg-[hsl(var(--avivar-background))]">
       {/* ── Header ── */}
-      <div className="sticky top-0 z-20 bg-[hsl(var(--avivar-background))]/95 backdrop-blur-sm border-b border-[hsl(var(--avivar-border))]">
+      <div className="sticky top-0 z-20 bg-[hsl(var(--avivar-background))] border-b border-[hsl(var(--avivar-border))]">
         <div className="flex items-center justify-between px-5 py-3">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate(`/avivar/kanban/${kanbanId}`)}
@@ -465,16 +465,16 @@ function PipelineView({
   );
 
   const isSpanning = useCallback((id: string) => spanning.some(s => s.automation.tempId === id), [spanning]);
-  const COL_W = 200;
+  // columns use flex-1 for responsive width
 
   return (
-    <div className="p-5">
-      <ScrollArea className="w-full">
-        <div className="relative min-w-max">
+    <div className="p-5 flex-1 flex flex-col">
+      <ScrollArea className="w-full flex-1">
+        <div className="relative h-full flex flex-col">
           {/* Column Headers */}
           <div className="flex">
             {columns.map((col, idx) => (
-              <div key={col.id} className="flex items-center" style={{ width: COL_W }}>
+              <div key={col.id} className="flex items-center flex-1 min-w-[160px]">
                 <div className="flex items-center gap-2 flex-1 px-3 py-2.5 rounded-t-xl"
                   style={{ backgroundColor: col.color || '#8b5cf6' }}>
                   <span className="font-semibold text-xs text-white truncate flex-1">{col.name}</span>
@@ -490,26 +490,27 @@ function PipelineView({
           </div>
 
           {/* Column Bodies */}
-          <div className="flex">
+          <div className="flex flex-1">
             {columns.map((col, idx) => {
               const colAutos = (automationsByColumn[col.id] || []).filter(a => !isSpanning(a.tempId));
               const isPickerOpen = triggerPickerColumn === col.id;
 
               return (
                 <div key={col.id}
-                  className={`border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] p-2 space-y-2 ${
+                  className={`border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] p-2 space-y-2 flex-1 min-w-[160px] ${
                     idx === 0 ? 'rounded-bl-xl' : idx === columns.length - 1 ? 'rounded-br-xl' : ''
                   }`}
-                  style={{ width: COL_W, minHeight: 160 }}
+                  style={{ minHeight: 300 }}
                 >
                   {/* Spanning bars starting here */}
                   {spanning.filter(s => s.span.start === idx).map(({ automation: a, span }) => {
                     const card = getCardForAction(a.actions[0]?.action_type);
-                    const w = span.count * COL_W - 12;
+                    // Use calc to span across flex columns: each column is ~(100%/totalCols)
+                    const spanPct = (span.count / columns.length) * 100;
                     return (
                       <div key={a.tempId}
                         className={`relative z-10 group rounded-xl border ${card.borderColor} ${card.bgLight} p-2.5 cursor-pointer transition-all hover:shadow-md ${!a.is_active ? 'opacity-40' : ''}`}
-                        style={{ width: w }}
+                        style={{ width: `calc(${spanPct}vw - ${spanPct < 50 ? '60' : '100'}px)` }}
                         onClick={() => onEditAutomation(a)}>
                         <div className="flex items-center gap-2">
                           <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-sm flex-shrink-0`}>
