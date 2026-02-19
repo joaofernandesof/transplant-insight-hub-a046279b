@@ -378,8 +378,14 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
 
           <Separator className="bg-[hsl(var(--avivar-border))]" />
 
-          {/* Estatísticas */}
-          <LeadStatisticsSection conversationId={conversation.id} leadId={lead.id} />
+          {/* Origem do Tráfego */}
+          <LeadStatisticsSection
+            utmSource={kanbanInfo?.utmSource}
+            utmMedium={kanbanInfo?.utmMedium}
+            utmCampaign={kanbanInfo?.utmCampaign}
+            utmTerm={kanbanInfo?.utmTerm}
+            utmContent={kanbanInfo?.utmContent}
+          />
 
         </div>
       </div>
