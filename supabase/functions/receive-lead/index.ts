@@ -54,6 +54,42 @@ function sanitizeString(str: string, maxLength: number): string {
   return str.trim().slice(0, maxLength).replace(/[<>]/g, '');
 }
 
+// Parse Elementor-style nested field format: fields[name][value], fields[name][raw_value], etc.
+function parseElementorFields(body: Record<string, any>): Record<string, string> | null {
+  // Check if this looks like an Elementor payload
+  const hasElementorFields = Object.keys(body).some(k => k.startsWith('fields[') && k.includes(']['));
+  if (!hasElementorFields) return null;
+
+  const fields: Record<string, string> = {};
+  const meta: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(body)) {
+    // Extract fields[FIELD_NAME][raw_value] or fields[FIELD_NAME][value]
+    const fieldMatch = key.match(/^fields\[([^\]]+)\]\[(\w+)\]$/);
+    if (fieldMatch) {
+      const fieldName = fieldMatch[1];
+      const prop = fieldMatch[2];
+      // Prefer raw_value over value
+      if (prop === 'raw_value') {
+        fields[fieldName] = String(value);
+      } else if (prop === 'value' && !(fieldName in fields)) {
+        fields[fieldName] = String(value);
+      }
+    }
+    // Extract meta[KEY][value]
+    const metaMatch = key.match(/^meta\[([^\]]+)\]\[value\]$/);
+    if (metaMatch) {
+      meta[metaMatch[1]] = String(value);
+    }
+  }
+
+  // Also store page_url as source context
+  if (meta.page_url) fields._page_url = meta.page_url;
+  if (meta.remote_ip) fields._remote_ip = meta.remote_ip;
+
+  return fields;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -136,18 +172,37 @@ Deno.serve(async (req) => {
         const formText = await req.text();
         const params = new URLSearchParams(formText);
         rawBody = Object.fromEntries(params.entries());
-        inputData = {
-          name: params.get('name') || params.get('your-name') || params.get('field_name') || params.get('nome') || params.get('nome_completo') || params.get('full_name') || '',
-          phone: params.get('phone') || params.get('your-phone') || params.get('tel') || params.get('field_phone') || params.get('whatsapp') || params.get('telefone') || params.get('celular') || '',
-          email: params.get('email') || params.get('your-email') || params.get('field_email') || params.get('e-mail') || params.get('melhor_email') || undefined,
-          city: params.get('city') || params.get('field_city') || params.get('cidade') || undefined,
-          state: params.get('state') || params.get('field_state') || params.get('estado') || params.get('uf') || undefined,
-          source: params.get('source') || 'wordpress',
-          procedure: params.get('procedure') || params.get('procedimento') || params.get('qual_procedimento') || params.get('service') || params.get('servico') || undefined,
-          utm_source: params.get('utm_source') || undefined,
-          utm_medium: params.get('utm_medium') || undefined,
-          utm_campaign: params.get('utm_campaign') || undefined,
-        };
+        
+        // Check for Elementor bracket format in form-urlencoded
+        const elementorFields = parseElementorFields(rawBody);
+        if (elementorFields) {
+          console.log("Detected Elementor form-urlencoded format");
+          inputData = {
+            name: elementorFields.name || elementorFields.nome || '',
+            phone: elementorFields.telefone || elementorFields.phone || elementorFields.whatsapp || '',
+            email: elementorFields.email || elementorFields['e-mail'] || undefined,
+            city: elementorFields.city || elementorFields.cidade || undefined,
+            state: elementorFields.state || elementorFields.estado || undefined,
+            source: 'elementor',
+            procedure: elementorFields.procedimento || elementorFields.procedure || undefined,
+            utm_source: elementorFields.utm_source || undefined,
+            utm_medium: elementorFields.utm_medium || undefined,
+            utm_campaign: elementorFields.utm_campaign || undefined,
+          };
+        } else {
+          inputData = {
+            name: params.get('name') || params.get('your-name') || params.get('field_name') || params.get('nome') || params.get('nome_completo') || params.get('full_name') || '',
+            phone: params.get('phone') || params.get('your-phone') || params.get('tel') || params.get('field_phone') || params.get('whatsapp') || params.get('telefone') || params.get('celular') || '',
+            email: params.get('email') || params.get('your-email') || params.get('field_email') || params.get('e-mail') || params.get('melhor_email') || undefined,
+            city: params.get('city') || params.get('field_city') || params.get('cidade') || undefined,
+            state: params.get('state') || params.get('field_state') || params.get('estado') || params.get('uf') || undefined,
+            source: params.get('source') || 'wordpress',
+            procedure: params.get('procedure') || params.get('procedimento') || params.get('qual_procedimento') || params.get('service') || params.get('servico') || undefined,
+            utm_source: params.get('utm_source') || undefined,
+            utm_medium: params.get('utm_medium') || undefined,
+            utm_campaign: params.get('utm_campaign') || undefined,
+          };
+        }
       } else if (contentType.includes('multipart/form-data')) {
         const formData = await req.formData();
         const entries: Record<string, string> = {};
@@ -164,19 +219,39 @@ Deno.serve(async (req) => {
         };
       } else {
         rawBody = await req.json();
-        inputData = {
-          name: rawBody.name || rawBody.nome || rawBody.nome_completo || rawBody.full_name || '',
-          phone: rawBody.phone || rawBody.whatsapp || rawBody.telefone || rawBody.celular || rawBody.tel || '',
-          email: rawBody.email || rawBody['e-mail'] || rawBody.melhor_email || undefined,
-          city: rawBody.city || rawBody.cidade || undefined,
-          state: rawBody.state || rawBody.estado || rawBody.uf || undefined,
-          source: rawBody.source || rawBody.origem || 'api',
-          procedure: rawBody.procedure || rawBody.procedimento || rawBody.qual_procedimento || rawBody.service || rawBody.servico || rawBody.service_type || undefined,
-          utm_source: rawBody.utm_source || undefined,
-          utm_medium: rawBody.utm_medium || undefined,
-          utm_campaign: rawBody.utm_campaign || undefined,
-          interest_level: rawBody.interest_level || undefined,
-        };
+        
+        // Check if this is an Elementor-style payload with fields[name][value] format
+        const elementorFields = parseElementorFields(rawBody);
+        
+        if (elementorFields) {
+          console.log("Detected Elementor form format, parsed fields:", Object.keys(elementorFields).join(', '));
+          inputData = {
+            name: elementorFields.name || elementorFields.nome || elementorFields.nome_completo || elementorFields.full_name || '',
+            phone: elementorFields.telefone || elementorFields.phone || elementorFields.whatsapp || elementorFields.celular || elementorFields.tel || '',
+            email: elementorFields.email || elementorFields['e-mail'] || elementorFields.melhor_email || undefined,
+            city: elementorFields.city || elementorFields.cidade || undefined,
+            state: elementorFields.state || elementorFields.estado || elementorFields.uf || undefined,
+            source: elementorFields._page_url ? `elementor` : 'api',
+            procedure: elementorFields.procedimento || elementorFields.procedure || elementorFields.qual_procedimento || elementorFields.service || elementorFields.servico || undefined,
+            utm_source: elementorFields.utm_source || undefined,
+            utm_medium: elementorFields.utm_medium || undefined,
+            utm_campaign: elementorFields.utm_campaign || undefined,
+          };
+        } else {
+          inputData = {
+            name: rawBody.name || rawBody.nome || rawBody.nome_completo || rawBody.full_name || '',
+            phone: rawBody.phone || rawBody.whatsapp || rawBody.telefone || rawBody.celular || rawBody.tel || '',
+            email: rawBody.email || rawBody['e-mail'] || rawBody.melhor_email || undefined,
+            city: rawBody.city || rawBody.cidade || undefined,
+            state: rawBody.state || rawBody.estado || rawBody.uf || undefined,
+            source: rawBody.source || rawBody.origem || 'api',
+            procedure: rawBody.procedure || rawBody.procedimento || rawBody.qual_procedimento || rawBody.service || rawBody.servico || rawBody.service_type || undefined,
+            utm_source: rawBody.utm_source || undefined,
+            utm_medium: rawBody.utm_medium || undefined,
+            utm_campaign: rawBody.utm_campaign || undefined,
+            interest_level: rawBody.interest_level || undefined,
+          };
+        }
       }
     } catch {
       // Log failed parse
