@@ -105,11 +105,53 @@ export const canAccessPortal = (profile: ProfileKey | null, portal: Portal): boo
   if (profile === 'administrador') return true;
   return PROFILE_PORTAL_MAP[profile]?.includes(portal) || false;
 };
+// Mapeamento rota-prefixo → perfis permitidos
+const ROUTE_PROFILE_MAP: Record<string, ProfileKey[]> = {
+  '/admin': ['administrador'],
+  '/admin-portal': ['administrador'],
+  '/admin-dashboard': ['administrador'],
+  '/neocare': ['paciente', 'administrador'],
+  '/neoteam': ['colaborador', 'medico', 'administrador'],
+  '/academy': ['aluno', 'administrador'],
+  '/neolicense': ['licenciado', 'administrador'],
+  '/hotleads': ['licenciado', 'administrador'],
+  '/avivar': ['cliente_avivar', 'administrador'],
+  '/ipromed': ['ipromed', 'administrador'],
+  '/neopay': ['administrador'],
+  '/dashboard': ['licenciado', 'administrador'],
+  '/financial': ['licenciado', 'administrador'],
+  '/marketing': ['licenciado', 'administrador'],
+  '/store': ['licenciado', 'administrador'],
+  '/mentorship': ['licenciado', 'administrador'],
+  '/systems': ['licenciado', 'administrador'],
+  '/regularization': ['licenciado', 'administrador'],
+  '/alunos': ['administrador'],
+  '/comparison': ['administrador'],
+  '/monitoring': ['administrador'],
+  '/system-metrics': ['administrador'],
+  '/certificates': ['licenciado', 'aluno', 'administrador'],
+  '/license-payments': ['licenciado', 'administrador'],
+  '/weekly-reports': ['licenciado', 'administrador'],
+  '/sala-tecnica': ['licenciado', 'administrador'],
+  '/consolidated-results': ['licenciado', 'administrador'],
+  '/marketplace': ['licenciado', 'administrador'],
+  '/neohair': ['paciente', 'licenciado', 'administrador'],
+  '/vision': ['licenciado', 'administrador'],
+  '/flow': ['colaborador', 'administrador'],
+};
+
 export const canAccessRoute = (profile: ProfileKey | null, route: string): boolean => {
   if (!profile) return false;
   if (profile === 'administrador') return true;
-  // TODO: Implementar verificação de rota por permissão
-  return true;
+  
+  // Encontrar a regra mais específica (prefixo mais longo)
+  const matchingPrefix = Object.keys(ROUTE_PROFILE_MAP)
+    .filter(prefix => route.startsWith(prefix))
+    .sort((a, b) => b.length - a.length)[0];
+  
+  if (!matchingPrefix) return true; // Rotas não mapeadas são públicas
+  
+  return ROUTE_PROFILE_MAP[matchingPrefix].includes(profile);
 };
 export const getDefaultRouteForProfile = (profile: ProfileKey): string => PROFILE_ROUTES[profile] || '/';
 
@@ -223,7 +265,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
   const [activeProfile, setActiveProfileState] = useState<ProfileKey | null>(null);
   const [activeTenant, setActiveTenantState] = useState<Tenant | null>(null);
 
-  // Carregar perfil ativo do localStorage
+  // Carregar perfil ativo do localStorage (será revalidado após fetch do user)
   useEffect(() => {
     const storedProfile = localStorage.getItem('neohub_active_profile');
     if (storedProfile && VALID_PROFILES.includes(storedProfile as ProfileKey)) {
@@ -236,6 +278,22 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
       } catch (e) {}
     }
   }, []);
+
+  // SEGURANÇA: Revalidar perfil ativo quando os dados do usuário carregam
+  // Previne escalonamento de privilégios via manipulação do localStorage
+  useEffect(() => {
+    if (!user) return;
+    if (activeProfile && !user.isAdmin && !user.profiles.includes(activeProfile)) {
+      console.warn('[UnifiedAuth] SECURITY: activeProfile', activeProfile, 'not in user profiles, resetting.');
+      const validProfile = user.profiles[0] || null;
+      setActiveProfileState(validProfile);
+      if (validProfile) {
+        localStorage.setItem('neohub_active_profile', validProfile);
+      } else {
+        localStorage.removeItem('neohub_active_profile');
+      }
+    }
+  }, [user, activeProfile]);
 
   // Atualizar perfil ativo
   const setActiveProfile = useCallback((profile: ProfileKey) => {

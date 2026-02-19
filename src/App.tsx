@@ -779,20 +779,20 @@ function AppRoutes() {
           Rotas Admin Legado (mantidas para compatibilidade)
           ==================================== */}
       <Route path="/admin-dashboard" element={<Navigate to="/admin-portal" replace />} />
-      <Route path="/dashboard" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/alunos" element={<ProtectedRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/regularization" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketing" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Marketing /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/store" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Store /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/financial" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/mentorship" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/systems" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/alunos" element={<AdminRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/comparison" element={<AdminRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/regularization" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketing" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Marketing /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/store" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Store /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/financial" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/mentorship" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/systems" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/admin" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/access-matrix" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/certificates" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/license-payments" element={<ProtectedRoute><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/monitoring" element={<ProtectedRoute><SidebarWrapper><LazyRoute><UserMonitoring /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/certificates" element={<ProfileGuard allowedProfiles={['licenciado', 'aluno']}><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/license-payments" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/monitoring" element={<AdminRoute><SidebarWrapper><LazyRoute><UserMonitoring /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/system-metrics" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemMetrics /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/sentinel" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemSentinel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/announcements" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AnnouncementsAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
@@ -806,9 +806,9 @@ function AppRoutes() {
       <Route path="/admin/licensee-onboarding" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/sales-urgency" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SalesUrgencyPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/approvals" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><UserApprovals /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/weekly-reports" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/sala-tecnica" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/consolidated-results" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProfileGuard>} />
 
       {/* ====================================
           IPROMED - Instituto de Proteção Médica
@@ -840,8 +840,8 @@ function AppRoutes() {
 {/* ====================================
           Vision - Diagnóstico Capilar IA
           ==================================== */}
-      <Route path="/vision" element={<ProtectedRoute><LazyRoute><VisionHome /></LazyRoute></ProtectedRoute>} />
-      <Route path="/vision/*" element={<ProtectedRoute><LazyRoute><VisionHome /></LazyRoute></ProtectedRoute>} />
+      <Route path="/vision" element={<ProfileGuard allowedProfiles={['licenciado']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
+      <Route path="/vision/*" element={<ProfileGuard allowedProfiles={['licenciado']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
       {/* Legacy redirect */}
       <Route path="/neohairscan" element={<Navigate to="/vision" replace />} />
 
@@ -865,17 +865,17 @@ function AppRoutes() {
           NeoHair - Tratamento Capilar
           ==================================== */}
       <Route path="/neohair-landing" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairLanding /></Suspense>} />
-      <Route path="/neohair" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neohair/avaliacao" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairEvaluation /></NeoHairSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neohair/loja" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairStore /></NeoHairSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neohair/profissional" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairProfessionalDashboard /></NeoHairSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neohair" element={<ProfileGuard allowedProfiles={['paciente', 'licenciado']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProfileGuard>} />
+      <Route path="/neohair/avaliacao" element={<ProfileGuard allowedProfiles={['paciente', 'licenciado']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairEvaluation /></NeoHairSidebar></Suspense></ProfileGuard>} />
+      <Route path="/neohair/loja" element={<ProfileGuard allowedProfiles={['paciente', 'licenciado']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairStore /></NeoHairSidebar></Suspense></ProfileGuard>} />
+      <Route path="/neohair/profissional" element={<ProfileGuard allowedProfiles={['colaborador', 'medico']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairProfessionalDashboard /></NeoHairSidebar></Suspense></ProfileGuard>} />
       <Route path="/neohair/admin" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairAdminDashboard /></NeoHairSidebar></Suspense></AdminRoute>} />
-      <Route path="/neohair/*" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neohair/*" element={<ProfileGuard allowedProfiles={['paciente', 'licenciado']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProfileGuard>} />
 
       {/* ====================================
           Flow.do - Gestão Operacional (Work OS)
           ==================================== */}
-      <Route path="/flow" element={<ProtectedRoute><LazyRoute><FlowPortal /></LazyRoute></ProtectedRoute>}>
+      <Route path="/flow" element={<ProfileGuard allowedProfiles={['colaborador']}><LazyRoute><FlowPortal /></LazyRoute></ProfileGuard>}>
         <Route index element={<FlowDashboard />} />
         <Route path="projects" element={<FlowProjects />} />
         <Route path="projects/:projectId" element={<FlowProjectDetail />} />
@@ -889,15 +889,15 @@ function AppRoutes() {
       {/* ====================================
           Marketplace
           ==================================== */}
-      <Route path="/marketplace" element={<ProtectedRoute><SidebarWrapper><MarketplaceHome /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketplace/professionals" element={<ProtectedRoute><SidebarWrapper><MarketplaceProfessionals /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketplace/units" element={<ProtectedRoute><SidebarWrapper><MarketplaceUnits /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketplace/leads" element={<ProtectedRoute><SidebarWrapper><MarketplaceLeads /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketplace/schedule" element={<ProtectedRoute><SidebarWrapper><MarketplaceSchedule /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketplace/reviews" element={<ProtectedRoute><SidebarWrapper><MarketplaceReviews /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketplace/campaigns" element={<ProtectedRoute><SidebarWrapper><MarketplaceCampaigns /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketplace/dashboard" element={<ProtectedRoute><SidebarWrapper><MarketplaceDashboard /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketplace/discovery" element={<ProtectedRoute><SidebarWrapper><MarketplaceDiscovery /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceHome /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/professionals" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceProfessionals /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/units" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceUnits /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/leads" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceLeads /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/schedule" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceSchedule /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/reviews" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceReviews /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/campaigns" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceCampaigns /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/dashboard" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceDashboard /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/discovery" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceDiscovery /></SidebarWrapper></ProfileGuard>} />
 
       {/* ====================================
           Pós-Venda (Redirect para NeoTeam)
