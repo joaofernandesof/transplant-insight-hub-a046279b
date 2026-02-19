@@ -777,19 +777,36 @@ X-API-Key: avr_seutoken_aqui`}</CodeBlock>
                 </div>
               </div>
 
-              <div className="bg-[hsl(var(--avivar-muted))] rounded-lg p-3 space-y-2">
-                <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">📋 URL do Webhook para WordPress/n8n:</p>
-                <div className="flex items-center gap-2">
-                  <code className="text-xs font-mono bg-[hsl(var(--avivar-background))] px-2 py-1.5 rounded break-all flex-1">
-                    {baseUrl}/receive-lead
-                  </code>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { navigator.clipboard.writeText(`${baseUrl}/receive-lead`); toast.success('URL copiada!'); }}>
-                    <Copy className="h-3 w-3" />
-                  </Button>
+              <div className="bg-[hsl(var(--avivar-muted))] rounded-lg p-3 space-y-3">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">🔗 URL para WordPress (cole direto no formulário):</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs font-mono bg-[hsl(var(--avivar-background))] px-2 py-1.5 rounded break-all flex-1">
+                      {baseUrl}/receive-lead?api_key={showToken ? newToken : `${newToken?.slice(0, 8)}••••`}
+                    </code>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { navigator.clipboard.writeText(`${baseUrl}/receive-lead?api_key=${newToken}`); toast.success('URL com token copiada!'); }}>
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-green-500">✅ Basta colar esta URL como Action do formulário no WordPress. Não precisa configurar headers!</p>
                 </div>
-                <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
-                  Header: <code>X-API-Key: {showToken ? newToken : `${newToken?.slice(0, 8)}••••`}</code>
-                </p>
+
+                <Separator className="bg-[hsl(var(--avivar-border))/0.3]" />
+
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))]">Alternativa (n8n / integração avançada):</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs font-mono bg-[hsl(var(--avivar-background))] px-2 py-1.5 rounded break-all flex-1">
+                      {baseUrl}/receive-lead
+                    </code>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { navigator.clipboard.writeText(`${baseUrl}/receive-lead`); toast.success('URL copiada!'); }}>
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+                    Header: <code>X-API-Key: {showToken ? newToken : `${newToken?.slice(0, 8)}••••`}</code>
+                  </p>
+                </div>
               </div>
 
               <p className="text-xs text-destructive">⚠️ Este token não será exibido novamente.</p>
