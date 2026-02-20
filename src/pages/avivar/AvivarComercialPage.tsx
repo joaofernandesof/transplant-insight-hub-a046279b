@@ -44,11 +44,11 @@ export default function AvivarComercialPage() {
   const hasActiveFilters = searchTerm || stageFilter !== 'all';
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 md:space-y-6 p-3 md:p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-[hsl(var(--avivar-foreground))]">
+          <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 text-[hsl(var(--avivar-foreground))]">
             <Briefcase className="h-6 w-6 text-[hsl(var(--avivar-primary))]" />
             Kanban Comercial
           </h1>

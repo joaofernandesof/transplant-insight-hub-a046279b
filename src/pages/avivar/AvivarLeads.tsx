@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -46,38 +46,71 @@ export default function AvivarLeads() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Leads
             <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
           </h1>
-          <p className="text-[hsl(var(--avivar-muted-foreground))]">Gerencie todos os seus leads</p>
+          <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Gerencie todos os seus leads</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative flex-1 min-w-[150px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
             <Input
               placeholder="Buscar leads..."
-              className="pl-10 w-64 bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] focus:border-[hsl(var(--avivar-primary))]"
+              className="pl-10 bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] focus:border-[hsl(var(--avivar-primary))]"
             />
           </div>
-          <Button variant="outline" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
-            <Filter className="h-4 w-4 mr-2" />
-            Filtros
+          <Button variant="outline" size="sm" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
+            <Filter className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Filtros</span>
           </Button>
-          <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Lead
+          <Button size="sm" className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]">
+            <Plus className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Novo Lead</span>
           </Button>
         </div>
       </div>
 
-      {/* Table */}
-      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-        <CardContent className="p-0">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {mockLeads.map((lead) => {
+          const interest = interestConfig[lead.interest_level as keyof typeof interestConfig];
+          const status = statusConfig[lead.status];
+          const InterestIcon = interest.icon;
+
+          return (
+            <Card key={lead.id} className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+              <CardContent className="p-3">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">{lead.name}</p>
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{lead.procedure}</p>
+                  </div>
+                  <Badge className={status.color}>{status.label}</Badge>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                  <div className="flex items-center gap-2">
+                    <div className={cn('flex items-center gap-1 px-1.5 py-0.5 rounded', interest.bgColor)}>
+                      <InterestIcon className={cn('h-3 w-3', interest.color)} />
+                      <span className={cn('text-[10px]', interest.color)}>{interest.label}</span>
+                    </div>
+                    <span>{lead.city}</span>
+                  </div>
+                  <span className="font-medium text-[hsl(var(--avivar-foreground))]">{formatCurrency(lead.value)}</span>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table */}
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] hidden md:block">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))]">
