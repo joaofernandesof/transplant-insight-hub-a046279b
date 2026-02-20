@@ -1,40 +1,31 @@
 
 
-## Correção do redirecionamento WhatsApp ao adquirir HotLead
+## Correcao definitiva do redirecionamento WhatsApp
 
-### Problema Identificado
+### Problema Real
 
-Ao adquirir um lead, o sistema abre `https://wa.me/{telefone}?text=...` que redireciona para `api.whatsapp.com/send/...`. Esse dominio esta sendo bloqueado pelo navegador (ERR_BLOCKED_BY_RESPONSE), provavelmente porque a abertura vem de dentro do iframe de preview do Lovable.
-
-O numero do telefone **ja e dinamico** no codigo (`lead.phone`). O problema e exclusivamente o bloqueio do redirecionamento.
+O `window.open` abre a nova aba com sucesso (retorna um objeto, nao `null`), porem a pagina `wa.me` redireciona para `api.whatsapp.com` que responde com headers que bloqueiam a exibicao quando a origem e um iframe (ERR_BLOCKED_BY_RESPONSE). O fallback atual so atua quando `popup === null`, entao nao cobre esse cenario.
 
 ### Solucao
 
-1. **Trocar o dominio do link** de `https://wa.me/` para `https://web.whatsapp.com/send/` que tende a funcionar melhor em navegadores desktop
-2. **Adicionar fallback**: se o `window.open` falhar ou for bloqueado, copiar o link para a area de transferencia e mostrar um toast com instrucoes para o usuario abrir manualmente
-
-### Detalhes Tecnicos
-
-**Arquivo**: `src/hooks/useHotLeadsSettings.ts` (linha 77)
-
-- Mudar a URL de `https://wa.me/${fullPhone}?text=...` para `https://api.whatsapp.com/send?phone=${fullPhone}&text=...` -- na verdade, usar `https://wa.me/` mesmo, pois e o formato oficial e mais compativel
-- O problema real e que o preview iframe bloqueia popups. A solucao e detectar quando o `window.open` retorna `null` (bloqueado) e oferecer alternativa
-
-**Arquivo**: `src/components/hotleads/LeadAcquireDialog.tsx` (linhas 40-47)
-
-- Adicionar tratamento para quando `window.open` retorna `null` (popup bloqueado)
-- Mostrar toast com o link copiado para clipboard como fallback
-- Manter o formato `wa.me/` que e o padrao oficial do WhatsApp
+Mudar a estrategia: em vez de tentar abrir e depois fazer fallback, **sempre copiar o link para o clipboard** e mostrar um toast com um botao/link clicavel para o usuario abrir manualmente. Isso garante funcionamento em qualquer ambiente.
 
 ### Mudancas
 
 | Arquivo | Alteracao |
 |---------|-----------|
-| `src/components/hotleads/LeadAcquireDialog.tsx` | Adicionar fallback quando popup e bloqueado: copiar link + toast informativo |
-| `src/hooks/useHotLeadsSettings.ts` | Nenhuma mudanca necessaria - URL ja esta correta com `wa.me/` |
+| `src/components/hotleads/LeadAcquireDialog.tsx` | Remover `window.open`. Sempre copiar URL para clipboard + exibir toast com link clicavel |
 
-### Resultado Esperado
+### Detalhes Tecnicos
 
-- Se o navegador permitir, abre WhatsApp normalmente com telefone e mensagem pre-preenchidos
-- Se for bloqueado (como no preview), copia o link para clipboard e mostra mensagem orientando o usuario a colar no navegador
+**Arquivo**: `src/components/hotleads/LeadAcquireDialog.tsx`
+
+Na funcao `handleConfirm`, apos gerar a `whatsappUrl`:
+
+1. Copiar automaticamente para o clipboard com `navigator.clipboard.writeText`
+2. Exibir um toast de sucesso com a instrucao "Link copiado! Clique aqui ou cole no navegador"
+3. Incluir no toast um botao/action que faz `window.open` (caso o usuario esteja fora do iframe, funcionara)
+4. Remover a tentativa direta de `window.open` que causa o erro visivel ao usuario
+
+Isso elimina completamente o cenario onde o usuario ve a pagina de erro do `api.whatsapp.com`.
 
