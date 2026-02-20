@@ -97,52 +97,6 @@ export default function AvivarAgentsPage() {
     }
   };
 
-  useEffect(() => {
-    loadAgents();
-  }, []);
-
-  const loadAgents = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('avivar_agents')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Calcular contagem de documentos baseado no campo knowledge_files do agente
-      // E também buscar documentos da tabela avivar_knowledge_documents
-      const agentsWithDocs = await Promise.all((data || []).map(async (agent) => {
-        // Contagem de documentos na tabela separada
-        const { count: dbDocCount } = await supabase
-          .from('avivar_knowledge_documents')
-          .select('*', { count: 'exact', head: true })
-          .eq('agent_id', agent.id);
-        
-        // Contagem de arquivos no campo knowledge_files do agente
-        const knowledgeFilesCount = Array.isArray(agent.knowledge_files) 
-          ? agent.knowledge_files.length 
-          : 0;
-        
-        return {
-          ...agent,
-          document_count: (dbDocCount || 0) + knowledgeFilesCount
-        };
-      }));
-      
-      setAgents(agentsWithDocs);
-    } catch (error) {
-      console.error('Error loading agents:', error);
-      toast.error('Erro ao carregar agentes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const toggleAgentStatus = async (agentId: string, isActive: boolean) => {
     try {
       const { error } = await supabase
