@@ -543,20 +543,43 @@ serve(async (req) => {
           let sessionId: string | null = null;
           let accountId: string | null = null;
 
-          // Check avivar_uazapi_instances
-          let uazapiQuery = supabase
-            .from("avivar_uazapi_instances")
-            .select("id, user_id, instance_id, instance_name, phone_number, status")
-            .eq("status", "connected")
-            .limit(1);
+          // Extract token from URL query parameter for unique instance resolution
+          const requestUrl = new URL(req.url);
+          const urlToken = requestUrl.searchParams.get("token");
 
-          if (instanceName) {
-            uazapiQuery = uazapiQuery.or(`instance_name.eq.${instanceName},instance_id.eq.${instanceName}`);
-          } else if (payload.owner) {
-            uazapiQuery = uazapiQuery.eq("phone_number", payload.owner);
+          let uazapiInstance: any = null;
+          let uazapiError: any = null;
+
+          if (urlToken) {
+            // PRIMARY: Resolve instance by unique token from URL
+            console.log(`[UazAPI Webhook] Resolving instance by URL token: ${urlToken.substring(0, 8)}...`);
+            const result = await supabase
+              .from("avivar_uazapi_instances")
+              .select("id, user_id, instance_id, instance_name, instance_token, phone_number, status, account_id")
+              .eq("instance_token", urlToken)
+              .maybeSingle();
+            
+            uazapiInstance = result.data;
+            uazapiError = result.error;
+          } else {
+            // FALLBACK: Legacy resolution by instanceName/owner (for old instances without token in URL)
+            console.log(`[UazAPI Webhook] No URL token, falling back to instanceName/owner resolution`);
+            let uazapiQuery = supabase
+              .from("avivar_uazapi_instances")
+              .select("id, user_id, instance_id, instance_name, instance_token, phone_number, status, account_id")
+              .eq("status", "connected")
+              .limit(1);
+
+            if (instanceName) {
+              uazapiQuery = uazapiQuery.or(`instance_name.eq.${instanceName},instance_id.eq.${instanceName}`);
+            } else if (payload.owner) {
+              uazapiQuery = uazapiQuery.eq("phone_number", payload.owner);
+            }
+
+            const result = await uazapiQuery.maybeSingle();
+            uazapiInstance = result.data;
+            uazapiError = result.error;
           }
-
-          const { data: uazapiInstance, error: uazapiError } = await uazapiQuery.maybeSingle();
 
           if (uazapiError) {
             console.error("[UazAPI Webhook] Error fetching uazapi instance:", uazapiError);
@@ -565,7 +588,11 @@ serve(async (req) => {
           if (uazapiInstance) {
             userId = uazapiInstance.user_id;
             sessionId = uazapiInstance.id;
-            console.log(`[UazAPI Webhook] Found UazAPI instance: ${uazapiInstance.instance_name} for user: ${userId}`);
+            // Use account_id directly from instance if available (avoids extra query)
+            if (uazapiInstance.account_id) {
+              accountId = uazapiInstance.account_id;
+            }
+            console.log(`[UazAPI Webhook] Found UazAPI instance: ${uazapiInstance.instance_name} for user: ${userId}, account: ${accountId || '(pending)'}`);
           }
 
           if (!userId) {
@@ -575,16 +602,18 @@ serve(async (req) => {
             continue;
           }
 
-          // Resolve account_id for multi-tenant isolation
-          const { data: accountData } = await supabase
-            .from("avivar_account_members")
-            .select("account_id")
-            .eq("user_id", userId)
-            .eq("is_active", true)
-            .limit(1)
-            .maybeSingle();
+          // Resolve account_id for multi-tenant isolation (skip if already resolved from instance)
+          if (!accountId) {
+            const { data: accountData } = await supabase
+              .from("avivar_account_members")
+              .select("account_id")
+              .eq("user_id", userId)
+              .eq("is_active", true)
+              .limit(1)
+              .maybeSingle();
 
-          accountId = accountData?.account_id || null;
+            accountId = accountData?.account_id || null;
+          }
 
           if (!accountId) {
             console.error(`[UazAPI Webhook] ⚠️ No account_id found for user ${userId}. Multi-tenant insert will fail.`);
