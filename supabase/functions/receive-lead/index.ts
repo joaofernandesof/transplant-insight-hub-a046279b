@@ -190,6 +190,8 @@ Deno.serve(async (req) => {
             utm_source: elementorFields.utm_source || undefined,
             utm_medium: elementorFields.utm_medium || undefined,
             utm_campaign: elementorFields.utm_campaign || undefined,
+            utm_term: elementorFields.utm_term || undefined,
+            utm_content: elementorFields.utm_content || undefined,
           };
         } else {
           inputData = {
@@ -218,6 +220,11 @@ Deno.serve(async (req) => {
           state: (formData.get('state') || formData.get('estado') || formData.get('uf') || undefined) as string | undefined,
           source: (formData.get('source') || 'wordpress') as string,
           procedure: (formData.get('procedure') || formData.get('procedimento') || formData.get('qual_procedimento') || formData.get('service') || formData.get('servico') || undefined) as string | undefined,
+          utm_source: (formData.get('utm_source') || undefined) as string | undefined,
+          utm_medium: (formData.get('utm_medium') || undefined) as string | undefined,
+          utm_campaign: (formData.get('utm_campaign') || undefined) as string | undefined,
+          utm_term: (formData.get('utm_term') || undefined) as string | undefined,
+          utm_content: (formData.get('utm_content') || undefined) as string | undefined,
         };
       } else {
         rawBody = await req.json();
@@ -238,6 +245,8 @@ Deno.serve(async (req) => {
             utm_source: elementorFields.utm_source || undefined,
             utm_medium: elementorFields.utm_medium || undefined,
             utm_campaign: elementorFields.utm_campaign || undefined,
+            utm_term: elementorFields.utm_term || undefined,
+            utm_content: elementorFields.utm_content || undefined,
           };
         } else {
           inputData = {
@@ -361,6 +370,8 @@ Deno.serve(async (req) => {
       if (inputData.utm_source) updateData.utm_source = sanitizeString(inputData.utm_source, 100);
       if (inputData.utm_medium) updateData.utm_medium = sanitizeString(inputData.utm_medium, 100);
       if (inputData.utm_campaign) updateData.utm_campaign = sanitizeString(inputData.utm_campaign, 100);
+      if (inputData.utm_term) updateData.utm_term = sanitizeString(inputData.utm_term, 100);
+      if (inputData.utm_content) updateData.utm_content = sanitizeString(inputData.utm_content, 100);
 
       if (Object.keys(updateData).length > 0) {
         const { data: updated, error: updateErr } = await supabase
@@ -415,8 +426,8 @@ Deno.serve(async (req) => {
       console.log("Lead created:", lead.id);
     }
 
-    // Auto-create kanban lead if token has target funnel (only for new leads)
-    if (tokenAccountId && tokenTargetKanbanId && tokenTargetColumnId && leadAction === 'created') {
+    // Auto-create or update kanban lead if token has target funnel
+    if (tokenAccountId && tokenTargetKanbanId && tokenTargetColumnId) {
       try {
         // Check if kanban lead already exists
         const { data: existingKanbanLead } = await supabase
@@ -452,21 +463,31 @@ Deno.serve(async (req) => {
             } as any);
           if (kanbanError) console.error("Error creating kanban lead:", kanbanError);
           else console.log("Kanban lead created in funnel:", tokenTargetKanbanId);
-        } else if (existingKanbanLead && inputData.procedure) {
-          // Update existing kanban lead with procedure in custom_fields
+        } else if (existingKanbanLead) {
+          // Update existing kanban lead with procedure and UTMs
           const { data: currentKanbanLead } = await supabase
             .from("avivar_kanban_leads")
             .select("custom_fields")
             .eq("id", existingKanbanLead.id)
             .single();
           const existingCustomFields = (currentKanbanLead?.custom_fields as Record<string, any>) || {};
-          await supabase
-            .from("avivar_kanban_leads")
-            .update({ 
-              custom_fields: { ...existingCustomFields, tratamento: sanitizeString(inputData.procedure, 200) } 
-            })
-            .eq("id", existingKanbanLead.id);
-          console.log("Kanban lead custom_fields updated with tratamento:", existingKanbanLead.id);
+          const kanbanUpdateData: Record<string, any> = {};
+          if (inputData.procedure) {
+            kanbanUpdateData.custom_fields = { ...existingCustomFields, tratamento: sanitizeString(inputData.procedure, 200) };
+          }
+          if (inputData.utm_source) kanbanUpdateData.utm_source = sanitizeString(inputData.utm_source, 100);
+          if (inputData.utm_medium) kanbanUpdateData.utm_medium = sanitizeString(inputData.utm_medium, 100);
+          if (inputData.utm_campaign) kanbanUpdateData.utm_campaign = sanitizeString(inputData.utm_campaign, 100);
+          if (inputData.utm_term) kanbanUpdateData.utm_term = sanitizeString(inputData.utm_term, 100);
+          if (inputData.utm_content) kanbanUpdateData.utm_content = sanitizeString(inputData.utm_content, 100);
+          
+          if (Object.keys(kanbanUpdateData).length > 0) {
+            await supabase
+              .from("avivar_kanban_leads")
+              .update(kanbanUpdateData)
+              .eq("id", existingKanbanLead.id);
+            console.log("Kanban lead updated with tratamento/UTMs:", existingKanbanLead.id);
+          }
         }
       } catch (kanbanErr) {
         console.error("Error creating kanban lead:", kanbanErr);
