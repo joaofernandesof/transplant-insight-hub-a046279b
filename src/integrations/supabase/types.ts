@@ -496,6 +496,95 @@ export type Database = {
           },
         ]
       }
+      avivar_ai_queue: {
+        Row: {
+          account_id: string | null
+          attempts: number
+          backoff_ms: number
+          completed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          delay_until: string | null
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          job_type: string
+          lead_id: string | null
+          locked_at: string | null
+          max_attempts: number
+          payload: Json
+          priority: number
+          processing_time_ms: number | null
+          result: Json | null
+          stall_interval_ms: number
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          worker_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          attempts?: number
+          backoff_ms?: number
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          delay_until?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          job_type?: string
+          lead_id?: string | null
+          locked_at?: string | null
+          max_attempts?: number
+          payload?: Json
+          priority?: number
+          processing_time_ms?: number | null
+          result?: Json | null
+          stall_interval_ms?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          worker_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          attempts?: number
+          backoff_ms?: number
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          delay_until?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          job_type?: string
+          lead_id?: string | null
+          locked_at?: string | null
+          max_attempts?: number
+          payload?: Json
+          priority?: number
+          processing_time_ms?: number | null
+          result?: Json | null
+          stall_interval_ms?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_ai_queue_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_api_tokens: {
         Row: {
           account_id: string
@@ -2089,6 +2178,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "avivar_products_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_queue_metrics: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+          period_end: string
+          period_start: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value?: number
+          period_end: string
+          period_start: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          period_end?: string
+          period_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_queue_metrics_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "avivar_accounts"
@@ -18576,6 +18706,54 @@ export type Database = {
       }
     }
     Functions: {
+      avivar_queue_complete_job: {
+        Args: { p_job_id: string; p_result?: Json; p_worker_id: string }
+        Returns: boolean
+      }
+      avivar_queue_fail_job: {
+        Args: { p_error: string; p_job_id: string; p_worker_id: string }
+        Returns: string
+      }
+      avivar_queue_pick_job: {
+        Args: {
+          p_job_types?: string[]
+          p_max_jobs?: number
+          p_worker_id: string
+        }
+        Returns: {
+          account_id: string | null
+          attempts: number
+          backoff_ms: number
+          completed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          delay_until: string | null
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          job_type: string
+          lead_id: string | null
+          locked_at: string | null
+          max_attempts: number
+          payload: Json
+          priority: number
+          processing_time_ms: number | null
+          result: Json | null
+          stall_interval_ms: number
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          worker_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "avivar_ai_queue"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      avivar_queue_stats: { Args: { p_account_id?: string }; Returns: Json }
       can_access_branch: {
         Args: { _branch: string; _user_id: string }
         Returns: boolean
