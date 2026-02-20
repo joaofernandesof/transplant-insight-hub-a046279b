@@ -126,6 +126,7 @@ export default function AvivarTeamPage() {
     name: '',
     email: '',
     phone: '',
+    password: '',
     role: 'atendente' as TeamRole,
   });
 
@@ -245,11 +246,11 @@ export default function AvivarTeamPage() {
 
       // 3. If user doesn't exist, create via edge function
       if (!realUserId) {
-        const defaultPassword = `Avivar@${Date.now().toString(36)}`;
+        const password = data.password || `Avivar@${Date.now().toString(36)}`;
         const { data: createResult, error: createError } = await supabase.functions.invoke('admin-create-user', {
           body: {
             email: data.email,
-            password: defaultPassword,
+            password,
             full_name: data.name,
             phone: data.phone || null,
             allowed_portals: ['avivar'],
@@ -301,10 +302,19 @@ export default function AvivarTeamPage() {
           await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('user_id', realUserId);
         }
       }
+
+      // 7. Send password reset email so user can set their own password
+      try {
+        await supabase.auth.resetPasswordForEmail(data.email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+      } catch (e) {
+        console.warn('Não foi possível enviar email de redefinição:', e);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success('Membro adicionado com sucesso!');
+      toast.success('Membro adicionado! Um email de redefinição de senha foi enviado.');
       setIsAddDialogOpen(false);
       resetForm();
     },
@@ -373,7 +383,7 @@ export default function AvivarTeamPage() {
   });
 
   const resetForm = () => {
-    setFormData({ name: '', email: '', phone: '', role: 'atendente' });
+    setFormData({ name: '', email: '', phone: '', password: '', role: 'atendente' });
     setAvatarPreview(null);
     setAvatarFile(null);
   };
@@ -384,6 +394,7 @@ export default function AvivarTeamPage() {
       name: member.name,
       email: member.email,
       phone: member.phone || '',
+      password: '',
       role: member.role,
     });
     setIsEditDialogOpen(true);
@@ -516,6 +527,19 @@ export default function AvivarTeamPage() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="password">Senha temporária</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                      O usuário também receberá um email para redefinir a senha.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="role">Função</Label>
                     <Select
                       value={formData.role}
@@ -543,7 +567,7 @@ export default function AvivarTeamPage() {
                   </Button>
                   <Button
                     onClick={() => addMemberMutation.mutate({ ...formData, avatarFile })}
-                    disabled={!formData.name || !formData.email || addMemberMutation.isPending || isUploading}
+                    disabled={!formData.name || !formData.email || !formData.password || formData.password.length < 6 || addMemberMutation.isPending || isUploading}
                     className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]"
                   >
                     {isUploading ? 'Enviando foto...' : addMemberMutation.isPending ? 'Adicionando...' : 'Adicionar'}
