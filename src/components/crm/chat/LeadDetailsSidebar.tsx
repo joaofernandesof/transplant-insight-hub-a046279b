@@ -306,48 +306,8 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             onTransferred={onLeadUpdated}
           />
 
-          {/* Status e Responsável */}
-          <div className="space-y-3">            
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">💉 Tratamento</label>
-              <Select
-                value={kanbanInfo?.tratamento || lead.procedure_interest || ''}
-                onValueChange={async (value) => {
-                  if (!kanbanInfo?.kanbanLeadId) return;
-                  try {
-                    // Get current custom_fields
-                    const { data: current } = await supabase
-                      .from('avivar_kanban_leads')
-                      .select('custom_fields')
-                      .eq('id', kanbanInfo.kanbanLeadId)
-                      .single();
-                    const fields = (current?.custom_fields as Record<string, unknown>) || {};
-                    await supabase
-                      .from('avivar_kanban_leads')
-                      .update({ custom_fields: { ...fields, tratamento: value === '_clear' ? null : value } })
-                      .eq('id', kanbanInfo.kanbanLeadId);
-                    refetchKanbanInfo();
-                    toast.success('Tratamento atualizado');
-                  } catch {
-                    toast.error('Erro ao atualizar tratamento');
-                  }
-                }}
-              >
-                <SelectTrigger className="h-7 w-[180px] text-xs bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
-                  <SelectValue placeholder="Selecionar..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_clear">Nenhum</SelectItem>
-                  <SelectItem value="Transplante Capilar">Transplante Capilar</SelectItem>
-                  <SelectItem value="Transplante de Barba">Transplante de Barba</SelectItem>
-                  <SelectItem value="Transplante de Sobrancelha">Transplante de Sobrancelha</SelectItem>
-                  <SelectItem value="Tratamento Clínico">Tratamento Clínico</SelectItem>
-                  <SelectItem value="Consulta/Avaliação">Consulta/Avaliação</SelectItem>
-                  <SelectItem value="Retorno">Retorno</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+          {/* Responsável */}
+          <div className="space-y-3">
             <ResponsibleSelector
               conversationId={conversation.id}
               currentAssignedTo={conversation.assigned_to || null}
@@ -378,6 +338,46 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 pt-2">
+              {/* Tratamento - campo especial */}
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))]">💉 Tratamento</label>
+                <Select
+                  value={kanbanInfo?.tratamento || lead.procedure_interest || ''}
+                  onValueChange={async (value) => {
+                    if (!kanbanInfo?.kanbanLeadId) return;
+                    try {
+                      const { data: current } = await supabase
+                        .from('avivar_kanban_leads')
+                        .select('custom_fields')
+                        .eq('id', kanbanInfo.kanbanLeadId)
+                        .single();
+                      const fields = (current?.custom_fields as Record<string, unknown>) || {};
+                      await supabase
+                        .from('avivar_kanban_leads')
+                        .update({ custom_fields: { ...fields, tratamento: value === '_clear' ? null : value } })
+                        .eq('id', kanbanInfo.kanbanLeadId);
+                      refetchKanbanInfo();
+                      toast.success('Tratamento atualizado');
+                    } catch {
+                      toast.error('Erro ao atualizar tratamento');
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-7 w-[180px] text-xs bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
+                    <SelectValue placeholder="Selecionar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_clear">Nenhum</SelectItem>
+                    <SelectItem value="Transplante Capilar">Transplante Capilar</SelectItem>
+                    <SelectItem value="Transplante de Barba">Transplante de Barba</SelectItem>
+                    <SelectItem value="Transplante de Sobrancelha">Transplante de Sobrancelha</SelectItem>
+                    <SelectItem value="Tratamento Clínico">Tratamento Clínico</SelectItem>
+                    <SelectItem value="Consulta/Avaliação">Consulta/Avaliação</SelectItem>
+                    <SelectItem value="Retorno">Retorno</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {checklistFields.length > 0 ? (
                 checklistFields.map((field) => (
                   <ChecklistFieldRenderer 
