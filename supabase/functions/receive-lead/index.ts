@@ -57,31 +57,60 @@ function sanitizeString(str: string, maxLength: number): string {
 }
 
 // Parse Elementor-style nested field format: fields[name][value], fields[name][raw_value], etc.
+// Supports both urlencoded string keys (fields[name][value]) and JSON object format ({ fields: { name: { value: "..." } } })
 function parseElementorFields(body: Record<string, any>): Record<string, string> | null {
-  // Check if this looks like an Elementor payload
-  const hasElementorFields = Object.keys(body).some(k => k.startsWith('fields[') && k.includes(']['));
-  if (!hasElementorFields) return null;
-
   const fields: Record<string, string> = {};
   const meta: Record<string, string> = {};
 
-  for (const [key, value] of Object.entries(body)) {
-    // Extract fields[FIELD_NAME][raw_value] or fields[FIELD_NAME][value]
-    const fieldMatch = key.match(/^fields\[([^\]]+)\]\[(\w+)\]$/);
-    if (fieldMatch) {
-      const fieldName = fieldMatch[1];
-      const prop = fieldMatch[2];
-      // Prefer raw_value over value
-      if (prop === 'raw_value') {
-        fields[fieldName] = String(value);
-      } else if (prop === 'value' && !(fieldName in fields)) {
-        fields[fieldName] = String(value);
+  // Format 1: urlencoded string keys like fields[name][value]
+  const hasStringKeys = Object.keys(body).some(k => k.startsWith('fields[') && k.includes(']['));
+  
+  // Format 2: JSON object with { fields: { name: { value: "..." } } }
+  const hasObjectFields = body.fields && typeof body.fields === 'object' && !Array.isArray(body.fields) &&
+    Object.values(body.fields).some((v: any) => v && typeof v === 'object' && ('value' in v || 'raw_value' in v));
+
+  if (!hasStringKeys && !hasObjectFields) return null;
+
+  if (hasObjectFields) {
+    // Parse JSON object format
+    for (const [fieldName, fieldData] of Object.entries(body.fields)) {
+      if (fieldData && typeof fieldData === 'object') {
+        const fd = fieldData as Record<string, any>;
+        // Prefer raw_value over value
+        if (fd.raw_value !== undefined) {
+          fields[fieldName] = String(fd.raw_value);
+        } else if (fd.value !== undefined) {
+          fields[fieldName] = String(fd.value);
+        }
       }
     }
-    // Extract meta[KEY][value]
-    const metaMatch = key.match(/^meta\[([^\]]+)\]\[value\]$/);
-    if (metaMatch) {
-      meta[metaMatch[1]] = String(value);
+    // Extract meta from JSON object format
+    if (body.meta && typeof body.meta === 'object') {
+      for (const [k, v] of Object.entries(body.meta)) {
+        if (v && typeof v === 'object' && (v as any).value !== undefined) {
+          meta[k] = String((v as any).value);
+        } else if (typeof v === 'string') {
+          meta[k] = v;
+        }
+      }
+    }
+  } else {
+    // Parse urlencoded string key format
+    for (const [key, value] of Object.entries(body)) {
+      const fieldMatch = key.match(/^fields\[([^\]]+)\]\[(\w+)\]$/);
+      if (fieldMatch) {
+        const fieldName = fieldMatch[1];
+        const prop = fieldMatch[2];
+        if (prop === 'raw_value') {
+          fields[fieldName] = String(value);
+        } else if (prop === 'value' && !(fieldName in fields)) {
+          fields[fieldName] = String(value);
+        }
+      }
+      const metaMatch = key.match(/^meta\[([^\]]+)\]\[value\]$/);
+      if (metaMatch) {
+        meta[metaMatch[1]] = String(value);
+      }
     }
   }
 
@@ -234,19 +263,20 @@ Deno.serve(async (req) => {
         
         if (elementorFields) {
           console.log("Detected Elementor form format, parsed fields:", Object.keys(elementorFields).join(', '));
+          // Merge: elementor fields take priority, but fall back to rawBody top-level for name/phone/email/UTMs
           inputData = {
-            name: elementorFields.name || elementorFields.nome || elementorFields.nome_completo || elementorFields.full_name || '',
-            phone: elementorFields.telefone || elementorFields.phone || elementorFields.whatsapp || elementorFields.celular || elementorFields.tel || '',
-            email: elementorFields.email || elementorFields['e-mail'] || elementorFields.melhor_email || undefined,
-            city: elementorFields.city || elementorFields.cidade || undefined,
-            state: elementorFields.state || elementorFields.estado || elementorFields.uf || undefined,
-            source: elementorFields._page_url ? `elementor` : 'api',
-            procedure: elementorFields.procedimento || elementorFields.procedure || elementorFields.qual_procedimento || elementorFields.service || elementorFields.servico || undefined,
-            utm_source: elementorFields.utm_source || undefined,
-            utm_medium: elementorFields.utm_medium || undefined,
-            utm_campaign: elementorFields.utm_campaign || undefined,
-            utm_term: elementorFields.utm_term || undefined,
-            utm_content: elementorFields.utm_content || undefined,
+            name: elementorFields.name || elementorFields.nome || elementorFields.nome_completo || elementorFields.full_name || rawBody.name || rawBody.nome || rawBody.nome_completo || rawBody.full_name || '',
+            phone: elementorFields.telefone || elementorFields.phone || elementorFields.whatsapp || elementorFields.celular || elementorFields.tel || rawBody.phone || rawBody.whatsapp || rawBody.telefone || rawBody.celular || rawBody.tel || '',
+            email: elementorFields.email || elementorFields['e-mail'] || elementorFields.melhor_email || rawBody.email || rawBody['e-mail'] || rawBody.melhor_email || undefined,
+            city: elementorFields.city || elementorFields.cidade || rawBody.city || rawBody.cidade || undefined,
+            state: elementorFields.state || elementorFields.estado || elementorFields.uf || rawBody.state || rawBody.estado || rawBody.uf || undefined,
+            source: elementorFields._page_url ? `elementor` : (rawBody.source || rawBody.origem || 'api'),
+            procedure: elementorFields.procedimento || elementorFields.procedure || elementorFields.qual_procedimento || elementorFields.service || elementorFields.servico || rawBody.procedure || rawBody.procedimento || undefined,
+            utm_source: elementorFields.utm_source || rawBody.utm_source || undefined,
+            utm_medium: elementorFields.utm_medium || rawBody.utm_medium || undefined,
+            utm_campaign: elementorFields.utm_campaign || rawBody.utm_campaign || undefined,
+            utm_term: elementorFields.utm_term || rawBody.utm_term || undefined,
+            utm_content: elementorFields.utm_content || rawBody.utm_content || undefined,
           };
         } else {
           inputData = {
