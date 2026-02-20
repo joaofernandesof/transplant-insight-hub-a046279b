@@ -354,7 +354,7 @@ export default function Login() {
           </div>
 
           {/* Modules Hub Visual - Desktop */}
-          <div className="hidden md:block relative w-80 h-80">
+          <div className="hidden md:block relative w-[420px] h-[420px]">
             {/* Central node */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 border-2 border-slate-500 flex items-center justify-center z-10 shadow-xl">
               <span className="text-white font-bold text-sm">HUB</span>
@@ -364,7 +364,7 @@ export default function Login() {
             {modules.map((module, index) => {
               const Icon = module.icon;
               const angle = (index * (360 / modules.length) - 90) * (Math.PI / 180);
-              const radius = 120;
+              const radius = 170;
               const x = Math.cos(angle) * radius;
               const y = Math.sin(angle) * radius;
               
@@ -374,7 +374,7 @@ export default function Login() {
                   <div 
                     className="absolute top-1/2 left-1/2 h-0.5 bg-gradient-to-r from-slate-600 to-transparent origin-left"
                     style={{
-                      width: radius,
+                      width: 170,
                       transform: `rotate(${index * (360 / modules.length) - 90}deg)`,
                     }}
                   />
