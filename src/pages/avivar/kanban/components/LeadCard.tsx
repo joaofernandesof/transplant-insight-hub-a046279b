@@ -67,7 +67,9 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
   };
 
   // Get pending tasks count from custom_fields
-  const pendingTasks = (lead.custom_fields as Record<string, unknown>)?.pending_tasks as number | undefined;
+  const customFields = lead.custom_fields as Record<string, unknown> | undefined;
+  const pendingTasks = customFields?.pending_tasks as number | undefined;
+  const tratamento = customFields?.tratamento as string | undefined;
 
   // Get message preview with type indicator
   const getMessagePreview = (
@@ -174,6 +176,18 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Treatment indicator */}
+      {tratamento && (
+        <div className="mb-1.5">
+          <Badge 
+            variant="outline"
+            className="text-[10px] px-1.5 py-0 border-[hsl(var(--avivar-accent)/0.4)] text-[hsl(var(--avivar-accent))] bg-[hsl(var(--avivar-accent)/0.1)]"
+          >
+            💉 {tratamento}
+          </Badge>
+        </div>
+      )}
 
       {/* Footer with tags and pending tasks */}
       <div className="flex items-center justify-between gap-2">

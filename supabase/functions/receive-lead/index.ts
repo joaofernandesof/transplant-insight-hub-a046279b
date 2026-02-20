@@ -442,6 +442,7 @@ Deno.serve(async (req) => {
               lead_code: lead.lead_code,
               source: lead.source || 'api',
               notes: inputData.procedure ? `Procedimento: ${sanitizeString(inputData.procedure, 200)}` : null,
+              custom_fields: inputData.procedure ? { tratamento: sanitizeString(inputData.procedure, 200) } : null,
               utm_source: inputData.utm_source ? sanitizeString(inputData.utm_source, 100) : null,
               utm_medium: inputData.utm_medium ? sanitizeString(inputData.utm_medium, 100) : null,
               utm_campaign: inputData.utm_campaign ? sanitizeString(inputData.utm_campaign, 100) : null,
@@ -451,6 +452,21 @@ Deno.serve(async (req) => {
             } as any);
           if (kanbanError) console.error("Error creating kanban lead:", kanbanError);
           else console.log("Kanban lead created in funnel:", tokenTargetKanbanId);
+        } else if (existingKanbanLead && inputData.procedure) {
+          // Update existing kanban lead with procedure in custom_fields
+          const { data: currentKanbanLead } = await supabase
+            .from("avivar_kanban_leads")
+            .select("custom_fields")
+            .eq("id", existingKanbanLead.id)
+            .single();
+          const existingCustomFields = (currentKanbanLead?.custom_fields as Record<string, any>) || {};
+          await supabase
+            .from("avivar_kanban_leads")
+            .update({ 
+              custom_fields: { ...existingCustomFields, tratamento: sanitizeString(inputData.procedure, 200) } 
+            })
+            .eq("id", existingKanbanLead.id);
+          console.log("Kanban lead custom_fields updated with tratamento:", existingKanbanLead.id);
         }
       } catch (kanbanErr) {
         console.error("Error creating kanban lead:", kanbanErr);
