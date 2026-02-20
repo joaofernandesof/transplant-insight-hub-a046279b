@@ -4094,7 +4094,15 @@ serve(async (req) => {
     let effectiveSystemPrompt = systemPrompt;
     let effectiveTools = TOOLS;
 
-    if (appointmentJustCreated) {
+    // Detect reschedule/cancel intent in user message
+    const rescheduleIntent = /\b(trocar|mudar|reagend|remarc|alterar|cancelar|desmarcar|outro\s*dia|outro\s*hor[aá]rio|adiar|antecipar)\b/i.test(messageContent);
+
+    if (appointmentJustCreated && rescheduleIntent) {
+      // Appointment exists BUT user wants to reschedule/cancel — keep reschedule tools available
+      effectiveSystemPrompt = systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: O lead JÁ TEM um agendamento ativo nesta conversa e está pedindo para REAGENDAR ou CANCELAR. Use reschedule_appointment para alterar a data/hora ou cancel_appointment para cancelar. Você pode usar get_available_slots para mostrar novos horários disponíveis. NÃO use create_appointment (use reschedule_appointment para atualizar o existente). NÃO use propose_slot.";
+      effectiveTools = TOOLS.filter((t: { function: { name: string } }) => !["create_appointment", "propose_slot"].includes(t.function.name));
+      console.log(`[AI Agent] 🔄 RESCHEDULE INTENT detected with active appointment — keeping reschedule tools available`);
+    } else if (appointmentJustCreated) {
       // Confirmed appointment exists — block all scheduling tools
       effectiveSystemPrompt = systemPrompt + "\n\n⚠️ INSTRUÇÃO CRÍTICA: O agendamento ACABOU DE SER CONFIRMADO COM SUCESSO nesta conversa. O horário JÁ ESTÁ RESERVADO para este paciente. NÃO use check_slot, get_available_slots, propose_slot, create_appointment ou qualquer ferramenta de verificação/criação. Responda de forma amigável confirmando os detalhes.";
       effectiveTools = TOOLS.filter((t: { function: { name: string } }) => !["check_slot", "get_available_slots", "create_appointment", "propose_slot"].includes(t.function.name));
@@ -4143,6 +4151,8 @@ serve(async (req) => {
     let toolRound = 0;
     let fluxoMediaSentCount = 0; // Guard: max 1 send_fluxo_media per response
     let proposeSlotCalledThisTurn = false; // Guard: block create_appointment if propose_slot called same turn
+    const executedTools = new Set<string>(); // Track all tools that were actually executed
+    let appointmentCreatedSuccessfully = false; // Track if create_appointment returned ✅
     // appointmentJustCreated is already set above (section 5.8)
 
     while (currentToolCalls.length > 0 && toolRound < MAX_TOOL_ROUNDS) {
@@ -4219,10 +4229,12 @@ serve(async (req) => {
         );
         
         console.log(`[AI Agent] Tool ${toolCall.name} result: ${result.substring(0, 100)}...`);
+        executedTools.add(toolCall.name);
         
         // Mark that appointment was successfully created to prevent re-checking slots
         if ((toolCall.name === "create_appointment" || toolCall.name === "reschedule_appointment") && result.includes("✅")) {
           appointmentJustCreated = true;
+          appointmentCreatedSuccessfully = true;
           console.log(`[AI Agent] 🔒 Appointment confirmed/created/rescheduled — blocking future slot re-checks in this response`);
         }
         
@@ -4288,6 +4300,66 @@ serve(async (req) => {
       } else {
         console.error(`[AI Agent] Follow-up AI call failed: ${followUpResponse?.status}`);
         currentToolCalls = []; // Stop loop
+      }
+    }
+
+    // 7.5 AUTO-MOVE POST-PROCESSING: Ensure lead is in correct funnel stage based on tools used
+    if (leadPhone && !executedTools.has("mover_lead_para_etapa")) {
+      try {
+        const kanbanColumns = await getKanbanColumnsForUser(supabase, accountId || userId);
+        
+        const findColKey = (patterns: string[]): string | null => {
+          for (const col of kanbanColumns) {
+            const key = col.column_key.toLowerCase();
+            const name = col.column_name.toLowerCase();
+            for (const pattern of patterns) {
+              if (key.includes(pattern) || name.includes(pattern)) return col.column_key;
+            }
+          }
+          return null;
+        };
+
+        let autoMoveTarget: string | null = null;
+        let autoMoveReason = "";
+
+        if (appointmentCreatedSuccessfully) {
+          autoMoveTarget = findColKey(["agendado", "confirmado", "marcado"]);
+          autoMoveReason = "Agendamento confirmado (auto-move)";
+        } else if (executedTools.has("get_available_slots") || executedTools.has("propose_slot")) {
+          autoMoveTarget = findColKey(["tentando_agendar", "tentandoagendar", "agendando", "negociando"]);
+          autoMoveReason = "Ofereceu horários disponíveis (auto-move)";
+        } else if (executedTools.size > 0 && !executedTools.has("transfer_to_human")) {
+          // If AI interacted meaningfully and the lead is still in the first column, move to triagem
+          const { data: currentLead } = await supabase
+            .from("avivar_kanban_leads")
+            .select("column_id, kanban_id")
+            .eq("phone", leadPhone)
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (currentLead) {
+            const { data: firstColumn } = await supabase
+              .from("avivar_kanban_columns")
+              .select("id")
+              .eq("kanban_id", currentLead.kanban_id)
+              .order("order_index", { ascending: true })
+              .limit(1)
+              .maybeSingle();
+
+            if (firstColumn && currentLead.column_id === firstColumn.id) {
+              autoMoveTarget = findColKey(["triagem", "qualifica"]);
+              autoMoveReason = "Lead respondeu e interagiu (auto-move para triagem)";
+            }
+          }
+        }
+
+        if (autoMoveTarget) {
+          const moveResult = await moverLeadParaEtapa(supabase, leadPhone, autoMoveTarget, autoMoveReason);
+          console.log(`[AI Agent] 🔄 AUTO-MOVE: ${moveResult}`);
+        }
+      } catch (autoMoveError) {
+        console.error("[AI Agent] Auto-move error (non-blocking):", autoMoveError);
       }
     }
 
