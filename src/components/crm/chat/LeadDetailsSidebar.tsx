@@ -340,7 +340,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             <CollapsibleContent className="space-y-3 pt-2">
               {/* Tratamento - campo especial */}
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))]">💉 Tratamento</label>
+                <label className="text-xs font-medium uppercase tracking-wide text-[hsl(var(--avivar-muted-foreground))]">TRATAMENTO</label>
                 <Select
                   value={kanbanInfo?.tratamento || lead.procedure_interest || ''}
                   onValueChange={async (value) => {
