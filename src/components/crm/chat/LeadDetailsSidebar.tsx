@@ -305,12 +305,12 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
 
           {/* Status e Responsável */}
           <div className="space-y-3">            
-            {lead.procedure_interest && (
+            {(lead.procedure_interest || kanbanInfo?.tratamento) && (
               <div className="flex items-center justify-between">
-                <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Interesse</label>
-                <span className="text-sm text-[hsl(var(--avivar-foreground))]">
-                  {lead.procedure_interest}
-                </span>
+                <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tratamento</label>
+                <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-accent)/0.4)] text-[hsl(var(--avivar-accent))] bg-[hsl(var(--avivar-accent)/0.1)]">
+                  💉 {kanbanInfo?.tratamento || lead.procedure_interest}
+                </Badge>
               </div>
             )}
 
