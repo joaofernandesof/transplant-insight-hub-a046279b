@@ -39,6 +39,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -378,6 +385,46 @@ export default function AvivarLeadPage() {
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-3 pt-2">
+                  {/* Tratamento - campo fixo */}
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">TRATAMENTO</label>
+                    <Select
+                      value={kanbanInfo?.tratamento || ''}
+                      onValueChange={async (value) => {
+                        if (!kanbanInfo?.kanbanLeadId) return;
+                        try {
+                          const { data: current } = await supabase
+                            .from('avivar_kanban_leads')
+                            .select('custom_fields')
+                            .eq('id', kanbanInfo.kanbanLeadId)
+                            .single();
+                          const fields = (current?.custom_fields as Record<string, unknown>) || {};
+                          await supabase
+                            .from('avivar_kanban_leads')
+                            .update({ custom_fields: { ...fields, tratamento: value === '_clear' ? null : value } })
+                            .eq('id', kanbanInfo.kanbanLeadId);
+                          refetchKanbanInfo();
+                          toast.success('Tratamento atualizado');
+                        } catch {
+                          toast.error('Erro ao atualizar tratamento');
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-7 text-xs flex-1 bg-transparent border-0 border-b border-[hsl(var(--avivar-border))] rounded-none px-0 focus:ring-0 shadow-none">
+                        <SelectValue placeholder="Selecionar..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Transplante Capilar">Transplante Capilar</SelectItem>
+                        <SelectItem value="Transplante de Barba">Transplante de Barba</SelectItem>
+                        <SelectItem value="Transplante de Sobrancelha">Transplante de Sobrancelha</SelectItem>
+                        <SelectItem value="Tratamento Clínico">Tratamento Clínico</SelectItem>
+                        <SelectItem value="Consulta/Avaliação">Consulta/Avaliação</SelectItem>
+                        <SelectItem value="Retorno">Retorno</SelectItem>
+                        <SelectItem value="_clear">Limpar</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {checklistFields.length > 0 ? (
                     checklistFields.map((field) => (
                       <ChecklistFieldRenderer
