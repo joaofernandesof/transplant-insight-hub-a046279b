@@ -18,7 +18,8 @@ import {
   Shield,
   Lock,
   Flame,
-  CreditCard
+  CreditCard,
+  Scale
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
@@ -139,6 +140,16 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     profiles: ['administrador'],
     route: '/neopay',
     portalKey: 'neopay',
+  },
+  ipromed: {
+    title: 'IPROMED',
+    description: 'Advocacia médica preventiva',
+    icon: Scale,
+    gradient: 'from-blue-600 to-indigo-700',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
+    profiles: ['ipromed'],
+    route: '/ipromed',
+    portalKey: 'ipromed',
   },
 };
 
