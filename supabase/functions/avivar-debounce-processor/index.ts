@@ -2,11 +2,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
- * Debounce Processor for Avivar AI Agent
+ * Debounce Processor for Avivar AI Agent - QUEUE MODE
  *
- * This function handles the 30-second debounce logic for grouping multiple
- * messages before sending to the AI agent. It's called by the webhook and
- * runs as a separate process that can wait independently.
+ * This function handles the debounce logic for grouping multiple messages,
+ * then ENQUEUES the job into avivar_ai_queue instead of calling AI directly.
+ * The avivar-queue-processor picks and processes the jobs.
  */
 
 const corsHeaders = {
@@ -14,11 +14,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// How often we re-check `pending_until` to decide if the batch is ready.
-// The debounce window itself is controlled by `crm_conversations.pending_until`.
 const CHECK_INTERVAL_MS = 3000;
-
-// Safety cap to avoid running forever in edge runtime.
 const MAX_RUNTIME_MS = 120000;
 
 function sleep(ms: number) {
@@ -26,12 +22,10 @@ function sleep(ms: number) {
 }
 
 function waitUntil(promise: Promise<unknown>) {
-  // Supabase Edge Runtime provides EdgeRuntime.waitUntil to keep the worker alive.
   const er = (globalThis as any).EdgeRuntime;
   if (er?.waitUntil) {
     er.waitUntil(promise);
   } else {
-    // Fallback (shouldn't happen in production), but prevents unhandled rejections.
     promise.catch((e) => console.error("[Debounce] Background error (no waitUntil):", e));
   }
 }
@@ -39,134 +33,6 @@ function waitUntil(promise: Promise<unknown>) {
 addEventListener("beforeunload", (ev: any) => {
   console.log("[Debounce] shutdown due to:", ev?.detail?.reason);
 });
-
-// Schedule a follow-up execution for a conversation
-async function scheduleFollowupForConversation(
-  supabase: any,
-  conversationId: string,
-  userId: string,
-  leadName: string,
-  leadPhone: string
-): Promise<void> {
-  // Check if there's already a scheduled/pending follow-up for this conversation
-  const { data: existingFollowup } = await supabase
-    .from("avivar_followup_executions")
-    .select("id")
-    .eq("conversation_id", conversationId)
-    .in("status", ["scheduled", "pending"])
-    .limit(1)
-    .maybeSingle();
-
-  if (existingFollowup) {
-    console.log(`[Debounce] Follow-up already exists for conversation ${conversationId}, skipping`);
-    return;
-  }
-
-  // Resolve account_id for the user
-  const { data: memberInfo } = await supabase
-    .from("avivar_account_members")
-    .select("account_id")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
-  const ruleAccountId = memberInfo?.account_id;
-
-  // Get the first active follow-up rule (attempt 1) - use account_id for multi-tenant
-  // First, find lead's kanban/column for scope filtering
-  let leadKanbanId: string | null = null;
-  let leadColumnId: string | null = null;
-
-  const { data: kanbanLead } = await supabase
-    .from("avivar_kanban_leads")
-    .select("kanban_id, column_id")
-    .eq("phone", leadPhone)
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (kanbanLead) {
-    leadKanbanId = kanbanLead.kanban_id;
-    leadColumnId = kanbanLead.column_id;
-  }
-
-  let ruleQuery = supabase
-    .from("avivar_followup_rules")
-    .select("*")
-    .eq("is_active", true)
-    .eq("attempt_number", 1)
-    .order("order_index", { ascending: true });
-
-  if (ruleAccountId) {
-    ruleQuery = ruleQuery.eq("account_id", ruleAccountId);
-  } else {
-    ruleQuery = ruleQuery.eq("user_id", userId);
-  }
-
-  const { data: allRules, error: ruleError } = await ruleQuery;
-
-  if (ruleError) {
-    console.error(`[Debounce] Error fetching follow-up rules:`, ruleError);
-    return;
-  }
-
-  // Filter rules by scope: applicable_kanban_ids / applicable_column_ids
-  const rule = (allRules || []).find((r: any) => {
-    // If no scope defined, rule applies to all leads
-    if (!r.applicable_kanban_ids || r.applicable_kanban_ids.length === 0) return true;
-    // Lead must be in one of the applicable kanbans
-    if (!leadKanbanId || !r.applicable_kanban_ids.includes(leadKanbanId)) return false;
-    // If column scope defined, lead must be in one of those columns
-    if (r.applicable_column_ids && r.applicable_column_ids.length > 0) {
-      if (!leadColumnId || !r.applicable_column_ids.includes(leadColumnId)) return false;
-    }
-    return true;
-  }) || null;
-
-  if (!rule) {
-    console.log(`[Debounce] No matching follow-up rule for user ${userId} (lead kanban: ${leadKanbanId})`);
-    return;
-  }
-
-  // Get the lead ID and account_id from the conversation
-  const { data: conversation } = await supabase
-    .from("crm_conversations")
-    .select("lead_id, account_id")
-    .eq("id", conversationId)
-    .single();
-
-  if (!conversation?.lead_id) {
-    console.log(`[Debounce] No lead_id found for conversation ${conversationId}`);
-    return;
-  }
-
-  // Calculate scheduled time based on rule delay
-  const scheduledFor = new Date(Date.now() + rule.delay_minutes * 60 * 1000);
-
-  // Create the follow-up execution
-  const { error: insertError } = await supabase.from("avivar_followup_executions").insert({
-    account_id: conversation.account_id,
-    user_id: userId,
-    rule_id: rule.id,
-    conversation_id: conversationId,
-    lead_id: conversation.lead_id,
-    lead_name: leadName,
-    lead_phone: leadPhone,
-    attempt_number: 1,
-    status: "scheduled",
-    scheduled_for: scheduledFor.toISOString(),
-    original_message: rule.message_template,
-    ai_generated: rule.use_ai_generation,
-    channel: "whatsapp",
-  });
-
-  if (insertError) {
-    console.error(`[Debounce] Error creating follow-up execution:`, insertError);
-    throw insertError;
-  }
-
-  console.log(`[Debounce] Created follow-up execution scheduled for ${scheduledFor.toISOString()}`);
-}
 
 type DebounceStartPayload = {
   conversationId: string;
@@ -179,9 +45,7 @@ type DebounceStartPayload = {
 
 async function processDebounceBatch(payload: DebounceStartPayload) {
   const { conversationId, batchId, leadPhone, leadName, userId } = payload;
-
   const safeLeadName = (leadName || "").trim() || `WhatsApp ${leadPhone}`;
-  const startTime = Date.now();
 
   try {
     console.log(`[Debounce] Starting processor for batch ${batchId}, conversation ${conversationId}`);
@@ -190,7 +54,6 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Keep checking until we can process
     const maxIterations = Math.ceil(MAX_RUNTIME_MS / CHECK_INTERVAL_MS);
     let iteration = 0;
 
@@ -209,13 +72,11 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
         break;
       }
 
-      // If batch ID changed, another process took over
       if (checkConv?.pending_batch_id !== batchId) {
         console.log(`[Debounce] Batch ${batchId} superseded by ${checkConv?.pending_batch_id}, exiting`);
         return;
       }
 
-      // If no pending batch, already processed
       if (!checkConv?.pending_batch_id) {
         console.log(`[Debounce] Batch ${batchId} already processed, exiting`);
         return;
@@ -224,13 +85,10 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
       const checkPendingUntil = checkConv?.pending_until ? new Date(checkConv.pending_until) : null;
       const now = new Date();
 
-      // Still in debounce window → wait a bit and re-check
       if (checkPendingUntil && checkPendingUntil > now) {
         const msRemaining = checkPendingUntil.getTime() - now.getTime();
         const waitMs = Math.max(250, Math.min(CHECK_INTERVAL_MS, msRemaining));
-        console.log(
-          `[Debounce] Batch ${batchId} extended until ${checkPendingUntil.toISOString()}, waiting ${waitMs}ms...`,
-        );
+        console.log(`[Debounce] Batch ${batchId} extended until ${checkPendingUntil.toISOString()}, waiting ${waitMs}ms...`);
         await sleep(waitMs);
         continue;
       }
@@ -267,6 +125,7 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
         return;
       }
 
+      // Transcribe audio messages
       const processedContents: string[] = [];
       let audioTranscribed = 0;
 
@@ -281,24 +140,15 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
                 apikey: supabaseServiceKey,
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({
-                audioUrl: msg.media_url,
-                language: "pt",
-              }),
+              body: JSON.stringify({ audioUrl: msg.media_url, language: "pt" }),
             });
 
             const transcribeText = await transcribeResponse.text();
             let transcribeResult: any = null;
-            try {
-              transcribeResult = JSON.parse(transcribeText);
-            } catch {
-              transcribeResult = { success: false, error: transcribeText };
-            }
+            try { transcribeResult = JSON.parse(transcribeText); } catch { transcribeResult = { success: false, error: transcribeText }; }
 
             if (transcribeResult.success && transcribeResult.transcription) {
-              console.log(
-                `[Debounce] ✅ Audio transcribed: "${String(transcribeResult.transcription).substring(0, 50)}..."`,
-              );
+              console.log(`[Debounce] ✅ Audio transcribed: "${String(transcribeResult.transcription).substring(0, 50)}..."`);
               processedContents.push(`[Áudio transcrito]: ${transcribeResult.transcription}`);
               audioTranscribed++;
 
@@ -309,7 +159,6 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
                 .eq("media_url", msg.media_url)
                 .eq("direction", "inbound");
             } else {
-              console.log(`[Debounce] ⚠️ Audio transcription failed: ${transcribeResult.error}`);
               processedContents.push("[Mensagem de áudio - não foi possível transcrever]");
             }
           } catch (transcribeError) {
@@ -323,97 +172,115 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
 
       const combinedContent = processedContents.filter(Boolean).join("\n\n");
 
-      console.log(
-        `[Debounce] Processing ${newMessages.length} batched messages (${audioTranscribed} audio transcribed) for conversation ${conversationId}`,
-      );
-      console.log(`[Debounce] Combined content: ${combinedContent.substring(0, 200)}...`);
+      console.log(`[Debounce] Processing ${newMessages.length} batched messages (${audioTranscribed} audio) for conversation ${conversationId}`);
 
-      // Clear batch before calling AI (to prevent race conditions)
+      // Clear batch BEFORE enqueuing
       await supabase
         .from("crm_conversations")
         .update({ pending_batch_id: null, pending_until: null })
         .eq("id", conversationId);
 
-      // Call AI agent with combined content (with retry)
-      const maxRetries = 2;
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          console.log(`[Debounce] Calling AI Agent (attempt ${attempt}/${maxRetries})...`);
-          const aiResponse = await fetch(`${supabaseUrl}/functions/v1/avivar-ai-agent`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${supabaseServiceKey}`,
-              apikey: supabaseServiceKey,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              conversationId,
-              messageContent: combinedContent,
-              leadPhone,
-              leadName: safeLeadName,
-              userId,
-              batchedMessages: newMessages.length,
-            }),
-          });
+      // ============================================================
+      // QUEUE MODE: Enqueue job instead of calling AI directly
+      // ============================================================
+      
+      // Resolve account_id for multi-tenant isolation
+      let accountId: string | null = null;
+      const { data: convData } = await supabase
+        .from("crm_conversations")
+        .select("account_id")
+        .eq("id", conversationId)
+        .single();
+      accountId = convData?.account_id || null;
 
-          const aiText = await aiResponse.text();
-          let aiResult: any = null;
-          try {
-            aiResult = JSON.parse(aiText);
-          } catch {
-            aiResult = { success: false, error: aiText };
-          }
-
-          const duration = Date.now() - startTime;
-
-          if (aiResponse.ok && aiResult?.success) {
-            console.log(`[Debounce] 🤖 AI Agent responded successfully in ${duration}ms (attempt ${attempt})`);
-
-            try {
-              await scheduleFollowupForConversation(supabase, conversationId, userId, safeLeadName, leadPhone);
-              console.log(`[Debounce] 📅 Follow-up scheduled for conversation ${conversationId}`);
-            } catch (followupError) {
-              console.error(`[Debounce] Error scheduling follow-up:`, followupError);
-            }
-
-            return;
-          }
-
-          console.error(
-            `[Debounce] AI Agent call failed (attempt ${attempt}): status=${aiResponse.status} body=${String(aiResult?.error || aiText).substring(0, 500)}`,
-          );
-
-          // If not last attempt, wait before retrying
-          if (attempt < maxRetries) {
-            console.log(`[Debounce] Retrying in 3s...`);
-            await sleep(3000);
-          }
-        } catch (aiError) {
-          console.error(`[Debounce] AI Agent error (attempt ${attempt}):`, aiError);
-          if (attempt < maxRetries) {
-            console.log(`[Debounce] Retrying in 3s...`);
-            await sleep(3000);
-          }
-        }
+      // If no account_id on conversation, resolve from user
+      if (!accountId) {
+        const { data: memberInfo } = await supabase
+          .from("avivar_account_members")
+          .select("account_id")
+          .eq("user_id", userId)
+          .eq("is_active", true)
+          .limit(1)
+          .maybeSingle();
+        accountId = memberInfo?.account_id || null;
       }
 
-      console.error(`[Debounce] ❌ AI Agent failed after ${maxRetries} attempts for conversation ${conversationId}`);
+      // Determine priority based on context
+      let priority = 5; // default
+      
+      // Higher priority for conversations with more messages (engaged leads)
+      if (newMessages.length >= 3) priority = 3;
+      
+      // Highest priority for audio messages (user put effort into recording)
+      if (audioTranscribed > 0) priority = 2;
+
+      const { data: queuedJob, error: queueError } = await supabase
+        .from("avivar_ai_queue")
+        .insert({
+          account_id: accountId,
+          conversation_id: conversationId,
+          user_id: userId,
+          job_type: "ai_response",
+          priority,
+          payload: {
+            conversationId,
+            messageContent: combinedContent,
+            leadPhone,
+            leadName: safeLeadName,
+            userId,
+            batchedMessages: newMessages.length,
+            audioTranscribed,
+          },
+        })
+        .select("id")
+        .single();
+
+      if (queueError) {
+        console.error(`[Debounce] ❌ Failed to enqueue job:`, queueError);
+        
+        // FALLBACK: Call AI directly if queue fails (resilience)
+        console.log(`[Debounce] ⚡ Falling back to direct AI call...`);
+        await callAiDirectly(supabaseUrl, supabaseServiceKey, {
+          conversationId,
+          messageContent: combinedContent,
+          leadPhone,
+          leadName: safeLeadName,
+          userId,
+          batchedMessages: newMessages.length,
+        });
+        return;
+      }
+
+      console.log(`[Debounce] 📋 Job enqueued: ${queuedJob.id} (priority: ${priority})`);
+
+      // Trigger queue processor immediately (non-blocking)
+      fetch(`${supabaseUrl}/functions/v1/avivar-queue-processor`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ max_jobs: 3 }),
+      }).catch(err => {
+        console.error(`[Debounce] Non-critical: queue trigger failed:`, err);
+      });
+
       return;
     }
 
+    // Max iterations reached - cleanup
     console.log(`[Debounce] Batch ${batchId} exceeded max iterations, giving up`);
-
-    // Clear the batch to prevent orphaned batches
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     await supabase
       .from("crm_conversations")
       .update({ pending_batch_id: null, pending_until: null })
       .eq("id", conversationId);
 
-    console.log(`[Debounce] Cleared batch ${batchId} after giving up`);
   } catch (error) {
     console.error("[Debounce] Background error:", error);
-
-    // Best-effort cleanup
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -427,6 +294,43 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
       console.error("[Debounce] Cleanup error:", cleanupError);
     }
   }
+}
+
+// Fallback: direct AI call if queue is unavailable
+async function callAiDirectly(
+  supabaseUrl: string,
+  supabaseServiceKey: string,
+  payload: any
+) {
+  const maxRetries = 2;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`[Debounce] Direct AI call (attempt ${attempt}/${maxRetries})...`);
+      const aiResponse = await fetch(`${supabaseUrl}/functions/v1/avivar-ai-agent`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const aiText = await aiResponse.text();
+      let aiResult: any;
+      try { aiResult = JSON.parse(aiText); } catch { aiResult = { success: false, error: aiText }; }
+
+      if (aiResponse.ok && aiResult?.success) {
+        console.log(`[Debounce] ✅ Direct AI call succeeded (attempt ${attempt})`);
+        return;
+      }
+      console.error(`[Debounce] Direct AI call failed (attempt ${attempt}): ${aiResult?.error}`);
+    } catch (err) {
+      console.error(`[Debounce] Direct AI error (attempt ${attempt}):`, err);
+    }
+    if (attempt < maxRetries) await sleep(3000);
+  }
+  console.error(`[Debounce] ❌ Direct AI fallback failed after ${maxRetries} attempts`);
 }
 
 serve(async (req) => {
@@ -449,13 +353,13 @@ serve(async (req) => {
 
     console.log(`[Debounce] ACK start for batch ${batchId}, conversation ${conversationId}`);
 
-    // CRITICAL: keep worker alive for the background task.
     waitUntil(processDebounceBatch(payload));
 
     return new Response(
       JSON.stringify({
         success: true,
         status: "started",
+        mode: "queue",
         conversationId,
         batchId,
         ack_ms: Date.now() - startedAt,
@@ -470,4 +374,3 @@ serve(async (req) => {
     });
   }
 });
-

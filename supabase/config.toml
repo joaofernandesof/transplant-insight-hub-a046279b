@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.avivar-vapi-webhook]
 verify_jwt = false
+
+[functions.avivar-queue-processor]
+verify_jwt = false
