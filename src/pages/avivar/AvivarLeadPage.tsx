@@ -67,6 +67,7 @@ import { ChecklistFieldRenderer } from '@/components/crm/chat/ChecklistFieldRend
 import { ChecklistConfigDialog } from '@/components/crm/chat/ChecklistConfigDialog';
 import { ResponsibleSelector } from '@/components/crm/chat/ResponsibleSelector';
 import { LeadEditDialog } from '@/components/crm/chat/LeadEditDialog';
+import { LeadStatisticsSection } from '@/components/crm/chat/LeadStatisticsSection';
 import { LeadTagsDialog } from '@/components/crm/chat/LeadTagsDialog';
 import { MessageInput } from '@/components/crm/chat/MessageInput';
 import { MessageThread } from '@/components/crm/chat/MessageThread';
@@ -494,6 +495,15 @@ export default function AvivarLeadPage() {
                   </Button>
                 </CollapsibleContent>
               </Collapsible>
+
+              {/* Estatísticas (UTMs) */}
+              <LeadStatisticsSection
+                utmSource={kanbanInfo?.utmSource}
+                utmMedium={kanbanInfo?.utmMedium}
+                utmCampaign={kanbanInfo?.utmCampaign}
+                utmTerm={kanbanInfo?.utmTerm}
+                utmContent={kanbanInfo?.utmContent}
+              />
 
               {/* Ações */}
               <Separator className="bg-[hsl(var(--avivar-border))]" />
