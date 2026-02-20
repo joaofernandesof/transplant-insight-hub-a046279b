@@ -6,9 +6,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, ArrowLeft, Search, Filter, RefreshCw,
-  MoreHorizontal, Upload, Download, Zap,
+  MoreHorizontal, Upload, Download, Zap, Lock,
   Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid as LayoutGridIcon,
 } from 'lucide-react';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +89,8 @@ export function KanbanHeader({
     }
   };
   const navigate = useNavigate();
+  const { isAdmin, isSuperAdmin } = useAvivarAccount();
+  const canAccessAutomations = isAdmin || isSuperAdmin;
   const Icon = getIconComponent(kanban.icon);
   const isFiltered = searchQuery.length > 0;
 
@@ -125,14 +129,33 @@ export function KanbanHeader({
           <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
           
           {/* Automations Button */}
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/avivar/automations/${kanban.id}`)}
-            className="border-orange-500/30 text-orange-500 hover:bg-orange-500/10 hover:text-orange-600"
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            Automações
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={canAccessAutomations ? () => navigate(`/avivar/automations/${kanban.id}`) : undefined}
+                  className={canAccessAutomations
+                    ? "border-orange-500/30 text-orange-500 hover:bg-orange-500/10 hover:text-orange-600"
+                    : "border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] opacity-60 cursor-not-allowed"
+                  }
+                  disabled={!canAccessAutomations}
+                >
+                  {canAccessAutomations ? (
+                    <Zap className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Lock className="h-4 w-4 mr-2" />
+                  )}
+                  Automações
+                </Button>
+              </TooltipTrigger>
+              {!canAccessAutomations && (
+                <TooltipContent>
+                  <p>Funcionalidade em implementação. Disponível apenas para administradores.</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
 
           {/* Primary Action: Add Lead */}
           <Button
