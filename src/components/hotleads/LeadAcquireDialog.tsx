@@ -5,7 +5,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Loader2, MessageCircle, Send } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 import type { HotLead } from '@/hooks/useHotLeads';
 import type { HotLeadsSettings } from '@/hooks/useHotLeadsSettings';
 
@@ -40,20 +39,10 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, setting
     setIsSubmitting(false);
     if (success) {
       onOpenChange(false);
+      // Open WhatsApp with the standardized message
       const whatsappUrl = generateWhatsAppUrl(lead.phone, lead.name);
       if (whatsappUrl) {
-        try {
-          await navigator.clipboard.writeText(whatsappUrl);
-          toast.success('Link do WhatsApp copiado! Cole no navegador para enviar a mensagem.', {
-            duration: 10000,
-            action: {
-              label: 'Abrir WhatsApp',
-              onClick: () => window.open(whatsappUrl, '_blank'),
-            },
-          });
-        } catch {
-          toast.info(`Copie o link manualmente: ${whatsappUrl}`, { duration: 12000 });
-        }
+        window.open(whatsappUrl, '_blank');
       }
     }
   };
