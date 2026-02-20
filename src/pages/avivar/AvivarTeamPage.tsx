@@ -216,16 +216,91 @@ export default function AvivarTeamPage() {
   const addMemberMutation = useMutation({
     mutationFn: async (data: typeof formData & { avatarFile?: File | null }) => {
       if (!accountId) throw new Error('Conta não encontrada');
-      const tempUserId = crypto.randomUUID();
+
+      let realUserId: string | null = null;
+
+      // 1. Check if user already exists by email in profiles
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('email', data.email)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingProfile?.user_id) {
+        realUserId = existingProfile.user_id;
+      } else {
+        // 2. Also check neohub_users
+        const { data: existingNeohub } = await supabase
+          .from('neohub_users')
+          .select('user_id')
+          .eq('email', data.email)
+          .limit(1)
+          .maybeSingle();
+
+        if (existingNeohub?.user_id) {
+          realUserId = existingNeohub.user_id;
+        }
+      }
+
+      // 3. If user doesn't exist, create via edge function
+      if (!realUserId) {
+        const defaultPassword = `Avivar@${Date.now().toString(36)}`;
+        const { data: createResult, error: createError } = await supabase.functions.invoke('admin-create-user', {
+          body: {
+            email: data.email,
+            password: defaultPassword,
+            full_name: data.name,
+            phone: data.phone || null,
+            allowed_portals: ['avivar'],
+          },
+        });
+
+        if (createError || !createResult?.user_id) {
+          throw new Error(createResult?.error || 'Erro ao criar usuário');
+        }
+
+        realUserId = createResult.user_id;
+
+        // Also ensure profile exists
+        await supabase.from('profiles').upsert({
+          user_id: realUserId,
+          name: data.name,
+          email: data.email,
+          phone: data.phone || null,
+        }, { onConflict: 'user_id' });
+      }
+
+      // 4. Check if already a member of this account
+      const { data: existingMember } = await supabase
+        .from('avivar_account_members')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('user_id', realUserId!)
+        .maybeSingle();
+
+      if (existingMember) {
+        throw new Error('duplicate');
+      }
+
+      // 5. Insert into avivar_account_members with the real user_id
       const { error } = await supabase
         .from('avivar_account_members')
         .insert({
           account_id: accountId,
-          user_id: tempUserId,
+          user_id: realUserId!,
           role: data.role as any,
           is_active: true,
         });
       if (error) throw error;
+
+      // 6. Upload avatar if provided
+      if (data.avatarFile && realUserId) {
+        const avatarUrl = await uploadAvatar(data.avatarFile, realUserId);
+        if (avatarUrl) {
+          await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('user_id', realUserId);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
@@ -237,7 +312,7 @@ export default function AvivarTeamPage() {
       if (error.message.includes('duplicate')) {
         toast.error('Este membro já está na equipe');
       } else {
-        toast.error('Erro ao adicionar membro');
+        toast.error(`Erro ao adicionar membro: ${error.message}`);
       }
     },
   });
