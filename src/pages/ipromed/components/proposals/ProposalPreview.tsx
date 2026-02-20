@@ -552,18 +552,30 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               proposal.footerText || "Cartaxo Parahyba Guerreiro - Advocacia Médica • Proteção Jurídica Especializada"
             )}
           </p>
-          <p className="mt-0.5 opacity-70">
-            {isEditable ? (
-              <EditableText
-                value={proposal.validityText || "Esta proposta é válida por 30 dias a partir da data de emissão."}
-                onChange={(value) => onUpdate({ validityText: value })}
-                placeholder="Texto de validade..."
-                style={{ color: CPG_COLORS.greenLight }}
-              />
-            ) : (
-              proposal.validityText || "Esta proposta é válida por 30 dias a partir da data de emissão."
-            )}
-          </p>
+          {(() => {
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 15);
+            const formattedDate = expirationDate.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            });
+            const defaultValidity = `Proposta válida por 15 dias, até o dia ${formattedDate} às 23:59`;
+            return (
+              <p className="mt-0.5 opacity-70">
+                {isEditable ? (
+                  <EditableText
+                    value={proposal.validityText || defaultValidity}
+                    onChange={(value) => onUpdate({ validityText: value })}
+                    placeholder="Texto de validade..."
+                    style={{ color: CPG_COLORS.greenLight }}
+                  />
+                ) : (
+                  proposal.validityText || defaultValidity
+                )}
+              </p>
+            );
+          })()}
         </div>
       </div>
     );
