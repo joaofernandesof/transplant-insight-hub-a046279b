@@ -814,7 +814,7 @@ serve(async (req) => {
 
                       // Generate a new batch ID
                       const newBatchId = crypto.randomUUID();
-                      const pendingUntil = new Date(Date.now() + 5000).toISOString(); // 30 seconds from now
+                      const pendingUntil = new Date(Date.now() + 15000).toISOString(); // 15 seconds debounce
 
                       // Check if there's already a pending batch for this conversation
                       const { data: currentConv } = await supabase
