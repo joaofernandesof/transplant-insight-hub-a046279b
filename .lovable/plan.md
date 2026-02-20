@@ -1,38 +1,63 @@
 
-# Notificacao de Grupo HotLead via Webhook n8n
 
-## Objetivo
-Quando um usuario adquirir um lead na pagina HotLeads, enviar um webhook para o n8n com:
-- Nome do usuario que adquiriu
-- Nome do paciente (lead)
-- Cidade e estado do lead
+# Webhook Unico por Instancia UazAPI
 
-## Webhook destino
-`https://n8n-n8n-start.bym1io.easypanel.host/webhook/notificagrupohotlead`
+## Problema Confirmado
 
-## Mudanca necessaria
+Todas as instancias criadas recebem o mesmo webhook:
+```
+https://.../functions/v1/uazapi-webhook
+```
 
-### Edge Function `hotleads-acquire/index.ts`
+Sem nenhum parametro diferenciador. Quando duas instancias existem na mesma instalacao UazAPI, as mensagens podem ser roteadas para a instancia errada.
 
-A funcao ja faz o claim do lead e ja envia um webhook para `N8N_HOTLEADS_WEBHOOK_URL`. A mudanca sera:
+## Solucao
 
-1. **Buscar o nome do usuario**: A query atual de `neohub_users` so traz `address_state, user_id`. Adicionar `full_name` no select.
+Adicionar o `instance_token` como query parameter na URL do webhook, tornando cada URL unica:
 
-2. **Adicionar segundo webhook** (apos o webhook existente): Enviar POST para a URL fixa de notificacao de grupo com o payload:
+```
+https://.../functions/v1/uazapi-webhook?token=TOKEN_DA_INSTANCIA
+```
 
-```json
-{
-  "usuario_nome": "Nome do licenciado",
-  "lead_nome": "Nome do paciente",
-  "lead_cidade": "Cidade",
-  "lead_estado": "UF"
+## Mudancas
+
+### 1. Edge Function `avivar-uazapi/index.ts`
+
+Alterar os 3 locais onde o webhook e configurado para incluir o token na URL:
+
+- **Linha ~114 (criacao)**: Mudar de `${supabaseUrl}/functions/v1/uazapi-webhook` para `${supabaseUrl}/functions/v1/uazapi-webhook?token=${data.instance.token}`
+- **Linha ~422 (auto-config)**: Mesmo padrao, usando o token da instancia ja salvo
+- **Linha ~600 (config manual)**: Mesmo padrao
+
+### 2. Edge Function `uazapi-webhook/index.ts`
+
+No inicio do handler, extrair o token da URL e usar como filtro primario para resolver a instancia:
+
+```typescript
+const url = new URL(req.url);
+const urlToken = url.searchParams.get("token");
+```
+
+Se `urlToken` estiver presente, buscar a instancia diretamente por `instance_token` ao inves de depender do `instanceName` no payload:
+
+```typescript
+if (urlToken) {
+  const { data } = await supabase
+    .from('avivar_uazapi_instances')
+    .select('id, user_id, instance_id, instance_name, instance_token, phone_number, status, account_id')
+    .eq('instance_token', urlToken)
+    .single();
 }
 ```
 
-3. O webhook sera **non-blocking** (mesmo padrao do existente) -- se falhar, nao impede a aquisicao.
+Se o token nao estiver na URL (retrocompatibilidade com instancias antigas), manter o fallback pelo `instanceName` do payload.
 
-## Detalhes tecnicos
+### 3. Instancias ja existentes
 
-- A URL sera salva como secret `N8N_HOTLEADS_GROUP_WEBHOOK_URL` para facilitar manutencao futura
-- A query de `neohub_users` sera alterada de `.select('address_state, user_id')` para `.select('address_state, user_id, full_name')`
-- O segundo fetch sera feito em paralelo (nao sequencial) ao webhook existente para nao adicionar latencia
+Instancias criadas antes dessa correcao continuarao funcionando pelo fallback de `instanceName`. Para corrigir instancias existentes, o usuario pode desconectar e reconectar (o que reconfigurar o webhook automaticamente com o token na URL).
+
+## Resultado
+
+- Cada instancia tera um webhook unico identificado pelo token
+- Impossivel confundir mensagens entre instancias
+- Retrocompativel com instancias antigas
