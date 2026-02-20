@@ -32,6 +32,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 import { Separator } from '@/components/ui/separator';
 import {
@@ -306,14 +309,43 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
           {/* Status e Responsável */}
           <div className="space-y-3">            
             <div className="flex items-center justify-between">
-              <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tratamento</label>
-              {(kanbanInfo?.tratamento || lead.procedure_interest) ? (
-                <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-accent)/0.4)] text-[hsl(var(--avivar-accent))] bg-[hsl(var(--avivar-accent)/0.1)]">
-                  💉 {kanbanInfo?.tratamento || lead.procedure_interest}
-                </Badge>
-              ) : (
-                <span className="text-xs text-[hsl(var(--avivar-muted-foreground)/0.6)] italic">Não informado</span>
-              )}
+              <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">💉 Tratamento</label>
+              <Select
+                value={kanbanInfo?.tratamento || lead.procedure_interest || ''}
+                onValueChange={async (value) => {
+                  if (!kanbanInfo?.kanbanLeadId) return;
+                  try {
+                    // Get current custom_fields
+                    const { data: current } = await supabase
+                      .from('avivar_kanban_leads')
+                      .select('custom_fields')
+                      .eq('id', kanbanInfo.kanbanLeadId)
+                      .single();
+                    const fields = (current?.custom_fields as Record<string, unknown>) || {};
+                    await supabase
+                      .from('avivar_kanban_leads')
+                      .update({ custom_fields: { ...fields, tratamento: value === '_clear' ? null : value } })
+                      .eq('id', kanbanInfo.kanbanLeadId);
+                    refetchKanbanInfo();
+                    toast.success('Tratamento atualizado');
+                  } catch {
+                    toast.error('Erro ao atualizar tratamento');
+                  }
+                }}
+              >
+                <SelectTrigger className="h-7 w-[180px] text-xs bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
+                  <SelectValue placeholder="Selecionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_clear">Nenhum</SelectItem>
+                  <SelectItem value="Transplante Capilar">Transplante Capilar</SelectItem>
+                  <SelectItem value="Transplante de Barba">Transplante de Barba</SelectItem>
+                  <SelectItem value="Transplante de Sobrancelha">Transplante de Sobrancelha</SelectItem>
+                  <SelectItem value="Tratamento Clínico">Tratamento Clínico</SelectItem>
+                  <SelectItem value="Consulta/Avaliação">Consulta/Avaliação</SelectItem>
+                  <SelectItem value="Retorno">Retorno</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <ResponsibleSelector
