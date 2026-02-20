@@ -109,9 +109,7 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
   const accountId = memberData.account_id;
   console.log(`Creating UazAPI instance: ${instanceName} for user: ${userId}, account: ${accountId}`);
 
-  // Construct webhook URL
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+  // Construct webhook URL - NOT final yet, will be updated after we get the instance token
 
   // Call UazAPI to create instance
   const response = await fetch(`${UAZAPI_URL}/instance/init`, {
@@ -142,7 +140,9 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
     throw new Error("Invalid response from UazAPI");
   }
 
-  // Configure webhook using the correct POST /webhook endpoint
+  // Configure webhook using the correct POST /webhook endpoint with unique token
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook?token=${data.instance.token}`;
   console.log(`Configuring webhook: ${webhookUrl}`);
   
   const webhookPayload = {
@@ -419,7 +419,7 @@ async function handleCheckStatus(req: Request, supabase: any, userId: string) {
       console.log("Instance just connected, configuring webhook automatically...");
       try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+        const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook?token=${instance.instance_token}`;
         
         const webhookPayload = {
           enabled: true,
@@ -597,7 +597,7 @@ async function handleSetupWebhook(req: Request, supabase: any, userId: string) {
 
   // Configure webhook for this instance using POST /webhook endpoint
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+  const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook?token=${instance.instance_token}`;
   
   const webhookPayload = {
     enabled: true,
