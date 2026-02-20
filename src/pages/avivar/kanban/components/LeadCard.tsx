@@ -184,7 +184,7 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
             variant="outline"
             className="text-[10px] px-1.5 py-0 border-[hsl(var(--avivar-accent)/0.4)] text-[hsl(var(--avivar-accent))] bg-[hsl(var(--avivar-accent)/0.1)]"
           >
-            💉 {tratamento}
+            {tratamento}
           </Badge>
         </div>
       )}
