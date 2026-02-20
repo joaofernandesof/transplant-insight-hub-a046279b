@@ -339,8 +339,8 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 pt-2">
               {/* Tratamento - campo especial */}
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-medium uppercase tracking-wide text-[hsl(var(--avivar-muted-foreground))]">TRATAMENTO</label>
+              <div className="flex items-center gap-3">
+                <label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">TRATAMENTO</label>
                 <Select
                   value={kanbanInfo?.tratamento || lead.procedure_interest || ''}
                   onValueChange={async (value) => {
@@ -363,7 +363,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
                     }
                   }}
                 >
-                  <SelectTrigger className="h-7 w-[180px] text-xs bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
+                  <SelectTrigger className="h-7 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] rounded-none px-0 focus:ring-0 text-[hsl(var(--avivar-foreground))] flex-1">
                     <SelectValue placeholder="Selecionar..." />
                   </SelectTrigger>
                   <SelectContent>
