@@ -1,63 +1,50 @@
 
 
-# Webhook Unico por Instancia UazAPI
+# Status de Saude da Fila de IA - Dashboard Admin
 
-## Problema Confirmado
+## Objetivo
+Adicionar um widget de monitoramento em tempo real da fila de processamento de IA (Queue Mode) no Dashboard do Avivar, visivel exclusivamente para o super admin (adm@neofolic.com.br).
 
-Todas as instancias criadas recebem o mesmo webhook:
-```
-https://.../functions/v1/uazapi-webhook
-```
+## O que sera exibido
 
-Sem nenhum parametro diferenciador. Quando duas instancias existem na mesma instalacao UazAPI, as mensagens podem ser roteadas para a instancia errada.
+O widget mostrara os dados retornados pela funcao `avivar_queue_stats` que ja existe no banco:
 
-## Solucao
+- **Status geral**: Healthy / Degraded / Critical (baseado em jobs aguardando, falhados e parados)
+- **Jobs aguardando** (waiting)
+- **Jobs ativos** (active) 
+- **Jobs completados** (ultima hora)
+- **Jobs falhados** (ultima hora)
+- **Jobs parados** (stalled)
+- **Tempo medio de processamento** (avg_processing_ms)
+- **Throughput** (jobs/min nos ultimos 5 min)
+- **Total hoje** (total_today)
 
-Adicionar o `instance_token` como query parameter na URL do webhook, tornando cada URL unica:
+O widget tera um indicador visual de saude (verde/amarelo/vermelho) e um botao de refresh manual.
 
-```
-https://.../functions/v1/uazapi-webhook?token=TOKEN_DA_INSTANCIA
-```
+## Regras de visibilidade
 
-## Mudancas
+Visivel apenas quando o usuario autenticado for o super admin, verificado via RPC `is_avivar_super_admin` (ja existe no banco).
 
-### 1. Edge Function `avivar-uazapi/index.ts`
+## Detalhes tecnicos
 
-Alterar os 3 locais onde o webhook e configurado para incluir o token na URL:
+### Arquivo novo
+- `src/pages/avivar/components/QueueHealthWidget.tsx` - Componente do widget
 
-- **Linha ~114 (criacao)**: Mudar de `${supabaseUrl}/functions/v1/uazapi-webhook` para `${supabaseUrl}/functions/v1/uazapi-webhook?token=${data.instance.token}`
-- **Linha ~422 (auto-config)**: Mesmo padrao, usando o token da instancia ja salvo
-- **Linha ~600 (config manual)**: Mesmo padrao
+### Arquivo modificado
+- `src/pages/avivar/AvivarDashboard.tsx` - Importar e renderizar o widget logo apos o card "Assistente AVIVAR IA" (linha ~485), condicionado a ser super admin
 
-### 2. Edge Function `uazapi-webhook/index.ts`
+### Logica do componente
+1. Verificar se o usuario eh super admin via `supabase.rpc('is_avivar_super_admin', { _user_id: user.id })`
+2. Se sim, chamar `supabase.rpc('avivar_queue_stats')` a cada 30 segundos (polling com React Query `refetchInterval`)
+3. Calcular status de saude:
+   - **Healthy**: waiting < 10, failed = 0, stalled = 0
+   - **Degraded**: waiting >= 10 ou failed > 0
+   - **Critical**: stalled > 0 ou failed > 5 ou waiting > 50
+4. Renderizar card compacto com metricas em grid, seguindo o design system Avivar (cores hsl var)
 
-No inicio do handler, extrair o token da URL e usar como filtro primario para resolver a instancia:
+### Design visual
+Card com borda colorida pelo status (verde/amarelo/vermelho), contendo:
+- Header com icone de heartbeat + titulo "Saude da Fila IA" + badge de status + botao refresh
+- Grid 3x3 com as metricas principais (icone + valor + label)
+- Barra de progresso mostrando throughput relativo
 
-```typescript
-const url = new URL(req.url);
-const urlToken = url.searchParams.get("token");
-```
-
-Se `urlToken` estiver presente, buscar a instancia diretamente por `instance_token` ao inves de depender do `instanceName` no payload:
-
-```typescript
-if (urlToken) {
-  const { data } = await supabase
-    .from('avivar_uazapi_instances')
-    .select('id, user_id, instance_id, instance_name, instance_token, phone_number, status, account_id')
-    .eq('instance_token', urlToken)
-    .single();
-}
-```
-
-Se o token nao estiver na URL (retrocompatibilidade com instancias antigas), manter o fallback pelo `instanceName` do payload.
-
-### 3. Instancias ja existentes
-
-Instancias criadas antes dessa correcao continuarao funcionando pelo fallback de `instanceName`. Para corrigir instancias existentes, o usuario pode desconectar e reconectar (o que reconfigurar o webhook automaticamente com o token na URL).
-
-## Resultado
-
-- Cada instancia tera um webhook unico identificado pelo token
-- Impossivel confundir mensagens entre instancias
-- Retrocompativel com instancias antigas
