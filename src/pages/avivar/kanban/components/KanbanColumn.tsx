@@ -56,7 +56,7 @@ export function KanbanColumn({
   return (
     <Card
       className={cn(
-        "w-[280px] flex-shrink-0 border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] flex flex-col h-full max-h-[calc(100vh-200px)] transition-all duration-200",
+        "w-[260px] sm:w-[280px] flex-shrink-0 border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] flex flex-col h-full max-h-[calc(100vh-200px)] transition-all duration-200",
         isDragging && "shadow-xl ring-2 ring-[hsl(var(--avivar-primary))]",
         isOver && "ring-2 ring-[hsl(var(--avivar-primary))] shadow-lg shadow-[hsl(var(--avivar-primary)/0.3)]"
       )}

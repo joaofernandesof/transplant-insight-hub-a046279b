@@ -23,11 +23,11 @@ export default function AvivarTasks() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Tarefas & Follow-ups
             <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
           </h1>

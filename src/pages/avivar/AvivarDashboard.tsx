@@ -336,11 +336,11 @@ export default function AvivarDashboard() {
   const isLoading = loadingLeads || loadingTasks || loadingConversations;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Dashboard
             <Badge className="bg-[hsl(var(--avivar-primary))] border-0 text-white">
               <Bot className="h-3 w-3 mr-1" />
