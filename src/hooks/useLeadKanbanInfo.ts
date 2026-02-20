@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface KanbanInfo {
+  kanbanLeadId: string | null;
   kanbanName: string | null;
   columnName: string | null;
   kanbanId: string | null;
@@ -25,12 +26,13 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
     queryKey: ['lead-kanban-info', phone],
     queryFn: async (): Promise<KanbanInfo> => {
       if (!phone) {
-        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [], tratamento: null, utmSource: null, utmMedium: null, utmCampaign: null, utmTerm: null, utmContent: null };
+        return { kanbanLeadId: null, kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [], tratamento: null, utmSource: null, utmMedium: null, utmCampaign: null, utmTerm: null, utmContent: null };
       }
 
       const { data: kanbanLead, error: leadError } = await supabase
         .from('avivar_kanban_leads')
         .select(`
+          id,
           kanban_id,
           column_id,
           tags,
@@ -49,7 +51,7 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
         .maybeSingle();
 
       if (leadError || !kanbanLead) {
-        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [], tratamento: null, utmSource: null, utmMedium: null, utmCampaign: null, utmTerm: null, utmContent: null };
+        return { kanbanLeadId: null, kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [], tratamento: null, utmSource: null, utmMedium: null, utmCampaign: null, utmTerm: null, utmContent: null };
       }
 
       const kanban = kanbanLead.kanban as { id: string; name: string; order_index: number } | null;
@@ -59,6 +61,7 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
       const tratamento = (customFields?.tratamento as string) || null;
 
       return {
+        kanbanLeadId: kanbanLead.id as string,
         kanbanName: kanban?.name || null,
         columnName: column?.name || null,
         kanbanId: kanban?.id || null,
