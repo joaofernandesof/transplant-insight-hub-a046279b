@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // Check user's state from neohub_users
     const { data: userProfile } = await supabaseAdmin
       .from('neohub_users')
-      .select('address_state, user_id')
+      .select('address_state, user_id, full_name')
       .eq('user_id', userId)
       .single()
 
@@ -113,37 +113,65 @@ Deno.serve(async (req) => {
 
     console.log(`[hotleads-acquire] Lead ${lead_id} claimed successfully by ${userId}`)
 
-    // Send webhook to n8n
+    // Send webhooks to n8n in parallel
+    const webhookPromises: Promise<void>[] = []
+
+    // Webhook 1: existing lead data webhook
     const webhookUrl = Deno.env.get('N8N_HOTLEADS_WEBHOOK_URL')
     if (webhookUrl) {
-      try {
-        const payload = {
-          user_email,
-          lead: {
-            nome: claimedLead.name,
-            telefone: claimedLead.phone,
-            email: claimedLead.email,
-            cidade: claimedLead.city,
-            estado: claimedLead.state,
-          },
+      webhookPromises.push((async () => {
+        try {
+          const payload = {
+            user_email,
+            lead: {
+              nome: claimedLead.name,
+              telefone: claimedLead.phone,
+              email: claimedLead.email,
+              cidade: claimedLead.city,
+              estado: claimedLead.state,
+            },
+          }
+          console.log(`[hotleads-acquire] Sending webhook to n8n`, JSON.stringify(payload))
+          const resp = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+          console.log(`[hotleads-acquire] Webhook response status: ${resp.status}`)
+        } catch (e) {
+          console.error(`[hotleads-acquire] Webhook error (non-blocking):`, e)
         }
-
-        console.log(`[hotleads-acquire] Sending webhook to n8n`, JSON.stringify(payload))
-
-        const webhookResponse = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-
-        console.log(`[hotleads-acquire] Webhook response status: ${webhookResponse.status}`)
-      } catch (webhookError) {
-        // Don't fail the claim if webhook fails
-        console.error(`[hotleads-acquire] Webhook error (non-blocking):`, webhookError)
-      }
+      })())
     } else {
       console.warn(`[hotleads-acquire] N8N_HOTLEADS_WEBHOOK_URL not configured, skipping webhook`)
     }
+
+    // Webhook 2: group notification webhook
+    const groupWebhookUrl = Deno.env.get('N8N_HOTLEADS_GROUP_WEBHOOK_URL')
+    if (groupWebhookUrl) {
+      webhookPromises.push((async () => {
+        try {
+          const groupPayload = {
+            usuario_nome: userProfile?.full_name || user_email,
+            lead_nome: claimedLead.name,
+            lead_cidade: claimedLead.city,
+            lead_estado: claimedLead.state,
+          }
+          console.log(`[hotleads-acquire] Sending group notification webhook`, JSON.stringify(groupPayload))
+          const resp = await fetch(groupWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(groupPayload),
+          })
+          console.log(`[hotleads-acquire] Group webhook response status: ${resp.status}`)
+        } catch (e) {
+          console.error(`[hotleads-acquire] Group webhook error (non-blocking):`, e)
+        }
+      })())
+    }
+
+    // Wait for all webhooks (non-blocking for the response)
+    await Promise.allSettled(webhookPromises)
 
     return new Response(
       JSON.stringify({
