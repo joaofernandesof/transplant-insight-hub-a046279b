@@ -42,14 +42,17 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, setting
       onOpenChange(false);
       const whatsappUrl = generateWhatsAppUrl(lead.phone, lead.name);
       if (whatsappUrl) {
-        const popup = window.open(whatsappUrl, '_blank');
-        if (!popup) {
-          try {
-            await navigator.clipboard.writeText(whatsappUrl);
-            toast.info('Link do WhatsApp copiado! Cole no navegador para enviar a mensagem.', { duration: 8000 });
-          } catch {
-            toast.info(`Abra manualmente: ${whatsappUrl}`, { duration: 12000 });
-          }
+        try {
+          await navigator.clipboard.writeText(whatsappUrl);
+          toast.success('Link do WhatsApp copiado! Cole no navegador para enviar a mensagem.', {
+            duration: 10000,
+            action: {
+              label: 'Abrir WhatsApp',
+              onClick: () => window.open(whatsappUrl, '_blank'),
+            },
+          });
+        } catch {
+          toast.info(`Copie o link manualmente: ${whatsappUrl}`, { duration: 12000 });
         }
       }
     }
