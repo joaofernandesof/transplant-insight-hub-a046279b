@@ -6,7 +6,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, MapPin, Settings, Lock, Calendar as CalendarIcon, CalendarCheck, CalendarX, Search, Filter, RefreshCw, Bell, MessageSquare, MoreVertical, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, MapPin, Settings, Lock, Calendar as CalendarIcon, CalendarCheck, CalendarX, Search, Filter, RefreshCw, Bell, MessageSquare, MoreVertical, CheckCircle, XCircle, ExternalLink, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,12 +45,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { toast } from "sonner";
 import { AgendaSelector } from "@/components/avivar/AgendaSelector";
+import { useAvivarAccount } from "@/hooks/useAvivarAccount";
 import { AvivarAgenda as AgendaType, useAvivarAgendas } from "@/hooks/useAvivarAgendas";
 import { NewAppointmentDialog } from "@/components/avivar/NewAppointmentDialog";
 import { EditAppointmentDialog } from "@/components/avivar/EditAppointmentDialog";
 import { CreateAvivarAgendaDialog } from "@/components/avivar/CreateAvivarAgendaDialog";
 import { useAvivarScheduleConfig, generateTimeSlotsForDay, generateDefaultTimeSlots } from "@/hooks/useAvivarScheduleConfig";
 import { RemindersTab } from "@/pages/avivar/agenda/RemindersTab";
+import { generateICS, downloadICS, parseICS, appointmentsToICSEvents, icsEventToAppointmentData } from "@/utils/icsUtils";
 
 interface Appointment {
   id: string;
@@ -144,6 +146,7 @@ export default function AvivarAgenda() {
   const { user } = useUnifiedAuth();
   const { agendas, isLoading: loadingAgendas } = useAvivarAgendas();
   const { scheduleConfig, scheduleHours, isLoading: loadingSchedule } = useAvivarScheduleConfig(selectedAgenda?.id || null);
+  const { accountId } = useAvivarAccount();
   const queryClient = useQueryClient();
 
   // Auto-select first agenda when agendas load (prevent "Todas as agendas" ghost state)
@@ -473,6 +476,77 @@ export default function AvivarAgenda() {
     }
   };
 
+  // ─── Import / Export ICS ─────────────────────────────────
+  const handleExportICS = () => {
+    const aptsToExport = mainView === 'control' ? controlAppointments : calendarAppointments;
+    if (aptsToExport.length === 0) {
+      toast.error('Nenhum agendamento para exportar');
+      return;
+    }
+    const events = appointmentsToICSEvents(aptsToExport);
+    const agendaName = selectedAgenda?.name || 'Avivar Agenda';
+    const icsContent = generateICS(events, agendaName);
+    downloadICS(icsContent, `${agendaName.replace(/\s+/g, '_')}.ics`);
+    toast.success(`${aptsToExport.length} agendamentos exportados`);
+  };
+
+  const importMutation = useMutation({
+    mutationFn: async (events: ReturnType<typeof icsEventToAppointmentData>[]) => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser?.id) throw new Error('Não autenticado');
+      if (!accountId) throw new Error('Nenhuma conta encontrada');
+      if (!accountId) throw new Error('Nenhuma conta encontrada');
+      const agendaId = selectedAgenda?.id || agendas[0]?.id;
+      if (!agendaId) throw new Error('Selecione uma agenda');
+
+      const rows = events.map(ev => ({
+        ...ev,
+        user_id: authUser.id,
+        account_id: accountId,
+        agenda_id: agendaId,
+        created_by: 'import',
+      }));
+
+      const { error } = await supabase
+        .from('avivar_appointments')
+        .insert(rows);
+      if (error) throw error;
+      return rows.length;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['avivar-appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['avivar-agenda-control'] });
+      toast.success(`${count} agendamentos importados com sucesso!`);
+    },
+    onError: (err: any) => {
+      console.error('Import error:', err);
+      toast.error('Erro ao importar agendamentos');
+    },
+  });
+
+  const handleImportICS = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.ics';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const events = parseICS(text);
+        if (events.length === 0) {
+          toast.error('Nenhum evento encontrado no arquivo ICS');
+          return;
+        }
+        const appointmentData = events.map(icsEventToAppointmentData);
+        importMutation.mutate(appointmentData);
+      } catch {
+        toast.error('Erro ao ler arquivo ICS');
+      }
+    };
+    input.click();
+  };
+
   const setMainView = (newView: 'calendar' | 'control' | 'reminders') => {
     if (newView === 'calendar') {
       setSearchParams({});
@@ -583,6 +657,28 @@ export default function AvivarAgenda() {
 
           {mainView === 'calendar' && (
             <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+                    title="Importar / Exportar"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleImportICS}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Importar ICS
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportICS}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar ICS
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 variant="outline"
                 onClick={() => setShowCreateAgenda(true)}
