@@ -805,6 +805,13 @@ serve(async (req) => {
 
                   // 🤖 Trigger AI Agent for inbound messages with 30s debounce
                   if (!msg.key.fromMe && content) {
+                    // Check if AI is enabled for this conversation
+                    const { data: convAiCheck } = await supabase
+                      .from("crm_conversations")
+                      .select("ai_enabled")
+                      .eq("id", crmConversationId)
+                      .single();
+
                     // ⏹️ Cancel any scheduled follow-ups for this conversation (lead responded)
                     try {
                       const { data: cancelledFollowups, error: cancelError } = await supabase
@@ -828,133 +835,133 @@ serve(async (req) => {
                       console.error("[UazAPI Webhook] Error in follow-up cancellation:", cancelFollowupError);
                     }
 
-                    try {
-                      console.log(`[UazAPI Webhook] Checking debounce for conversation ${crmConversationId}`);
+                    // Only trigger AI if ai_enabled is not explicitly false
+                    if (convAiCheck?.ai_enabled === false) {
+                      console.log(`[UazAPI Webhook] AI disabled for conversation ${crmConversationId}, skipping debounce/AI`);
+                    } else {
+                      try {
+                        console.log(`[UazAPI Webhook] Checking debounce for conversation ${crmConversationId}`);
 
-                      // Generate a new batch ID
-                      const newBatchId = crypto.randomUUID();
-                      const pendingUntil = new Date(Date.now() + 15000).toISOString(); // 15 seconds debounce
+                        // Generate a new batch ID
+                        const newBatchId = crypto.randomUUID();
+                        const pendingUntil = new Date(Date.now() + 15000).toISOString(); // 15 seconds debounce
 
-                      // Check if there's already a pending batch for this conversation
-                      const { data: currentConv } = await supabase
-                        .from("crm_conversations")
-                        .select("pending_batch_id, pending_until")
-                        .eq("id", crmConversationId)
-                        .single();
-
-                      const now = new Date();
-                      const existingPendingUntil = currentConv?.pending_until
-                        ? new Date(currentConv.pending_until)
-                        : null;
-
-                      // A batch is only "active" if it exists AND its pending_until hasn't passed yet
-                      // If pending_until has passed, the debounce processor has likely finished or failed
-                      const hasPendingBatch =
-                        currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil > now;
-
-                      if (hasPendingBatch) {
-                        // Extend the pending window - update pending_until
-                        // The debounce processor will see the extension and wait
-                        console.log(
-                          `[UazAPI Webhook] Extending debounce window for batch ${currentConv.pending_batch_id}`,
-                        );
-                        await supabase
+                        // Check if there's already a pending batch for this conversation
+                        const { data: currentConv } = await supabase
                           .from("crm_conversations")
-                          .update({ pending_until: pendingUntil })
-                          .eq("id", crmConversationId);
-                      } else {
-                        // Either no batch exists OR the old batch expired (processor finished/failed)
-                        // In both cases, we need to start a fresh batch and processor
-                        if (currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil <= now) {
+                          .select("pending_batch_id, pending_until")
+                          .eq("id", crmConversationId)
+                          .single();
+
+                        const now = new Date();
+                        const existingPendingUntil = currentConv?.pending_until
+                          ? new Date(currentConv.pending_until)
+                          : null;
+
+                        // A batch is only "active" if it exists AND its pending_until hasn't passed yet
+                        // If pending_until has passed, the debounce processor has likely finished or failed
+                        const hasPendingBatch =
+                          currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil > now;
+
+                        if (hasPendingBatch) {
+                          // Extend the pending window - update pending_until
+                          // The debounce processor will see the extension and wait
                           console.log(
-                            `[UazAPI Webhook] ⚠️ Old batch ${currentConv.pending_batch_id} expired at ${existingPendingUntil.toISOString()}, starting fresh`,
+                            `[UazAPI Webhook] Extending debounce window for batch ${currentConv.pending_batch_id}`,
                           );
-                        }
-                        console.log(
-                          `[UazAPI Webhook] Creating new debounce batch ${newBatchId}, will process at ${pendingUntil}`,
-                        );
+                          await supabase
+                            .from("crm_conversations")
+                            .update({ pending_until: pendingUntil })
+                            .eq("id", crmConversationId);
+                        } else {
+                          // Either no batch exists OR the old batch expired (processor finished/failed)
+                          // In both cases, we need to start a fresh batch and processor
+                          if (currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil <= now) {
+                            console.log(
+                              `[UazAPI Webhook] ⚠️ Old batch ${currentConv.pending_batch_id} expired at ${existingPendingUntil.toISOString()}, starting fresh`,
+                            );
+                          }
+                          console.log(
+                            `[UazAPI Webhook] Creating new debounce batch ${newBatchId}, will process at ${pendingUntil}`,
+                          );
 
-                        await supabase
-                          .from("crm_conversations")
-                          .update({
-                            pending_batch_id: newBatchId,
-                            pending_until: pendingUntil,
-                          })
-                          .eq("id", crmConversationId);
+                          await supabase
+                            .from("crm_conversations")
+                            .update({
+                              pending_batch_id: newBatchId,
+                              pending_until: pendingUntil,
+                            })
+                            .eq("id", crmConversationId);
 
-                        // Call the debounce processor as a separate edge function
-                        // We *await* only the startup ACK (the processor returns immediately),
-                        // ensuring the request is actually dispatched before this webhook finishes.
-                        // Helper: call AI agent directly as fallback
-                        const callAIDirectly = async () => {
-                          console.log(`[UazAPI Webhook] 🔄 FALLBACK: Calling AI agent directly for conversation ${crmConversationId}`);
+                          // Call the debounce processor as a separate edge function
+                          const callAIDirectly = async () => {
+                            console.log(`[UazAPI Webhook] 🔄 FALLBACK: Calling AI agent directly for conversation ${crmConversationId}`);
+                            try {
+                              const aiResp = await fetch(`${supabaseUrl}/functions/v1/avivar-ai-agent`, {
+                                method: "POST",
+                                headers: {
+                                  Authorization: `Bearer ${supabaseServiceKey}`,
+                                  apikey: supabaseServiceKey,
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  conversationId: crmConversationId,
+                                  messageContent: content,
+                                  leadPhone: phone,
+                                  leadName: msg.pushName || `WhatsApp ${phone}`,
+                                  userId,
+                                  batchedMessages: 1,
+                                }),
+                              });
+                              const aiText = await aiResp.text();
+                              console.log(`[UazAPI Webhook] 🔄 FALLBACK AI response: status=${aiResp.status} body=${aiText.substring(0, 200)}`);
+                            } catch (fallbackErr) {
+                              console.error(`[UazAPI Webhook] 🔄 FALLBACK AI also failed:`, fallbackErr);
+                            }
+                          };
+
                           try {
-                            const aiResp = await fetch(`${supabaseUrl}/functions/v1/avivar-ai-agent`, {
+                            const startResp = await fetch(`${supabaseUrl}/functions/v1/avivar-debounce-processor`, {
                               method: "POST",
                               headers: {
                                 Authorization: `Bearer ${supabaseServiceKey}`,
-                                apikey: supabaseServiceKey,
                                 "Content-Type": "application/json",
                               },
                               body: JSON.stringify({
                                 conversationId: crmConversationId,
-                                messageContent: content,
+                                batchId: newBatchId,
                                 leadPhone: phone,
-                                leadName: msg.pushName || `WhatsApp ${phone}`,
+                                leadName: msg.pushName || null,
                                 userId,
-                                batchedMessages: 1,
+                                initialPendingUntil: pendingUntil,
                               }),
                             });
-                            const aiText = await aiResp.text();
-                            console.log(`[UazAPI Webhook] 🔄 FALLBACK AI response: status=${aiResp.status} body=${aiText.substring(0, 200)}`);
-                          } catch (fallbackErr) {
-                            console.error(`[UazAPI Webhook] 🔄 FALLBACK AI also failed:`, fallbackErr);
-                          }
-                        };
 
-                        try {
-                          const startResp = await fetch(`${supabaseUrl}/functions/v1/avivar-debounce-processor`, {
-                            method: "POST",
-                            headers: {
-                              Authorization: `Bearer ${supabaseServiceKey}`,
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                              conversationId: crmConversationId,
-                              batchId: newBatchId,
-                              leadPhone: phone,
-                              leadName: msg.pushName || null,
-                              userId,
-                              initialPendingUntil: pendingUntil,
-                            }),
-                          });
+                            const startText = await startResp.text();
+                            console.log(
+                              `[UazAPI Webhook] Debounce processor start ACK: status=${startResp.status} body=${startText.substring(0, 500)}`,
+                            );
 
-                          const startText = await startResp.text();
-                          console.log(
-                            `[UazAPI Webhook] Debounce processor start ACK: status=${startResp.status} body=${startText.substring(0, 500)}`,
-                          );
-
-                          if (!startResp.ok) {
-                            console.error(`[UazAPI Webhook] ❌ Debounce processor failed (${startResp.status}), using fallback`);
-                            // Clear the batch and call AI directly
+                            if (!startResp.ok) {
+                              console.error(`[UazAPI Webhook] ❌ Debounce processor failed (${startResp.status}), using fallback`);
+                              await supabase
+                                .from("crm_conversations")
+                                .update({ pending_batch_id: null, pending_until: null })
+                                .eq("id", crmConversationId);
+                              await callAIDirectly();
+                            }
+                          } catch (err) {
+                            console.error(`[UazAPI Webhook] ❌ Failed to start debounce processor:`, err);
                             await supabase
                               .from("crm_conversations")
                               .update({ pending_batch_id: null, pending_until: null })
                               .eq("id", crmConversationId);
                             await callAIDirectly();
                           }
-                        } catch (err) {
-                          console.error(`[UazAPI Webhook] ❌ Failed to start debounce processor:`, err);
-                          // Clear the batch and call AI directly as fallback
-                          await supabase
-                            .from("crm_conversations")
-                            .update({ pending_batch_id: null, pending_until: null })
-                            .eq("id", crmConversationId);
-                          await callAIDirectly();
                         }
+                      } catch (aiTriggerError) {
+                        console.error("[UazAPI Webhook] Error triggering AI Agent:", aiTriggerError);
                       }
-                    } catch (aiTriggerError) {
-                      console.error("[UazAPI Webhook] Error triggering AI Agent:", aiTriggerError);
                     }
                   }
                 } // end isNewMessage
@@ -1015,7 +1022,7 @@ serve(async (req) => {
               const { data: existingKanbanLead } = await supabase
                 .from("avivar_kanban_leads")
                 .select("id, kanban_id, column_id")
-                .eq("user_id", userId)
+                .eq("account_id", accountId)
                 .eq("phone", phone)
                 .order("updated_at", { ascending: false })
                 .limit(1)

@@ -214,6 +214,25 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
       // Highest priority for audio messages (user put effort into recording)
       if (audioTranscribed > 0) priority = 2;
 
+      // Check if AI is still enabled before enqueuing
+      const { data: convAiCheck } = await supabase
+        .from("crm_conversations")
+        .select("ai_enabled")
+        .eq("id", conversationId)
+        .single();
+
+      if (convAiCheck?.ai_enabled === false) {
+        console.log(`[Debounce] AI disabled for conversation ${conversationId}, skipping queue`);
+        // Clear batch state
+        await supabase
+          .from("crm_conversations")
+          .update({ pending_batch_id: null, pending_until: null })
+          .eq("id", conversationId);
+        return new Response(JSON.stringify({ success: true, skipped: true, reason: "ai_disabled" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { data: queuedJob, error: queueError } = await supabase
         .from("avivar_ai_queue")
         .insert({
