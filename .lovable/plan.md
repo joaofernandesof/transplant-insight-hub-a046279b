@@ -1,53 +1,41 @@
 
-# Correção: Erro ao Importar Leads no Kanban Avivar
+
+# Correcao: Indice Parcial Impedindo Mensagens no CRM
 
 ## Problema
 
-O dialog de importação de leads (`ImportLeadsDialog`) está falhando porque o insert na tabela `avivar_kanban_leads` está **sem dois campos obrigatórios**:
+A deduplicacao de mensagens usa um indice parcial (`WHERE external_id IS NOT NULL`) que o banco de dados nao aceita para resolver conflitos no upsert. Resultado: **todas as mensagens inbound do WhatsApp falham ao salvar** no CRM, incluindo a do Victor Gustavo e outros leads recentes.
 
-1. **`account_id`** - necessário pelas políticas de segurança (RLS) do banco de dados
-2. **`lead_code`** - código sequencial do lead (ex: L40456), gerado via função do banco
+## Solucao
 
-O dialog de adicionar lead manualmente (`AddLeadDialog`) já faz isso corretamente, mas a importação foi implementada sem esses campos.
+### 1. Migracao SQL
 
-## Solução
+- Remover o indice parcial existente
+- Criar um constraint UNIQUE normal em `(conversation_id, external_id)`
+- PostgreSQL permite multiplos NULLs em constraints unicos, entao mensagens sem `external_id` continuam funcionando
 
-Alterar o arquivo `src/pages/avivar/kanban/components/ImportLeadsDialog.tsx`:
+### 2. Nenhuma mudanca no codigo
 
-1. Importar e usar o hook `useAvivarAccount` para obter o `account_id`
-2. Para cada lead importado, gerar um `lead_code` via `supabase.rpc('generate_lead_code')`
-3. Incluir ambos os campos no insert
+O webhook ja usa `onConflict: 'conversation_id,external_id'` que vai funcionar corretamente com o constraint normal.
 
-## Detalhes Técnicos
+### 3. Re-deploy automatico
 
-### Arquivo: `src/pages/avivar/kanban/components/ImportLeadsDialog.tsx`
+Apos a migracao, as mensagens voltarao a ser salvas imediatamente. Leads que enviaram mensagens (como Victor Gustavo) terao suas proximas mensagens capturadas normalmente.
 
-**Mudancas:**
-- Adicionar `import { useAvivarAccount } from '@/hooks/useAvivarAccount';`
-- Chamar `const { accountId } = useAvivarAccount();` no componente
-- Na `mutationFn`, antes do insert, gerar lead_codes em lote (um RPC por lead)
-- Adicionar `account_id: accountId` e `lead_code` em cada objeto do insert
+## Detalhes Tecnicos
+
+### Nova migracao SQL
 
 ```text
-// Pseudocodigo da mudanca no mutationFn:
-const leadsToInsert = [];
-for (const lead of parsedLeads) {
-  const { data: leadCode } = await supabase.rpc('generate_lead_code');
-  leadsToInsert.push({
-    kanban_id: kanbanId,
-    column_id: selectedColumnId,
-    user_id: user.id,
-    account_id: accountId,  // NOVO
-    lead_code: leadCode,     // NOVO
-    name: lead.name,
-    phone: lead.phone || null,
-    email: lead.email || null,
-    notes: lead.notes || null,
-    source: lead.source || 'Importação',
-    order_index: index,
-  });
-}
+-- Remover indice parcial que causa erro 42P10
+DROP INDEX IF EXISTS idx_crm_messages_external_id_unique;
+
+-- Criar constraint unico normal (aceita multiplos NULLs)
+ALTER TABLE crm_messages 
+  ADD CONSTRAINT uq_crm_messages_conversation_external_id 
+  UNIQUE (conversation_id, external_id);
 ```
 
 ### Arquivos Modificados
-1. `src/pages/avivar/kanban/components/ImportLeadsDialog.tsx` - adicionar account_id e lead_code
+1. Nova migracao SQL - substituir indice parcial por constraint unico
+
