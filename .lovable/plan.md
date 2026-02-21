@@ -1,121 +1,63 @@
 
-
-# Correcao: IA Enviando Mensagens Duplicadas e Gigantes
+# Correcao: Duracao da Consulta Nao Atualiza na Agenda
 
 ## Problema
 
-A IA enviou uma unica mensagem enorme com o mesmo texto repetido ~8 vezes para o lead Victor Gustavo. Isso acontece por **duas causas combinadas**:
+Ao alterar a duracao da consulta de 30 para 20 minutos nas configuracoes e salvar, a agenda continua mostrando slots de 30 minutos.
 
-### Causa 1: Multiplos jobs na fila para a mesma conversa
+## Causa Raiz
 
-A fila `avivar_ai_queue` nao possui restricao de unicidade por `conversation_id`. Quando o debounce falha ou tem timeout, o webhook aciona o fallback direto (linha 951/959), que chama a IA enquanto o debounce processor pode ainda estar rodando. Resultado: a IA e chamada 2+ vezes para o mesmo lote de mensagens.
+Ha dois problemas no `onSuccess` do `saveConfigMutation` em `AvivarAgendaSettings.tsx` (linhas 375-388):
 
-### Causa 2: Modelo de IA entrando em loop de repeticao
+1. **Query key incompativel**: O cache e invalidado com a chave `['avivar-schedule-config', agendaId, accountId]`, mas o hook `useAvivarScheduleConfig` usa `['avivar-schedule-config', agendaId, user?.authUserId]`. Como `accountId` e `authUserId` sao valores diferentes, a invalidacao nunca atinge o cache correto que a pagina da agenda consulta.
 
-O `max_tokens: 500` permite que o modelo gere o mesmo bloco de texto repetido varias vezes dentro do budget de tokens. Nao ha deteccao de repeticao na resposta antes do envio.
+2. **`refetchType: 'none'`**: Mesmo que a chave fosse correta, `refetchType: 'none'` impede o refetch automatico. O `setQueryData` acima so atualiza o campo `id`, sem incluir o novo `consultation_duration`.
 
-## Solucao
+## Correcao
 
-### 1. Deduplicar jobs na fila (avivar-debounce-processor)
+No `onSuccess` do `saveConfigMutation`, alterar para:
 
-Antes de inserir um novo job na fila, verificar se ja existe um job `waiting` ou `active` para o mesmo `conversation_id`. Se existir, nao inserir duplicata.
+1. Usar `setQueryData` que atualiza TODOS os campos da config (nao so o `id`)
+2. Invalidar usando `user.authUserId` em vez de `accountId` para alinhar com o query key real
+3. Remover `refetchType: 'none'` para permitir refetch automatico
+4. Tambem invalidar `avivar-schedule-hours` com refetch ativo
 
-### 2. Remover o fallback direto do webhook (uazapi-webhook)
+### Arquivo: `src/pages/avivar/AvivarAgendaSettings.tsx`
 
-O fallback que chama `avivar-ai-agent` diretamente quando o debounce falha e a principal fonte de duplicacao. Ele deve ser removido - se o debounce falhar, e melhor nao responder do que responder em duplicidade. Uma mensagem sera perdida mas nao havera spam.
-
-### 3. Adicionar deteccao de repeticao na resposta (avivar-ai-agent)
-
-Antes de enviar, verificar se a resposta contem blocos de texto repetidos e remover as repeticoes.
-
-## Detalhes Tecnicos
-
-### Arquivo 1: `supabase/functions/avivar-debounce-processor/index.ts`
-
-Antes do insert na fila (linha ~236), adicionar verificacao:
+Linhas 375-388, trocar o `onSuccess`:
 
 ```text
-// Verificar se ja existe job pendente para esta conversa
-const { data: existingJob } = await supabase
-  .from("avivar_ai_queue")
-  .select("id")
-  .eq("conversation_id", conversationId)
-  .in("status", ["waiting", "active"])
-  .limit(1)
-  .maybeSingle();
+// ANTES:
+onSuccess: (configId) => {
+  setConfig(prev => ({ ...prev, id: configId! }));
+  toast.success('Configuracoes salvas com sucesso!');
+  const agendaId = selectedAgenda?.id || null;
+  queryClient.setQueryData(
+    ['avivar-schedule-config', agendaId, accountId],
+    (old: any) => old ? { ...old, id: configId } : { ... }
+  );
+  queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config', agendaId, accountId], refetchType: 'none' });
+  queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours', configId], refetchType: 'none' });
+}
 
-if (existingJob) {
-  console.log(`[Debounce] Job already exists for conversation ${conversationId}, skipping`);
-  return;
+// DEPOIS:
+onSuccess: (configId) => {
+  setConfig(prev => ({ ...prev, id: configId! }));
+  toast.success('Configuracoes salvas com sucesso!');
+  const agendaId = selectedAgenda?.id || null;
+  // Invalidate with the correct key (authUserId, not accountId)
+  queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config'] });
+  queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours'] });
 }
 ```
 
-### Arquivo 2: `supabase/functions/uazapi-webhook/index.ts`
+Usar invalidacao ampla (sem especificar todo o key) garante que qualquer variacao da query seja atualizada. O `refetchType` default (`'active'`) garante refetch automatico.
 
-Remover o fallback direto para avivar-ai-agent (linhas ~897-921 e ~945-959). Se o debounce processor falhar, apenas logar o erro sem chamar a IA diretamente.
+## Arquivo Modificado
 
-```text
-// ANTES (fallback perigoso):
-if (!startResp.ok) {
-  await callAIDirectly();
-}
-
-// DEPOIS (sem fallback):
-if (!startResp.ok) {
-  console.error(`[UazAPI Webhook] Debounce processor failed, AI will not respond this time`);
-  await supabase.from("crm_conversations")
-    .update({ pending_batch_id: null, pending_until: null })
-    .eq("id", crmConversationId);
-}
-```
-
-### Arquivo 3: `supabase/functions/avivar-ai-agent/index.ts`
-
-Adicionar deteccao de repeticao antes do envio (antes da linha ~4450):
-
-```text
-// Detectar e remover blocos repetidos na resposta
-function deduplicateResponse(text: string): string {
-  const lines = text.split('\n');
-  const seen = new Set<string>();
-  const result: string[] = [];
-  
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) { result.push(line); continue; }
-    if (seen.has(trimmed)) continue;
-    seen.add(trimmed);
-    result.push(line);
-  }
-  return result.join('\n');
-}
-
-finalResponse = deduplicateResponse(finalResponse);
-```
-
-Tambem adicionar um limite maximo de caracteres para a resposta final (ex: 1000 chars) como safety net:
-
-```text
-// Safety: truncar respostas absurdamente longas
-if (finalResponse.length > 1000) {
-  const firstParagraph = finalResponse.split('\n\n')[0];
-  if (firstParagraph.length > 50) {
-    finalResponse = firstParagraph;
-  } else {
-    finalResponse = finalResponse.substring(0, 1000);
-  }
-}
-```
-
-## Arquivos Modificados
-
-1. `supabase/functions/uazapi-webhook/index.ts` - remover fallback direto para IA
-2. `supabase/functions/avivar-debounce-processor/index.ts` - deduplicar jobs na fila
-3. `supabase/functions/avivar-ai-agent/index.ts` - detectar/remover repeticoes na resposta + limite de tamanho
+- `src/pages/avivar/AvivarAgendaSettings.tsx` - corrigir invalidacao de cache no onSuccess
 
 ## Impacto
 
-- Elimina completamente mensagens duplicadas e gigantes
-- Se o debounce falhar, o lead simplesmente nao recebe resposta naquele momento (proximo mensagem sera processada normalmente)
-- Respostas com repeticoes sao limpas antes do envio
-- Safety net de 1000 caracteres previne mensagens absurdamente longas
+- Ao salvar configuracoes (duracao, intervalo, etc.), a agenda atualizara imediatamente os time slots
+- Nenhuma mudanca no banco de dados - o problema e apenas de cache do React Query
