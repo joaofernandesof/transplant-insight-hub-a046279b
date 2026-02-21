@@ -94,16 +94,22 @@ function unescapeICS(text: string): string {
 }
 
 function parseICSDateTime(value: string): Date | null {
-  // Formats: 20251111T214000Z, 20251111T214000, TZID=...:20251111T214000, 20251111 (all-day)
-  const cleanValue = value.replace(/^.*:/, ''); // remove TZID prefix
+  // Formats: 20251111T214000Z (UTC), 20251111T214000 (local), TZID=...:20251111T214000, 20251111 (all-day)
+  const isUTC = value.endsWith('Z');
+  const cleanValue = value.replace(/^.*:/, ''); // remove TZID=...: prefix
   const match = cleanValue.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2}))?Z?$/);
   if (!match) return null;
 
   const [, y, mo, d, h, mi, s] = match;
-  return new Date(
-    parseInt(y), parseInt(mo) - 1, parseInt(d),
-    parseInt(h || '0'), parseInt(mi || '0'), parseInt(s || '0')
-  );
+  const year = parseInt(y), month = parseInt(mo) - 1, day = parseInt(d);
+  const hour = parseInt(h || '0'), min = parseInt(mi || '0'), sec = parseInt(s || '0');
+
+  if (isUTC) {
+    // Convert UTC to local time
+    return new Date(Date.UTC(year, month, day, hour, min, sec));
+  }
+  // Already local time (TZID or no suffix)
+  return new Date(year, month, day, hour, min, sec);
 }
 
 export function parseICS(content: string): ICSEvent[] {
@@ -228,16 +234,28 @@ export function icsEventToAppointmentData(event: ICSEvent) {
   const phone = phoneMatch ? phoneMatch[1].trim() : '';
 
   // Try to extract patient name from summary
-  // Google Calendar format: "Consulta ... - Paciente NAME FILIAL ..."
-  const patientMatch = event.summary.match(/Paciente\s+(.+?)(?:\s+FILIAL|\s*$)/i);
-  const patientName = patientMatch ? patientMatch[1].trim() : event.summary;
+  // Google Calendar formats:
+  // "Consulta ONLINE com Especialista CAPILAR - Paciente NAME FILIAL ..."
+  // "Consulta ONLINE com Especialista Capilar - Paciente NAME - NEOFOLIC ..."
+  let patientName = event.summary;
+  const patientMatch = event.summary.match(/Paciente\s+(.+?)(?:\s+FILIAL\b|\s+-\s+NEOFOLIC\b|\s+NEOFOLIC\b|\s*\.\s*$|\s*$)/i);
+  if (patientMatch) {
+    patientName = patientMatch[1].trim();
+    // Remove trailing dots or dashes
+    patientName = patientName.replace(/[\s.\-]+$/, '');
+  }
 
   // Try to extract service from summary
-  const serviceMatch = event.summary.match(/^(Consulta[^-]*)/i);
+  const serviceMatch = event.summary.match(/^(Consulta[^-]*?)(?:\s*-\s*Paciente)/i);
   const serviceType = serviceMatch ? serviceMatch[1].trim() : null;
 
-  // Extract email from attendees
-  const email = event.attendees?.[0] || null;
+  // Try to extract location from summary (FILIAL X or NEOFOLIC X)
+  const locationMatch = event.summary.match(/(?:FILIAL|NEOFOLIC)\s+([^,.]+)/i);
+  const location = locationMatch ? locationMatch[1].trim() : event.location || null;
+
+  // Extract email from description or attendees
+  const emailMatch = event.description?.match(/(?:Email|E-mail)[:\s]*([^\s\n]+@[^\s\n]+)/i);
+  const email = emailMatch ? emailMatch[1] : event.attendees?.[0] || null;
 
   return {
     patient_name: patientName,
@@ -249,6 +267,6 @@ export function icsEventToAppointmentData(event: ICSEvent) {
     service_type: serviceType,
     status: event.status || 'scheduled',
     notes: event.description || null,
-    location: event.location || null,
+    location: location,
   };
 }
