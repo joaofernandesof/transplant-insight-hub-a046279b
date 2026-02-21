@@ -35,7 +35,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, User, Building2, MapPin, FileText } from "lucide-react";
+import { Loader2, User, Building2, MapPin, FileText, Stethoscope, Cake } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 const clientSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres").max(100),
@@ -47,6 +48,8 @@ const clientSchema = z.object({
   risk_level: z.enum(["low", "medium", "high"]),
   journey_stage: z.enum(["prospect", "onboarding", "retention", "expansion", "advocacy"]),
   notes: z.string().optional(),
+  medical_specialty: z.string().optional(),
+  birth_date: z.string().optional(),
   // Endereço
   street: z.string().optional(),
   number: z.string().optional(),
@@ -79,6 +82,8 @@ interface ClientFormModalProps {
     risk_level?: string;
     journey_stage?: string;
     notes?: string | null;
+    medical_specialty?: string | null;
+    birth_date?: string | null;
     address?: {
       street?: string;
       number?: string;
@@ -101,6 +106,18 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditing = !!client;
 
+  // Fetch specialty options
+  const { data: specialtyOptions } = useQuery({
+    queryKey: ['specialty-days'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('ipromed_specialty_days')
+        .select('specialty')
+        .order('specialty');
+      return data?.map(s => s.specialty) || [];
+    },
+  });
+
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
@@ -113,6 +130,8 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
       risk_level: (client?.risk_level as "low" | "medium" | "high") || "low",
       journey_stage: (client?.journey_stage as "prospect" | "onboarding" | "retention" | "expansion" | "advocacy") || "prospect",
       notes: client?.notes || "",
+      medical_specialty: client?.medical_specialty || "",
+      birth_date: client?.birth_date || "",
       street: client?.address?.street || "",
       number: client?.address?.number || "",
       complement: client?.address?.complement || "",
@@ -140,6 +159,8 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
         risk_level: values.risk_level,
         journey_stage: values.journey_stage,
         notes: values.notes || null,
+        medical_specialty: values.medical_specialty && values.medical_specialty !== 'none' ? values.medical_specialty : null,
+        birth_date: values.birth_date || null,
         address: {
           street: values.street,
           number: values.number,
@@ -293,6 +314,50 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         <FormLabel>CPF/CNPJ</FormLabel>
                         <FormControl>
                           <Input placeholder="000.000.000-00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="medical_specialty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1">
+                          <Stethoscope className="h-3.5 w-3.5" />
+                          Especialidade Médica
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a especialidade" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhuma</SelectItem>
+                            {(specialtyOptions || []).map((spec) => (
+                              <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="birth_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1">
+                          <Cake className="h-3.5 w-3.5" />
+                          Data de Nascimento
+                        </FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

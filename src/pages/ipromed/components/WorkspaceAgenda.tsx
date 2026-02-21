@@ -22,6 +22,8 @@ import {
   Gavel,
   Bell,
   CheckCircle2,
+  Cake,
+  Stethoscope,
 } from "lucide-react";
 import { format, isToday, isTomorrow, addDays, startOfDay, endOfDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -57,6 +59,8 @@ const typeConfig: Record<string, {
   apresentacao: { label: 'Apresentação', icon: Users, color: 'text-indigo-700', bgColor: 'bg-indigo-50' },
   acompanhamento: { label: 'Acompanhamento', icon: Users, color: 'text-cyan-700', bgColor: 'bg-cyan-50' },
   meeting: { label: 'Reunião', icon: Users, color: 'text-sky-700', bgColor: 'bg-sky-50' },
+  aniversario: { label: '🎂 Aniversário', icon: Cake, color: 'text-pink-700', bgColor: 'bg-pink-50' },
+  dia_especialidade: { label: '⚕️ Dia da Especialidade', icon: Stethoscope, color: 'text-emerald-700', bgColor: 'bg-emerald-50' },
 };
 
 export function WorkspaceAgenda() {
@@ -69,30 +73,39 @@ export function WorkspaceAgenda() {
   const { data: appointments, isLoading } = useQuery({
     queryKey: ['workspace-agenda-unified', todayStr],
     queryFn: async () => {
-      // Buscar appointments regulares (igual ao AstreaStyleAgenda)
-      const { data: regularAppointments, error: regularError } = await supabase
-        .from('ipromed_appointments')
-        .select(`*, ipromed_legal_clients(name)`)
-        .gte('start_datetime', today.toISOString())
-        .lte('start_datetime', tomorrowEnd.toISOString())
-        .neq('status', 'cancelled')
-        .order('start_datetime', { ascending: true });
+      const todayMMDD = format(today, 'MM-dd');
+      const tomorrowMMDD = format(addDays(today, 1), 'MM-dd');
 
-      if (regularError) throw regularError;
+      // Buscar appointments regulares, client meetings, aniversários e dias de especialidade em paralelo
+      const [regularRes, meetingsRes, clientsRes, specialtyDaysRes] = await Promise.all([
+        supabase
+          .from('ipromed_appointments')
+          .select(`*, ipromed_legal_clients(name)`)
+          .gte('start_datetime', today.toISOString())
+          .lte('start_datetime', tomorrowEnd.toISOString())
+          .neq('status', 'cancelled')
+          .order('start_datetime', { ascending: true }),
+        supabase
+          .from('ipromed_client_meetings')
+          .select(`*, ipromed_legal_clients(name)`)
+          .gte('scheduled_date', todayStr)
+          .lte('scheduled_date', tomorrowStr)
+          .neq('status', 'cancelled')
+          .order('scheduled_date', { ascending: true }),
+        supabase
+          .from('ipromed_legal_clients')
+          .select('id, name, medical_specialty, birth_date')
+          .or('birth_date.not.is.null,medical_specialty.not.is.null'),
+        supabase
+          .from('ipromed_specialty_days')
+          .select('specialty, celebration_date, description'),
+      ]);
 
-      // Buscar client meetings (igual ao AstreaStyleAgenda)
-      const { data: clientMeetings, error: meetingsError } = await supabase
-        .from('ipromed_client_meetings')
-        .select(`*, ipromed_legal_clients(name)`)
-        .gte('scheduled_date', todayStr)
-        .lte('scheduled_date', tomorrowStr)
-        .neq('status', 'cancelled')
-        .order('scheduled_date', { ascending: true });
-
-      if (meetingsError) throw meetingsError;
+      if (regularRes.error) throw regularRes.error;
+      if (meetingsRes.error) throw meetingsRes.error;
 
       // Transformar appointments para formato unificado
-      const unifiedAppointments: UnifiedAppointment[] = (regularAppointments || []).map((apt: any) => ({
+      const unifiedAppointments: UnifiedAppointment[] = (regularRes.data || []).map((apt: any) => ({
         id: apt.id,
         title: apt.title,
         start_datetime: apt.start_datetime,
@@ -106,14 +119,13 @@ export function WorkspaceAgenda() {
         source: 'appointment' as const,
       }));
 
-      // Transformar client meetings para formato unificado (igual ao AstreaStyleAgenda)
-      const unifiedMeetings: UnifiedAppointment[] = (clientMeetings || []).map((meeting: any) => {
+      // Transformar client meetings para formato unificado
+      const unifiedMeetings: UnifiedAppointment[] = (meetingsRes.data || []).map((meeting: any) => {
         const startDatetime = `${meeting.scheduled_date}T${meeting.scheduled_time || '09:00'}:00`;
         let endDatetime: string | null = null;
         
         if (meeting.duration_minutes) {
-          const [hours, minutes] = (meeting.scheduled_time || '09:00').split(':').map(Number);
-          const endDate = new Date(`${meeting.scheduled_date}T${meeting.scheduled_time || '09:00'}:00`);
+          const endDate = new Date(startDatetime);
           endDate.setMinutes(endDate.getMinutes() + meeting.duration_minutes);
           endDatetime = endDate.toISOString();
         }
@@ -133,8 +145,74 @@ export function WorkspaceAgenda() {
         };
       });
 
+      // Gerar eventos de aniversário (hoje e amanhã)
+      const birthdayEvents: UnifiedAppointment[] = [];
+      const clients = clientsRes.data || [];
+      
+      for (const client of clients) {
+        if (!client.birth_date) continue;
+        const birthMMDD = client.birth_date.substring(5); // MM-DD
+        
+        let eventDate: string | null = null;
+        if (birthMMDD === todayMMDD) {
+          eventDate = todayStr;
+        } else if (birthMMDD === tomorrowMMDD) {
+          eventDate = tomorrowStr;
+        }
+        
+        if (eventDate) {
+          birthdayEvents.push({
+            id: `birthday-${client.id}`,
+            title: `🎂 Aniversário: ${client.name}`,
+            start_datetime: `${eventDate}T08:00:00`,
+            end_datetime: null,
+            location: null,
+            is_virtual: false,
+            meeting_url: null,
+            status: 'confirmed',
+            appointment_type: 'aniversario',
+            client_name: client.name,
+            source: 'appointment' as const,
+          });
+        }
+      }
+
+      // Gerar eventos de dia da especialidade (hoje e amanhã)
+      const specialtyEvents: UnifiedAppointment[] = [];
+      const specialtyDays = specialtyDaysRes.data || [];
+      const specialtyMap = new Map(specialtyDays.map(s => [s.specialty, s]));
+
+      for (const client of clients) {
+        if (!client.medical_specialty) continue;
+        const specDay = specialtyMap.get(client.medical_specialty);
+        if (!specDay) continue;
+
+        let eventDate: string | null = null;
+        if (specDay.celebration_date === todayMMDD) {
+          eventDate = todayStr;
+        } else if (specDay.celebration_date === tomorrowMMDD) {
+          eventDate = tomorrowStr;
+        }
+
+        if (eventDate) {
+          specialtyEvents.push({
+            id: `specialty-${client.id}`,
+            title: `⚕️ ${specDay.description}: ${client.name}`,
+            start_datetime: `${eventDate}T08:00:00`,
+            end_datetime: null,
+            location: null,
+            is_virtual: false,
+            meeting_url: null,
+            status: 'confirmed',
+            appointment_type: 'dia_especialidade',
+            client_name: client.name,
+            source: 'appointment' as const,
+          });
+        }
+      }
+
       // Combinar e ordenar por data/hora
-      const allAppointments = [...unifiedAppointments, ...unifiedMeetings];
+      const allAppointments = [...birthdayEvents, ...specialtyEvents, ...unifiedAppointments, ...unifiedMeetings];
       allAppointments.sort((a, b) => 
         new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()
       );

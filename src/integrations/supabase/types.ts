@@ -9207,6 +9207,7 @@ export type Database = {
       ipromed_legal_clients: {
         Row: {
           address: Json | null
+          birth_date: string | null
           client_number: string | null
           client_type: string | null
           cpf_cnpj: string | null
@@ -9218,6 +9219,7 @@ export type Database = {
           journey_stage:
             | Database["public"]["Enums"]["customer_journey_stage"]
             | null
+          medical_specialty: string | null
           metadata: Json | null
           name: string
           notes: string | null
@@ -9233,6 +9235,7 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          birth_date?: string | null
           client_number?: string | null
           client_type?: string | null
           cpf_cnpj?: string | null
@@ -9244,6 +9247,7 @@ export type Database = {
           journey_stage?:
             | Database["public"]["Enums"]["customer_journey_stage"]
             | null
+          medical_specialty?: string | null
           metadata?: Json | null
           name: string
           notes?: string | null
@@ -9259,6 +9263,7 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          birth_date?: string | null
           client_number?: string | null
           client_type?: string | null
           cpf_cnpj?: string | null
@@ -9270,6 +9275,7 @@ export type Database = {
           journey_stage?:
             | Database["public"]["Enums"]["customer_journey_stage"]
             | null
+          medical_specialty?: string | null
           metadata?: Json | null
           name?: string
           notes?: string | null
@@ -9997,6 +10003,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ipromed_specialty_days: {
+        Row: {
+          celebration_date: string
+          created_at: string | null
+          description: string | null
+          id: string
+          specialty: string
+        }
+        Insert: {
+          celebration_date: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          specialty: string
+        }
+        Update: {
+          celebration_date?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          specialty?: string
+        }
+        Relationships: []
       }
       ipromed_tags: {
         Row: {
