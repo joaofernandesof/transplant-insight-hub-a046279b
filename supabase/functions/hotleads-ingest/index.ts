@@ -141,19 +141,19 @@ Deno.serve(async (req) => {
 
 async function processWebhookOutbox(supabase: any) {
   try {
-    const { data: pending } = await supabase
-      .from("lead_webhook_outbox")
-      .select("*")
-      .eq("status", "pending")
-      .lt("attempts", 3)
-      .order("created_at", { ascending: true })
-      .limit(10);
+    // Atomically claim pending webhooks to prevent duplicate processing
+    const { data: claimed, error: claimError } = await supabase.rpc("claim_pending_webhooks", { p_limit: 10 });
 
-    if (!pending?.length) return;
+    if (claimError) {
+      console.error("[hotleads-ingest] Failed to claim webhooks:", claimError);
+      return;
+    }
 
-    for (const entry of pending) {
+    if (!claimed?.length) return;
+
+    for (const entry of claimed) {
       try {
-        const webhookUrl = entry.webhook_url || N8N_WEBHOOK_URL;
+        const webhookUrl = entry.webhook_url || "https://n8n-n8n-start.bym1io.easypanel.host/webhook/lead";
         const response = await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
