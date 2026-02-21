@@ -56,6 +56,8 @@ import {
   Check,
   Palette,
   Settings2,
+  Cake,
+  Stethoscope,
 } from "lucide-react";
 import {
   format,
@@ -202,6 +204,24 @@ const typeConfig: Record<string, {
     calendarBg: 'bg-cyan-100/80',
     calendarText: 'text-cyan-700',
   },
+  aniversario: { 
+    label: '🎂 ANIVERSÁRIO', 
+    icon: Cake, 
+    color: 'text-pink-700', 
+    bgColor: 'bg-pink-50', 
+    borderColor: 'border-l-pink-500',
+    calendarBg: 'bg-pink-100/80',
+    calendarText: 'text-pink-700',
+  },
+  dia_especialidade: { 
+    label: '⚕️ ESPECIALIDADE', 
+    icon: Stethoscope, 
+    color: 'text-emerald-700', 
+    bgColor: 'bg-emerald-50', 
+    borderColor: 'border-l-emerald-500',
+    calendarBg: 'bg-emerald-100/80',
+    calendarText: 'text-emerald-700',
+  },
 };
 
 export default function AstreaStyleAgenda() {
@@ -259,18 +279,27 @@ export default function AstreaStyleAgenda() {
 
       if (regularError) throw regularError;
 
-      // Also fetch client meetings (from MeetingScheduleDialog)
-      const { data: clientMeetings, error: meetingsError } = await supabase
-        .from('ipromed_client_meetings')
-        .select(`*, ipromed_legal_clients(name)`)
-        .gte('scheduled_date', startRange.toISOString().split('T')[0])
-        .lte('scheduled_date', endRange.toISOString().split('T')[0])
-        .order('scheduled_date');
+      // Also fetch client meetings, clients with birth dates, and specialty days
+      const [meetingsRes, clientsBirthRes, specialtyDaysRes] = await Promise.all([
+        supabase
+          .from('ipromed_client_meetings')
+          .select(`*, ipromed_legal_clients(name)`)
+          .gte('scheduled_date', startRange.toISOString().split('T')[0])
+          .lte('scheduled_date', endRange.toISOString().split('T')[0])
+          .order('scheduled_date'),
+        supabase
+          .from('ipromed_legal_clients')
+          .select('id, name, medical_specialty, birth_date')
+          .or('birth_date.not.is.null,medical_specialty.not.is.null'),
+        supabase
+          .from('ipromed_specialty_days')
+          .select('specialty, celebration_date, description'),
+      ]);
 
-      if (meetingsError) throw meetingsError;
+      if (meetingsRes.error) throw meetingsRes.error;
 
       // Transform client meetings to match appointment format
-      const transformedMeetings: Appointment[] = ((clientMeetings as any[]) || []).map((meeting: any) => ({
+      const transformedMeetings: Appointment[] = ((meetingsRes.data as any[]) || []).map((meeting: any) => ({
         id: meeting.id,
         client_id: meeting.client_id,
         case_id: null,
@@ -280,7 +309,6 @@ export default function AstreaStyleAgenda() {
         start_datetime: `${meeting.scheduled_date}T${meeting.scheduled_time || '09:00'}:00`,
         end_datetime: meeting.duration_minutes 
           ? (() => {
-              const [hours, minutes] = (meeting.scheduled_time || '09:00').split(':').map(Number);
               const endDate = new Date(`${meeting.scheduled_date}T${meeting.scheduled_time || '09:00'}:00`);
               endDate.setMinutes(endDate.getMinutes() + meeting.duration_minutes);
               return endDate.toISOString();
@@ -301,8 +329,90 @@ export default function AstreaStyleAgenda() {
         prazo_filed: false,
       }));
 
+      // Generate birthday events for visible month range
+      const birthdayEvents: Appointment[] = [];
+      const specialtyEvents: Appointment[] = [];
+      const clients = clientsBirthRes.data || [];
+      const specialtyDays = specialtyDaysRes.data || [];
+      const specialtyMap = new Map(specialtyDays.map(s => [s.specialty, s]));
+      
+      const daysInRange = eachDayOfInterval({ start: startRange, end: endRange });
+      
+      for (const client of clients) {
+        if (client.birth_date) {
+          const birthMMDD = client.birth_date.substring(5); // MM-DD
+          for (const day of daysInRange) {
+            if (format(day, 'MM-dd') === birthMMDD) {
+              const dateStr = format(day, 'yyyy-MM-dd');
+              birthdayEvents.push({
+                id: `birthday-${client.id}-${dateStr}`,
+                client_id: client.id,
+                case_id: null,
+                title: `🎂 Aniversário: ${client.name}`,
+                description: `Parabéns para ${client.name}!`,
+                appointment_type: 'aniversario',
+                start_datetime: `${dateStr}T08:00:00`,
+                end_datetime: null,
+                all_day: true,
+                location: null,
+                is_virtual: false,
+                meeting_url: null,
+                status: 'confirmed',
+                priority: 'normal',
+                created_at: new Date().toISOString(),
+                ipromed_legal_clients: { name: client.name },
+                deadline_type_id: null,
+                doc_elaborated: false,
+                doc_delivered: false,
+                prazo_done: false,
+                prazo_filed: false,
+              });
+            }
+          }
+        }
+
+        if (client.medical_specialty) {
+          const specDay = specialtyMap.get(client.medical_specialty);
+          if (specDay) {
+            for (const day of daysInRange) {
+              if (format(day, 'MM-dd') === specDay.celebration_date) {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                specialtyEvents.push({
+                  id: `specialty-${client.id}-${dateStr}`,
+                  client_id: client.id,
+                  case_id: null,
+                  title: `⚕️ ${specDay.description}: ${client.name}`,
+                  description: `Hoje é o ${specDay.description}! Parabenize ${client.name}.`,
+                  appointment_type: 'dia_especialidade',
+                  start_datetime: `${dateStr}T08:00:00`,
+                  end_datetime: null,
+                  all_day: true,
+                  location: null,
+                  is_virtual: false,
+                  meeting_url: null,
+                  status: 'confirmed',
+                  priority: 'normal',
+                  created_at: new Date().toISOString(),
+                  ipromed_legal_clients: { name: client.name },
+                  deadline_type_id: null,
+                  doc_elaborated: false,
+                  doc_delivered: false,
+                  prazo_done: false,
+                  prazo_filed: false,
+                });
+              }
+            }
+          }
+        }
+      }
+
       // Combine and sort all appointments
-      const allAppointments = [...(regularAppointments || []), ...transformedMeetings];
+      const allAppointments = [
+        ...(regularAppointments || []), 
+        ...transformedMeetings,
+        ...birthdayEvents,
+        ...specialtyEvents,
+      ];
       allAppointments.sort((a, b) => 
         new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()
       );
