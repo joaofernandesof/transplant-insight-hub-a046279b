@@ -309,9 +309,6 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
 
     // Max iterations reached - cleanup
     console.log(`[Debounce] Batch ${batchId} exceeded max iterations, giving up`);
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     await supabase
       .from("crm_conversations")
       .update({ pending_batch_id: null, pending_until: null })
