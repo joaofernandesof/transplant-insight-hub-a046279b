@@ -1253,12 +1253,60 @@ async function createAppointment(
     p_duration_minutes: 30
   });
 
+  // GRID VALIDATION: Reject times not in the configured schedule grid
+  const allGridTimes = (slots || []).map((s: { slot_start: string }) => s.slot_start.substring(0, 5));
+  const existsInGrid = allGridTimes.includes(normalizedTime);
+
+  if (!existsInGrid) {
+    const availableInGrid = (slots || [])
+      .filter((s: { is_available: boolean }) => s.is_available)
+      .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+      .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+    
+    if (availableInGrid.length === 0) {
+      return `O horário ${formatTimeDisplay(normalizedTime)} não existe na grade de atendimento. Não encontrei horários disponíveis para esse dia.`;
+    }
+    
+    const target = timeToMinutes(normalizedTime);
+    const suggestions = availableInGrid
+      .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+      .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+      .slice(0, 2)
+      .map((x: { t: string }) => x.t);
+    
+    const suggestionText = suggestions.length === 1
+      ? formatTimeDisplay(suggestions[0])
+      : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
+    
+    return `O horário ${formatTimeDisplay(normalizedTime)} não existe na grade de atendimento. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
+  }
+
   const slotAvailable = (slots || []).some((s: { slot_start: string; is_available: boolean }) => 
     s.slot_start.substring(0, 5) === normalizedTime && s.is_available
   );
 
   if (!slotAvailable) {
-    return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
+    const availableInGrid = (slots || [])
+      .filter((s: { is_available: boolean }) => s.is_available)
+      .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+      .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+    
+    if (availableInGrid.length === 0) {
+      return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado e não há outros horários disponíveis nesse dia.`;
+    }
+    
+    const target = timeToMinutes(normalizedTime);
+    const suggestions = availableInGrid
+      .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+      .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+      .slice(0, 2)
+      .map((x: { t: string }) => x.t);
+    
+    const suggestionText = suggestions.length === 1
+      ? formatTimeDisplay(suggestions[0])
+      : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
+    
+    return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
   }
 
   const { data: appointment, error } = await supabase
@@ -1495,12 +1543,62 @@ async function proposeSlot(
     p_duration_minutes: 30
   });
 
+  // GRID VALIDATION: Check if the requested time exists in the configured schedule grid
+  const allGridTimes = (slots || []).map((s: { slot_start: string }) => s.slot_start.substring(0, 5));
+  const existsInGrid = allGridTimes.includes(normalizedTime);
+
+  if (!existsInGrid) {
+    // Time is NOT in the configured schedule — suggest nearest valid slots
+    const availableInGrid = (slots || [])
+      .filter((s: { is_available: boolean }) => s.is_available)
+      .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+      .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+    
+    if (availableInGrid.length === 0) {
+      return `O horário ${formatTimeDisplay(normalizedTime)} não está na grade de atendimento desta agenda. Não encontrei horários disponíveis para esse dia. Qual outra data ficaria melhor para você?`;
+    }
+    
+    const target = timeToMinutes(normalizedTime);
+    const suggestions = availableInGrid
+      .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+      .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+      .slice(0, 2)
+      .map((x: { t: string }) => x.t);
+    
+    const suggestionText = suggestions.length === 1
+      ? formatTimeDisplay(suggestions[0])
+      : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
+    
+    return `O horário ${formatTimeDisplay(normalizedTime)} não está disponível na nossa grade de atendimento. Os horários mais próximos são: ${suggestionText}. Qual fica melhor para você?`;
+  }
+
   const slotAvailable = (slots || []).some((s: { slot_start: string; is_available: boolean }) =>
     s.slot_start.substring(0, 5) === normalizedTime && s.is_available
   );
 
   if (!slotAvailable) {
-    return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
+    // Time exists in grid but is occupied
+    const availableInGrid = (slots || [])
+      .filter((s: { is_available: boolean }) => s.is_available)
+      .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+      .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+    
+    if (availableInGrid.length === 0) {
+      return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} já está ocupado e não há outros horários disponíveis nesse dia. Qual outra data ficaria melhor para você?`;
+    }
+    
+    const target = timeToMinutes(normalizedTime);
+    const suggestions = availableInGrid
+      .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+      .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+      .slice(0, 2)
+      .map((x: { t: string }) => x.t);
+    
+    const suggestionText = suggestions.length === 1
+      ? formatTimeDisplay(suggestions[0])
+      : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
+    
+    return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} já está ocupado. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
   }
 
   const dateObj = new Date(normalizedDate + "T12:00:00");
@@ -1590,6 +1688,34 @@ async function rescheduleAppointment(
     p_duration_minutes: 30
   });
 
+  // GRID VALIDATION: Reject times not in the configured schedule grid
+  const allGridTimes = (slots || []).map((s: { slot_start: string }) => s.slot_start.substring(0, 5));
+  const existsInGrid = allGridTimes.includes(normalizedTime);
+
+  if (!existsInGrid) {
+    const availableInGrid = (slots || [])
+      .filter((s: { is_available: boolean }) => s.is_available)
+      .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+      .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+    
+    if (availableInGrid.length === 0) {
+      return `O horário ${formatTimeDisplay(normalizedTime)} não existe na grade de atendimento. Não encontrei horários disponíveis para esse dia.`;
+    }
+    
+    const target = timeToMinutes(normalizedTime);
+    const suggestions = availableInGrid
+      .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+      .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+      .slice(0, 2)
+      .map((x: { t: string }) => x.t);
+    
+    const suggestionText = suggestions.length === 1
+      ? formatTimeDisplay(suggestions[0])
+      : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
+    
+    return `O horário ${formatTimeDisplay(normalizedTime)} não existe na grade de atendimento. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
+  }
+
   // The existing appointment's slot will show as occupied, so we need to allow it
   const slotAvailable = (slots || []).some((s: { slot_start: string; is_available: boolean }) => 
     s.slot_start.substring(0, 5) === normalizedTime && s.is_available
@@ -1600,7 +1726,27 @@ async function rescheduleAppointment(
     existing.start_time?.substring(0, 5) === normalizedTime;
 
   if (!slotAvailable && !isSameSlot) {
-    return `Infelizmente o horário ${formatTimeDisplay(normalizedTime)} do dia ${normalizedDate} não está disponível. Por favor, escolha outro horário.`;
+    const availableInGrid = (slots || [])
+      .filter((s: { is_available: boolean }) => s.is_available)
+      .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+      .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+    
+    if (availableInGrid.length === 0) {
+      return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado e não há outros horários nesse dia.`;
+    }
+    
+    const target = timeToMinutes(normalizedTime);
+    const suggestions = availableInGrid
+      .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+      .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+      .slice(0, 2)
+      .map((x: { t: string }) => x.t);
+    
+    const suggestionText = suggestions.length === 1
+      ? formatTimeDisplay(suggestions[0])
+      : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
+    
+    return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
   }
 
   // UPDATE the existing appointment
@@ -3399,6 +3545,7 @@ Se você escrever qualquer texto mencionando a mídia, você FALHOU COMPLETAMENT
 - Use emojis com moderação
 - NUNCA invente preços ou informações médicas
 - NUNCA diga "temos vários horários disponíveis" ou "diversos horários"
+- REGRA CRÍTICA DE HORÁRIOS: NUNCA aceite ou confirme horários que não estejam na grade configurada da agenda. Se o lead pedir 08:30 mas a agenda opera de 20 em 20 minutos (08:00, 08:20, 08:40...), REJEITE o horário e sugira os mais próximos da grade. SEMPRE use propose_slot ou check_slot para validar — NUNCA confirme um horário "por conta própria".
 - SEMPRE use list_agendas ANTES de mencionar cidades ou unidades
 - SEMPRE use search_knowledge_base para dúvidas técnicas
 - SEMPRE use list_products quando perguntarem sobre produtos/preços de itens
