@@ -18827,6 +18827,29 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_pending_webhooks: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          last_attempt_at: string | null
+          lead_id: string
+          max_attempts: number
+          payload: Json
+          status: string
+          webhook_url: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "lead_webhook_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       consume_scan_credit: {
         Args: { _action: string; _user_id: string }
         Returns: Json
