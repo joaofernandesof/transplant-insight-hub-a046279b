@@ -5043,6 +5043,7 @@ export type Database = {
           created_at: string
           delivered_at: string | null
           direction: string
+          external_id: string | null
           id: string
           is_ai_generated: boolean
           media_type: string | null
@@ -5059,6 +5060,7 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           direction: string
+          external_id?: string | null
           id?: string
           is_ai_generated?: boolean
           media_type?: string | null
@@ -5075,6 +5077,7 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           direction?: string
+          external_id?: string | null
           id?: string
           is_ai_generated?: boolean
           media_type?: string | null
