@@ -5,6 +5,7 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import {
   Dialog,
   DialogContent,
@@ -52,6 +53,7 @@ export function ImportLeadsDialog({
   columns,
 }: ImportLeadsDialogProps) {
   const queryClient = useQueryClient();
+  const { accountId } = useAvivarAccount();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [step, setStep] = useState<'upload' | 'preview' | 'importing'>('upload');
@@ -147,18 +149,26 @@ export function ImportLeadsDialog({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
+      if (!accountId) throw new Error('Conta não encontrada');
 
-      const leadsToInsert = parsedLeads.map((lead, index) => ({
-        kanban_id: kanbanId,
-        column_id: selectedColumnId,
-        user_id: user.id,
-        name: lead.name,
-        phone: lead.phone || null,
-        email: lead.email || null,
-        notes: lead.notes || null,
-        source: lead.source || 'Importação',
-        order_index: index,
-      }));
+      const leadsToInsert = [];
+      for (let i = 0; i < parsedLeads.length; i++) {
+        const lead = parsedLeads[i];
+        const { data: leadCode } = await supabase.rpc('generate_lead_code');
+        leadsToInsert.push({
+          kanban_id: kanbanId,
+          column_id: selectedColumnId,
+          user_id: user.id,
+          account_id: accountId,
+          lead_code: leadCode,
+          name: lead.name,
+          phone: lead.phone || null,
+          email: lead.email || null,
+          notes: lead.notes || null,
+          source: lead.source || 'Importação',
+          order_index: i,
+        });
+      }
 
       const { error } = await supabase
         .from('avivar_kanban_leads')
