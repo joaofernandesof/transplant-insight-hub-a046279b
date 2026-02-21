@@ -233,6 +233,27 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
         });
       }
 
+      // Check if a job already exists for this conversation (prevent duplicates)
+      const { data: existingJob } = await supabase
+        .from("avivar_ai_queue")
+        .select("id")
+        .eq("conversation_id", conversationId)
+        .in("status", ["waiting", "active"])
+        .limit(1)
+        .maybeSingle();
+
+      if (existingJob) {
+        console.log(`[Debounce] ⚠️ Job already exists for conversation ${conversationId} (${existingJob.id}), skipping duplicate`);
+        // Clear batch state
+        await supabase
+          .from("crm_conversations")
+          .update({ pending_batch_id: null, pending_until: null })
+          .eq("id", conversationId);
+        return new Response(JSON.stringify({ success: true, skipped: true, reason: "duplicate_job" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { data: queuedJob, error: queueError } = await supabase
         .from("avivar_ai_queue")
         .insert({
@@ -256,18 +277,16 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
 
       if (queueError) {
         console.error(`[Debounce] ❌ Failed to enqueue job:`, queueError);
-        
-        // FALLBACK: Call AI directly if queue fails (resilience)
-        console.log(`[Debounce] ⚡ Falling back to direct AI call...`);
-        await callAiDirectly(supabaseUrl, supabaseServiceKey, {
-          conversationId,
-          messageContent: combinedContent,
-          leadPhone,
-          leadName: safeLeadName,
-          userId,
-          batchedMessages: newMessages.length,
+        // NO FALLBACK: Better to skip than to risk duplicate/giant messages
+        console.error(`[Debounce] ⚠️ AI will NOT respond this time to prevent duplicates`);
+        await supabase
+          .from("crm_conversations")
+          .update({ pending_batch_id: null, pending_until: null })
+          .eq("id", conversationId);
+        return new Response(JSON.stringify({ success: false, error: "queue_insert_failed" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
         });
-        return;
       }
 
       console.log(`[Debounce] 📋 Job enqueued: ${queuedJob.id} (priority: ${priority})`);
