@@ -1,63 +1,60 @@
 
-# Correcao: Duracao da Consulta Nao Atualiza na Agenda
+
+# Correcao: IA Nao Responde - BOOT_ERROR no Debounce Processor
 
 ## Problema
 
-Ao alterar a duracao da consulta de 30 para 20 minutos nas configuracoes e salvar, a agenda continua mostrando slots de 30 minutos.
+Leads estao chegando e as mensagens sao salvas no CRM, mas a IA nao responde. O toggle de IA esta ativo nas conversas.
 
 ## Causa Raiz
 
-Ha dois problemas no `onSuccess` do `saveConfigMutation` em `AvivarAgendaSettings.tsx` (linhas 375-388):
+A Edge Function `avivar-debounce-processor` esta com **BOOT_ERROR** e nao consegue iniciar. O erro e:
 
-1. **Query key incompativel**: O cache e invalidado com a chave `['avivar-schedule-config', agendaId, accountId]`, mas o hook `useAvivarScheduleConfig` usa `['avivar-schedule-config', agendaId, user?.authUserId]`. Como `accountId` e `authUserId` sao valores diferentes, a invalidacao nunca atinge o cache correto que a pagina da agenda consulta.
+```
+Uncaught SyntaxError: Identifier 'supabaseUrl' has already been declared
+at avivar-debounce-processor/index.ts:253
+```
 
-2. **`refetchType: 'none'`**: Mesmo que a chave fosse correta, `refetchType: 'none'` impede o refetch automatico. O `setQueryData` acima so atualiza o campo `id`, sem incluir o novo `consultation_duration`.
+Dentro da funcao `processDebounceBatch`, ha duas declaracoes `const supabaseUrl` no mesmo escopo:
+- **Linha 53**: `const supabaseUrl = Deno.env.get("SUPABASE_URL")!;` (inicio do bloco try)
+- **Linha 312**: `const supabaseUrl = Deno.env.get("SUPABASE_URL")!;` (apos o while loop, mesmo try)
+
+Da mesma forma, `const supabaseServiceKey` tambem e declarado duas vezes (linhas 54 e 313) e `const supabase` (linhas 55 e 314).
+
+Isso impede a funcao de compilar, e consequentemente:
+1. O webhook recebe a mensagem e salva no banco
+2. Tenta chamar o debounce-processor, que retorna 503
+3. O batch e limpo (pending_batch_id = null)
+4. Nenhum job e enfileirado na avivar_ai_queue
+5. O queue-processor nao encontra jobs para processar
+6. A IA nunca responde
 
 ## Correcao
 
-No `onSuccess` do `saveConfigMutation`, alterar para:
+Remover as declaracoes duplicadas nas linhas 312-314, reutilizando as variaveis ja declaradas no inicio do bloco try (linhas 53-55).
 
-1. Usar `setQueryData` que atualiza TODOS os campos da config (nao so o `id`)
-2. Invalidar usando `user.authUserId` em vez de `accountId` para alinhar com o query key real
-3. Remover `refetchType: 'none'` para permitir refetch automatico
-4. Tambem invalidar `avivar-schedule-hours` com refetch ativo
+### Arquivo: `supabase/functions/avivar-debounce-processor/index.ts`
 
-### Arquivo: `src/pages/avivar/AvivarAgendaSettings.tsx`
-
-Linhas 375-388, trocar o `onSuccess`:
+Substituir as linhas 311-314:
 
 ```text
-// ANTES:
-onSuccess: (configId) => {
-  setConfig(prev => ({ ...prev, id: configId! }));
-  toast.success('Configuracoes salvas com sucesso!');
-  const agendaId = selectedAgenda?.id || null;
-  queryClient.setQueryData(
-    ['avivar-schedule-config', agendaId, accountId],
-    (old: any) => old ? { ...old, id: configId } : { ... }
-  );
-  queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config', agendaId, accountId], refetchType: 'none' });
-  queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours', configId], refetchType: 'none' });
-}
+// ANTES (linhas 311-314):
+console.log(`[Debounce] Batch ${batchId} exceeded max iterations, giving up`);
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // DEPOIS:
-onSuccess: (configId) => {
-  setConfig(prev => ({ ...prev, id: configId! }));
-  toast.success('Configuracoes salvas com sucesso!');
-  const agendaId = selectedAgenda?.id || null;
-  // Invalidate with the correct key (authUserId, not accountId)
-  queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config'] });
-  queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours'] });
-}
+console.log(`[Debounce] Batch ${batchId} exceeded max iterations, giving up`);
+// Reutiliza supabaseUrl, supabaseServiceKey e supabase ja declarados na linha 53-55
 ```
 
-Usar invalidacao ampla (sem especificar todo o key) garante que qualquer variacao da query seja atualizada. O `refetchType` default (`'active'`) garante refetch automatico.
-
-## Arquivo Modificado
-
-- `src/pages/avivar/AvivarAgendaSettings.tsx` - corrigir invalidacao de cache no onSuccess
+As variaveis `supabaseUrl`, `supabaseServiceKey` e `supabase` ja estao acessiveis nesse ponto do codigo pois foram declaradas no mesmo escopo `try` (linhas 53-55).
 
 ## Impacto
 
-- Ao salvar configuracoes (duracao, intervalo, etc.), a agenda atualizara imediatamente os time slots
-- Nenhuma mudanca no banco de dados - o problema e apenas de cache do React Query
+- O debounce-processor voltara a funcionar imediatamente apos o deploy
+- Mensagens de leads serao enfileiradas na `avivar_ai_queue`
+- O queue-processor processara os jobs e a IA voltara a responder
+- Nenhuma mudanca no banco de dados necessaria
+
