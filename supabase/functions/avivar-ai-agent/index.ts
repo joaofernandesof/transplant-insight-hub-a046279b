@@ -993,7 +993,24 @@ async function getConsultationDuration(
 
 // Helper: get the configured timezone for an agenda (defaults to America/Sao_Paulo)
 async function getAgendaTimezone(supabase: AnySupabaseClient, userId: string, agendaId: string | null): Promise<string> {
-...
+  try {
+    let query = supabase.from("avivar_schedule_config").select("timezone").eq("account_id", userId);
+    if (agendaId) {
+      query = query.eq("agenda_id", agendaId);
+    }
+    const { data } = await query.maybeSingle();
+    if (data?.timezone) return data.timezone;
+
+    // Fallback: try by user_id field
+    let query2 = supabase.from("avivar_schedule_config").select("timezone").eq("user_id", userId);
+    if (agendaId) {
+      query2 = query2.eq("agenda_id", agendaId);
+    }
+    const { data: data2 } = await query2.maybeSingle();
+    return data2?.timezone || "America/Sao_Paulo";
+  } catch (e) {
+    console.error("[AI Agent] Error getting timezone:", e);
+    return "America/Sao_Paulo";
   }
 }
 
