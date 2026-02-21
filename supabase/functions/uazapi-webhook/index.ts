@@ -736,23 +736,42 @@ serve(async (req) => {
               }
 
               if (crmConversationId) {
-                const { error: crmMessageError } = await supabase.from("crm_messages").insert({
-                  account_id: accountId,
-                  conversation_id: crmConversationId,
-                  direction: msg.key.fromMe ? "outbound" : "inbound",
-                  content,
-                  media_url: mediaUrl,
-                  media_type: mapCrmMediaType(mediaType),
-                  sent_at: timestamp,
-                  sender_name: msg.key.fromMe ? "Operador" : msg.pushName || null,
-                });
+                // Use upsert with external_id to prevent duplicate messages from webhook retries
+                const externalId = msg.key?.id || null;
+                const { data: upsertResult, error: crmMessageError } = await supabase
+                  .from("crm_messages")
+                  .upsert({
+                    account_id: accountId,
+                    conversation_id: crmConversationId,
+                    external_id: externalId,
+                    direction: msg.key.fromMe ? "outbound" : "inbound",
+                    content,
+                    media_url: mediaUrl,
+                    media_type: mapCrmMediaType(mediaType),
+                    sent_at: timestamp,
+                    sender_name: msg.key.fromMe ? "Operador" : msg.pushName || null,
+                  }, { 
+                    onConflict: 'conversation_id,external_id',
+                    ignoreDuplicates: true 
+                  })
+                  .select('id, created_at')
+                  .single();
 
-                if (crmMessageError) {
+                // Check if this was a truly new message or a duplicate
+                const isNewMessage = upsertResult && 
+                  (Date.now() - new Date(upsertResult.created_at).getTime()) < 5000;
+
+                if (crmMessageError && crmMessageError.code !== 'PGRST116') {
+                  // PGRST116 = no rows returned (duplicate ignored), which is expected
                   console.error("[UazAPI Webhook] Error inserting crm_message:", crmMessageError);
-                } else {
+                } else if (isNewMessage) {
                   syncedToInbox = true;
                   console.log(`[UazAPI Webhook] ✅ Message stored in crm_messages: ${msg.key.id}`);
+                } else {
+                  console.log(`[UazAPI Webhook] ⏭️ Duplicate message ignored: ${msg.key.id}`);
+                }
 
+                if (isNewMessage) {
                   // Dispatch webhook for message events
                   const messageEvent = msg.key.fromMe ? "message.sent" : "message.received";
                   try {
@@ -938,7 +957,7 @@ serve(async (req) => {
                       console.error("[UazAPI Webhook] Error triggering AI Agent:", aiTriggerError);
                     }
                   }
-                }
+                } // end isNewMessage
               }
             }
           }
