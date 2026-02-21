@@ -954,19 +954,46 @@ async function resolveAgendaById(
   return { agendaId: data?.id || null, agendaInfo: data || null };
 }
 
-// Helper: get the configured timezone for an agenda (defaults to America/Sao_Paulo)
-async function getAgendaTimezone(supabase: AnySupabaseClient, userId: string, agendaId: string | null): Promise<string> {
+// Helper: get the configured consultation duration for an agenda (defaults to 30)
+async function getConsultationDuration(
+  supabase: AnySupabaseClient,
+  accountId: string,
+  agendaId: string | null
+): Promise<number> {
   try {
-    let query = supabase.from("avivar_schedule_config").select("timezone").eq("user_id", userId);
+    let query = supabase
+      .from("avivar_schedule_config")
+      .select("consultation_duration")
+      .eq("account_id", accountId);
+
     if (agendaId) {
       query = query.eq("agenda_id", agendaId);
     } else {
       query = query.is("agenda_id", null);
     }
-    const { data } = await query.single();
-    return data?.timezone || "America/Sao_Paulo";
-  } catch {
-    return "America/Sao_Paulo";
+
+    const { data } = await query.maybeSingle();
+    if (data?.consultation_duration) return data.consultation_duration;
+
+    // Fallback: try any config for this account
+    const { data: fallback } = await supabase
+      .from("avivar_schedule_config")
+      .select("consultation_duration")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return fallback?.consultation_duration || 30;
+  } catch (e) {
+    console.error("[AI Agent] Error getting consultation duration:", e);
+    return 30;
+  }
+}
+
+// Helper: get the configured timezone for an agenda (defaults to America/Sao_Paulo)
+async function getAgendaTimezone(supabase: AnySupabaseClient, userId: string, agendaId: string | null): Promise<string> {
+...
   }
 }
 
@@ -1004,11 +1031,12 @@ async function getAvailableSlots(
   const results: string[] = [];
   
   for (const date of dates) {
+    const duration = await getConsultationDuration(supabase, userId, agendaId);
     const { data: slots, error } = await supabase.rpc("get_available_slots_flexible", {
       p_user_id: userId,
       p_agenda_id: agendaId,
       p_date: date,
-      p_duration_minutes: 30
+      p_duration_minutes: duration
     });
 
     if (error) {
@@ -1095,11 +1123,12 @@ async function checkSlot(
   const { agendaId } = await resolveAgenda(supabase, userId, agendaName);
   const tz = await getAgendaTimezone(supabase, userId, agendaId);
 
+  const duration = await getConsultationDuration(supabase, userId, agendaId);
   const { data: slots, error } = await supabase.rpc("get_available_slots_flexible", {
     p_user_id: userId,
     p_agenda_id: agendaId,
     p_date: normalizedDate,
-    p_duration_minutes: 30,
+    p_duration_minutes: duration,
   });
 
   if (error) {
@@ -1241,16 +1270,17 @@ async function createAppointment(
     return "Não consegui entender a data/horário para agendar. Você pode confirmar no formato 2026-02-09 às 09:30?";
   }
 
+  const duration = await getConsultationDuration(supabase, accountId, agendaId);
   const [hours, minutes] = normalizedTime.split(":").map(Number);
-  const endHours = Math.floor((hours * 60 + minutes + 30) / 60);
-  const endMinutes = (hours * 60 + minutes + 30) % 60;
+  const endHours = Math.floor((hours * 60 + minutes + duration) / 60);
+  const endMinutes = (hours * 60 + minutes + duration) % 60;
   const endTime = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
 
   const { data: slots } = await supabase.rpc("get_available_slots_flexible", {
     p_user_id: userId,
     p_agenda_id: agendaId,
     p_date: normalizedDate,
-    p_duration_minutes: 30
+    p_duration_minutes: duration
   });
 
   // GRID VALIDATION: Reject times not in the configured schedule grid
@@ -1536,11 +1566,12 @@ async function proposeSlot(
   }
 
   // Check availability (NO INSERT)
+  const duration = await getConsultationDuration(supabase, accountId, agendaId);
   const { data: slots } = await supabase.rpc("get_available_slots_flexible", {
     p_user_id: userId,
     p_agenda_id: agendaId,
     p_date: normalizedDate,
-    p_duration_minutes: 30
+    p_duration_minutes: duration
   });
 
   // GRID VALIDATION: Check if the requested time exists in the configured schedule grid
@@ -1675,9 +1706,10 @@ async function rescheduleAppointment(
     return "Não consegui entender a data/horário para reagendar. Você pode confirmar no formato 2026-02-09 às 09:30?";
   }
 
+  const duration = await getConsultationDuration(supabase, accountId, targetAgendaId);
   const [hours, minutes] = normalizedTime.split(":").map(Number);
-  const endHours = Math.floor((hours * 60 + minutes + 30) / 60);
-  const endMinutes = (hours * 60 + minutes + 30) % 60;
+  const endHours = Math.floor((hours * 60 + minutes + duration) / 60);
+  const endMinutes = (hours * 60 + minutes + duration) % 60;
   const endTime = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
 
   // Check availability
@@ -1685,7 +1717,7 @@ async function rescheduleAppointment(
     p_user_id: userId,
     p_agenda_id: targetAgendaId,
     p_date: normalizedDate,
-    p_duration_minutes: 30
+    p_duration_minutes: duration
   });
 
   // GRID VALIDATION: Reject times not in the configured schedule grid
