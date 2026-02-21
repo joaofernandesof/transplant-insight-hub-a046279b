@@ -373,19 +373,11 @@ export default function AvivarAgendaSettings() {
       return configId;
     },
     onSuccess: (configId) => {
-      // Update local state with the saved config id to prevent duplicate inserts
       setConfig(prev => ({ ...prev, id: configId! }));
       toast.success('Configurações salvas com sucesso!');
-      // Use setQueryData to update cache directly instead of invalidating
-      // This prevents the race condition where invalidation causes temporary undefined → DEFAULT_HOURS reset
-      const agendaId = selectedAgenda?.id || null;
-      queryClient.setQueryData(
-        ['avivar-schedule-config', agendaId, accountId],
-        (old: any) => old ? { ...old, id: configId } : { id: configId, account_id: accountId, agenda_id: agendaId }
-      );
-      // Refetch in background without clearing existing data
-      queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config', agendaId, accountId], refetchType: 'none' });
-      queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours', configId], refetchType: 'none' });
+      // Invalidate broadly to ensure all query key variations are refreshed
+      queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config'] });
+      queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours'] });
     },
     onError: (error) => {
       console.error('Error saving config:', error);
