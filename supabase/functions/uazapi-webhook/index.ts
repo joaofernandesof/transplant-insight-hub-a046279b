@@ -894,31 +894,6 @@ serve(async (req) => {
                             .eq("id", crmConversationId);
 
                           // Call the debounce processor as a separate edge function
-                          const callAIDirectly = async () => {
-                            console.log(`[UazAPI Webhook] 🔄 FALLBACK: Calling AI agent directly for conversation ${crmConversationId}`);
-                            try {
-                              const aiResp = await fetch(`${supabaseUrl}/functions/v1/avivar-ai-agent`, {
-                                method: "POST",
-                                headers: {
-                                  Authorization: `Bearer ${supabaseServiceKey}`,
-                                  apikey: supabaseServiceKey,
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  conversationId: crmConversationId,
-                                  messageContent: content,
-                                  leadPhone: phone,
-                                  leadName: msg.pushName || `WhatsApp ${phone}`,
-                                  userId,
-                                  batchedMessages: 1,
-                                }),
-                              });
-                              const aiText = await aiResp.text();
-                              console.log(`[UazAPI Webhook] 🔄 FALLBACK AI response: status=${aiResp.status} body=${aiText.substring(0, 200)}`);
-                            } catch (fallbackErr) {
-                              console.error(`[UazAPI Webhook] 🔄 FALLBACK AI also failed:`, fallbackErr);
-                            }
-                          };
 
                           try {
                             const startResp = await fetch(`${supabaseUrl}/functions/v1/avivar-debounce-processor`, {
@@ -943,12 +918,11 @@ serve(async (req) => {
                             );
 
                             if (!startResp.ok) {
-                              console.error(`[UazAPI Webhook] ❌ Debounce processor failed (${startResp.status}), using fallback`);
+                              console.error(`[UazAPI Webhook] ❌ Debounce processor failed (${startResp.status}), NO fallback to prevent duplicates`);
                               await supabase
                                 .from("crm_conversations")
                                 .update({ pending_batch_id: null, pending_until: null })
                                 .eq("id", crmConversationId);
-                              await callAIDirectly();
                             }
                           } catch (err) {
                             console.error(`[UazAPI Webhook] ❌ Failed to start debounce processor:`, err);
@@ -956,7 +930,6 @@ serve(async (req) => {
                               .from("crm_conversations")
                               .update({ pending_batch_id: null, pending_until: null })
                               .eq("id", crmConversationId);
-                            await callAIDirectly();
                           }
                         }
                       } catch (aiTriggerError) {

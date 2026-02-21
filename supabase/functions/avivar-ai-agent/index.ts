@@ -4447,6 +4447,32 @@ serve(async (req) => {
     // Clean up double spaces and empty lines left by cleanup
     finalResponse = finalResponse.replace(/  +/g, " ").replace(/\n\s*\n\s*\n/g, "\n\n").trim();
 
+    // === DEDUPLICATION: Remove repeated lines/blocks ===
+    {
+      const lines = finalResponse.split('\n');
+      const seen = new Set<string>();
+      const dedupedLines: string[] = [];
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) { dedupedLines.push(line); continue; }
+        if (seen.has(trimmed)) continue;
+        seen.add(trimmed);
+        dedupedLines.push(line);
+      }
+      finalResponse = dedupedLines.join('\n').trim();
+    }
+
+    // === SAFETY NET: Truncate absurdly long responses (max 1000 chars) ===
+    if (finalResponse.length > 1000) {
+      const firstParagraph = finalResponse.split('\n\n')[0];
+      if (firstParagraph && firstParagraph.length > 50) {
+        finalResponse = firstParagraph;
+      } else {
+        finalResponse = finalResponse.substring(0, 1000);
+      }
+      console.log(`[AI Agent] ⚠️ Response truncated from ${finalResponse.length} chars to safety limit`);
+    }
+
     // 9. Send response via WhatsApp
     const sent = await sendWhatsAppMessage(supabaseUrl, supabaseServiceKey, conversationId, finalResponse);
 
