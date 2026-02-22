@@ -10,10 +10,13 @@ interface HotLeadsStatsProps {
 }
 
 export function HotLeadsStats({ leads, availableCount, myLeadsCount, acquiredCount, queuedCount }: HotLeadsStatsProps) {
+  const othersClaimed = acquiredCount;
+  const myClaimed = myLeadsCount;
+
   const stats = [
-    { label: 'Total de Leads', value: leads.length + queuedCount, icon: Flame, gradient: 'from-orange-500 to-red-500' },
     { label: 'Disponíveis', value: availableCount, icon: Target, gradient: 'from-green-400 to-emerald-600' },
-    { label: 'Adquiridos', value: acquiredCount + myLeadsCount, icon: UserCheck, gradient: 'from-blue-500 to-indigo-600' },
+    { label: 'Meus Adquiridos', value: myClaimed, icon: UserCheck, gradient: 'from-blue-500 to-indigo-600' },
+    { label: 'Adquiridos (outros)', value: othersClaimed, icon: Flame, gradient: 'from-orange-500 to-red-500' },
   ];
 
   return (
