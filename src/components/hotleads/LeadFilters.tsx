@@ -10,6 +10,12 @@ import {
 import { Search, X, LayoutGrid, List, ArrowUpDown } from 'lucide-react';
 import { PROCEDURES } from './LeadCard';
 
+const BRAZILIAN_STATES = [
+  'AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
+  'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN',
+  'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO',
+];
+
 export type SortOption = 'created_desc' | 'created_asc' | 'name_asc' | 'name_desc' | 'value_desc' | 'value_asc' | 'status_asc';
 
 interface LeadFiltersProps {
@@ -122,7 +128,7 @@ export function LeadFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos estados</SelectItem>
-            {availableStates.sort().map(state => (
+            {BRAZILIAN_STATES.map(state => (
               <SelectItem key={state} value={state}>{state}</SelectItem>
             ))}
           </SelectContent>
