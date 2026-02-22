@@ -72,6 +72,13 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const _logStart = Date.now();
+  let _logStatus = "success";
+  let _logError = "";
+  let _logTokensIn = 0;
+  let _logTokensOut = 0;
+  let _logModel = "";
+
   try {
     const { 
       nicho, 
@@ -424,6 +431,9 @@ Retorne APENAS um JSON válido no seguinte formato, sem texto adicional:
     }
 
     const aiResponse = await response.json();
+    _logModel = "google/gemini-2.5-flash";
+    _logTokensIn = aiResponse.usage?.prompt_tokens || 0;
+    _logTokensOut = aiResponse.usage?.completion_tokens || 0;
     const content = aiResponse.choices?.[0]?.message?.content;
 
     console.log('AI response received, parsing...');
@@ -450,12 +460,21 @@ Retorne APENAS um JSON válido no seguinte formato, sem texto adicional:
     });
 
   } catch (error) {
+    _logStatus = "error";
+    _logError = error instanceof Error ? error.message : "Unknown error";
     console.error("Error generating FAQ:", error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Unknown error" 
-    }), {
+    return new Response(JSON.stringify({ error: _logError }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  } finally {
+    try {
+      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+      const _costs: Record<string, [number, number]> = { "google/gemini-3-flash-preview": [0.10, 0.40], "google/gemini-2.5-flash": [0.15, 0.60], "google/gemini-2.5-flash-lite": [0.02, 0.05], "google/gemini-2.5-pro": [1.25, 5.00] };
+      const [cIn, cOut] = _costs[_logModel] || [0, 0];
+      const _estCost = (_logTokensIn / 1e6) * cIn + (_logTokensOut / 1e6) * cOut;
+      const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      _sb.from("edge_function_logs").insert({ function_name: "avivar-generate-faq", execution_time_ms: Date.now() - _logStart, status: _logStatus, tokens_input: _logTokensIn, tokens_output: _logTokensOut, model_used: _logModel || null, estimated_cost_usd: _estCost, error_message: _logError || null }).then(() => {});
+    } catch {}
   }
 });

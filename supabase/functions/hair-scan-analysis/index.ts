@@ -96,6 +96,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const _logStart = Date.now();
+  let _logStatus = "success";
+  let _logError = "";
+  let _logModel = "";
+
   try {
     const { action, imageBase64, yearsProgression } = await req.json();
 
@@ -196,6 +201,7 @@ STYLE TO APPLY: "${selectedStyle}"
     // Some model runs return only text (no images). For newversion we force image-only output and do 1 retry.
     const forceImageOnly = action === "newversion";
     const model = action === "newversion" ? "google/gemini-3-pro-image-preview" : "google/gemini-2.5-flash-image";
+    _logModel = model;
 
     let response = await callImageModel({
       lovableApiKey: LOVABLE_API_KEY,
@@ -297,11 +303,18 @@ STYLE TO APPLY: "${selectedStyle}"
     );
 
   } catch (error) {
+    _logStatus = "error";
+    _logError = error instanceof Error ? error.message : "Erro desconhecido";
     console.error("Hair scan analysis error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: _logError }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+  } finally {
+    try {
+      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+      const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      _sb.from("edge_function_logs").insert({ function_name: "hair-scan-analysis", execution_time_ms: Date.now() - _logStart, status: _logStatus, model_used: _logModel || null, estimated_cost_usd: 0, error_message: _logError || null }).then(() => {});
+    } catch {}
   }
 });

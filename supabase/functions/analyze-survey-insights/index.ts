@@ -41,6 +41,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const _logStart = Date.now();
+  let _logStatus = "success";
+  let _logError = "";
+  let _logTokensIn = 0;
+  let _logTokensOut = 0;
+
   try {
     const { surveyData, className } = await req.json() as { surveyData: SurveyData; className: string };
     
@@ -159,6 +165,8 @@ Por favor, gere insights acionáveis para a gestão melhorar a experiência nos 
     }
 
     const aiResponse = await response.json();
+    _logTokensIn = aiResponse.usage?.prompt_tokens || 0;
+    _logTokensOut = aiResponse.usage?.completion_tokens || 0;
     const content = aiResponse.choices?.[0]?.message?.content || "";
     
     // Try to parse JSON from the response
@@ -178,10 +186,19 @@ Por favor, gere insights acionáveis para a gestão melhorar a experiência nos 
     });
 
   } catch (error) {
+    _logStatus = "error";
+    _logError = error instanceof Error ? error.message : "Erro desconhecido";
     console.error("Error generating insights:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }), {
+    return new Response(JSON.stringify({ error: _logError }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  } finally {
+    try {
+      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+      const _estCost = (_logTokensIn / 1e6) * 0.10 + (_logTokensOut / 1e6) * 0.40;
+      const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      _sb.from("edge_function_logs").insert({ function_name: "analyze-survey-insights", execution_time_ms: Date.now() - _logStart, status: _logStatus, tokens_input: _logTokensIn, tokens_output: _logTokensOut, model_used: "google/gemini-3-flash-preview", estimated_cost_usd: _estCost, error_message: _logError || null }).then(() => {});
+    } catch {}
   }
 });

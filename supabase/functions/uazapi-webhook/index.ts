@@ -1131,11 +1131,22 @@ serve(async (req) => {
     const duration = Date.now() - startTime;
     console.log(`[UazAPI Webhook] Completed in ${duration}ms`);
 
+    // Log webhook execution (fire-and-forget)
+    try {
+      const _sbLog = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      _sbLog.from("edge_function_logs").insert({ function_name: "uazapi-webhook", execution_time_ms: duration, status: "success" }).then(() => {});
+    } catch {}
+
     return new Response(JSON.stringify({ success: true, duration }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("[UazAPI Webhook] Error:", error);
+    // Log webhook execution
+    try {
+      const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      _sb.from("edge_function_logs").insert({ function_name: "uazapi-webhook", execution_time_ms: Date.now() - startTime, status: "error", error_message: (error as Error).message }).then(() => {});
+    } catch {}
     return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
