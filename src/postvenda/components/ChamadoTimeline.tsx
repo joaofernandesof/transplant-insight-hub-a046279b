@@ -56,7 +56,7 @@ export function ChamadoTimeline({ historico, isLoading }: ChamadoTimelineProps) 
       <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
 
       <div className="space-y-4">
-        {historico.map((item, index) => {
+        {[...historico].reverse().map((item, index) => {
           const Icon = acaoIcons[item.acao] || MessageCircle;
           const isFirst = index === 0;
           const isLast = index === historico.length - 1;
@@ -65,13 +65,13 @@ export function ChamadoTimeline({ historico, isLoading }: ChamadoTimelineProps) 
             <div key={item.id} className="relative pl-10">
               {/* Icon circle */}
               <div className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                isLast ? 'bg-primary border-primary text-primary-foreground' : 'bg-background border-border'
+                isFirst ? 'bg-primary border-primary text-primary-foreground' : 'bg-background border-border'
               }`}>
                 <Icon className="h-4 w-4" />
               </div>
 
               {/* Content */}
-              <div className={`p-3 rounded-lg ${isLast ? 'bg-primary/5 border border-primary/20' : 'bg-muted/50'}`}>
+              <div className={`p-3 rounded-lg ${isFirst ? 'bg-primary/5 border border-primary/20' : 'bg-muted/50'}`}>
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm">
