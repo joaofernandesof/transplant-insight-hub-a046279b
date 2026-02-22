@@ -15216,6 +15216,9 @@ export type Database = {
           distrato_parecer_tentativas: number | null
           distrato_remetente_titular: boolean | null
           distrato_responsavel_atual: string | null
+          distrato_retencao_info: string | null
+          distrato_sem_definicao_motivo: string | null
+          distrato_sla_renovado_em: string | null
           distrato_status_juridico_final: string | null
           distrato_termo_sinal_anexo: boolean | null
           distrato_termo_sinal_assinado: boolean | null
@@ -15299,6 +15302,9 @@ export type Database = {
           distrato_parecer_tentativas?: number | null
           distrato_remetente_titular?: boolean | null
           distrato_responsavel_atual?: string | null
+          distrato_retencao_info?: string | null
+          distrato_sem_definicao_motivo?: string | null
+          distrato_sla_renovado_em?: string | null
           distrato_status_juridico_final?: string | null
           distrato_termo_sinal_anexo?: boolean | null
           distrato_termo_sinal_assinado?: boolean | null
@@ -15382,6 +15388,9 @@ export type Database = {
           distrato_parecer_tentativas?: number | null
           distrato_remetente_titular?: boolean | null
           distrato_responsavel_atual?: string | null
+          distrato_retencao_info?: string | null
+          distrato_sem_definicao_motivo?: string | null
+          distrato_sla_renovado_em?: string | null
           distrato_status_juridico_final?: string | null
           distrato_termo_sinal_anexo?: boolean | null
           distrato_termo_sinal_assinado?: boolean | null
@@ -19450,6 +19459,10 @@ export type Database = {
         | "devolver"
         | "nao_devolver"
         | "em_negociacao"
+        | "retido"
+        | "nao_retido_com_contrato"
+        | "nao_retido_sem_contrato"
+        | "sem_definicao"
       distrato_etapa_bpmn:
         | "solicitacao_recebida"
         | "validacao_contato"
@@ -19459,6 +19472,12 @@ export type Database = {
         | "aguardando_assinatura"
         | "aguardando_pagamento"
         | "caso_concluido"
+        | "aguardando_negociacao"
+        | "retido"
+        | "produzir_distrato"
+        | "gerar_contas_pagar"
+        | "realizar_pagamento"
+        | "enviar_comprovante"
       distrato_risco_juridico: "baixo" | "medio" | "alto"
       distrato_status_procedimento:
         | "nao_iniciado"
@@ -19811,6 +19830,10 @@ export const Constants = {
         "devolver",
         "nao_devolver",
         "em_negociacao",
+        "retido",
+        "nao_retido_com_contrato",
+        "nao_retido_sem_contrato",
+        "sem_definicao",
       ],
       distrato_etapa_bpmn: [
         "solicitacao_recebida",
@@ -19821,6 +19844,12 @@ export const Constants = {
         "aguardando_assinatura",
         "aguardando_pagamento",
         "caso_concluido",
+        "aguardando_negociacao",
+        "retido",
+        "produzir_distrato",
+        "gerar_contas_pagar",
+        "realizar_pagamento",
+        "enviar_comprovante",
       ],
       distrato_risco_juridico: ["baixo", "medio", "alto"],
       distrato_status_procedimento: [
