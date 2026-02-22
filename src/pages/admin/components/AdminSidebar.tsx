@@ -37,6 +37,7 @@ const managementMenu = [
 
 // Menu do sistema
 const systemMenu = [
+  { id: 'monitoring', label: 'Monitoramento', icon: Activity, href: '/admin-portal/monitoring' },
   { id: 'announcements', label: 'Anúncios', icon: Bell, href: '/admin/announcements' },
   { id: 'event-logs', label: 'Logs', icon: Activity, href: '/admin/event-logs' },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/admin/sentinel' },

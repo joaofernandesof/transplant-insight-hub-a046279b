@@ -4738,6 +4738,17 @@ Responda APENAS com o resumo, sem explicações adicionais.`;
     const duration = Date.now() - startTime;
     console.log(`[AI Agent] Completed in ${duration}ms`);
 
+    // Fire-and-forget: log execution
+    supabase.from("edge_function_logs").insert({
+      function_name: "avivar-ai-agent",
+      execution_time_ms: duration,
+      status: "success",
+      model_used: "google/gemini-3-flash-preview",
+      account_id: accountId || null,
+      user_id: userId || null,
+      metadata: { conversationId, agent: routedAgent.agent_name, stage: leadStage },
+    }).then(() => {}).catch(e => console.error("[Log] insert error:", e));
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -4751,7 +4762,23 @@ Responda APENAS com o resumo, sem explicações adicionais.`;
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
+    const duration = Date.now() - startTime;
     console.error("[AI Agent] Error:", error);
+
+    // Fire-and-forget: log error
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const sc = createClient(supabaseUrl, supabaseServiceKey);
+      sc.from("edge_function_logs").insert({
+        function_name: "avivar-ai-agent",
+        execution_time_ms: duration,
+        status: "error",
+        error_message: (error as Error).message?.substring(0, 500),
+        model_used: "google/gemini-3-flash-preview",
+      }).then(() => {}).catch(() => {});
+    } catch {}
+
     return new Response(
       JSON.stringify({ success: false, error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

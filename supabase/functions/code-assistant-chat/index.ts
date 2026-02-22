@@ -83,6 +83,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const _logStart = Date.now();
   try {
     const { messages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -127,6 +128,16 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Fire-and-forget: log execution
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+    const logClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    logClient.from("edge_function_logs").insert({
+      function_name: "code-assistant-chat",
+      execution_time_ms: Date.now() - _logStart,
+      status: "success",
+      model_used: "google/gemini-3-flash-preview",
+    }).then(() => {}).catch(() => {});
 
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
