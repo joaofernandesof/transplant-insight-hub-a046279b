@@ -99,7 +99,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
         return;
       }
       if (!pdfFile) {
-        toast.error('Anexe o PDF do e-mail de solicitação');
+        toast.error('Anexe o print da solicitação');
         return;
       }
       if (!isDistratoValid()) {
@@ -258,11 +258,11 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
 
                 {/* PDF do Email - Obrigatório */}
                 <div className="space-y-2 relative z-10">
-                  <Label>PDF do E-mail de Solicitação *</Label>
+                  <Label>Print da solicitação *</Label>
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.png,.jpg,.jpeg"
                     onChange={handleFileChange}
                     className="hidden"
                   />
