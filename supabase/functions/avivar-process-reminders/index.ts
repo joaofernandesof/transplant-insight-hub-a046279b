@@ -11,6 +11,13 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const _logStart = Date.now();
+  let _logStatus = "success";
+  let _logError = "";
+  let _logTokensIn = 0;
+  let _logTokensOut = 0;
+  let _logModel = "";
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -150,6 +157,9 @@ serve(async (req) => {
 
             if (translateResponse.ok) {
               const translateData = await translateResponse.json();
+              _logModel = "google/gemini-3-flash-preview";
+              _logTokensIn += translateData.usage?.prompt_tokens || 0;
+              _logTokensOut += translateData.usage?.completion_tokens || 0;
               const translated = translateData.choices?.[0]?.message?.content;
               if (translated && translated.trim()) {
                 messageToSend = translated.trim().replace(/^["']|["']$/g, "");
@@ -275,10 +285,20 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
+    _logStatus = "error";
+    _logError = err.message || "Unknown error";
     console.error("[Reminders] Fatal error:", err);
     return new Response(
       JSON.stringify({ success: false, error: err.message }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
+  } finally {
+    try {
+      const _costs: Record<string, [number, number]> = { "google/gemini-3-flash-preview": [0.10, 0.40], "google/gemini-2.5-flash": [0.15, 0.60], "google/gemini-2.5-flash-lite": [0.02, 0.05], "google/gemini-2.5-pro": [1.25, 5.00] };
+      const [cIn, cOut] = _costs[_logModel] || [0, 0];
+      const _estCost = (_logTokensIn / 1e6) * cIn + (_logTokensOut / 1e6) * cOut;
+      const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      _sb.from("edge_function_logs").insert({ function_name: "avivar-process-reminders", execution_time_ms: Date.now() - _logStart, status: _logStatus, tokens_input: _logTokensIn, tokens_output: _logTokensOut, model_used: _logModel || null, estimated_cost_usd: _estCost, error_message: _logError || null }).then(() => {});
+    } catch {}
   }
 });

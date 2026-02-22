@@ -43,6 +43,14 @@ serve(async (req) => {
 
   const startTime = Date.now();
 
+  let _logStatus = "success";
+  let _logError = "";
+  let _logTokensIn = 0;
+  let _logTokensOut = 0;
+  let _logModel = "google/gemini-2.5-flash";
+  let _logAccountId: string | null = null;
+  let _logUserId: string | null = null;
+
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -57,6 +65,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { call_id, account_id } = await req.json();
+    _logAccountId = account_id || null;
 
     if (!call_id || !account_id) {
       return new Response(
@@ -268,6 +277,8 @@ Analise esta ligação comercial usando SPIN Selling.`;
     }
 
     const aiResult = await aiResponse.json();
+    _logTokensIn = aiResult.usage?.prompt_tokens || 0;
+    _logTokensOut = aiResult.usage?.completion_tokens || 0;
     const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall) {
@@ -284,6 +295,7 @@ Analise esta ligação comercial usando SPIN Selling.`;
     // Get auth user from request
     const authHeader = req.headers.get("Authorization");
     let userId = call.user_id;
+    _logUserId = userId;
     if (authHeader) {
       const token = authHeader.replace("Bearer ", "");
       const { data: { user } } = await supabase.auth.getUser(token);
@@ -345,10 +357,20 @@ Analise esta ligação comercial usando SPIN Selling.`;
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
+    _logStatus = "error";
+    _logError = (error as Error).message;
     console.error("[analyze-call] Error:", error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+  } finally {
+    try {
+      const _costs: Record<string, [number, number]> = { "google/gemini-3-flash-preview": [0.10, 0.40], "google/gemini-2.5-flash": [0.15, 0.60], "google/gemini-2.5-flash-lite": [0.02, 0.05], "google/gemini-2.5-pro": [1.25, 5.00] };
+      const [cIn, cOut] = _costs[_logModel] || [0, 0];
+      const _estCost = (_logTokensIn / 1e6) * cIn + (_logTokensOut / 1e6) * cOut;
+      const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      _sb.from("edge_function_logs").insert({ function_name: "avivar-analyze-call", execution_time_ms: Date.now() - startTime, status: _logStatus, tokens_input: _logTokensIn, tokens_output: _logTokensOut, model_used: _logModel, estimated_cost_usd: _estCost, account_id: _logAccountId, user_id: _logUserId, error_message: _logError || null }).then(() => {});
+    } catch {}
   }
 });

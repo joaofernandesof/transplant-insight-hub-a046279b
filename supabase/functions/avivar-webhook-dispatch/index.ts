@@ -25,8 +25,14 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const _logStart = Date.now();
+  let _logStatus = "success";
+  let _logError = "";
+  let _logAccountId: string | null = null;
+
   try {
     const { event, account_id, payload } = await req.json();
+    _logAccountId = account_id || null;
 
     if (!event || !account_id) {
       return new Response(
@@ -120,11 +126,17 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    console.error("[Webhook Dispatch] Error:", msg);
+    _logStatus = "error";
+    _logError = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Webhook Dispatch] Error:", _logError);
     return new Response(
-      JSON.stringify({ error: msg }),
+      JSON.stringify({ error: _logError }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+  } finally {
+    try {
+      const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      _sb.from("edge_function_logs").insert({ function_name: "avivar-webhook-dispatch", execution_time_ms: Date.now() - _logStart, status: _logStatus, account_id: _logAccountId, error_message: _logError || null }).then(() => {});
+    } catch {}
   }
 });
