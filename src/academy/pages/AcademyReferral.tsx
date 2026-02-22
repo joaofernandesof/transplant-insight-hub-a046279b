@@ -84,23 +84,69 @@ export function AcademyReferral() {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (referral: any) => {
+    // Check payment_status first for settled referrals
+    if (referral.payment_status === 'paid') {
+      return <Badge className="bg-emerald-600 text-white">✅ Pagamento realizado</Badge>;
+    }
+    if (referral.payment_status === 'rejected') {
+      return <Badge variant="destructive">❌ Pagamento reprovado</Badge>;
+    }
+    if (referral.payment_status === 'approved') {
+      return <Badge className="bg-blue-600 text-white">💰 Pagamento aprovado</Badge>;
+    }
+    if (referral.payment_status === 'pending_review') {
+      return <Badge className="bg-amber-500 text-white">⏳ Em análise financeira</Badge>;
+    }
+
+    switch (referral.status) {
       case 'pending':
-        return <Badge variant="secondary">Em atendimento</Badge>;
+        return <Badge variant="secondary">Nova indicação</Badge>;
       case 'contacted':
-        return <Badge className="bg-blue-500">Em negociação</Badge>;
+        return <Badge className="bg-blue-500 text-white">Em atendimento</Badge>;
       case 'enrolled':
-        return <Badge className="bg-amber-500">Matriculado</Badge>;
+        return <Badge className="bg-amber-500 text-white">Matriculado</Badge>;
       case 'converted':
-        return <Badge className="bg-green-500">Convertido</Badge>;
+        return <Badge className="bg-purple-500 text-white">Contrato fechado</Badge>;
       case 'settled':
-        return <Badge className="bg-emerald-600">Quitado</Badge>;
+        return <Badge className="bg-emerald-600 text-white">Quitado</Badge>;
       case 'cancelled':
         return <Badge variant="destructive">Cancelado</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{referral.status}</Badge>;
     }
+  };
+
+  const getPaymentMessage = (referral: any) => {
+    if (referral.payment_status === 'pending_review') {
+      return (
+        <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+          ⏳ A equipe financeira está auditando sua comissão. Após aprovação, o pagamento será realizado em até 5 dias úteis via PIX.
+        </div>
+      );
+    }
+    if (referral.payment_status === 'approved') {
+      return (
+        <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+          ✅ Comissão aprovada! O pagamento será realizado em até 5 dias úteis via PIX.
+        </div>
+      );
+    }
+    if (referral.payment_status === 'rejected') {
+      return (
+        <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+          ❌ Comissão não aprovada. Motivo: {referral.payment_rejection_reason || 'Entre em contato com a equipe para mais informações.'}
+        </div>
+      );
+    }
+    if (referral.payment_status === 'paid') {
+      return (
+        <div className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+          🎉 Comissão paga com sucesso!
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -265,50 +311,79 @@ export function AcademyReferral() {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="w-10 h-10 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2">
-              <UserPlus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <CardContent className="p-3 text-center">
+            <div className="w-8 h-8 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-1">
+              <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">Indicações</p>
+            <p className="text-xl font-bold">{stats.total}</p>
+            <p className="text-[10px] text-muted-foreground">Indicações</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="w-10 h-10 mx-auto bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-2">
-              <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <CardContent className="p-3 text-center">
+            <div className="w-8 h-8 mx-auto bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-1">
+              <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             </div>
-            <p className="text-2xl font-bold">{stats.pending}</p>
-            <p className="text-xs text-muted-foreground">Em Atendimento</p>
+            <p className="text-xl font-bold">{stats.pending + stats.contacted}</p>
+            <p className="text-[10px] text-muted-foreground">Em Atendimento</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="w-10 h-10 mx-auto bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-2">
-              <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+          <CardContent className="p-3 text-center">
+            <div className="w-8 h-8 mx-auto bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-1">
+              <Check className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             </div>
-            <p className="text-2xl font-bold">{stats.converted}</p>
-            <p className="text-xs text-muted-foreground">Convertidos</p>
+            <p className="text-xl font-bold">{stats.converted}</p>
+            <p className="text-[10px] text-muted-foreground">Contrato Fechado</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="w-10 h-10 mx-auto bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-2">
-              <Wallet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+          <CardContent className="p-3 text-center">
+            <div className="w-8 h-8 mx-auto bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-1">
+              <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <p className="text-2xl font-bold">{stats.settled}</p>
-            <p className="text-xs text-muted-foreground">Quitados</p>
+            <p className="text-xl font-bold">{stats.settled}</p>
+            <p className="text-[10px] text-muted-foreground">Quitados</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="w-10 h-10 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-2">
-              <DollarSign className="h-5 w-5 text-primary" />
+          <CardContent className="p-3 text-center">
+            <div className="w-8 h-8 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-1">
+              <Banknote className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
-            <p className="text-2xl font-bold">{stats.totalCommission}%</p>
-            <p className="text-xs text-muted-foreground">Comissão Total</p>
+            <p className="text-xl font-bold">{stats.paymentApproved}</p>
+            <p className="text-[10px] text-muted-foreground">Pgto Aprovado</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <div className="w-8 h-8 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-1">
+              <Gift className="h-4 w-4 text-red-600 dark:text-red-400" />
+            </div>
+            <p className="text-xl font-bold">{stats.paymentRejected}</p>
+            <p className="text-[10px] text-muted-foreground">Pgto Reprovado</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <div className="w-8 h-8 mx-auto bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-1">
+              <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </div>
+            <p className="text-xl font-bold">{stats.paymentPaid}</p>
+            <p className="text-[10px] text-muted-foreground">Pgto Realizado</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <div className="w-8 h-8 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-1">
+              <DollarSign className="h-4 w-4 text-primary" />
+            </div>
+            <p className="text-xl font-bold">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(stats.totalCommission)}
+            </p>
+            <p className="text-[10px] text-muted-foreground">Comissão Total</p>
           </CardContent>
         </Card>
       </div>
@@ -362,7 +437,12 @@ export function AcademyReferral() {
                             <Badge variant="secondary">Não possui</Badge>
                           )}
                         </TableCell>
-                        <TableCell>{getStatusBadge(referral.status)}</TableCell>
+                        <TableCell>
+                          <div>
+                            {getStatusBadge(referral)}
+                            {getPaymentMessage(referral)}
+                          </div>
+                        </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           {format(new Date(referral.created_at), "dd/MM/yy", { locale: ptBR })}
                         </TableCell>

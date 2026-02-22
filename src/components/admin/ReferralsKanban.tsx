@@ -34,24 +34,45 @@ const KANBAN_COLUMNS_CONFIG = [
   },
   { 
     key: 'negotiating', 
-    label: 'Em Negociação', 
+    label: 'Em Atendimento', 
     subtitle: 'Conversando',
     color: 'from-blue-500 to-blue-600',
     statusColor: 'bg-blue-500'
   },
   { 
     key: 'deposit_paid', 
-    label: 'Sinal Pago', 
-    subtitle: 'Aguardando quitação',
+    label: 'Contrato Fechado', 
+    subtitle: 'Contrato assinado',
     color: 'from-purple-500 to-purple-600',
     statusColor: 'bg-purple-500'
   },
   { 
     key: 'paid_off', 
     label: 'Quitado', 
-    subtitle: 'Concluído',
+    subtitle: 'Aguardando auditoria',
     color: 'from-emerald-500 to-emerald-600',
     statusColor: 'bg-emerald-500'
+  },
+  { 
+    key: 'payment_approved', 
+    label: 'Pgto Aprovado', 
+    subtitle: 'Aguardando pagamento',
+    color: 'from-green-500 to-green-600',
+    statusColor: 'bg-green-500'
+  },
+  { 
+    key: 'payment_rejected', 
+    label: 'Pgto Reprovado', 
+    subtitle: 'Comissão negada',
+    color: 'from-red-500 to-red-600',
+    statusColor: 'bg-red-500'
+  },
+  { 
+    key: 'payment_completed', 
+    label: 'Pgto Realizado', 
+    subtitle: 'Comissão paga',
+    color: 'from-teal-500 to-teal-600',
+    statusColor: 'bg-teal-500'
   }
 ];
 
