@@ -1,85 +1,43 @@
 
+## Otimizar Queue Processor: Sob Demanda + Safety Net a cada 60s
 
-# Correcao: IA Oferece Horarios de 30 em 30 (Ignorando Duracao Configurada)
+### Situacao Atual
+- O `pg_cron` dispara o `avivar-queue-processor` a cada **10 segundos** (8.640 invocacoes/dia)
+- O `avivar-debounce-processor` **ja faz invocacao sob demanda** (linha 294-305) -- ou seja, quando um job e enfileirado, ele ja chama o queue processor imediatamente
+- A maioria das invocacoes do cron sao desnecessarias (fila vazia)
 
-## Problema
+### O que sera feito
+Apenas **uma mudanca**: alterar o intervalo do `pg_cron` de 10s para 60s.
 
-A agenda esta configurada com duracao de 20 minutos (gerando slots 08:00, 08:20, 08:40...), mas a IA oferece horarios como 08:30 e 13:00 -- que sao multiplos de 30 minutos e nao existem na grade real.
+Isso reduz as invocacoes de **8.640/dia para 1.440/dia** (reducao de 83%), mantendo:
+- **Resposta rapida**: O debounce-processor ja chama o queue-processor assim que enfileira um job (sob demanda)
+- **Safety net**: O cron a cada 60s garante que jobs "perdidos" ou que falharam no trigger sob demanda sejam processados em ate 1 minuto
 
-## Causa Raiz
+### Impacto
+- **Custo Cloud**: reducao significativa nas invocacoes de Edge Functions
+- **Latencia para o lead**: zero impacto, pois a invocacao sob demanda ja existe
+- **Confiabilidade**: jobs que por algum motivo nao foram pegos pelo trigger sob demanda serao capturados em ate 60s pelo cron
 
-No arquivo `supabase/functions/avivar-ai-agent/index.ts`, todas as 5 chamadas a funcao `get_available_slots_flexible` passam `p_duration_minutes: 30` **hardcoded**, ignorando completamente o valor real de `consultation_duration` salvo na tabela `avivar_schedule_config`.
+### Detalhes Tecnicos
 
-Linhas afetadas:
-- Linha 1011 (get_available_slots)
-- Linha 1102 (check_slot)  
-- Linha 1253 (create_appointment)
-- Linha 1543 (propose_slot)
-- Linha 1688 (reschedule_appointment)
+Executar SQL para atualizar o job existente do `cron`:
 
-## Correcao
+```text
+-- Remover o cron atual (10s)
+SELECT cron.unschedule('avivar-queue-processor-poll');
 
-### 1. Criar funcao auxiliar para buscar a duracao configurada
-
-Adicionar uma funcao `getConsultationDuration` que consulta `avivar_schedule_config` para obter o `consultation_duration` real da agenda, com fallback de 30 minutos caso nenhuma configuracao exista.
-
-```typescript
-async function getConsultationDuration(
-  supabase: AnySupabaseClient, 
-  accountId: string, 
-  agendaId: string | null
-): Promise<number> {
-  let query = supabase
-    .from("avivar_schedule_config")
-    .select("consultation_duration")
-    .eq("account_id", accountId);
-  
-  if (agendaId) {
-    query = query.eq("agenda_id", agendaId);
-  } else {
-    query = query.is("agenda_id", null);
-  }
-  
-  const { data } = await query.single();
-  return data?.consultation_duration || 30;
-}
+-- Criar novo cron a cada 60s (1 minuto)
+SELECT cron.schedule(
+  'avivar-queue-processor-poll',
+  '* * * * *',   -- a cada 1 minuto (minimo do pg_cron padrao)
+  $$
+  SELECT net.http_post(
+    url := '...functions/v1/avivar-queue-processor',
+    headers := '...'::jsonb,
+    body := '{"max_jobs": 5}'::jsonb
+  ) AS request_id;
+  $$
+);
 ```
 
-### 2. Substituir o valor hardcoded em todas as 5 chamadas
-
-Em cada funcao que chama `get_available_slots_flexible`, buscar a duracao real antes de chamar o RPC:
-
-```typescript
-const duration = await getConsultationDuration(supabase, accountId, agendaId);
-
-const { data: slots } = await supabase.rpc("get_available_slots_flexible", {
-  p_user_id: userId,
-  p_agenda_id: agendaId,
-  p_date: date,
-  p_duration_minutes: duration  // era: 30
-});
-```
-
-**Nota**: Nas funcoes `get_available_slots` e `check_slot`, o parametro de conta se chama `userId` (que na pratica e o account_id passado pelo orquestrador). A funcao auxiliar recebera esse mesmo valor.
-
-### 3. Tambem usar a duracao no calculo do end_time do agendamento
-
-Na funcao `create_appointment` (linha ~1245), o calculo do horario final tambem usa 30 hardcoded. Sera atualizado para usar o valor real:
-
-```typescript
-const duration = await getConsultationDuration(supabase, accountId, agendaId);
-const endMinutes = startHours * 60 + startMinutes + duration;
-```
-
-O mesmo se aplica a `reschedule_appointment`.
-
-## Arquivo Modificado
-
-- `supabase/functions/avivar-ai-agent/index.ts`
-
-## Resultado Esperado
-
-- A IA passara a usar a duracao real configurada na agenda (ex: 20 minutos)
-- Os slots retornados serao 08:00, 08:20, 08:40... em vez de 08:00, 08:30, 09:00...
-- A validacao snap-to-grid (ja implementada) funcionara corretamente pois os slots base estarao corretos
-- Funciona automaticamente para todas as contas futuras do CRM Avivar
+Nenhuma alteracao de codigo nas Edge Functions e necessaria -- o mecanismo sob demanda ja esta implementado no `avivar-debounce-processor`.
