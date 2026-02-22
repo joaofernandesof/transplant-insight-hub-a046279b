@@ -165,6 +165,7 @@ interface DistratoEtapaFlowProps {
   decisao: DistratoDecisao;
   chamadoId?: string;
   tipoDemanda?: string;
+  contratoAssinado?: boolean;
   onAdvance: (targetEtapa: DistratoEtapaBpmn, metadata?: Record<string, any>) => Promise<void>;
   onSetDecisao?: (decisao: DistratoDecisao, metadata?: Record<string, any>) => Promise<void>;
   canAdvance?: boolean;
@@ -177,6 +178,7 @@ export function DistratoEtapaFlow({
   decisao,
   chamadoId,
   tipoDemanda,
+  contratoAssinado,
   onAdvance, 
   onSetDecisao,
   canAdvance = true,
@@ -229,14 +231,20 @@ export function DistratoEtapaFlow({
   const handleSetDecisao = async () => {
     if (!onSetDecisao || selectedDecisao === 'pendente') return;
     
-    if (selectedDecisao === 'retido') {
+    // Auto-resolve "nao_retido" based on contratoAssinado from the form
+    let finalDecisao = selectedDecisao;
+    if (selectedDecisao === ('nao_retido' as any)) {
+      finalDecisao = contratoAssinado ? 'nao_retido_com_contrato' : 'nao_retido_sem_contrato';
+    }
+
+    if (finalDecisao === 'retido') {
       if (!retencaoInfo.trim()) return;
-      await onSetDecisao(selectedDecisao, { retencaoInfo });
-    } else if (selectedDecisao === 'sem_definicao') {
+      await onSetDecisao(finalDecisao, { retencaoInfo });
+    } else if (finalDecisao === 'sem_definicao') {
       if (!semDefinicaoMotivo.trim()) return;
-      await onSetDecisao(selectedDecisao, { semDefinicaoMotivo });
+      await onSetDecisao(finalDecisao, { semDefinicaoMotivo });
     } else {
-      await onSetDecisao(selectedDecisao);
+      await onSetDecisao(finalDecisao);
     }
     
     setShowDecisaoDialog(false);
@@ -515,16 +523,10 @@ export function DistratoEtapaFlow({
                       Retido - Paciente convencido a permanecer
                     </span>
                   </SelectItem>
-                  <SelectItem value="nao_retido_com_contrato">
-                    <span className="flex items-center gap-2">
-                      <FileSignature className="h-4 w-4 text-red-600" />
-                      Não Retido - Com contrato assinado
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="nao_retido_sem_contrato">
+                  <SelectItem value="nao_retido">
                     <span className="flex items-center gap-2">
                       <Ban className="h-4 w-4 text-red-600" />
-                      Não Retido - Sem contrato assinado
+                      Não Retido
                     </span>
                   </SelectItem>
                   <SelectItem value="sem_definicao">
