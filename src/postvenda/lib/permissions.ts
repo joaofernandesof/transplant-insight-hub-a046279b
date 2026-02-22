@@ -62,20 +62,33 @@ export const ETAPA_LABELS: Record<string, string> = {
   encerrado: 'Encerrado',
 };
 
-// Etapas específicas do fluxo BPMN de Distrato
+// Etapas específicas do fluxo BPMN de Distrato (novo fluxo)
 export const DISTRATO_ETAPA_LABELS: Record<string, string> = {
+  // Etapas do novo fluxo
+  aguardando_negociacao: 'Aguardando Negociação da Gerência',
+  retido: 'Retido',
+  produzir_distrato: 'Produzir Distrato',
+  aguardando_assinatura: 'Aguardando Assinaturas',
+  gerar_contas_pagar: 'Gerar Contas a Pagar',
+  realizar_pagamento: 'Realizar Pagamento',
+  enviar_comprovante: 'Enviar Comprovante por E-mail',
+  caso_concluido: 'Caso Concluído',
+  // Legado (compatibilidade)
   solicitacao_recebida: 'Solicitação Recebida',
   validacao_contato: 'Validação do Contato',
   checklist_preenchido: 'Checklist Preenchido',
   aguardando_parecer_gerente: 'Aguardando Parecer da Gerente',
   em_negociacao: 'Em Negociação',
-  aguardando_assinatura: 'Aguardando Assinatura do Paciente',
   aguardando_pagamento: 'Aguardando Pagamento Financeiro',
-  caso_concluido: 'Caso Concluído',
 };
 
 export const DISTRATO_DECISAO_LABELS: Record<string, string> = {
   pendente: 'Pendente',
+  retido: 'Retido',
+  nao_retido_com_contrato: 'Não Retido (Com Contrato)',
+  nao_retido_sem_contrato: 'Não Retido (Sem Contrato)',
+  sem_definicao: 'Sem Definição',
+  // Legado
   devolver: 'Devolver',
   nao_devolver: 'Não Devolver',
   em_negociacao: 'Em Negociação',

@@ -202,20 +202,50 @@ export default function ChamadoDetailPage() {
                     setIsSubmitting(false);
                   }
                 }}
-                onSetDecisao={async (decisao) => {
+                onSetDecisao={async (decisao, metadata) => {
                   setIsSubmitting(true);
                   try {
                     const { supabase } = await import('@/integrations/supabase/client');
+                    
+                    const updateData: Record<string, any> = { distrato_decisao: decisao };
+                    
+                    if (decisao === 'retido') {
+                      // Retido: vai direto para etapa 'retido' e fecha
+                      updateData.distrato_etapa_bpmn = 'retido';
+                      updateData.distrato_retencao_info = metadata?.retencaoInfo || null;
+                      updateData.status = 'fechado';
+                    } else if (decisao === 'nao_retido_com_contrato') {
+                      // Com contrato: próxima etapa é produzir distrato
+                      updateData.distrato_etapa_bpmn = 'produzir_distrato';
+                    } else if (decisao === 'nao_retido_sem_contrato') {
+                      // Sem contrato: pula direto para gerar contas a pagar
+                      updateData.distrato_etapa_bpmn = 'gerar_contas_pagar';
+                    } else if (decisao === 'sem_definicao') {
+                      // Sem definição: fica na mesma etapa, renova SLA
+                      updateData.distrato_sem_definicao_motivo = metadata?.semDefinicaoMotivo || null;
+                      updateData.distrato_sla_renovado_em = new Date().toISOString();
+                    }
+                    
                     const { error } = await supabase
                       .from('postvenda_chamados')
-                      .update({ distrato_decisao: decisao })
+                      .update(updateData)
                       .eq('id', chamado.id);
                     
                     if (error) throw error;
                     
-                    await addHistorico(chamado.id, 'parecer_gerente', `Decisão definida: ${decisao}`);
+                    const decisaoLabels: Record<string, string> = {
+                      retido: 'Retido',
+                      nao_retido_com_contrato: 'Não Retido (Com Contrato)',
+                      nao_retido_sem_contrato: 'Não Retido (Sem Contrato)',
+                      sem_definicao: 'Sem Definição',
+                    };
                     
-                    // Recarrega os dados
+                    let descricao = `Decisão da gerência: ${decisaoLabels[decisao] || decisao}`;
+                    if (metadata?.retencaoInfo) descricao += ` | Acordo: ${metadata.retencaoInfo}`;
+                    if (metadata?.semDefinicaoMotivo) descricao += ` | Motivo: ${metadata.semDefinicaoMotivo}`;
+                    
+                    await addHistorico(chamado.id, 'parecer_gerente', descricao);
+                    
                     await refetch();
                   } finally {
                     setIsSubmitting(false);
