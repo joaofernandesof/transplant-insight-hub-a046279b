@@ -176,6 +176,7 @@ export default function ChamadoDetailPage() {
               <DistratoEtapaFlow
                 currentEtapa={(chamado as any).distrato_etapa_bpmn || 'solicitacao_recebida'}
                 decisao={(chamado as any).distrato_decisao || 'pendente'}
+                contratoAssinado={(chamado as any).distrato_contrato_assinado === true}
                 chamadoId={chamado.id}
                 tipoDemanda={chamado.tipo_demanda}
                 onAdvance={async (targetEtapa, metadata) => {
