@@ -96,6 +96,7 @@ const SystemSentinel = lazy(() => import("./pages/admin/SystemSentinel"));
 const ModuleOverridesAdmin = lazy(() => import("./pages/admin/ModuleOverridesAdmin"));
 const ReferralsAdmin = lazy(() => import("./pages/admin/ReferralsAdmin"));
 const EventLogs = lazy(() => import("./pages/admin/EventLogs"));
+const NeoHubMonitoring = lazy(() => import("./pages/admin/NeoHubMonitoring"));
 const CodeAssistantPage = lazy(() => import("./pages/admin/CodeAssistantPage"));
 const LicenseeOnboardingPage = lazy(() => import("./pages/admin/LicenseeOnboardingPage"));
 const SalesUrgencyPage = lazy(() => import("./pages/admin/SalesUrgencyPage"));
@@ -777,6 +778,7 @@ function AppRoutes() {
           Portal Administrativo (com layout próprio)
           ==================================== */}
       <Route path="/admin-portal" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
+      <Route path="/admin-portal/monitoring" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><NeoHubMonitoring /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin-portal/*" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
       
       {/* ====================================

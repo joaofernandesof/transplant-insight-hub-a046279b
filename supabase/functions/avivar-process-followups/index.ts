@@ -45,6 +45,7 @@
    if (req.method === "OPTIONS") {
      return new Response("ok", { headers: corsHeaders });
    }
+   const _logStartTime = Date.now();
  
    try {
      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -593,23 +594,32 @@
        }
      }
  
-     return new Response(
-       JSON.stringify({ 
-         success: true, 
-         processed: results.length,
-         results 
-       }),
-       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-     );
+      // Fire-and-forget: log execution
+      supabase.from("edge_function_logs").insert({
+        function_name: "avivar-process-followups",
+        execution_time_ms: Date.now() - _logStartTime,
+        status: results.some(r => r.status === 'error') ? "error" : "success",
+        model_used: "google/gemini-3-flash-preview",
+        metadata: { processed: results.length },
+      }).then(() => {}).catch(() => {});
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          processed: results.length,
+          results 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
  
-   } catch (error) {
-     console.error('Process followups error:', error);
-     return new Response(
-       JSON.stringify({ 
-         success: false, 
-         error: error instanceof Error ? error.message : 'Erro desconhecido' 
-       }),
-       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-     );
-   }
- });
+    } catch (error) {
+      console.error('Process followups error:', error);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: error instanceof Error ? error.message : 'Erro desconhecido' 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+  });

@@ -116,6 +116,19 @@ serve(async (req) => {
     const duration = Date.now() - startTime;
     console.log(`[Transcribe] ✅ Transcription complete in ${duration}ms: "${transcription.substring(0, 100)}..."`);
 
+    // Fire-and-forget: log execution
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const logClient = (await import("https://esm.sh/@supabase/supabase-js@2")).createClient(supabaseUrl, supabaseServiceKey);
+    logClient.from("edge_function_logs").insert({
+      function_name: "avivar-transcribe-audio",
+      execution_time_ms: duration,
+      status: "success",
+      model_used: "openai/whisper-1",
+      estimated_cost_usd: (audioBytes.length / 1024 / 1024) * 0.006, // rough estimate
+      metadata: { audioSize: audioBytes.length, language },
+    }).then(() => {}).catch(() => {});
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -128,7 +141,23 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    const duration = Date.now() - startTime;
     console.error("[Transcribe] Error:", error);
+
+    // Fire-and-forget: log error
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const logClient = (await import("https://esm.sh/@supabase/supabase-js@2")).createClient(supabaseUrl, supabaseServiceKey);
+      logClient.from("edge_function_logs").insert({
+        function_name: "avivar-transcribe-audio",
+        execution_time_ms: duration,
+        status: "error",
+        model_used: "openai/whisper-1",
+        error_message: (error as Error).message?.substring(0, 500),
+      }).then(() => {}).catch(() => {});
+    } catch {}
+
     return new Response(
       JSON.stringify({ success: false, error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -5960,6 +5960,54 @@ export type Database = {
           },
         ]
       }
+      edge_function_logs: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          error_message: string | null
+          estimated_cost_usd: number | null
+          execution_time_ms: number | null
+          function_name: string
+          id: string
+          metadata: Json | null
+          model_used: string | null
+          status: string | null
+          tokens_input: number | null
+          tokens_output: number | null
+          user_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          execution_time_ms?: number | null
+          function_name: string
+          id?: string
+          metadata?: Json | null
+          model_used?: string | null
+          status?: string | null
+          tokens_input?: number | null
+          tokens_output?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          execution_time_ms?: number | null
+          function_name?: string
+          id?: string
+          metadata?: Json | null
+          model_used?: string | null
+          status?: string | null
+          tokens_input?: number | null
+          tokens_output?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       event_checklist_items: {
         Row: {
           category: string | null

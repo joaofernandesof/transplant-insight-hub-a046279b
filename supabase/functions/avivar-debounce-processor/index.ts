@@ -390,6 +390,18 @@ serve(async (req) => {
 
     waitUntil(processDebounceBatch(payload));
 
+    // Fire-and-forget: log execution
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const logClient = createClient(supabaseUrl, supabaseServiceKey);
+    logClient.from("edge_function_logs").insert({
+      function_name: "avivar-debounce-processor",
+      execution_time_ms: Date.now() - startedAt,
+      status: "success",
+      user_id: userId,
+      metadata: { conversationId, batchId },
+    }).then(() => {}).catch(() => {});
+
     return new Response(
       JSON.stringify({
         success: true,

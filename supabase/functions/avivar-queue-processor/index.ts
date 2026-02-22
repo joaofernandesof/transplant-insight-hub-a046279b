@@ -99,12 +99,30 @@ serve(async (req) => {
 
     console.log(`[Queue] ${WORKER_ID} finished: ${JSON.stringify(summary)}`);
 
+    // Fire-and-forget: log execution
+    supabase.from("edge_function_logs").insert({
+      function_name: "avivar-queue-processor",
+      execution_time_ms: summary.duration_ms,
+      status: summary.failed > 0 ? "error" : "success",
+      metadata: { worker_id: WORKER_ID, jobs_processed: summary.jobs_processed, completed: summary.completed, failed: summary.failed },
+    }).then(() => {}).catch(e => console.error("[Log] insert error:", e));
+
     return new Response(JSON.stringify(summary), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error) {
+    const duration = Date.now() - startTime;
     console.error(`[Queue] ${WORKER_ID} fatal error:`, error);
+
+    // Fire-and-forget: log error
+    supabase.from("edge_function_logs").insert({
+      function_name: "avivar-queue-processor",
+      execution_time_ms: duration,
+      status: "error",
+      error_message: (error as Error).message?.substring(0, 500),
+    }).then(() => {}).catch(() => {});
+
     return new Response(JSON.stringify({ success: false, error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

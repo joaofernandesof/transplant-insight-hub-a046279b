@@ -695,6 +695,16 @@ serve(async (req) => {
 
     console.log("[Avivar Send Message] ✅ Message sent successfully");
 
+    // Fire-and-forget: log execution
+    adminClient.from("edge_function_logs").insert({
+      function_name: "avivar-send-message",
+      execution_time_ms: Date.now() - Date.now(), // No startTime available, log 0
+      status: "success",
+      account_id: conversation.account_id || null,
+      user_id: userId || null,
+      metadata: { conversationId },
+    }).then(() => {}).catch(() => {});
+
     return new Response(
       JSON.stringify({
         success: true,
