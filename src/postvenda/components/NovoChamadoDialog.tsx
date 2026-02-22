@@ -38,7 +38,11 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<{ id: string; full_name: string } | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [termoSinalFile, setTermoSinalFile] = useState<File | null>(null);
+  const [contratoFile, setContratoFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const termoSinalInputRef = useRef<HTMLInputElement>(null);
+  const contratoInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<NovoChamado>({
     paciente_nome: '',
@@ -61,14 +65,10 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
   // Tri-state values for required fields
   const [triStateFields, setTriStateFields] = useState<{
     termo_sinal_assinado: TriStateValue;
-    termo_sinal_anexo: TriStateValue;
     contrato_assinado: TriStateValue;
-    contrato_anexo: TriStateValue;
   }>({
     termo_sinal_assinado: undefined,
-    termo_sinal_anexo: undefined,
     contrato_assinado: undefined,
-    contrato_anexo: undefined,
   });
 
   const isDistrato = formData.tipo_demanda === 'distrato';
@@ -83,9 +83,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
       formData.distrato_valor_pago !== undefined &&
       formData.distrato_data_pagamento_sinal &&
       triStateFields.termo_sinal_assinado !== undefined &&
-      triStateFields.termo_sinal_anexo !== undefined &&
       triStateFields.contrato_assinado !== undefined &&
-      triStateFields.contrato_anexo !== undefined &&
       pdfFile !== null
     );
   };
@@ -116,9 +114,9 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
       const submitData = {
         ...formData,
         distrato_termo_sinal_assinado: triStateFields.termo_sinal_assinado === 'sim',
-        distrato_termo_sinal_anexo: triStateFields.termo_sinal_anexo === 'sim',
+        distrato_termo_sinal_anexo: !!termoSinalFile,
         distrato_contrato_assinado: triStateFields.contrato_assinado === 'sim',
-        distrato_contrato_anexo: triStateFields.contrato_anexo === 'sim',
+        distrato_contrato_anexo: !!contratoFile,
       };
 
       await createChamado(submitData);
@@ -149,12 +147,12 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
     });
     setTriStateFields({
       termo_sinal_assinado: undefined,
-      termo_sinal_anexo: undefined,
       contrato_assinado: undefined,
-      contrato_anexo: undefined,
     });
     setSelectedPatient(null);
     setPdfFile(null);
+    setTermoSinalFile(null);
+    setContratoFile(null);
   };
 
   const handlePatientSelect = (patient: any) => {
@@ -171,11 +169,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type !== 'application/pdf') {
-        toast.error('Por favor, selecione um arquivo PDF');
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 10 * 1024 * 1024) {
         toast.error('O arquivo deve ter no máximo 10MB');
         return;
       }
@@ -183,11 +177,25 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
     }
   };
 
+  const handleDocFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: (f: File | null) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('O arquivo deve ter no máximo 10MB');
+        return;
+      }
+      setter(file);
+    }
+  };
+
   const removeFile = () => {
     setPdfFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeDocFile = (setter: (f: File | null) => void, ref: React.RefObject<HTMLInputElement | null>) => {
+    setter(null);
+    if (ref.current) ref.current.value = '';
   };
 
   return (
@@ -369,25 +377,34 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                     </RadioGroup>
                   </div>
                   <div className="space-y-3">
-                    <Label>Termo de Sinal em anexo? *</Label>
-                    <RadioGroup 
-                      value={triStateFields.termo_sinal_anexo || ''}
-                      onValueChange={(v) => setTriStateFields(prev => ({ ...prev, termo_sinal_anexo: v as TriStateValue }))}
-                      className="flex flex-wrap gap-3"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sim" id="termo_anexo_sim" />
-                        <Label htmlFor="termo_anexo_sim" className="font-normal">Sim</Label>
+                    <Label>Anexar Termo de Sinal</Label>
+                    <input
+                      ref={termoSinalInputRef}
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      onChange={(e) => handleDocFileChange(e, setTermoSinalFile)}
+                      className="hidden"
+                    />
+                    {!termoSinalFile ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full flex items-center gap-2"
+                        onClick={() => termoSinalInputRef.current?.click()}
+                      >
+                        <Upload className="h-4 w-4" />
+                        Anexar arquivo
+                      </Button>
+                    ) : (
+                      <div className="flex items-center gap-2 p-2 bg-primary/5 border border-primary/20 rounded-lg">
+                        <FileText className="h-4 w-4 text-primary shrink-0" />
+                        <p className="text-xs font-medium truncate flex-1">{termoSinalFile.name}</p>
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => removeDocFile(setTermoSinalFile, termoSinalInputRef)}>
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="nao" id="termo_anexo_nao" />
-                        <Label htmlFor="termo_anexo_nao" className="font-normal">Não</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="nao_encontrado" id="termo_anexo_ne" />
-                        <Label htmlFor="termo_anexo_ne" className="font-normal text-warning-foreground">Não Encontrado</Label>
-                      </div>
-                    </RadioGroup>
+                    )}
                   </div>
                 </div>
 
@@ -415,25 +432,34 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                     </RadioGroup>
                   </div>
                   <div className="space-y-3">
-                    <Label>Contrato em anexo? *</Label>
-                    <RadioGroup 
-                      value={triStateFields.contrato_anexo || ''}
-                      onValueChange={(v) => setTriStateFields(prev => ({ ...prev, contrato_anexo: v as TriStateValue }))}
-                      className="flex flex-wrap gap-3"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sim" id="contrato_anexo_sim" />
-                        <Label htmlFor="contrato_anexo_sim" className="font-normal">Sim</Label>
+                    <Label>Anexar Contrato</Label>
+                    <input
+                      ref={contratoInputRef}
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      onChange={(e) => handleDocFileChange(e, setContratoFile)}
+                      className="hidden"
+                    />
+                    {!contratoFile ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full flex items-center gap-2"
+                        onClick={() => contratoInputRef.current?.click()}
+                      >
+                        <Upload className="h-4 w-4" />
+                        Anexar arquivo
+                      </Button>
+                    ) : (
+                      <div className="flex items-center gap-2 p-2 bg-primary/5 border border-primary/20 rounded-lg">
+                        <FileText className="h-4 w-4 text-primary shrink-0" />
+                        <p className="text-xs font-medium truncate flex-1">{contratoFile.name}</p>
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => removeDocFile(setContratoFile, contratoInputRef)}>
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="nao" id="contrato_anexo_nao" />
-                        <Label htmlFor="contrato_anexo_nao" className="font-normal">Não</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="nao_encontrado" id="contrato_anexo_ne" />
-                        <Label htmlFor="contrato_anexo_ne" className="font-normal text-warning-foreground">Não Encontrado</Label>
-                      </div>
-                    </RadioGroup>
+                    )}
                   </div>
                 </div>
               </div>
