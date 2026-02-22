@@ -372,18 +372,7 @@ export function AcademyReferral() {
               <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
             </div>
             <p className="text-xl font-bold">{stats.paymentPaid}</p>
-            <p className="text-[10px] text-muted-foreground">Pgto Realizado</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <div className="w-8 h-8 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-1">
-              <DollarSign className="h-4 w-4 text-primary" />
-            </div>
-            <p className="text-xl font-bold">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(stats.totalCommission)}
-            </p>
-            <p className="text-[10px] text-muted-foreground">Comissão Total</p>
+            <p className="text-[10px] text-muted-foreground">Pagamentos Realizados</p>
           </CardContent>
         </Card>
       </div>
