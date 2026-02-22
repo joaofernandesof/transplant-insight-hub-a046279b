@@ -99,13 +99,13 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: str
     icon: <Gift className="h-3 w-3" />
   },
   negotiating: { 
-    label: 'Em negociação', 
+    label: 'Em Atendimento', 
     color: 'text-blue-700 dark:text-blue-400', 
     bgColor: 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800',
     icon: <Phone className="h-3 w-3" />
   },
   deposit_paid: { 
-    label: 'Sinal Pago', 
+    label: 'Contrato Fechado', 
     color: 'text-purple-700 dark:text-purple-400', 
     bgColor: 'bg-purple-100 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800',
     icon: <DollarSign className="h-3 w-3" />
@@ -115,6 +115,24 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: str
     color: 'text-emerald-700 dark:text-emerald-400', 
     bgColor: 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800',
     icon: <CheckCircle className="h-3 w-3" />
+  },
+  payment_approved: { 
+    label: 'Pgto Aprovado', 
+    color: 'text-green-700 dark:text-green-400', 
+    bgColor: 'bg-green-100 dark:bg-green-900/30 border-green-200 dark:border-green-800',
+    icon: <CheckCircle className="h-3 w-3" />
+  },
+  payment_rejected: { 
+    label: 'Pgto Reprovado', 
+    color: 'text-red-700 dark:text-red-400', 
+    bgColor: 'bg-red-100 dark:bg-red-900/30 border-red-200 dark:border-red-800',
+    icon: <Gift className="h-3 w-3" />
+  },
+  payment_completed: { 
+    label: 'Pgto Realizado', 
+    color: 'text-teal-700 dark:text-teal-400', 
+    bgColor: 'bg-teal-100 dark:bg-teal-900/30 border-teal-200 dark:border-teal-800',
+    icon: <DollarSign className="h-3 w-3" />
   },
   // Legacy status mapping
   pending: { 

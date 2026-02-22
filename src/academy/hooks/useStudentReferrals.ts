@@ -23,6 +23,10 @@ export interface StudentReferral {
   contract_value?: number | null;
   pix_requested_at?: string | null;
   pix_request_status?: 'pending' | 'approved' | 'paid' | null;
+  payment_status?: 'pending_review' | 'approved' | 'rejected' | 'paid' | null;
+  payment_rejection_reason?: string | null;
+  payment_approved_at?: string | null;
+  payment_completed_at?: string | null;
 }
 
 // Promotion deadline: 25/01/2026 at 23:59 BRT (UTC-3)
@@ -134,9 +138,15 @@ export function useStudentReferrals() {
     contacted: referrals?.filter(r => r.status === 'contacted').length || 0,
     converted: referrals?.filter(r => r.status === 'converted').length || 0,
     settled: referrals?.filter(r => r.status === 'settled').length || 0,
+    paymentApproved: referrals?.filter(r => r.payment_status === 'approved').length || 0,
+    paymentRejected: referrals?.filter(r => r.payment_status === 'rejected').length || 0,
+    paymentPaid: referrals?.filter(r => r.payment_status === 'paid').length || 0,
     totalCommission: referrals
-      ?.filter(r => r.status === 'converted' || r.status === 'settled')
-      .reduce((sum, r) => sum + (r.commission_rate || 0), 0) || 0,
+      ?.filter(r => r.payment_status === 'paid')
+      .reduce((sum, r) => {
+        const val = r.contract_value ? (r.contract_value * (r.commission_rate || 5) / 100) : 0;
+        return sum + val;
+      }, 0) || 0,
   };
 
   return {

@@ -16168,6 +16168,71 @@ export type Database = {
           },
         ]
       }
+      referral_commission_demands: {
+        Row: {
+          commission_rate: number
+          commission_value: number | null
+          contract_value: number | null
+          created_at: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          paid_at: string | null
+          referral_id: string
+          referred_name: string
+          referrer_user_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          commission_value?: number | null
+          contract_value?: number | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          referral_id: string
+          referred_name: string
+          referrer_user_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          commission_value?: number | null
+          contract_value?: number | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          referral_id?: string
+          referred_name?: string
+          referrer_user_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commission_demands_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "student_referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_leads: {
         Row: {
           city: string | null
@@ -17315,6 +17380,10 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          payment_approved_at: string | null
+          payment_completed_at: string | null
+          payment_rejection_reason: string | null
+          payment_status: string | null
           pix_request_status: string | null
           pix_requested_at: string | null
           referral_code: string
@@ -17335,6 +17404,10 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          payment_approved_at?: string | null
+          payment_completed_at?: string | null
+          payment_rejection_reason?: string | null
+          payment_status?: string | null
           pix_request_status?: string | null
           pix_requested_at?: string | null
           referral_code: string
@@ -17355,6 +17428,10 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          payment_approved_at?: string | null
+          payment_completed_at?: string | null
+          payment_rejection_reason?: string | null
+          payment_status?: string | null
           pix_request_status?: string | null
           pix_requested_at?: string | null
           referral_code?: string
