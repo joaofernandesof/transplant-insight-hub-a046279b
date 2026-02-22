@@ -1,97 +1,167 @@
 
 
-## Otimizar Cron Jobs: Reduzir Invocacoes Desnecessarias
+## Painel de Monitoramento de Custos e Execucoes - NeoHub
 
-### Situacao Atual (Total: ~4,657 invocacoes/dia)
+### Objetivo
+Criar um sistema completo de logging de execucoes de Edge Functions + painel visual no Portal Administrativo, acessivel apenas por `adm@neofolic.com.br`, com visibilidade global sobre custos de IA e Cloud de todas as contas do ecossistema NeoHub (incluindo Avivar multi-tenant).
 
-| Cron Job | Frequencia | Invoc./dia | Tipo |
-|----------|-----------|------------|------|
-| `avivar-queue-processor-poll` | 1 min | 1.440 | Ja otimizado (sob demanda + safety net) |
-| `process-followups-cron` | 1 min | 1.440 | Polling -- pode otimizar |
-| `hotleads-auto-release` | 1 min | 1.440 | Polling -- pode otimizar |
-| `process-reminders-cron` | 5 min | 288 | Polling -- pode otimizar |
-| `check-patient-orientations` | 30 min | 48 | OK -- baixo volume |
-| `check-inactive-users-daily` | 1x/dia | 1 | OK |
-| `send-weekly-reports-monday` | 1x/semana | ~0 | OK |
+---
 
-### Otimizacoes Propostas
+### 1. Tabela de Logs no Banco de Dados
 
-#### 1. `process-followups-cron`: de 1min para 5min
-- **Hoje**: roda a cada 1 minuto (1.440/dia), busca follow-ups agendados cuja `scheduled_for` ja passou
-- **Problema**: follow-ups sao agendados com delay de minutos/horas. Checar a cada 1 min e excessivo
-- **Proposta**: mudar para `*/5 * * * *` (cada 5 minutos)
-- **Impacto**: 1.440 -> 288 invoc./dia (reducao de 80%). Latencia maxima de 5 min e aceitavel para follow-ups que ja tem delay de 30min+
-- **Invocacoes economizadas**: ~1.152/dia
+Criar tabela `edge_function_logs`:
 
-#### 2. `hotleads-auto-release`: de 1min para 5min
-- **Hoje**: roda a cada 1 minuto para liberar leads agendados
-- **Problema**: leads sao agendados para horarios especificos. Verificar a cada minuto e excessivo
-- **Proposta**: mudar para `*/5 * * * *` (cada 5 minutos)
-- **Impacto**: 1.440 -> 288 invoc./dia (reducao de 80%). Delay maximo de 5min na liberacao e imperceptivel
-- **Invocacoes economizadas**: ~1.152/dia
+| Coluna | Tipo | Descricao |
+|--------|------|-----------|
+| id | uuid (PK) | Identificador unico |
+| function_name | text (NOT NULL) | Nome da Edge Function |
+| execution_time_ms | integer | Tempo de execucao em ms |
+| status | text | "success" ou "error" |
+| tokens_input | integer | Tokens de entrada (IA) |
+| tokens_output | integer | Tokens de saida (IA) |
+| model_used | text | Modelo de IA utilizado |
+| estimated_cost_usd | numeric(10,6) | Custo estimado em USD |
+| account_id | uuid | Tenant Avivar (quando aplicavel) |
+| user_id | uuid | Usuario que disparou |
+| metadata | jsonb | Dados extras (conversation_id, job_id, etc.) |
+| error_message | text | Mensagem de erro (quando falha) |
+| created_at | timestamptz | Timestamp da execucao |
 
-#### 3. `process-reminders-cron`: de 5min para 15min
-- **Hoje**: roda a cada 5 minutos para enviar lembretes de consulta
-- **Problema**: lembretes sao tipicamente agendados horas antes da consulta (24h, 2h, etc). 5 min e frequente demais
-- **Proposta**: mudar para `*/15 * * * *` (cada 15 minutos)
-- **Impacto**: 288 -> 96 invoc./dia (reducao de 67%). Delay maximo de 15 min para lembretes agendados horas antes e aceitavel
-- **Invocacoes economizadas**: ~192/dia
+**Indices:** `function_name`, `created_at`, `account_id`, `user_id`
 
-### Resultado Total
+**RLS:** Apenas o Super Admin (`adm@neofolic.com.br`) pode ler os logs. Insercao via service_role (Edge Functions).
 
-| Metrica | Antes | Depois | Economia |
-|---------|-------|--------|----------|
-| Invoc./dia (3 crons) | 3.168 | 672 | **2.496/dia (79%)** |
-| Invoc./mes | ~95.040 | ~20.160 | **~74.880/mes** |
+---
 
-### Detalhes Tecnicos
+### 2. Snippet de Logging para Edge Functions
 
-Executar os seguintes comandos SQL:
+Como Edge Functions Deno nao suportam imports compartilhados entre funcoes facilmente, sera adicionado um snippet inline em cada funcao instrumentada. O snippet:
+
+- Captura `startTime` no inicio da funcao
+- No final (sucesso ou erro), faz INSERT na tabela `edge_function_logs` usando `supabaseServiceClient`
+- Inclui calculo automatico de custo estimado baseado no modelo usado
+- Nao bloqueia a resposta (fire-and-forget com `.then()`)
+
+**Tabela de custos por modelo (embutida no snippet):**
 
 ```text
--- 1. Follow-ups: de 1min para 5min
-SELECT cron.unschedule('process-followups-cron');
-SELECT cron.schedule(
-  'process-followups-cron',
-  '*/5 * * * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://tubzywibnielhcjeswww.supabase.co/functions/v1/avivar-process-followups',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Ynp5d2libmllbGhjamVzd3d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1OTMzOTUsImV4cCI6MjA4NDE2OTM5NX0.iLLwvSZ73jZTxIY7Ynz0ETVs2U0pmCwB76jwDrZmgcw"}'::jsonb,
-    body := '{}'::jsonb
-  ) AS request_id;
-  $$
-);
-
--- 2. Hotleads release: de 1min para 5min
-SELECT cron.unschedule('hotleads-auto-release');
-SELECT cron.schedule(
-  'hotleads-auto-release',
-  '*/5 * * * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://tubzywibnielhcjeswww.supabase.co/functions/v1/hotleads-release',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Ynp5d2libmllbGhjamVzd3d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1OTMzOTUsImV4cCI6MjA4NDE2OTM5NX0.iLLwvSZ73jZTxIY7Ynz0ETVs2U0pmCwB76jwDrZmgcw"}'::jsonb,
-    body := '{"action": "release", "mode": "cron_auto"}'::jsonb
-  ) AS request_id;
-  $$
-);
-
--- 3. Reminders: de 5min para 15min
-SELECT cron.unschedule('process-reminders-cron');
-SELECT cron.schedule(
-  'process-reminders-cron',
-  '*/15 * * * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://tubzywibnielhcjeswww.supabase.co/functions/v1/avivar-process-reminders',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Ynp5d2libmllbGhjamVzd3d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1OTMzOTUsImV4cCI6MjA4NDE2OTM5NX0.iLLwvSZ73jZTxIY7Ynz0ETVs2U0pmCwB76jwDrZmgcw"}'::jsonb,
-    body := '{}'::jsonb
-  ) AS request_id;
-  $$
-);
+google/gemini-3-flash-preview:  $0.10/1M input, $0.40/1M output
+google/gemini-2.5-flash:        $0.15/1M input, $0.60/1M output
+google/gemini-2.5-flash-lite:   $0.02/1M input, $0.05/1M output
+google/gemini-2.5-pro:          $1.25/1M input, $5.00/1M output
+openai/whisper-1:               $0.006/min (estimado por tamanho do audio)
 ```
 
-Nenhuma alteracao de codigo nas Edge Functions. Apenas ajuste de frequencia nos cron jobs.
+---
 
-Os 3 jobs que ja estao com frequencia adequada (`check-inactive-users-daily`, `send-weekly-reports-monday`, `check-patient-orientations`) permanecem inalterados.
+### 3. Funcoes a Instrumentar (Fase 1 - Criticas)
+
+Estas funcoes serao instrumentadas primeiro por terem maior volume e/ou custo:
+
+1. **avivar-ai-agent** - Principal consumidor de IA
+2. **avivar-queue-processor** - Orquestrador central
+3. **avivar-debounce-processor** - Gateway de mensagens
+4. **avivar-send-message** - Envio WhatsApp
+5. **avivar-transcribe-audio** - OpenAI Whisper
+6. **avivar-process-followups** - Follow-ups automaticos
+7. **code-assistant-chat** - Assistente de codigo
+8. **jon-jobs-chat** - Chat JON JOBS
+
+### Funcoes a Instrumentar (Fase 2 - Restantes)
+
+9. avivar-process-reminders
+10. avivar-generate-faq
+11. avivar-analyze-call
+12. face-search
+13. hair-scan-analysis
+14. ai-legal-document
+15. legal-ai-insights
+16. analyze-survey-insights
+17. analyze-day2-survey-insights
+18. analyze-daily-metrics
+19. uazapi-webhook
+20. avivar-webhook-dispatch
+
+---
+
+### 4. Pagina de Monitoramento (Portal Admin)
+
+Nova pagina em `/admin-portal/monitoring` dentro do layout Admin existente.
+
+**Restricao de acesso:** Verificacao por email `adm@neofolic.com.br` (hardcoded no componente + RLS no banco).
+
+**Layout da pagina:**
+
+#### KPIs (topo, 4 cards):
+- Total de Execucoes (hoje / 7d / 30d)
+- Custo Estimado Total (USD)
+- Funcao Mais Chamada
+- Taxa de Erro Global
+
+#### Secao "Custo por Usuario/Conta" (tabela):
+- Nome da conta Avivar
+- Execucoes totais
+- Tokens consumidos
+- Custo estimado
+- Ordenavel por custo
+
+#### Secao "Custo por Funcao" (tabela):
+- Nome da funcao
+- Execucoes
+- Tempo medio (ms)
+- Tokens totais (in/out)
+- Custo estimado
+- Taxa de erro (%)
+
+#### Secao "Custo do NeoHub" (cards):
+- Total gasto pelo proprio NeoHub (funcoes sem account_id)
+- Breakdown: code-assistant, jon-jobs, face-search, hair-scan, legal, etc.
+
+#### Grafico de linha:
+- Evolucao diaria de custo (ultimos 30 dias)
+- Linhas separadas: NeoHub vs Avivar accounts
+
+#### Filtros:
+- Periodo: Hoje / 7 dias / 30 dias / Custom
+- Funcao especifica
+- Conta especifica
+
+---
+
+### 5. Integracoes
+
+#### Admin Sidebar
+Adicionar item "Monitoramento" com icone `Activity` no menu do sistema do `AdminSidebar.tsx`, apontando para `/admin-portal/monitoring`.
+
+#### App.tsx
+Adicionar rota:
+```text
+/admin-portal/monitoring -> AdminLayout > NeoHubMonitoring
+```
+
+---
+
+### 6. Arquivos a Criar
+
+| Arquivo | Descricao |
+|---------|-----------|
+| `src/pages/admin/NeoHubMonitoring.tsx` | Pagina principal do painel |
+| `src/hooks/useEdgeFunctionLogs.ts` | Hook React Query para buscar logs |
+
+### 7. Arquivos a Modificar
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/pages/admin/components/AdminSidebar.tsx` | Adicionar item "Monitoramento" |
+| `src/App.tsx` | Adicionar rota e lazy import |
+| 20 Edge Functions | Adicionar snippet de logging |
+
+### 8. Ordem de Implementacao
+
+1. Criar tabela `edge_function_logs` + RLS + indices (migracao)
+2. Instrumentar as 8 Edge Functions criticas (Fase 1)
+3. Criar hook `useEdgeFunctionLogs.ts`
+4. Criar pagina `NeoHubMonitoring.tsx`
+5. Modificar `AdminSidebar.tsx` + `App.tsx`
+6. Instrumentar funcoes restantes (Fase 2)
+
