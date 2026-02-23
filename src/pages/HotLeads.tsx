@@ -248,7 +248,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     const base = filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available');
     if (isAdmin) return base;
     const userState = user?.state;
-    if (!userState) return base;
+    if (!userState) return []; // Sem estado definido = não pode ver nenhum lead disponível
     return base.filter(l => !l.state || l.state === userState);
   }, [filteredLeads, isAdmin, user?.state]);
   

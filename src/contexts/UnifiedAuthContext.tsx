@@ -341,10 +341,10 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           // Permissões no formato "module_code:action"
           const permissions = Array.isArray(ctx.permissions) ? ctx.permissions : [];
 
-          // Buscar allowed_portals do neohub_users
+          // Buscar allowed_portals e endereço do neohub_users
           const { data: portalData } = await supabase
             .from('neohub_users')
-            .select('allowed_portals')
+            .select('allowed_portals, address_city, address_state, clinic_name, clinic_logo_url, tier')
             .eq('user_id', ctx.user.auth_id)
             .single();
 
@@ -365,6 +365,11 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             isAdmin,
             allowedPortals: portalData?.allowed_portals || [],
             legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
+            addressCity: portalData?.address_city || undefined,
+            addressState: portalData?.address_state || undefined,
+            clinicName: portalData?.clinic_name || undefined,
+            clinicLogoUrl: portalData?.clinic_logo_url || undefined,
+            tier: portalData?.tier || undefined,
           };
         }
       }
@@ -424,6 +429,9 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
           clinicName: neoHubData.clinic_name,
           clinicLogoUrl: neoHubData.clinic_logo_url,
+          addressCity: neoHubData.address_city || undefined,
+          addressState: neoHubData.address_state || undefined,
+          tier: neoHubData.tier || undefined,
         };
       }
 
