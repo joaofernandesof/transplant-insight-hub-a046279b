@@ -73,13 +73,12 @@ export function useNoDatePatients() {
     queryKey: ['no-date-patients-surgeries', currentBranch, isAdmin, isGestao],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      let query = supabase
+      const { data, error } = await supabase
         .from('clinic_surgeries')
         .select('id, patient_id, surgery_date, schedule_status')
         .or(`surgery_date.gte.${today},surgery_date.is.null`)
         .in('schedule_status', ['agendado', 'confirmado']);
 
-      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
@@ -90,15 +89,15 @@ export function useNoDatePatients() {
   const allNoDatePatients = useMemo(() => {
     const patientsWithFutureSurgery = new Set(
       surgeriesData
-        .filter(s => s.surgery_date !== null)
-        .map(s => s.patient_id)
+        .filter((s: any) => s.surgery_date !== null)
+        .map((s: any) => s.patient_id)
     );
 
     const today = new Date();
 
     return salesData
-      .filter(sale => sale.patient_id && !patientsWithFutureSurgery.has(sale.patient_id))
-      .map((sale): NoDatePatient => ({
+      .filter((sale: any) => sale.patient_id && !patientsWithFutureSurgery.has(sale.patient_id))
+      .map((sale: any): NoDatePatient => ({
         saleId: sale.id,
         patientId: sale.patient_id!,
         patientName: sale.clinic_patients?.full_name || 'Paciente não vinculado',
