@@ -25,7 +25,7 @@ import {
   X,
   Zap,
   LogOut,
-  Layers,
+  
   User,
   Users,
   Stethoscope,
@@ -40,6 +40,7 @@ import {
   Scale,
   Flame,
 } from "lucide-react";
+import { NeoHubIcon } from "@/components/icons/NeoHubIcon";
 import {
   Select,
   SelectContent,
@@ -111,7 +112,7 @@ const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
   neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100', headerBg: 'bg-gradient-to-r from-amber-900 to-amber-800', headerText: 'text-white', icon: Building2 },
   avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-900 to-orange-800', headerText: 'text-white', icon: Zap },
   hotleads: { name: 'HotLeads', color: 'text-orange-500', bgColor: 'bg-orange-500/10', headerBg: 'bg-gradient-to-r from-orange-600 to-red-600', headerText: 'text-white', icon: Flame },
-  main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10', headerBg: 'bg-gradient-to-r from-slate-900 to-slate-800', headerText: 'text-white', icon: Layers },
+  main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10', headerBg: 'bg-gradient-to-r from-slate-900 to-slate-800', headerText: 'text-white', icon: NeoHubIcon },
 };
 
 function detectPortal(pathname: string): PortalKey {
