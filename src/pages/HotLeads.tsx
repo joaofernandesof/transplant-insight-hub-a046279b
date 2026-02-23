@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
 import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, LayoutGrid, List } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,7 +37,10 @@ interface HotLeadsProps {
 }
 
 export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps) {
-  const { isAdmin, user } = useAuth();
+  const { isAdmin: realIsAdmin, user } = useAuth();
+  const { activeProfile } = useUnifiedAuth();
+  // Respect profile simulation: if admin is simulating another profile, hide admin UI
+  const isAdmin = realIsAdmin && (!activeProfile || activeProfile === 'administrador');
   const navigate = useNavigate();
   const {
     leads,
