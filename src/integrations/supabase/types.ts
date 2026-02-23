@@ -1590,6 +1590,145 @@ export type Database = {
           },
         ]
       }
+      avivar_internal_chat_members: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_read_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_read_at?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_read_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_internal_chat_members_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_internal_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_internal_chats: {
+        Row: {
+          account_id: string
+          avatar_url: string | null
+          created_at: string
+          created_by: string
+          id: string
+          name: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          avatar_url?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          name?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          avatar_url?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_internal_chats_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_internal_messages: {
+        Row: {
+          chat_id: string
+          content: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          is_deleted: boolean
+          mentions: Json | null
+          message_type: string
+          reply_to: string | null
+          sender_id: string
+          sent_at: string
+        }
+        Insert: {
+          chat_id: string
+          content?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_deleted?: boolean
+          mentions?: Json | null
+          message_type?: string
+          reply_to?: string | null
+          sender_id: string
+          sent_at?: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_deleted?: boolean
+          mentions?: Json | null
+          message_type?: string
+          reply_to?: string | null
+          sender_id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_internal_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_internal_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_internal_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "avivar_internal_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_kanban_columns: {
         Row: {
           account_id: string
