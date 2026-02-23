@@ -61,7 +61,7 @@ export interface SurgeryInput {
 }
 
 export function useClinicSurgeries() {
-  const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
+  const { user, session, currentBranch, isAdmin, isGestao } = useClinicAuth();
   const queryClient = useQueryClient();
 
   const { data: surgeries = [], isLoading, error } = useQuery({
@@ -119,7 +119,7 @@ export function useClinicSurgeries() {
         };
       });
     },
-    enabled: !!user,
+    enabled: !!session,
   });
 
   const createSurgery = useMutation({
