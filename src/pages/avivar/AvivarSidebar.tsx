@@ -3,7 +3,7 @@
  * Suporte a tema claro e escuro mantendo a identidade roxa
  */
 
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
@@ -40,6 +40,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PortalSwitcherButton } from '@/components/shared/PortalSwitcherButton';
 import { useAvivarSidebarCounts } from '@/hooks/useAvivarSidebarCounts';
+const InternalChatFab = lazy(() => import('./components/internal-chat/InternalChatFab').then(m => ({ default: m.InternalChatFab })));
 
 const getMenuItems = (counts: { unreadChats: number; overdueTasks: number }) => [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/avivar' },
@@ -192,6 +193,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
         >
           {children}
         </main>
+        <Suspense fallback={null}><InternalChatFab /></Suspense>
       </div>
     );
   }
@@ -231,6 +233,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
       >
         {children}
       </main>
+      <Suspense fallback={null}><InternalChatFab /></Suspense>
     </div>
   );
 }
