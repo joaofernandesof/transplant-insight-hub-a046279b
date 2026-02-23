@@ -9,8 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   Calendar,
+  CalendarIcon,
   TrendingUp,
   Clock,
   AlertCircle,
@@ -18,7 +23,7 @@ import {
   AlertTriangle,
   Filter,
 } from 'lucide-react';
-import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+import { format, isToday, isTomorrow, parseISO, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NoDateQueue from './NoDateQueue';
 
@@ -30,17 +35,20 @@ export default function ClinicDashboard() {
   const { branches: allowedBranches } = useBranches();
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedDelay, setSelectedDelay] = useState<string>('all');
+  const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
 
   const canFilterBranch = isAdmin || isGestao;
 
-  // Derive unique branches from surgeries data for filter options
+  // Always derive all available branches from data + allowed list
   const branchOptions = useMemo(() => {
-    if (canFilterBranch) {
-      const fromSurgeries = surgeries.map(s => s.branch);
-      const fromNoDate = noDatePatients.map(p => p.branch);
-      return [...new Set([...allowedBranches, ...fromSurgeries, ...fromNoDate])].filter(Boolean).sort();
+    const fromSurgeries = surgeries.map(s => s.branch);
+    const fromNoDate = noDatePatients.map(p => p.branch);
+    const all = [...new Set([...allowedBranches, ...fromSurgeries, ...fromNoDate])].filter(Boolean).sort();
+    // Non-admin users: restrict to allowed branches only
+    if (!canFilterBranch && allowedBranches.length > 0) {
+      return all.filter(b => allowedBranches.includes(b));
     }
-    return allowedBranches;
+    return all;
   }, [canFilterBranch, surgeries, noDatePatients, allowedBranches]);
 
   // Apply branch filter to all data
@@ -53,10 +61,18 @@ export default function ClinicDashboard() {
   const filteredPendingChecklist = useMemo(() => filterByBranch(pendingChecklist), [pendingChecklist, selectedBranch]);
   const filteredNoDatePatients = useMemo(() => {
     let result = filterByBranch(noDatePatients);
-    if (selectedDelay === '30') result = result.filter(p => p.daysSinceSale >= 30);
-    if (selectedDelay === '60') result = result.filter(p => p.daysSinceSale >= 60);
+    // Apply date/delay filter
+    if (selectedDelay === 'custom' && customDate) {
+      result = result.filter(p => new Date(p.saleDate) <= customDate);
+    } else if (selectedDelay !== 'all') {
+      const days = parseInt(selectedDelay);
+      if (!isNaN(days)) {
+        const cutoff = subDays(new Date(), days);
+        result = result.filter(p => new Date(p.saleDate) <= cutoff);
+      }
+    }
     return result;
-  }, [noDatePatients, selectedBranch, selectedDelay]);
+  }, [noDatePatients, selectedBranch, selectedDelay, customDate]);
 
   const filteredNoDateStats = useMemo(() => ({
     total: filteredNoDatePatients.length,
@@ -102,35 +118,64 @@ export default function ClinicDashboard() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Branch filter - visible for all users */}
-          {(canFilterBranch ? branchOptions.length > 0 : allowedBranches.length > 1) && (
-            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-[200px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrar unidade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas unidades</SelectItem>
-                {(canFilterBranch ? branchOptions : allowedBranches).map(b => (
-                  <SelectItem key={b} value={b}>{b}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Branch filter - always visible */}
+          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+            <SelectTrigger className="w-[200px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrar unidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas unidades</SelectItem>
+              {branchOptions.map(b => (
+                <SelectItem key={b} value={b}>{b}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          {/* Days/delay filter */}
-          <Select value={selectedDelay} onValueChange={setSelectedDelay}>
+          {/* Date/delay filter */}
+          <Select value={selectedDelay} onValueChange={(v) => { setSelectedDelay(v); if (v !== 'custom') setCustomDate(undefined); }}>
             <SelectTrigger className="w-[160px]">
               <Clock className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Tempo" />
+              <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="30">+30 dias</SelectItem>
-              <SelectItem value="60">+60 dias</SelectItem>
+              <SelectItem value="0">Hoje</SelectItem>
+              <SelectItem value="2">D-2</SelectItem>
+              <SelectItem value="7">D-7</SelectItem>
+              <SelectItem value="10">D-10</SelectItem>
+              <SelectItem value="20">D-20</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Custom date picker */}
+          {selectedDelay === 'custom' && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-[180px] justify-start text-left font-normal',
+                    !customDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {customDate ? format(customDate, 'dd/MM/yyyy') : 'Selecionar data'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarPicker
+                  mode="single"
+                  selected={customDate}
+                  onSelect={setCustomDate}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       </div>
 
