@@ -64,6 +64,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
   const { awardPoints } = useGamification();
 
+  // Wrapper to clear "new leads" flag when manually refreshing
+  const handleRefresh = useCallback(() => {
+    setHasNewLeads(false);
+    fetchLeads(true);
+  }, [fetchLeads]);
 
   // Listen for focus-available custom event
   useEffect(() => {
@@ -85,11 +90,12 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
+  const [hasNewLeads, setHasNewLeads] = useState(false);
   const adminView = initialView === 'dashboard' ? 'dashboard' : 'marketplace';
 
-  // Sound + browser notification for new leads
+  // Sound + browser notification for new leads - DON'T auto-fetch, just flag
   useLeadNotificationSound({
-    onNewLead: () => fetchLeads(true),
+    onNewLead: () => setHasNewLeads(true),
     enabled: adminView === 'marketplace',
   });
 
@@ -429,13 +435,15 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 </Button>
               )}
               <Button
-                variant="outline"
+                variant={hasNewLeads ? "default" : "outline"}
                 size="sm"
-                onClick={() => fetchLeads(true)}
+                onClick={handleRefresh}
                 disabled={isRefreshing}
+                className={hasNewLeads ? 'animate-pulse bg-orange-600 hover:bg-orange-700 text-white border-orange-600' : ''}
               >
                 <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Atualizar</span>
+                <span className="hidden sm:inline">{hasNewLeads ? 'Novos leads!' : 'Atualizar'}</span>
+                {hasNewLeads && <span className="sm:hidden">!</span>}
               </Button>
             </div>
           </div>
@@ -473,9 +481,16 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               <span className="hidden sm:inline">Config</span>
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={() => fetchLeads(true)} disabled={isRefreshing}>
+          <Button
+            variant={hasNewLeads ? "default" : "outline"}
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className={hasNewLeads ? 'animate-pulse bg-orange-600 hover:bg-orange-700 text-white border-orange-600' : ''}
+          >
             <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Atualizar</span>
+            <span className="hidden sm:inline">{hasNewLeads ? 'Novos leads!' : 'Atualizar'}</span>
+            {hasNewLeads && <span className="sm:hidden">!</span>}
           </Button>
         </div>
 
@@ -501,7 +516,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               </p>
             </div>
 
-            <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
+            <NextLeadReleaseBanner onLeadReleased={() => setHasNewLeads(true)} />
           </>
         )}
       </div>
@@ -785,7 +800,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         <AdminManualReleaseDialog
           open={isManualReleaseOpen}
           onOpenChange={setIsManualReleaseOpen}
-          onLeadReleased={() => fetchLeads(true)}
+          onLeadReleased={handleRefresh}
         />
       )}
     </div>
