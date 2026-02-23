@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useClinicSales } from '../hooks/useClinicSales';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
 import { useNoDatePatients } from '../hooks/useNoDatePatients';
+import { useBranches } from '../hooks/useBranches';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Calendar,
   TrendingUp,
@@ -15,6 +17,7 @@ import {
   Users,
   DollarSign,
   AlertTriangle,
+  Filter,
 } from 'lucide-react';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -22,8 +25,38 @@ import { ptBR } from 'date-fns/locale';
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
   const { sales, stats: salesStats } = useClinicSales();
-  const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats } = useClinicSurgeries();
-  const { stats: noDateStats } = useNoDatePatients();
+  const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats, surgeries } = useClinicSurgeries();
+  const { stats: noDateStats, allPatients: noDatePatients } = useNoDatePatients();
+  const { branches: allowedBranches } = useBranches();
+  const [selectedBranch, setSelectedBranch] = useState<string>('all');
+
+  const canFilterBranch = isAdmin || isGestao;
+
+  // Derive unique branches from surgeries data for filter options
+  const branchOptions = useMemo(() => {
+    if (canFilterBranch) {
+      const fromSurgeries = surgeries.map(s => s.branch);
+      const fromNoDate = noDatePatients.map(p => p.branch);
+      return [...new Set([...allowedBranches, ...fromSurgeries, ...fromNoDate])].filter(Boolean).sort();
+    }
+    return allowedBranches;
+  }, [canFilterBranch, surgeries, noDatePatients, allowedBranches]);
+
+  // Apply branch filter to all data
+  const filterByBranch = <T extends { branch: string }>(items: T[]) => {
+    if (selectedBranch === 'all') return items;
+    return items.filter(i => i.branch === selectedBranch);
+  };
+
+  const filteredWeekSurgeries = useMemo(() => filterByBranch(thisWeekSurgeries), [thisWeekSurgeries, selectedBranch]);
+  const filteredPendingChecklist = useMemo(() => filterByBranch(pendingChecklist), [pendingChecklist, selectedBranch]);
+  const filteredNoDatePatients = useMemo(() => filterByBranch(noDatePatients), [noDatePatients, selectedBranch]);
+
+  const filteredNoDateStats = useMemo(() => ({
+    total: filteredNoDatePatients.length,
+    over30: filteredNoDatePatients.filter(p => p.daysSinceSale >= 30).length,
+    over60: filteredNoDatePatients.filter(p => p.daysSinceSale >= 60).length,
+  }), [filteredNoDatePatients]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -39,24 +72,44 @@ export default function ClinicDashboard() {
     return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
   };
 
-  // Current month sales
-  const currentMonthSales = sales.filter(s => {
-    const saleDate = new Date(s.saleDate);
+  // Current month sales (filtered by branch)
+  const currentMonthSales = useMemo(() => {
     const now = new Date();
-    return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
-  });
+    return sales.filter(s => {
+      const saleDate = new Date(s.saleDate);
+      const matchMonth = saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
+      if (selectedBranch !== 'all' && s.branch !== selectedBranch) return false;
+      return matchMonth;
+    });
+  }, [sales, selectedBranch]);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Bem-vindo, {user?.name}
-          {currentBranch && !isAdmin && !isGestao && (
-            <span> • {currentBranch}</span>
-          )}
-        </p>
+      {/* Header with Branch Filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Bem-vindo, {user?.name}
+            {currentBranch && !canFilterBranch && (
+              <span> • {currentBranch}</span>
+            )}
+          </p>
+        </div>
+        {canFilterBranch && branchOptions.length > 0 && (
+          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+            <SelectTrigger className="w-[200px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrar unidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas unidades</SelectItem>
+              {branchOptions.map(b => (
+                <SelectItem key={b} value={b}>{b}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -67,9 +120,9 @@ export default function ClinicDashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{surgeryStats.thisWeek}</div>
+            <div className="text-2xl font-bold">{filteredWeekSurgeries.length}</div>
             <p className="text-xs text-muted-foreground">
-              {surgeryStats.confirmed} confirmadas
+              {filteredWeekSurgeries.filter(s => s.surgeryConfirmed).length} confirmadas
             </p>
           </CardContent>
         </Card>
@@ -80,7 +133,7 @@ export default function ClinicDashboard() {
             <AlertCircle className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{surgeryStats.pendingChecklist}</div>
+            <div className="text-2xl font-bold">{filteredPendingChecklist.length}</div>
             <p className="text-xs text-muted-foreground">
               Exames, contratos ou prontuários
             </p>
@@ -93,15 +146,15 @@ export default function ClinicDashboard() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{noDateStats.total}</div>
+            <div className="text-2xl font-bold">{filteredNoDateStats.total}</div>
             <div className="flex gap-3 text-xs mt-1">
-              {noDateStats.over30 > 0 && (
-                <span className="text-yellow-600">{noDateStats.over30} +30d</span>
+              {filteredNoDateStats.over30 > 0 && (
+                <span className="text-yellow-600">{filteredNoDateStats.over30} +30d</span>
               )}
-              {noDateStats.over60 > 0 && (
-                <span className="text-red-600">{noDateStats.over60} +60d</span>
+              {filteredNoDateStats.over60 > 0 && (
+                <span className="text-red-600">{filteredNoDateStats.over60} +60d</span>
               )}
-              {noDateStats.over30 === 0 && noDateStats.over60 === 0 && (
+              {filteredNoDateStats.over30 === 0 && filteredNoDateStats.over60 === 0 && (
                 <span className="text-muted-foreground">Sem alertas</span>
               )}
             </div>
@@ -133,13 +186,13 @@ export default function ClinicDashboard() {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
-              {thisWeekSurgeries.length === 0 ? (
+              {filteredWeekSurgeries.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
                   Nenhuma cirurgia agendada para esta semana
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {thisWeekSurgeries.map(surgery => (
+                  {filteredWeekSurgeries.map(surgery => (
                     <div
                       key={surgery.id}
                       className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
@@ -187,13 +240,13 @@ export default function ClinicDashboard() {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
-              {pendingChecklist.length === 0 ? (
+              {filteredPendingChecklist.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
                   Nenhuma pendência encontrada
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {pendingChecklist.slice(0, 10).map(surgery => (
+                  {filteredPendingChecklist.slice(0, 10).map(surgery => (
                     <div
                       key={surgery.id}
                       className="p-3 rounded-lg border bg-card"
