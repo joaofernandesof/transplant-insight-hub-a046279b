@@ -137,9 +137,9 @@ export default function ClinicDashboard() {
   }, [selectedPeriod]);
 
   return (
-    <div>
+    <div className="h-[calc(100vh-56px)] lg:h-screen flex flex-col overflow-hidden">
       {/* Sticky Header: Filters + Tabs + KPIs */}
-      <div className="sticky top-0 z-20 bg-background -mx-4 px-4 pt-2 md:-mx-6 md:px-6 pb-4 border-b border-border space-y-4">
+      <div className="shrink-0 bg-background px-4 pt-2 md:px-6 pb-4 border-b border-border space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Agenda Cirúrgica</h1>
@@ -298,7 +298,7 @@ export default function ClinicDashboard() {
       </div>
 
       {/* Tab Content (scrollable) */}
-      <div className="pt-6 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-6 pb-6 space-y-6">
         {activeTab === 'visao-geral' && (
           <div className="grid gap-6 lg:grid-cols-5">
             <div className="lg:col-span-3">
