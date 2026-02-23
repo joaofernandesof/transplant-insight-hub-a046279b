@@ -4,6 +4,7 @@ import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Search, X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNoDatePatients, type NoDatePatient } from '../hooks/useNoDatePatients';
+import { useBranches } from '../hooks/useBranches';
 import { ScheduleSurgeryDialog } from '../components/ScheduleSurgeryDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +53,7 @@ export default function NoDateQueue() {
     stats,
   } = useNoDatePatients();
 
+  const { branches: allowedBranches } = useBranches();
   const [selectedPatient, setSelectedPatient] = useState<NoDatePatient | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -107,12 +109,12 @@ export default function NoDateQueue() {
               />
             </div>
 
-            {/* Branch */}
+            {/* Branch - respects user permissions */}
             <Select value={filters.branch} onValueChange={(v) => updateFilter('branch', v)}>
               <SelectTrigger><SelectValue placeholder="Unidade" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas unidades</SelectItem>
-                {filterOptions.branches.map(b => (
+                {(allowedBranches.length > 0 ? allowedBranches : filterOptions.branches).map(b => (
                   <SelectItem key={b} value={b}>{b}</SelectItem>
                 ))}
               </SelectContent>
