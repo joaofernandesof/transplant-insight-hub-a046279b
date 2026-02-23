@@ -29,6 +29,7 @@ export default function ClinicDashboard() {
   const { stats: noDateStats, allPatients: noDatePatients } = useNoDatePatients();
   const { branches: allowedBranches } = useBranches();
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
+  const [selectedDelay, setSelectedDelay] = useState<string>('all');
 
   const canFilterBranch = isAdmin || isGestao;
 
@@ -50,7 +51,12 @@ export default function ClinicDashboard() {
 
   const filteredWeekSurgeries = useMemo(() => filterByBranch(thisWeekSurgeries), [thisWeekSurgeries, selectedBranch]);
   const filteredPendingChecklist = useMemo(() => filterByBranch(pendingChecklist), [pendingChecklist, selectedBranch]);
-  const filteredNoDatePatients = useMemo(() => filterByBranch(noDatePatients), [noDatePatients, selectedBranch]);
+  const filteredNoDatePatients = useMemo(() => {
+    let result = filterByBranch(noDatePatients);
+    if (selectedDelay === '30') result = result.filter(p => p.daysSinceSale >= 30);
+    if (selectedDelay === '60') result = result.filter(p => p.daysSinceSale >= 60);
+    return result;
+  }, [noDatePatients, selectedBranch, selectedDelay]);
 
   const filteredNoDateStats = useMemo(() => ({
     total: filteredNoDatePatients.length,
@@ -91,25 +97,41 @@ export default function ClinicDashboard() {
           <h1 className="text-2xl font-bold">Agenda Cirúrgica</h1>
           <p className="text-muted-foreground">
             Bem-vindo, {user?.name}
-            {currentBranch && !canFilterBranch && (
+            {currentBranch && !canFilterBranch && allowedBranches.length <= 1 && (
               <span> • {currentBranch}</span>
             )}
           </p>
         </div>
-        {canFilterBranch && branchOptions.length > 0 && (
-          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-            <SelectTrigger className="w-[200px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar unidade" />
+        <div className="flex items-center gap-2">
+          {/* Branch filter - visible for all users */}
+          {(canFilterBranch ? branchOptions.length > 0 : allowedBranches.length > 1) && (
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger className="w-[200px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filtrar unidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas unidades</SelectItem>
+                {(canFilterBranch ? branchOptions : allowedBranches).map(b => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Days/delay filter */}
+          <Select value={selectedDelay} onValueChange={setSelectedDelay}>
+            <SelectTrigger className="w-[160px]">
+              <Clock className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Tempo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas unidades</SelectItem>
-              {branchOptions.map(b => (
-                <SelectItem key={b} value={b}>{b}</SelectItem>
-              ))}
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="30">+30 dias</SelectItem>
+              <SelectItem value="60">+60 dias</SelectItem>
             </SelectContent>
           </Select>
-        )}
+        </div>
       </div>
 
       {/* Tabs */}
