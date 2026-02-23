@@ -57,6 +57,12 @@ export function SurgeryWeekTable({ surgeries, onUpdate }: SurgeryWeekTableProps)
             <Calendar className="h-5 w-5" />
             Cirurgias da Semana
           </CardTitle>
+          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+            <span className="font-medium">Legenda:</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">E</span> Exames</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">C</span> Contrato</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">P</span> Prontuário</span>
+          </div>
         </CardHeader>
         <CardContent>
           {surgeries.length === 0 ? (
