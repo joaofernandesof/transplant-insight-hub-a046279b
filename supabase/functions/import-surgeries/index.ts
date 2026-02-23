@@ -18,7 +18,6 @@ function parseGrade(val: string | undefined): number | null {
 
 function parseVgv(val: string | undefined): number | null {
   if (!val || val.trim() === "" || val.trim() === "-") return null;
-  // Parse "R$ 2.040,00" → 2040
   const cleaned = val.replace(/[R$\s.]/g, "").replace(",", ".");
   const n = parseFloat(cleaned);
   return isNaN(n) ? null : n;
@@ -46,53 +45,60 @@ function textOrNull(val: string | undefined): string | null {
 
 function parseRow(row: string, branch: string) {
   const fields = row.split("|");
-  // If row starts/ends with pipe, remove leading/trailing empty strings
   let f = fields;
   if (fields.length > 0 && fields[0].trim() === "") f = f.slice(1);
   if (f.length > 0 && f[f.length - 1].trim() === "") f = f.slice(0, -1);
 
-  const patient = textOrNull(f[14]);
+  // New spreadsheet column mapping:
+  // 0:OBSERVAÇÃO 1:TERCEIRIZAÇÃO 2:CIRURGIA JUAZEIRO 3:ANO/MÊS 4:DIA 5:DATA
+  // 6:TRICOTOMIA 7:HORÁRIO 8:CONFIRMOU 9:EXAMES RECEBIDOS 10:GUIAS ENVIADOS
+  // 11:ANO DA VENDA 12:PRONTUÁRIO 13:PACIENTE 14:CATEGORIA 15:PROCEDIMENTO
+  // 16:GRAU 17:VGV 18:ACOMPANHANTE 19:CELULAR ACOMP 20:CONTRATO ASSINADO
+  // 21:D-20 22:D-15 23:D-10 24:D-7 25:D-2 26:ALMOÇO 27:D-1
+  // 28:D-1(TERMO MARCAÇÃO) 29:D-0(TERMO ALTA) 30:D+1(GPI) 31:OBSERVAÇÕES3
+
+  const patient = textOrNull(f[13]);
   if (!patient) return null;
 
-  // Skip CURSO rows
-  if (patient.includes("CURSO FORMAÇÃO")) return null;
+  // Skip header row or CURSO rows
+  if (patient === "PACIENTE" || patient.includes("CURSO FORMAÇÃO")) return null;
 
-  const procedure = textOrNull(f[19]) || "CABELO";
+  const procedure = textOrNull(f[15]) || "CABELO";
   const doctorName = textOrNull(f[1]);
 
   return {
     branch,
     patient_name: patient,
-    medical_record: textOrNull(f[13]),
+    medical_record: textOrNull(f[12]),
     procedure,
-    category: textOrNull(f[18]),
-    grade: parseGrade(f[20]),
+    category: textOrNull(f[14]),
+    grade: parseGrade(f[16]),
     surgery_date: parseDate(f[5]),
-    surgery_time: parseTime(f[8]),
+    surgery_time: parseTime(f[7]),
     schedule_status: "agendado",
-    surgery_confirmed: parseBool(f[9]),
-    exams_sent: parseBool(f[10]),
-    guides_sent: parseBool(f[11]),
-    contract_signed: parseBool(f[24]),
+    surgery_confirmed: parseBool(f[8]),
+    exams_sent: parseBool(f[9]),
+    guides_sent: parseBool(f[10]),
+    contract_signed: parseBool(f[20]),
     outsourcing: !!doctorName,
     doctor_on_duty: doctorName,
     is_juazeiro: parseBool(f[2]),
-    trichotomy_datetime: textOrNull(f[7]),
-    sale_year: textOrNull(f[12]),
-    companion_name: textOrNull(f[22]),
-    companion_phone: textOrNull(f[23]),
-    d20_contact: parseBool(f[25]),
-    d15_contact: parseBool(f[26]),
-    d10_contact: parseBool(f[27]),
-    d7_contact: parseBool(f[28]),
-    d2_contact: parseBool(f[29]),
-    d1_contact: parseBool(f[31]),
-    lunch_choice: textOrNull(f[30]),
-    booking_term_signed: parseBool(f[32]),
-    discharge_term_signed: parseBool(f[33]),
-    gpi_d1_done: parseBool(f[34]),
+    trichotomy_datetime: textOrNull(f[6]),
+    sale_year: textOrNull(f[11]),
+    companion_name: textOrNull(f[18]),
+    companion_phone: textOrNull(f[19]),
+    d20_contact: parseBool(f[21]),
+    d15_contact: parseBool(f[22]),
+    d10_contact: parseBool(f[23]),
+    d7_contact: parseBool(f[24]),
+    d2_contact: parseBool(f[25]),
+    d1_contact: parseBool(f[27]),
+    lunch_choice: textOrNull(f[26]),
+    booking_term_signed: parseBool(f[28]),
+    discharge_term_signed: parseBool(f[29]),
+    gpi_d1_done: parseBool(f[30]),
     notes: textOrNull(f[0]),
-    vgv: parseVgv(f[21]),
+    vgv: parseVgv(f[17]),
   };
 }
 

@@ -69,11 +69,7 @@ export function useClinicSurgeries() {
     queryFn: async () => {
       let query = supabase
         .from('clinic_surgeries')
-        .select(`
-          *,
-          clinic_patients(full_name, phone),
-          clinic_sales(sale_date, vgv, seller, contract_status)
-        `)
+        .select('*')
         .order('surgery_date', { ascending: true, nullsFirst: false });
 
       if (!isAdmin && !isGestao && currentBranch) {
@@ -86,16 +82,13 @@ export function useClinicSurgeries() {
 
       const today = new Date();
 
-      return (data || []).map((s): ClinicSurgery => {
-        const saleDate = s.clinic_sales?.sale_date || null;
-        const daysSinceSale = saleDate ? differenceInDays(today, new Date(saleDate)) : null;
-
+      return (data || []).map((s: any): ClinicSurgery => {
         return {
           id: s.id,
-          patientId: s.patient_id,
-          patientName: s.clinic_patients?.full_name || 'Paciente não vinculado',
-          patientPhone: s.clinic_patients?.phone || null,
-          saleId: s.sale_id,
+          patientId: s.patient_id || null,
+          patientName: s.patient_name || 'Paciente não vinculado',
+          patientPhone: null,
+          saleId: s.sale_id || null,
           branch: s.branch,
           procedure: s.procedure,
           category: s.category,
@@ -118,11 +111,11 @@ export function useClinicSurgeries() {
           companionPhone: s.companion_phone,
           notes: s.notes,
           createdAt: s.created_at,
-          saleDate,
-          vgv: s.clinic_sales?.vgv ? Number(s.clinic_sales.vgv) : null,
-          seller: s.clinic_sales?.seller || null,
-          contractStatus: s.clinic_sales?.contract_status || null,
-          daysSinceSale,
+          saleDate: null,
+          vgv: s.vgv ? Number(s.vgv) : null,
+          seller: null,
+          contractStatus: null,
+          daysSinceSale: null,
         };
       });
     },
@@ -150,7 +143,7 @@ export function useClinicSurgeries() {
           companion_phone: input.companionPhone || null,
           notes: input.notes || null,
           created_by: user?.userId,
-        })
+        } as any)
         .select()
         .single();
 
@@ -180,7 +173,6 @@ export function useClinicSurgeries() {
       if (updates.outsourcing !== undefined) dbUpdates.outsourcing = updates.outsourcing;
       if (updates.surgeryDate !== undefined) {
         dbUpdates.surgery_date = updates.surgeryDate;
-        // Derived status logic
         if (updates.surgeryDate === null) {
           dbUpdates.schedule_status = 'sem_data';
         } else if (updates.scheduleStatus === undefined) {
