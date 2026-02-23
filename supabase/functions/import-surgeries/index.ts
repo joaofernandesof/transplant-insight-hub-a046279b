@@ -46,8 +46,10 @@ function textOrNull(val: string | undefined): string | null {
 
 function parseRow(row: string, branch: string) {
   const fields = row.split("|");
-  // Remove leading/trailing empty from pipe format
-  const f = fields.length > 2 ? fields.slice(1, -1) : fields;
+  // If row starts/ends with pipe, remove leading/trailing empty strings
+  let f = fields;
+  if (fields.length > 0 && fields[0].trim() === "") f = f.slice(1);
+  if (f.length > 0 && f[f.length - 1].trim() === "") f = f.slice(0, -1);
 
   const patient = textOrNull(f[14]);
   if (!patient) return null;
