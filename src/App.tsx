@@ -445,7 +445,7 @@ function NeoTeamRoutes() {
           <Route index element={<NeoTeamHome />} />
           <Route path="schedule" element={<NeoTeamSchedule />} />
           <Route path="agenda-cirurgica" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ClinicDashboardPage /></Suspense>} />
-          <Route path="vendidos-sem-data" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NoDateQueuePage /></Suspense>} />
+          {/* vendidos-sem-data agora é aba dentro de agenda-cirurgica */}
           <Route path="waiting-room" element={<NeoTeamWaitingRoom />} />
           <Route path="waiting-room/reports" element={<NeoTeamWaitingRoomReports />} />
           <Route path="doctor-view" element={<NeoTeamDoctorView />} />

@@ -40,7 +40,7 @@ function getPageName(path: string): string {
     '/neoteam': 'NeoTeam Home',
     '/neoteam/schedule': 'Agenda NeoTeam',
     '/neoteam/agenda-cirurgica': 'Agenda Cirúrgica',
-    '/neoteam/vendidos-sem-data': 'Vendidos Sem Data',
+    
     '/neoteam/waiting-room': 'Sala de Espera',
     '/neoteam/patients': 'Pacientes',
     '/neoteam/doctor-view': 'Visão do Médico',

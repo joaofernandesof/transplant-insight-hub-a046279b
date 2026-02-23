@@ -78,20 +78,15 @@ export default function NoDateQueue() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Pacientes Vendidos (Sem Data)</h1>
-          <p className="text-muted-foreground">
-            {stats.filtered} de {stats.total} pacientes
-            {stats.over30 > 0 && (
-              <span className="ml-2 text-yellow-600">• {stats.over30} acima de 30 dias</span>
-            )}
-            {stats.over60 > 0 && (
-              <span className="ml-2 text-red-600">• {stats.over60} acima de 60 dias</span>
-            )}
-          </p>
-        </div>
+      {/* Summary */}
+      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <span>{stats.filtered} de {stats.total} pacientes</span>
+        {stats.over30 > 0 && (
+          <span className="text-yellow-600">• {stats.over30} acima de 30 dias</span>
+        )}
+        {stats.over60 > 0 && (
+          <span className="text-red-600">• {stats.over60} acima de 60 dias</span>
+        )}
       </div>
 
       {/* Filters */}
