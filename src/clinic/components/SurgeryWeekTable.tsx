@@ -45,7 +45,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate }: SurgeryWeekTableProps)
     let done = 0;
     if (s.examsSent) done++;
     if (s.contractSigned) done++;
-    if (s.chartReady) done++;
+    
     return done;
   };
 
@@ -61,7 +61,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate }: SurgeryWeekTableProps)
             <span className="font-medium">Legenda:</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">E</span> Exames</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">C</span> Contrato</span>
-            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">P</span> Prontuário</span>
+            
           </div>
         </CardHeader>
         <CardContent>
@@ -116,7 +116,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate }: SurgeryWeekTableProps)
                                 <div className="flex gap-1">
                                   <CheckDot done={surgery.examsSent} label="E" />
                                   <CheckDot done={surgery.contractSigned} label="C" />
-                                  <CheckDot done={surgery.chartReady} label="P" />
+                                  
                                 </div>
                               </TableCell>
                               <TableCell className="text-right">
