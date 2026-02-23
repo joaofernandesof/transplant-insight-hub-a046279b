@@ -38,11 +38,11 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { title: 'Dashboard', icon: LayoutDashboard, path: '/clinic' },
+  { title: 'Visão Operacional', icon: LayoutDashboard, path: '/clinic' },
+  { title: 'Agenda', icon: Calendar, path: '/clinic/agenda' },
+  { title: 'Vendidos Sem Data', icon: Clock, path: '/clinic/sem-data' },
   { title: 'Nova Venda', icon: Plus, path: '/clinic/nova-venda', roles: ['admin', 'gestao', 'comercial'] },
   { title: 'Cadastrar Paciente', icon: UserPlus, path: '/clinic/paciente' },
-  { title: 'Agenda', icon: Calendar, path: '/clinic/agenda' },
-  { title: 'Sem Data Definida', icon: Clock, path: '/clinic/sem-data' },
   { title: 'Pacientes', icon: Users, path: '/clinic/pacientes' },
   { title: 'Vendas', icon: TrendingUp, path: '/clinic/vendas' },
   { title: 'Configurações', icon: Settings, path: '/clinic/configuracoes', roles: ['admin'] },

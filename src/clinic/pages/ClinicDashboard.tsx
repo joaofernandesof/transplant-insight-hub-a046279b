@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Users,
   DollarSign,
+  AlertTriangle,
 } from 'lucide-react';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -20,7 +21,7 @@ import { ptBR } from 'date-fns/locale';
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
   const { sales, stats: salesStats } = useClinicSales();
-  const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats } = useClinicSurgeries();
+  const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats, noDateOver30, noDateOver60 } = useClinicSurgeries();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -86,14 +87,26 @@ export default function ClinicDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Sem Data Definida</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Vendidos Sem Data</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{surgeryStats.noDate}</div>
-            <p className="text-xs text-muted-foreground">
-              Aguardando agendamento
-            </p>
+            <div className="flex gap-3 mt-1">
+              {surgeryStats.noDateOver30 > 0 && (
+                <span className="text-xs text-yellow-600 dark:text-yellow-400">
+                  {surgeryStats.noDateOver30} +30d
+                </span>
+              )}
+              {surgeryStats.noDateOver60 > 0 && (
+                <span className="text-xs text-red-600 dark:text-red-400">
+                  {surgeryStats.noDateOver60} +60d
+                </span>
+              )}
+              {surgeryStats.noDateOver30 === 0 && surgeryStats.noDateOver60 === 0 && (
+                <span className="text-xs text-muted-foreground">Aguardando agendamento</span>
+              )}
+            </div>
           </CardContent>
         </Card>
 
