@@ -3933,6 +3933,7 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          medical_record: string | null
           notes: string | null
           phone: string | null
           updated_at: string | null
@@ -3944,6 +3945,7 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          medical_record?: string | null
           notes?: string | null
           phone?: string | null
           updated_at?: string | null
@@ -3955,6 +3957,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          medical_record?: string | null
           notes?: string | null
           phone?: string | null
           updated_at?: string | null
@@ -4082,24 +4085,37 @@ export type Database = {
           contract_signed: boolean | null
           created_at: string | null
           created_by: string | null
+          d1_contact: boolean | null
+          d10_contact: boolean | null
+          d15_contact: boolean | null
+          d2_contact: boolean | null
+          d20_contact: boolean | null
+          d7_contact: boolean | null
           discharge_term_signed: boolean | null
           doctor_on_duty: string | null
           exams_sent: boolean | null
           expected_month: string | null
           gpi_d1_done: boolean | null
           grade: number | null
+          guides_sent: boolean | null
           id: string
+          is_juazeiro: boolean | null
           lunch_choice: string | null
+          medical_record: string | null
           notes: string | null
           outsourcing: boolean | null
           patient_id: string | null
+          patient_name: string | null
           procedure: string
           sale_id: string | null
+          sale_year: string | null
           schedule_status: Database["public"]["Enums"]["schedule_status"]
           surgery_confirmed: boolean | null
           surgery_date: string | null
           surgery_time: string | null
+          trichotomy_datetime: string | null
           updated_at: string | null
+          vgv: number | null
         }
         Insert: {
           booking_term_signed?: boolean | null
@@ -4111,24 +4127,37 @@ export type Database = {
           contract_signed?: boolean | null
           created_at?: string | null
           created_by?: string | null
+          d1_contact?: boolean | null
+          d10_contact?: boolean | null
+          d15_contact?: boolean | null
+          d2_contact?: boolean | null
+          d20_contact?: boolean | null
+          d7_contact?: boolean | null
           discharge_term_signed?: boolean | null
           doctor_on_duty?: string | null
           exams_sent?: boolean | null
           expected_month?: string | null
           gpi_d1_done?: boolean | null
           grade?: number | null
+          guides_sent?: boolean | null
           id?: string
+          is_juazeiro?: boolean | null
           lunch_choice?: string | null
+          medical_record?: string | null
           notes?: string | null
           outsourcing?: boolean | null
           patient_id?: string | null
+          patient_name?: string | null
           procedure: string
           sale_id?: string | null
+          sale_year?: string | null
           schedule_status?: Database["public"]["Enums"]["schedule_status"]
           surgery_confirmed?: boolean | null
           surgery_date?: string | null
           surgery_time?: string | null
+          trichotomy_datetime?: string | null
           updated_at?: string | null
+          vgv?: number | null
         }
         Update: {
           booking_term_signed?: boolean | null
@@ -4140,24 +4169,37 @@ export type Database = {
           contract_signed?: boolean | null
           created_at?: string | null
           created_by?: string | null
+          d1_contact?: boolean | null
+          d10_contact?: boolean | null
+          d15_contact?: boolean | null
+          d2_contact?: boolean | null
+          d20_contact?: boolean | null
+          d7_contact?: boolean | null
           discharge_term_signed?: boolean | null
           doctor_on_duty?: string | null
           exams_sent?: boolean | null
           expected_month?: string | null
           gpi_d1_done?: boolean | null
           grade?: number | null
+          guides_sent?: boolean | null
           id?: string
+          is_juazeiro?: boolean | null
           lunch_choice?: string | null
+          medical_record?: string | null
           notes?: string | null
           outsourcing?: boolean | null
           patient_id?: string | null
+          patient_name?: string | null
           procedure?: string
           sale_id?: string | null
+          sale_year?: string | null
           schedule_status?: Database["public"]["Enums"]["schedule_status"]
           surgery_confirmed?: boolean | null
           surgery_date?: string | null
           surgery_time?: string | null
+          trichotomy_datetime?: string | null
           updated_at?: string | null
+          vgv?: number | null
         }
         Relationships: [
           {
