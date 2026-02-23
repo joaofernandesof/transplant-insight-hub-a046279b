@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useClinicSales } from '../hooks/useClinicSales';
-import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
+import { useClinicSurgeries, ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useNoDatePatients } from '../hooks/useNoDatePatients';
 import { useBranches } from '../hooks/useBranches';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,11 +26,12 @@ import {
 import { format, isToday, isTomorrow, parseISO, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NoDateQueue from './NoDateQueue';
+import { SurgeryWeekTable } from '../components/SurgeryWeekTable';
 
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
   const { sales, stats: salesStats } = useClinicSales();
-  const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats, surgeries } = useClinicSurgeries();
+  const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats, surgeries, updateSurgery } = useClinicSurgeries();
   const { stats: noDateStats, allPatients: noDatePatients } = useNoDatePatients();
   const { branches: allowedBranches } = useBranches();
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
@@ -254,114 +255,70 @@ export default function ClinicDashboard() {
               </Card>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* This Week Surgeries */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    Cirurgias da Semana
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[300px]">
-                    {filteredWeekSurgeries.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        Nenhuma cirurgia agendada para esta semana
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {filteredWeekSurgeries.map(surgery => (
-                          <div
-                            key={surgery.id}
-                            className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{surgery.patientName}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {surgery.procedure} • Grau {surgery.grade || '-'}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {surgery.surgeryDate && formatDateLabel(surgery.surgeryDate)}
-                                {surgery.surgeryTime && ` às ${surgery.surgeryTime.substring(0, 5)}`}
-                              </p>
-                            </div>
-                            <div className="flex flex-col items-end gap-1">
-                              {surgery.surgeryConfirmed ? (
-                                <Badge variant="default" className="bg-green-500">
-                                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                                  Confirmada
-                                </Badge>
-                              ) : (
-                                <Badge variant="secondary">Pendente</Badge>
-                              )}
-                              {surgery.category && (
-                                <Badge variant="outline" className="text-xs">
-                                  {surgery.category}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+            <div className="grid gap-6 lg:grid-cols-5">
+              {/* This Week Surgeries - Table */}
+              <div className="lg:col-span-3">
+                <SurgeryWeekTable
+                  surgeries={filteredWeekSurgeries}
+                  onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+                />
+              </div>
 
               {/* Pending Checklist */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-yellow-500" />
-                    Pendências Pré-Operatórias
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[300px]">
-                    {filteredPendingChecklist.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        Nenhuma pendência encontrada
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {filteredPendingChecklist.slice(0, 10).map(surgery => (
-                          <div
-                            key={surgery.id}
-                            className="p-3 rounded-lg border bg-card"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="font-medium truncate">{surgery.patientName}</p>
-                              {surgery.surgeryDate && (
-                                <span className="text-xs text-muted-foreground">
-                                  {format(parseISO(surgery.surgeryDate), 'dd/MM')}
-                                </span>
-                              )}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                      Pendências Pré-Operatórias
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[300px]">
+                      {filteredPendingChecklist.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                          Nenhuma pendência encontrada
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredPendingChecklist.slice(0, 10).map(surgery => (
+                            <div
+                              key={surgery.id}
+                              className="p-3 rounded-lg border bg-card"
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="font-medium truncate">{surgery.patientName}</p>
+                                {surgery.surgeryDate && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(parseISO(surgery.surgeryDate), 'dd/MM')}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {!surgery.examsSent && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Exames
+                                  </Badge>
+                                )}
+                                {!surgery.contractSigned && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Contrato
+                                  </Badge>
+                                )}
+                                {!surgery.chartReady && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Prontuário
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex flex-wrap gap-1">
-                              {!surgery.examsSent && (
-                                <Badge variant="destructive" className="text-xs">
-                                  Exames
-                                </Badge>
-                              )}
-                              {!surgery.contractSigned && (
-                                <Badge variant="destructive" className="text-xs">
-                                  Contrato
-                                </Badge>
-                              )}
-                              {!surgery.chartReady && (
-                                <Badge variant="destructive" className="text-xs">
-                                  Prontuário
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </TabsContent>
