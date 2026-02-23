@@ -2,6 +2,7 @@ import React from 'react';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useClinicSales } from '../hooks/useClinicSales';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
+import { useNoDatePatients } from '../hooks/useNoDatePatients';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,6 +14,7 @@ import {
   CheckCircle2,
   Users,
   DollarSign,
+  AlertTriangle,
 } from 'lucide-react';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -21,6 +23,7 @@ export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
   const { sales, stats: salesStats } = useClinicSales();
   const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats } = useClinicSurgeries();
+  const { stats: noDateStats } = useNoDatePatients();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -86,14 +89,22 @@ export default function ClinicDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Sem Data Definida</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Vendidos Sem Data</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{surgeryStats.noDate}</div>
-            <p className="text-xs text-muted-foreground">
-              Aguardando agendamento
-            </p>
+            <div className="text-2xl font-bold">{noDateStats.total}</div>
+            <div className="flex gap-3 text-xs mt-1">
+              {noDateStats.over30 > 0 && (
+                <span className="text-yellow-600">{noDateStats.over30} +30d</span>
+              )}
+              {noDateStats.over60 > 0 && (
+                <span className="text-red-600">{noDateStats.over60} +60d</span>
+              )}
+              {noDateStats.over30 === 0 && noDateStats.over60 === 0 && (
+                <span className="text-muted-foreground">Sem alertas</span>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -221,37 +232,6 @@ export default function ClinicDashboard() {
         </Card>
       </div>
 
-      {/* No Date Queue Preview */}
-      {noDateSurgeries.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Sem Data Definida ({noDateSurgeries.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {noDateSurgeries.slice(0, 6).map(surgery => (
-                <div
-                  key={surgery.id}
-                  className="p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                >
-                  <p className="font-medium truncate">{surgery.patientName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {surgery.procedure} • Grau {surgery.grade || '-'}
-                  </p>
-                  {surgery.expectedMonth && (
-                    <Badge variant="outline" className="mt-2 text-xs">
-                      Prev: {surgery.expectedMonth}
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
