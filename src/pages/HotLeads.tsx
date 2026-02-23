@@ -29,6 +29,7 @@ import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashboard';
 
 import type { HotLead, LeadTab } from '@/hooks/useHotLeads';
+import { CompleteProfileGate } from '@/components/hotleads/CompleteProfileGate';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -385,6 +386,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   }
 
   return (
+    <CompleteProfileGate>
     <div className="flex-1 flex flex-col bg-background h-[calc(100dvh-52px)] lg:h-dvh overflow-y-auto">
       {/* Header */}
       <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 lg:sticky lg:top-0 z-20 hidden lg:block">
@@ -804,5 +806,6 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         />
       )}
     </div>
+    </CompleteProfileGate>
   );
 }
