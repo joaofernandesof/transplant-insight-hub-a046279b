@@ -1,167 +1,143 @@
 
 
-## Painel de Monitoramento de Custos e Execucoes - NeoHub
+# Módulo Técnico: Agenda Cirúrgica + Pipeline de Pacientes Vendidos
 
-### Objetivo
-Criar um sistema completo de logging de execucoes de Edge Functions + painel visual no Portal Administrativo, acessivel apenas por `adm@neofolic.com.br`, com visibilidade global sobre custos de IA e Cloud de todas as contas do ecossistema NeoHub (incluindo Avivar multi-tenant).
+## Resumo
 
----
-
-### 1. Tabela de Logs no Banco de Dados
-
-Criar tabela `edge_function_logs`:
-
-| Coluna | Tipo | Descricao |
-|--------|------|-----------|
-| id | uuid (PK) | Identificador unico |
-| function_name | text (NOT NULL) | Nome da Edge Function |
-| execution_time_ms | integer | Tempo de execucao em ms |
-| status | text | "success" ou "error" |
-| tokens_input | integer | Tokens de entrada (IA) |
-| tokens_output | integer | Tokens de saida (IA) |
-| model_used | text | Modelo de IA utilizado |
-| estimated_cost_usd | numeric(10,6) | Custo estimado em USD |
-| account_id | uuid | Tenant Avivar (quando aplicavel) |
-| user_id | uuid | Usuario que disparou |
-| metadata | jsonb | Dados extras (conversation_id, job_id, etc.) |
-| error_message | text | Mensagem de erro (quando falha) |
-| created_at | timestamptz | Timestamp da execucao |
-
-**Indices:** `function_name`, `created_at`, `account_id`, `user_id`
-
-**RLS:** Apenas o Super Admin (`adm@neofolic.com.br`) pode ler os logs. Insercao via service_role (Edge Functions).
+Transformar a página "Sem Data Definida" de uma lista de cards simples em uma **fila estratégica com tabela técnica**, filtros combinaveis, alertas visuais por tempo de espera, e um dashboard card na Visão Operacional. Também enriquecer o hook de dados para incluir informações da venda (VGV, data da venda, vendedor/responsável).
 
 ---
 
-### 2. Snippet de Logging para Edge Functions
+## 1. Migração de Banco de Dados
 
-Como Edge Functions Deno nao suportam imports compartilhados entre funcoes facilmente, sera adicionado um snippet inline em cada funcao instrumentada. O snippet:
+Adicionar colunas que faltam na tabela `clinic_surgeries` para suportar o campo "responsável" dedicado:
 
-- Captura `startTime` no inicio da funcao
-- No final (sucesso ou erro), faz INSERT na tabela `edge_function_logs` usando `supabaseServiceClient`
-- Inclui calculo automatico de custo estimado baseado no modelo usado
-- Nao bloqueia a resposta (fire-and-forget com `.then()`)
+- Nenhuma nova coluna necessária -- os dados de venda (VGV, data da venda, responsável/seller, status contrato) já existem na tabela `clinic_sales` e serão obtidos via JOIN no `sale_id` existente.
 
-**Tabela de custos por modelo (embutida no snippet):**
+A query do hook será expandida para incluir o JOIN com `clinic_sales`.
+
+---
+
+## 2. Atualizar Hook `useClinicSurgeries`
+
+**Arquivo:** `src/clinic/hooks/useClinicSurgeries.ts`
+
+- Expandir a query Supabase para incluir `clinic_sales(sale_date, vgv, seller, contract_status, service_type)` no select
+- Adicionar campos ao tipo `ClinicSurgery`: `saleDate`, `vgv`, `seller`, `contractStatus`
+- Calcular `daysSinceSale` derivado automaticamente de `saleDate`
+- Adicionar listas derivadas:
+  - `noDateOver30`: vendidos sem data ha mais de 30 dias
+  - `noDateOver60`: vendidos sem data ha mais de 60 dias
+- Expandir `stats` com `noDateOver30` e `noDateOver60` counts
+
+---
+
+## 3. Nova Pagina: Pacientes Vendidos (Sem Data) - Tabela Tecnica
+
+**Arquivo:** `src/clinic/pages/NoDateQueue.tsx` (reescrever)
+
+### Cabecalho
+- Titulo: "Pacientes Vendidos (Sem Data)"
+- Subtitulo dinamico com total de registros
+
+### Filtros (sempre visiveis, no topo)
+Barra de filtros combinaveis com:
+- Busca por nome do paciente
+- Filtro por intervalo de data da venda (DatePicker range)
+- Filtro por unidade/branch
+- Filtro por categoria (A, B, C, D)
+- Filtro por procedimento
+- Filtro por responsavel (seller)
+- Filtro por tempo sem agendamento: Todos / +30 dias / +60 dias
+
+### Tabela Tecnica
+Colunas:
+| Paciente | Categoria | Procedimento | Grau | VGV | Data da Venda | Unidade | Status Contrato | Observacoes | Dias desde Venda | Responsavel |
+
+### Regras Visuais Inteligentes
+- `daysSinceSale` calculado automaticamente
+- Linha com fundo amarelo sutil se >= 30 dias
+- Linha com fundo vermelho sutil se >= 60 dias
+- Badge colorido na coluna "Dias desde Venda"
+
+### Acao Principal
+- Botao "Agendar Cirurgia" em cada linha
+- Ao clicar: abre um Dialog pre-preenchido com dados do paciente
+- Usuario escolhe data e horario
+- Sistema atualiza `surgery_date`, `surgery_time`, `schedule_status = 'agendado'`
+- Ao remover data de uma cirurgia, status volta automaticamente para `sem_data`
+
+---
+
+## 4. Dialog de Agendamento Rapido
+
+**Arquivo novo:** `src/clinic/components/ScheduleSurgeryDialog.tsx`
+
+Modal com:
+- Dados do paciente (somente leitura): nome, procedimento, categoria, grau
+- Campo de data (Calendar/DatePicker)
+- Campo de horario (Select com slots)
+- Campo de medico plantonista (opcional)
+- Botao "Confirmar Agendamento"
+
+Ao salvar: chama `updateSurgery` com `surgeryDate`, `surgeryTime`, `scheduleStatus: 'agendado'`
+
+---
+
+## 5. Dashboard (Visao Operacional) - Novo Card
+
+**Arquivo:** `src/clinic/pages/ClinicDashboard.tsx`
+
+Adicionar card estrategico:
 
 ```text
-google/gemini-3-flash-preview:  $0.10/1M input, $0.40/1M output
-google/gemini-2.5-flash:        $0.15/1M input, $0.60/1M output
-google/gemini-2.5-flash-lite:   $0.02/1M input, $0.05/1M output
-google/gemini-2.5-pro:          $1.25/1M input, $5.00/1M output
-openai/whisper-1:               $0.006/min (estimado por tamanho do audio)
++-----------------------------------+
+| Vendidos Sem Data                 |
+| [TOTAL]                           |
+| X acima de 30 dias (amarelo)      |
+| Y acima de 60 dias (vermelho)     |
++-----------------------------------+
+```
+
+Apenas numeros estrategicos, sem exagero visual. Usar icone `AlertTriangle` para destaque.
+
+---
+
+## 6. Sidebar - Reorganizar Menu
+
+**Arquivo:** `src/clinic/components/ClinicSidebar.tsx`
+
+Reorganizar items do menu conforme a nova estrutura:
+
+```text
+Dashboard (Visao Operacional)
+Agenda (Cirurgias Agendadas)
+Pacientes Vendidos (Sem Data)   <-- renomear
+Nova Venda
+Cadastrar Paciente
+Configuracoes (admin)
 ```
 
 ---
 
-### 3. Funcoes a Instrumentar (Fase 1 - Criticas)
+## 7. Logica de Status Derivado
 
-Estas funcoes serao instrumentadas primeiro por terem maior volume e/ou custo:
+O status do paciente sera derivado automaticamente, nao manual:
 
-1. **avivar-ai-agent** - Principal consumidor de IA
-2. **avivar-queue-processor** - Orquestrador central
-3. **avivar-debounce-processor** - Gateway de mensagens
-4. **avivar-send-message** - Envio WhatsApp
-5. **avivar-transcribe-audio** - OpenAI Whisper
-6. **avivar-process-followups** - Follow-ups automaticos
-7. **code-assistant-chat** - Assistente de codigo
-8. **jon-jobs-chat** - Chat JON JOBS
+- Se `surgery_date IS NULL` → "Vendido (sem data)" / `sem_data`
+- Se `surgery_date IS NOT NULL` e `schedule_status = 'agendado'|'confirmado'` → "Agendado"
+- Se `schedule_status = 'realizado'` → "Concluido"
 
-### Funcoes a Instrumentar (Fase 2 - Restantes)
-
-9. avivar-process-reminders
-10. avivar-generate-faq
-11. avivar-analyze-call
-12. face-search
-13. hair-scan-analysis
-14. ai-legal-document
-15. legal-ai-insights
-16. analyze-survey-insights
-17. analyze-day2-survey-insights
-18. analyze-daily-metrics
-19. uazapi-webhook
-20. avivar-webhook-dispatch
+Ao remover a data de uma cirurgia (set `surgery_date = null`), o hook/mutation atualizara automaticamente o `schedule_status` para `sem_data`.
 
 ---
 
-### 4. Pagina de Monitoramento (Portal Admin)
+## Sequencia de Implementacao
 
-Nova pagina em `/admin-portal/monitoring` dentro do layout Admin existente.
-
-**Restricao de acesso:** Verificacao por email `adm@neofolic.com.br` (hardcoded no componente + RLS no banco).
-
-**Layout da pagina:**
-
-#### KPIs (topo, 4 cards):
-- Total de Execucoes (hoje / 7d / 30d)
-- Custo Estimado Total (USD)
-- Funcao Mais Chamada
-- Taxa de Erro Global
-
-#### Secao "Custo por Usuario/Conta" (tabela):
-- Nome da conta Avivar
-- Execucoes totais
-- Tokens consumidos
-- Custo estimado
-- Ordenavel por custo
-
-#### Secao "Custo por Funcao" (tabela):
-- Nome da funcao
-- Execucoes
-- Tempo medio (ms)
-- Tokens totais (in/out)
-- Custo estimado
-- Taxa de erro (%)
-
-#### Secao "Custo do NeoHub" (cards):
-- Total gasto pelo proprio NeoHub (funcoes sem account_id)
-- Breakdown: code-assistant, jon-jobs, face-search, hair-scan, legal, etc.
-
-#### Grafico de linha:
-- Evolucao diaria de custo (ultimos 30 dias)
-- Linhas separadas: NeoHub vs Avivar accounts
-
-#### Filtros:
-- Periodo: Hoje / 7 dias / 30 dias / Custom
-- Funcao especifica
-- Conta especifica
-
----
-
-### 5. Integracoes
-
-#### Admin Sidebar
-Adicionar item "Monitoramento" com icone `Activity` no menu do sistema do `AdminSidebar.tsx`, apontando para `/admin-portal/monitoring`.
-
-#### App.tsx
-Adicionar rota:
-```text
-/admin-portal/monitoring -> AdminLayout > NeoHubMonitoring
-```
-
----
-
-### 6. Arquivos a Criar
-
-| Arquivo | Descricao |
-|---------|-----------|
-| `src/pages/admin/NeoHubMonitoring.tsx` | Pagina principal do painel |
-| `src/hooks/useEdgeFunctionLogs.ts` | Hook React Query para buscar logs |
-
-### 7. Arquivos a Modificar
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/pages/admin/components/AdminSidebar.tsx` | Adicionar item "Monitoramento" |
-| `src/App.tsx` | Adicionar rota e lazy import |
-| 20 Edge Functions | Adicionar snippet de logging |
-
-### 8. Ordem de Implementacao
-
-1. Criar tabela `edge_function_logs` + RLS + indices (migracao)
-2. Instrumentar as 8 Edge Functions criticas (Fase 1)
-3. Criar hook `useEdgeFunctionLogs.ts`
-4. Criar pagina `NeoHubMonitoring.tsx`
-5. Modificar `AdminSidebar.tsx` + `App.tsx`
-6. Instrumentar funcoes restantes (Fase 2)
+1. Atualizar hook `useClinicSurgeries` (JOIN com sales, novos campos, novas listas)
+2. Criar componente `ScheduleSurgeryDialog`
+3. Reescrever pagina `NoDateQueue` com tabela tecnica + filtros
+4. Atualizar `ClinicDashboard` com card estrategico
+5. Reorganizar `ClinicSidebar`
+6. Garantir logica de status derivado no `updateSurgery`
 
