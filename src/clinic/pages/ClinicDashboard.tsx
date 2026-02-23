@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,7 @@ export default function ClinicDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('this-week');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
+  const [activeTab, setActiveTab] = useState('visao-geral');
 
   const canFilterBranch = isAdmin || isGestao;
 
@@ -55,7 +56,6 @@ export default function ClinicDashboard() {
     return items.filter(i => i.branch === selectedBranch);
   };
 
-  // Compute date range based on selected period
   const periodRange = useMemo(() => {
     const now = new Date();
     switch (selectedPeriod) {
@@ -86,7 +86,6 @@ export default function ClinicDashboard() {
     }
   }, [selectedPeriod, dateRange]);
 
-  // Filter surgeries by period
   const filteredSurgeries = useMemo(() => {
     let items = filterByBranch(scheduledSurgeries);
     if (periodRange) {
@@ -138,9 +137,9 @@ export default function ClinicDashboard() {
   }, [selectedPeriod]);
 
   return (
-    <div className="space-y-6">
-      {/* Sticky Header with Filters */}
-      <div className="sticky top-0 z-20 bg-background pb-4 border-b border-border -mx-4 px-4 pt-2 md:-mx-6 md:px-6">
+    <div>
+      {/* Sticky Header: Filters + Tabs + KPIs */}
+      <div className="sticky top-0 z-20 bg-background -mx-4 px-4 pt-2 md:-mx-6 md:px-6 pb-4 border-b border-border space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Agenda Cirúrgica</h1>
@@ -152,7 +151,6 @@ export default function ClinicDashboard() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {/* Branch filter */}
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
               <SelectTrigger className="w-[200px]">
                 <Filter className="h-4 w-4 mr-2" />
@@ -166,7 +164,6 @@ export default function ClinicDashboard() {
               </SelectContent>
             </Select>
 
-            {/* Period filter */}
             <Select value={selectedPeriod} onValueChange={(v) => { setSelectedPeriod(v); if (v !== 'custom') setDateRange(undefined); }}>
               <SelectTrigger className="w-[180px]">
                 <Clock className="h-4 w-4 mr-2" />
@@ -182,7 +179,6 @@ export default function ClinicDashboard() {
               </SelectContent>
             </Select>
 
-            {/* Date range picker */}
             {selectedPeriod === 'custom' && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -219,163 +215,164 @@ export default function ClinicDashboard() {
             )}
           </div>
         </div>
+
+        {/* Tabs header inside sticky */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
+            <TabsTrigger value="vendidos-sem-data">
+              Vendidos Sem Data
+              {filteredNoDateStats.total > 0 && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {filteredNoDateStats.total}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* KPI Cards inside sticky (only on visao-geral) */}
+        {activeTab === 'visao-geral' && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Cirurgias ({periodLabel})</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{filteredSurgeries.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {filteredSurgeries.filter(s => s.surgeryConfirmed).length} confirmadas
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Pendências Pré-Op</CardTitle>
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{filteredPendingChecklist.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Exames ou contratos pendentes
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Vendidos Sem Data</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{filteredNoDateStats.total}</div>
+                <div className="flex gap-3 text-xs mt-1">
+                  {filteredNoDateStats.over30 > 0 && (
+                    <span className="text-amber-600">{filteredNoDateStats.over30} +30d</span>
+                  )}
+                  {filteredNoDateStats.over60 > 0 && (
+                    <span className="text-destructive">{filteredNoDateStats.over60} +60d</span>
+                  )}
+                  {filteredNoDateStats.over30 === 0 && filteredNoDateStats.over60 === 0 && (
+                    <span className="text-muted-foreground">Sem alertas</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Vendas do Mês</CardTitle>
+                <TrendingUp className="h-4 w-4 text-emerald-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{currentMonthSales.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {formatCurrency(currentMonthSales.reduce((sum, s) => sum + s.vgv, 0))} VGV
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="visao-geral" className="w-full">
-        <TabsList>
-          <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
-          <TabsTrigger value="vendidos-sem-data">
-            Vendidos Sem Data
-            {filteredNoDateStats.total > 0 && (
-              <Badge variant="secondary" className="ml-2 text-xs">
-                {filteredNoDateStats.total}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="visao-geral">
-          <div className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Cirurgias ({periodLabel})</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{filteredSurgeries.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {filteredSurgeries.filter(s => s.surgeryConfirmed).length} confirmadas
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Pendências Pré-Op</CardTitle>
-                  <AlertCircle className="h-4 w-4 text-amber-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{filteredPendingChecklist.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Exames ou contratos pendentes
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Vendidos Sem Data</CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{filteredNoDateStats.total}</div>
-                  <div className="flex gap-3 text-xs mt-1">
-                    {filteredNoDateStats.over30 > 0 && (
-                      <span className="text-amber-600">{filteredNoDateStats.over30} +30d</span>
-                    )}
-                    {filteredNoDateStats.over60 > 0 && (
-                      <span className="text-destructive">{filteredNoDateStats.over60} +60d</span>
-                    )}
-                    {filteredNoDateStats.over30 === 0 && filteredNoDateStats.over60 === 0 && (
-                      <span className="text-muted-foreground">Sem alertas</span>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Vendas do Mês</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-emerald-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{currentMonthSales.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {formatCurrency(currentMonthSales.reduce((sum, s) => sum + s.vgv, 0))} VGV
-                  </p>
-                </CardContent>
-              </Card>
+      {/* Tab Content (scrollable) */}
+      <div className="pt-6 space-y-6">
+        {activeTab === 'visao-geral' && (
+          <div className="grid gap-6 lg:grid-cols-5">
+            <div className="lg:col-span-3">
+              <SurgeryWeekTable
+                surgeries={filteredSurgeries}
+                onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+                title={`Cirurgias — ${periodLabel}`}
+              />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-5">
-              {/* Surgeries Table */}
-              <div className="lg:col-span-3">
-                <SurgeryWeekTable
-                  surgeries={filteredSurgeries}
-                  onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-                  title={`Cirurgias — ${periodLabel}`}
-                />
-              </div>
-
-              {/* Pending Checklist */}
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-amber-500" />
-                      Pendências Pré-Operatórias
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ScrollArea className="h-[300px]">
-                      {filteredPendingChecklist.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-8">
-                          Nenhuma pendência encontrada
-                        </p>
-                      ) : (
-                        <div className="space-y-3">
-                          {filteredPendingChecklist.slice(0, 10).map(surgery => (
-                            <div
-                              key={surgery.id}
-                              className="p-3 rounded-lg border bg-card cursor-pointer hover:bg-muted/50 transition-colors"
-                              onClick={() => setSelectedPendingSurgery(surgery)}
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <p className="font-medium truncate">{surgery.patientName}</p>
-                                {surgery.surgeryDate && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(parseISO(surgery.surgeryDate), 'dd/MM')}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex flex-wrap gap-1">
-                                {!surgery.examsSent && (
-                                  <Badge variant="destructive" className="text-xs">
-                                    Exames
-                                  </Badge>
-                                )}
-                                {!surgery.contractSigned && (
-                                  <Badge variant="destructive" className="text-xs">
-                                    Contrato
-                                  </Badge>
-                                )}
-                              </div>
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-amber-500" />
+                    Pendências Pré-Operatórias
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[300px]">
+                    {filteredPendingChecklist.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-8">
+                        Nenhuma pendência encontrada
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {filteredPendingChecklist.slice(0, 10).map(surgery => (
+                          <div
+                            key={surgery.id}
+                            className="p-3 rounded-lg border bg-card cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => setSelectedPendingSurgery(surgery)}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="font-medium truncate">{surgery.patientName}</p>
+                              {surgery.surgeryDate && (
+                                <span className="text-xs text-muted-foreground">
+                                  {format(parseISO(surgery.surgeryDate), 'dd/MM')}\\
+                                </span>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
+                            <div className="flex flex-wrap gap-1">
+                              {!surgery.examsSent && (
+                                <Badge variant="destructive" className="text-xs">
+                                  Exames
+                                </Badge>
+                              )}
+                              {!surgery.contractSigned && (
+                                <Badge variant="destructive" className="text-xs">
+                                  Contrato
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </CardContent>
+              </Card>
 
-                <SurgeryDetailDialog
-                  surgery={selectedPendingSurgery}
-                  open={!!selectedPendingSurgery}
-                  onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
-                  onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-                />
-              </div>
+              <SurgeryDetailDialog
+                surgery={selectedPendingSurgery}
+                open={!!selectedPendingSurgery}
+                onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
+                onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+              />
             </div>
           </div>
-        </TabsContent>
+        )}
 
-        <TabsContent value="vendidos-sem-data">
+        {activeTab === 'vendidos-sem-data' && (
           <NoDateQueue />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 }
