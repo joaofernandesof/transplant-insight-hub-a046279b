@@ -1,50 +1,39 @@
 
 
-# Unificar "Vendidos (Sem Data)" dentro da Agenda Cirurgica
+# Adicionar Unidades: São Paulo e Terceirização
 
-## Objetivo
+## Situação Atual
 
-Remover "Vendidos (Sem Data)" como item separado no menu lateral e transforma-lo em uma **aba/tab dentro da Agenda Cirurgica**. O usuario acessa `/neoteam/agenda-cirurgica` e encontra tudo em um unico modulo com abas.
+A tabela `neoteam_branches` possui apenas **Fortaleza** e **Juazeiro**. Faltam **São Paulo** e **Terceirização**.
 
----
+O filtro de filial no dashboard (`ClinicDashboard.tsx`) deriva as opções dos dados existentes + `useBranches()`, que por sua vez lê da tabela `staff_profiles`. Isso significa que unidades sem staff cadastrado não aparecem no filtro.
 
-## Estrutura de Abas da Agenda Cirurgica
+## Mudanças
 
-```text
-+------------------------------------------------------------------+
-| Agenda Cirurgica                                                  |
-|  [Visao Geral]  [Vendidos Sem Data]                               |
-|------------------------------------------------------------------|
-|  (conteudo da aba ativa)                                          |
-+------------------------------------------------------------------+
-```
+### 1. Inserir novas unidades no banco de dados
 
-- **Aba "Visao Geral"**: Dashboard atual (cards + lista semanal + pendencias)
-- **Aba "Vendidos Sem Data"**: Tabela estrategica com filtros (conteudo atual do NoDateQueue)
+Adicionar na tabela `neoteam_branches`:
 
----
+| code | name |
+|------|------|
+| `sao_paulo` | São Paulo |
+| `terceirizacao` | Terceirização |
 
-## Mudancas
+### 2. Atualizar o filtro de filial no Dashboard
 
-### 1. Menu Lateral (`src/config/menuConfig.ts`)
-- Remover o item `neoteam_no_date` (Vendidos Sem Data) da lista de itens do menu
-- Manter apenas "Agenda Cirurgica" como ponto de acesso unico
+Modificar `src/clinic/pages/ClinicDashboard.tsx` para que as opções do filtro incluam **todas as unidades da tabela `neoteam_branches`**, em vez de depender apenas dos dados de cirurgias e staff existentes. Isso garante que as 4 unidades sempre apareçam:
 
-### 2. Rotas (`src/App.tsx`)
-- Remover a rota separada `/neoteam/vendidos-sem-data`
-- Manter apenas `/neoteam/agenda-cirurgica`
+- Fortaleza
+- Juazeiro
+- São Paulo
+- Terceirização
 
-### 3. Pagina Unificada (`src/clinic/pages/ClinicDashboard.tsx`)
-- Adicionar componente `Tabs` (Radix) com duas abas:
-  - `"visao-geral"` -- conteudo atual do dashboard
-  - `"vendidos-sem-data"` -- importar e renderizar o conteudo do NoDateQueue
-- Titulo principal: "Agenda Cirurgica" (sem mudar por aba)
-- Manter o filtro de unidade global no topo (funciona para ambas as abas)
+### 3. Atualizar `useBranches` hook
 
-### 4. Breadcrumbs e EventTracker
-- Remover referencias a rota `/neoteam/vendidos-sem-data`
-- Atualizar label de `/neoteam/agenda-cirurgica` para "Agenda Cirurgica"
+Modificar `src/clinic/hooks/useBranches.ts` para buscar da tabela `neoteam_branches` (que é a fonte correta de unidades configuradas) em vez de derivar de `staff_profiles`. Para não-admins, continuar restringindo às branches autorizadas.
 
-### 5. Pagina NoDateQueue
-- Converter de pagina independente para componente exportavel (remover cabecalho duplicado, pois ja estara dentro da Agenda Cirurgica)
+## Arquivos a modificar
 
+1. Inserção de dados via SQL (2 novas linhas em `neoteam_branches`)
+2. `src/clinic/hooks/useBranches.ts` -- buscar de `neoteam_branches`
+3. `src/clinic/pages/ClinicDashboard.tsx` -- garantir que o filtro use as branches do hook corretamente
