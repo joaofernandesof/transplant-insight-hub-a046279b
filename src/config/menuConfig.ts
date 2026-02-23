@@ -229,7 +229,6 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_schedule', code: 'neoteam_schedule', title: 'Agenda', icon: Calendar, route: '/neoteam/schedule' },
       { id: 'neoteam_surgical_dashboard', code: 'neoteam_surgical_dashboard', title: 'Agenda Cirúrgica', icon: CalendarDays, route: '/neoteam/agenda-cirurgica' },
-      { id: 'neoteam_no_date', code: 'neoteam_no_date', title: 'Vendidos (Sem Data)', icon: Clock, route: '/neoteam/vendidos-sem-data' },
       { id: 'neoteam_waiting_room', code: 'neoteam_waiting_room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
       { id: 'neoteam_patients', code: 'neoteam_patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
       { id: 'neoteam_medical_records', code: 'neoteam_medical_records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
