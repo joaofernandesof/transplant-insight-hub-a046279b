@@ -27,6 +27,7 @@ import { format, isToday, isTomorrow, parseISO, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NoDateQueue from './NoDateQueue';
 import { SurgeryWeekTable } from '../components/SurgeryWeekTable';
+import { SurgeryDetailDialog } from '../components/SurgeryDetailDialog';
 
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
@@ -37,6 +38,7 @@ export default function ClinicDashboard() {
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedDelay, setSelectedDelay] = useState<string>('all');
   const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
+  const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
 
   const canFilterBranch = isAdmin || isGestao;
 
@@ -284,7 +286,8 @@ export default function ClinicDashboard() {
                           {filteredPendingChecklist.slice(0, 10).map(surgery => (
                             <div
                               key={surgery.id}
-                              className="p-3 rounded-lg border bg-card"
+                              className="p-3 rounded-lg border bg-card cursor-pointer hover:bg-muted/50 transition-colors"
+                              onClick={() => setSelectedPendingSurgery(surgery)}
                             >
                               <div className="flex items-center justify-between mb-2">
                                 <p className="font-medium truncate">{surgery.patientName}</p>
@@ -313,6 +316,13 @@ export default function ClinicDashboard() {
                     </ScrollArea>
                   </CardContent>
                 </Card>
+
+                <SurgeryDetailDialog
+                  surgery={selectedPendingSurgery}
+                  open={!!selectedPendingSurgery}
+                  onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
+                  onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+                />
               </div>
             </div>
           </div>
