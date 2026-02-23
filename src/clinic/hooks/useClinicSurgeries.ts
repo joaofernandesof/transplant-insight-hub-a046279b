@@ -256,7 +256,7 @@ export function useClinicSurgeries() {
   });
 
   const pendingChecklist = scheduledSurgeries.filter(s => 
-    !s.examsSent || !s.contractSigned || !s.chartReady
+    !s.examsSent || !s.contractSigned
   );
 
   const noDateOver30 = noDateSurgeries.filter(s => s.daysSinceSale !== null && s.daysSinceSale >= 30);
