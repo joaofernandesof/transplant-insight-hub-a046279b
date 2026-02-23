@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
-  CheckCircle2, XCircle, AlertCircle, Stethoscope, Users
+  CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -21,39 +22,21 @@ interface SurgeryDetailDialogProps {
   onUpdate?: (id: string, updates: Partial<ClinicSurgery>) => void;
 }
 
-function StatusBadge({ done, label }: { done: boolean; label: string }) {
-  return (
-    <div className="flex items-center justify-between py-1.5">
-      <span className="text-sm">{label}</span>
-      {done ? (
-        <Badge variant="default" className="bg-emerald-600 text-xs gap-1">
-          <CheckCircle2 className="w-3 h-3" /> Sim
-        </Badge>
-      ) : (
-        <Badge variant="secondary" className="text-xs gap-1">
-          <XCircle className="w-3 h-3" /> Não
-        </Badge>
-      )}
-    </div>
-  );
-}
-
 export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: SurgeryDetailDialogProps) {
   if (!surgery) return null;
 
-  const formatDate = (d: string | null) => {
-    if (!d) return '—';
-    try { return format(parseISO(d), "dd/MM/yyyy", { locale: ptBR }); }
-    catch { return d; }
-  };
-
-  const formatTime = (t: string | null) => {
-    if (!t) return '—';
-    return t.substring(0, 5);
+  const handleFieldSave = (field: string, value: string | boolean | number | null) => {
+    onUpdate?.(surgery.id, { [field]: value } as Partial<ClinicSurgery>);
   };
 
   const handleToggle = (field: keyof ClinicSurgery, value: boolean) => {
     onUpdate?.(surgery.id, { [field]: value } as Partial<ClinicSurgery>);
+  };
+
+  const formatDate = (d: string | null) => {
+    if (!d) return '';
+    try { return format(parseISO(d), "dd/MM/yyyy", { locale: ptBR }); }
+    catch { return d; }
   };
 
   return (
@@ -77,22 +60,61 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
 
         <ScrollArea className="max-h-[60vh]">
           <div className="px-6 pb-6 space-y-5">
-            {/* Info Grid */}
+            {/* Editable Info Grid */}
             <div className="grid grid-cols-2 gap-4">
-              <InfoItem icon={Calendar} label="Data da Cirurgia" value={formatDate(surgery.surgeryDate)} />
-              <InfoItem icon={Clock} label="Horário" value={formatTime(surgery.surgeryTime)} />
-              <InfoItem icon={Scissors} label="Procedimento" value={surgery.procedure || '—'} />
-              <InfoItem icon={Stethoscope} label="Grau" value={surgery.grade?.toString() || '—'} />
-              <InfoItem icon={FileText} label="Prontuário" value={(surgery as any).medicalRecord || '—'} />
-              <InfoItem icon={Users} label="Acompanhante" value={surgery.companionName || '—'} />
+              <EditableField
+                icon={Calendar}
+                label="Data da Cirurgia"
+                value={surgery.surgeryDate || ''}
+                displayValue={formatDate(surgery.surgeryDate)}
+                field="surgeryDate"
+                type="date"
+                onSave={handleFieldSave}
+              />
+              <EditableField
+                icon={Clock}
+                label="Horário"
+                value={surgery.surgeryTime?.substring(0, 5) || ''}
+                field="surgeryTime"
+                type="time"
+                onSave={handleFieldSave}
+              />
+              <EditableField
+                icon={Scissors}
+                label="Procedimento"
+                value={surgery.procedure || ''}
+                field="procedure"
+                onSave={handleFieldSave}
+              />
+              <EditableField
+                icon={Stethoscope}
+                label="Grau"
+                value={surgery.grade?.toString() || ''}
+                field="grade"
+                onSave={handleFieldSave}
+              />
+              <EditableField
+                icon={FileText}
+                label="Prontuário"
+                value={(surgery as any).medicalRecord || ''}
+                field="medicalRecord"
+                onSave={handleFieldSave}
+              />
+              <EditableField
+                icon={Users}
+                label="Acompanhante"
+                value={surgery.companionName || ''}
+                field="companionName"
+                onSave={handleFieldSave}
+              />
+              <EditableField
+                icon={Phone}
+                label="Tel. Acompanhante"
+                value={surgery.companionPhone || ''}
+                field="companionPhone"
+                onSave={handleFieldSave}
+              />
             </div>
-
-            {surgery.companionPhone && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                Tel. Acompanhante: {surgery.companionPhone}
-              </div>
-            )}
 
             <Separator />
 
@@ -120,12 +142,12 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
                 Contatos Realizados
               </h4>
               <div className="bg-muted/50 rounded-lg p-4 space-y-1">
-                <StatusBadge done={(surgery as any).d20Contact || false} label="D-20 Contato" />
-                <StatusBadge done={(surgery as any).d15Contact || false} label="D-15 Contato" />
-                <StatusBadge done={(surgery as any).d10Contact || false} label="D-10 Contato" />
-                <StatusBadge done={(surgery as any).d7Contact || false} label="D-7 Contato" />
-                <StatusBadge done={(surgery as any).d2Contact || false} label="D-2 Contato" />
-                <StatusBadge done={(surgery as any).d1Contact || false} label="D-1 Contato" />
+                <ToggleItem label="D-20 Contato" checked={(surgery as any).d20Contact || false} field="d20Contact" onToggle={handleToggle} />
+                <ToggleItem label="D-15 Contato" checked={(surgery as any).d15Contact || false} field="d15Contact" onToggle={handleToggle} />
+                <ToggleItem label="D-10 Contato" checked={(surgery as any).d10Contact || false} field="d10Contact" onToggle={handleToggle} />
+                <ToggleItem label="D-7 Contato" checked={(surgery as any).d7Contact || false} field="d7Contact" onToggle={handleToggle} />
+                <ToggleItem label="D-2 Contato" checked={(surgery as any).d2Contact || false} field="d2Contact" onToggle={handleToggle} />
+                <ToggleItem label="D-1 Contato" checked={(surgery as any).d1Contact || false} field="d1Contact" onToggle={handleToggle} />
               </div>
             </div>
 
@@ -135,24 +157,22 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
             <div>
               <h4 className="font-semibold text-sm mb-3">Dia da Cirurgia / Pós</h4>
               <div className="bg-muted/50 rounded-lg p-4 space-y-1">
-                <StatusBadge done={surgery.bookingTermSigned} label="Termo de Internação" />
-                <StatusBadge done={surgery.dischargeTermSigned} label="Ficha de Alta" />
-                <StatusBadge done={surgery.gpiD1Done} label="GPI D+1" />
+                <ToggleItem label="Termo de Internação" checked={surgery.bookingTermSigned} field="bookingTermSigned" onToggle={handleToggle} />
+                <ToggleItem label="Ficha de Alta" checked={surgery.dischargeTermSigned} field="dischargeTermSigned" onToggle={handleToggle} />
+                <ToggleItem label="GPI D+1" checked={surgery.gpiD1Done} field="gpiD1Done" onToggle={handleToggle} />
               </div>
             </div>
 
-            {/* Notes */}
-            {surgery.notes && (
-              <>
-                <Separator />
-                <div>
-                  <h4 className="font-semibold text-sm mb-2">Observações</h4>
-                  <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">
-                    {surgery.notes}
-                  </p>
-                </div>
-              </>
-            )}
+            {/* Notes - editable */}
+            <Separator />
+            <div>
+              <h4 className="font-semibold text-sm mb-2">Observações</h4>
+              <EditableTextarea
+                value={surgery.notes || ''}
+                field="notes"
+                onSave={handleFieldSave}
+              />
+            </div>
           </div>
         </ScrollArea>
       </DialogContent>
@@ -160,15 +180,79 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
   );
 }
 
-function InfoItem({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+function EditableField({ icon: Icon, label, value, displayValue, field, type = 'text', onSave }: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  displayValue?: string;
+  field: string;
+  type?: string;
+  onSave: (field: string, value: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => { setLocalValue(value); }, [value]);
+
+  const commit = () => {
+    setEditing(false);
+    if (localValue !== value) {
+      onSave(field, localValue);
+    }
+  };
+
   return (
-    <div className="flex items-start gap-2">
+    <div className="flex items-start gap-2 group">
       <Icon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium truncate">{value}</p>
+        {editing ? (
+          <Input
+            type={type}
+            value={localValue}
+            onChange={(e) => setLocalValue(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => e.key === 'Enter' && commit()}
+            className="h-7 text-sm mt-0.5"
+            autoFocus
+          />
+        ) : (
+          <div
+            className="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors"
+            onClick={() => setEditing(true)}
+          >
+            <p className="text-sm font-medium truncate">{displayValue || value || '—'}</p>
+            <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-50 shrink-0" />
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function EditableTextarea({ value, field, onSave }: {
+  value: string;
+  field: string;
+  onSave: (field: string, value: string) => void;
+}) {
+  const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => { setLocalValue(value); }, [value]);
+
+  const commit = () => {
+    if (localValue !== value) {
+      onSave(field, localValue);
+    }
+  };
+
+  return (
+    <Textarea
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={commit}
+      placeholder="Adicionar observações..."
+      className="text-sm min-h-[60px]"
+    />
   );
 }
 
