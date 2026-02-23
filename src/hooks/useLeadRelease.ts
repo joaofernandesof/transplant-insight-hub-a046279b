@@ -82,6 +82,12 @@ export function useLeadRelease() {
         await fetchInfo();
         return data;
       }
+      // If release was blocked by mutex, silently refresh info
+      if (data?.reason === 'release_in_progress') {
+        console.log('[useLeadRelease] Release blocked - another release in progress');
+        await fetchInfo();
+        return data;
+      }
       await fetchInfo();
       return data;
     } catch (err) {
