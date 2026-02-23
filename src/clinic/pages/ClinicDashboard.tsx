@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,6 @@ export default function ClinicDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('this-week');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
-  const [activeTab, setActiveTab] = useState('visao-geral');
 
   const canFilterBranch = isAdmin || isGestao;
 
@@ -216,162 +215,151 @@ export default function ClinicDashboard() {
           </div>
         </div>
 
-        {/* Tabs header inside sticky */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
-            <TabsTrigger value="vendidos-sem-data">
-              Vendidos Sem Data
-              {filteredNoDateStats.total > 0 && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {filteredNoDateStats.total}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* KPI Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Cirurgias ({periodLabel})</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{filteredSurgeries.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {filteredSurgeries.filter(s => s.surgeryConfirmed).length} confirmadas
+              </p>
+            </CardContent>
+          </Card>
 
-        {/* KPI Cards inside sticky (only on visao-geral) */}
-        {activeTab === 'visao-geral' && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Cirurgias ({periodLabel})</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{filteredSurgeries.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {filteredSurgeries.filter(s => s.surgeryConfirmed).length} confirmadas
-                </p>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Pendências Pré-Op</CardTitle>
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{filteredPendingChecklist.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Exames ou contratos pendentes
+              </p>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Pendências Pré-Op</CardTitle>
-                <AlertCircle className="h-4 w-4 text-amber-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{filteredPendingChecklist.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Exames ou contratos pendentes
-                </p>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Vendidos Sem Data</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{filteredNoDateStats.total}</div>
+              <div className="flex gap-3 text-xs mt-1">
+                {filteredNoDateStats.over30 > 0 && (
+                  <span className="text-amber-600">{filteredNoDateStats.over30} +30d</span>
+                )}
+                {filteredNoDateStats.over60 > 0 && (
+                  <span className="text-destructive">{filteredNoDateStats.over60} +60d</span>
+                )}
+                {filteredNoDateStats.over30 === 0 && filteredNoDateStats.over60 === 0 && (
+                  <span className="text-muted-foreground">Sem alertas</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Vendidos Sem Data</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{filteredNoDateStats.total}</div>
-                <div className="flex gap-3 text-xs mt-1">
-                  {filteredNoDateStats.over30 > 0 && (
-                    <span className="text-amber-600">{filteredNoDateStats.over30} +30d</span>
-                  )}
-                  {filteredNoDateStats.over60 > 0 && (
-                    <span className="text-destructive">{filteredNoDateStats.over60} +60d</span>
-                  )}
-                  {filteredNoDateStats.over30 === 0 && filteredNoDateStats.over60 === 0 && (
-                    <span className="text-muted-foreground">Sem alertas</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Vendas do Mês</CardTitle>
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{currentMonthSales.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {formatCurrency(currentMonthSales.reduce((sum, s) => sum + s.vgv, 0))} VGV
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Vendas do Mês</CardTitle>
-                <TrendingUp className="h-4 w-4 text-emerald-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{currentMonthSales.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {formatCurrency(currentMonthSales.reduce((sum, s) => sum + s.vgv, 0))} VGV
-                </p>
-              </CardContent>
-            </Card>
+        {/* Pendency alert banner */}
+        {filteredNoDateStats.total > 0 && (
+          <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm">
+            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+            <span className="text-amber-800 dark:text-amber-300 font-medium">
+              {filteredNoDateStats.total} paciente{filteredNoDateStats.total > 1 ? 's' : ''} vendido{filteredNoDateStats.total > 1 ? 's' : ''} sem data de cirurgia
+              {filteredNoDateStats.over60 > 0 && <span className="text-destructive ml-1">({filteredNoDateStats.over60} há +60 dias)</span>}
+              {filteredNoDateStats.over60 === 0 && filteredNoDateStats.over30 > 0 && <span className="text-amber-600 ml-1">({filteredNoDateStats.over30} há +30 dias)</span>}
+            </span>
           </div>
         )}
       </div>
 
-      {/* Tab Content (scrollable) */}
+      {/* Content (scrollable) */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-6 pb-6 space-y-6">
-        {activeTab === 'visao-geral' && (
-          <div className="grid gap-6 lg:grid-cols-5">
-            <div className="lg:col-span-3">
-              <SurgeryWeekTable
-                surgeries={filteredSurgeries}
-                onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-                title={`Cirurgias — ${periodLabel}`}
-              />
-            </div>
-
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-amber-500" />
-                    Pendências Pré-Operatórias
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[300px]">
-                    {filteredPendingChecklist.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        Nenhuma pendência encontrada
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {filteredPendingChecklist.slice(0, 10).map(surgery => (
-                          <div
-                            key={surgery.id}
-                            className="p-3 rounded-lg border bg-card cursor-pointer hover:bg-muted/50 transition-colors"
-                            onClick={() => setSelectedPendingSurgery(surgery)}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="font-medium truncate">{surgery.patientName}</p>
-                              {surgery.surgeryDate && (
-                                <span className="text-xs text-muted-foreground">
-                                  {format(parseISO(surgery.surgeryDate), 'dd/MM')}\\
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {!surgery.examsSent && (
-                                <Badge variant="destructive" className="text-xs">
-                                  Exames
-                                </Badge>
-                              )}
-                              {!surgery.contractSigned && (
-                                <Badge variant="destructive" className="text-xs">
-                                  Contrato
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              <SurgeryDetailDialog
-                surgery={selectedPendingSurgery}
-                open={!!selectedPendingSurgery}
-                onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
-                onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-              />
-            </div>
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <SurgeryWeekTable
+              surgeries={filteredSurgeries}
+              onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+              title={`Cirurgias — ${periodLabel}`}
+            />
           </div>
-        )}
 
-        {activeTab === 'vendidos-sem-data' && (
-          <NoDateQueue />
-        )}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-amber-500" />
+                  Pendências Pré-Operatórias
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[300px]">
+                  {filteredPendingChecklist.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      Nenhuma pendência encontrada
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredPendingChecklist.slice(0, 10).map(surgery => (
+                        <div
+                          key={surgery.id}
+                          className="p-3 rounded-lg border bg-card cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => setSelectedPendingSurgery(surgery)}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="font-medium truncate">{surgery.patientName}</p>
+                            {surgery.surgeryDate && (
+                              <span className="text-xs text-muted-foreground">
+                                {format(parseISO(surgery.surgeryDate), 'dd/MM')}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {!surgery.examsSent && (
+                              <Badge variant="destructive" className="text-xs">
+                                Exames
+                              </Badge>
+                            )}
+                            {!surgery.contractSigned && (
+                              <Badge variant="destructive" className="text-xs">
+                                Contrato
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            <SurgeryDetailDialog
+              surgery={selectedPendingSurgery}
+              open={!!selectedPendingSurgery}
+              onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
+              onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
