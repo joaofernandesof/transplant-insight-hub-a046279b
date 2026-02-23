@@ -215,7 +215,7 @@ export default function ClinicDashboard() {
                 <CardContent>
                   <div className="text-2xl font-bold">{filteredPendingChecklist.length}</div>
                   <p className="text-xs text-muted-foreground">
-                    Exames, contratos ou prontuários
+                    Exames ou contratos pendentes
                   </p>
                 </CardContent>
               </Card>
@@ -303,11 +303,6 @@ export default function ClinicDashboard() {
                                 {!surgery.contractSigned && (
                                   <Badge variant="destructive" className="text-xs">
                                     Contrato
-                                  </Badge>
-                                )}
-                                {!surgery.chartReady && (
-                                  <Badge variant="destructive" className="text-xs">
-                                    Prontuário
                                   </Badge>
                                 )}
                               </div>

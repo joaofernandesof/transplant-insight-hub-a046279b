@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar, CheckCircle2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -64,7 +64,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate }: SurgeryWeekTableProps)
               Nenhuma cirurgia agendada para esta semana
             </p>
           ) : (
-            <ScrollArea className="max-h-[500px]">
+            <div>
               <div className="space-y-4">
                 {Array.from(grouped.entries()).map(([date, items]) => (
                   <div key={date}>
@@ -130,7 +130,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate }: SurgeryWeekTableProps)
                   </div>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </CardContent>
       </Card>
