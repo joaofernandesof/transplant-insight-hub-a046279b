@@ -1,20 +1,21 @@
 
 
-# Módulo Técnico: Agenda Cirúrgica + Pipeline de Pacientes Vendidos
+# Agenda Cirurgica + Pipeline de Pacientes Vendidos (Sem Data)
 
 ## Resumo
 
-Transformar a página "Sem Data Definida" de uma lista de cards simples em uma **fila estratégica com tabela técnica**, filtros combinaveis, alertas visuais por tempo de espera, e um dashboard card na Visão Operacional. Também enriquecer o hook de dados para incluir informações da venda (VGV, data da venda, vendedor/responsável).
+Construir um modulo de **Agenda Cirurgica independente** integrado ao modulo de Pacientes, sem alterar a Agenda existente (`ClinicSchedule`). O sistema permitira multiplas cirurgias por paciente, com classificacao automatica de estados e uma fila estrategica de "Vendidos (Sem Data)".
 
 ---
 
-## 1. Migração de Banco de Dados
+## 1. Nenhuma Migracao de Banco Necessaria
 
-Adicionar colunas que faltam na tabela `clinic_surgeries` para suportar o campo "responsável" dedicado:
+As tabelas `clinic_surgeries` e `clinic_sales` ja possuem todos os campos necessarios:
+- `clinic_surgeries` tem `patient_id`, `sale_id`, `surgery_date`, `schedule_status`, `branch`, `procedure`, `category`, `grade`, `notes`, `doctor_on_duty`
+- `clinic_sales` tem `sale_date`, `vgv`, `seller`, `contract_status`, `service_type`, `patient_id`, `branch`
+- O relacionamento N:1 (paciente tem N cirurgias) ja esta suportado
 
-- Nenhuma nova coluna necessária -- os dados de venda (VGV, data da venda, responsável/seller, status contrato) já existem na tabela `clinic_sales` e serão obtidos via JOIN no `sale_id` existente.
-
-A query do hook será expandida para incluir o JOIN com `clinic_sales`.
+A logica de "Vendidos Sem Data" sera derivada no frontend: pacientes com venda ativa (`contract_status != 'cancelado'`) que nao possuem nenhuma cirurgia futura (`surgery_date >= hoje` ou `surgery_date IS NULL com status sem_data`).
 
 ---
 
@@ -22,122 +23,127 @@ A query do hook será expandida para incluir o JOIN com `clinic_sales`.
 
 **Arquivo:** `src/clinic/hooks/useClinicSurgeries.ts`
 
-- Expandir a query Supabase para incluir `clinic_sales(sale_date, vgv, seller, contract_status, service_type)` no select
+Mudancas:
+- Expandir o `select` do Supabase para incluir JOIN com `clinic_sales`: `clinic_sales(sale_date, vgv, seller, contract_status)`
 - Adicionar campos ao tipo `ClinicSurgery`: `saleDate`, `vgv`, `seller`, `contractStatus`
-- Calcular `daysSinceSale` derivado automaticamente de `saleDate`
-- Adicionar listas derivadas:
-  - `noDateOver30`: vendidos sem data ha mais de 30 dias
-  - `noDateOver60`: vendidos sem data ha mais de 60 dias
-- Expandir `stats` com `noDateOver30` e `noDateOver60` counts
+- Calcular `daysSinceSale` derivado de `saleDate`
+- Adicionar listas derivadas: `noDateOver30`, `noDateOver60`
+- Expandir `stats` com contagens de `noDateOver30` e `noDateOver60`
+- Garantir que ao atualizar `surgeryDate` para `null`, o `scheduleStatus` seja automaticamente definido como `sem_data`
 
 ---
 
-## 3. Nova Pagina: Pacientes Vendidos (Sem Data) - Tabela Tecnica
+## 3. Novo Hook: `useNoDatePatients`
 
-**Arquivo:** `src/clinic/pages/NoDateQueue.tsx` (reescrever)
+**Arquivo novo:** `src/clinic/hooks/useNoDatePatients.ts`
 
-### Cabecalho
-- Titulo: "Pacientes Vendidos (Sem Data)"
-- Subtitulo dinamico com total de registros
-
-### Filtros (sempre visiveis, no topo)
-Barra de filtros combinaveis com:
-- Busca por nome do paciente
-- Filtro por intervalo de data da venda (DatePicker range)
-- Filtro por unidade/branch
-- Filtro por categoria (A, B, C, D)
-- Filtro por procedimento
-- Filtro por responsavel (seller)
-- Filtro por tempo sem agendamento: Todos / +30 dias / +60 dias
-
-### Tabela Tecnica
-Colunas:
-| Paciente | Categoria | Procedimento | Grau | VGV | Data da Venda | Unidade | Status Contrato | Observacoes | Dias desde Venda | Responsavel |
-
-### Regras Visuais Inteligentes
-- `daysSinceSale` calculado automaticamente
-- Linha com fundo amarelo sutil se >= 30 dias
-- Linha com fundo vermelho sutil se >= 60 dias
-- Badge colorido na coluna "Dias desde Venda"
-
-### Acao Principal
-- Botao "Agendar Cirurgia" em cada linha
-- Ao clicar: abre um Dialog pre-preenchido com dados do paciente
-- Usuario escolhe data e horario
-- Sistema atualiza `surgery_date`, `surgery_time`, `schedule_status = 'agendado'`
-- Ao remover data de uma cirurgia, status volta automaticamente para `sem_data`
+Hook dedicado para a logica de "Vendidos Sem Data":
+- Busca todas as vendas ativas (`contract_status != 'cancelado'`) com JOIN em `clinic_patients`
+- Busca todas as cirurgias futuras (agendadas ou sem data)
+- Filtra: paciente aparece na lista **apenas** se nao possui nenhuma cirurgia futura com `surgery_date` preenchido
+- Calcula `daysSinceSale` para cada registro
+- Suporta filtros: data da venda (intervalo), unidade, categoria, procedimento, responsavel, tempo sem agendar
 
 ---
 
-## 4. Dialog de Agendamento Rapido
+## 4. Novo Componente: `ScheduleSurgeryDialog`
 
 **Arquivo novo:** `src/clinic/components/ScheduleSurgeryDialog.tsx`
 
-Modal com:
-- Dados do paciente (somente leitura): nome, procedimento, categoria, grau
-- Campo de data (Calendar/DatePicker)
-- Campo de horario (Select com slots)
-- Campo de medico plantonista (opcional)
-- Botao "Confirmar Agendamento"
-
-Ao salvar: chama `updateSurgery` com `surgeryDate`, `surgeryTime`, `scheduleStatus: 'agendado'`
+Modal de agendamento rapido:
+- Dados do paciente em modo somente leitura (nome, procedimento, categoria, grau)
+- DatePicker para data da cirurgia
+- Select para horario
+- Campo opcional para medico plantonista
+- Ao confirmar: chama `createSurgery` do hook `useClinicSurgeries` (criando nova cirurgia vinculada ao paciente e venda)
+- O paciente sai automaticamente da lista "Sem Data" apos a criacao
 
 ---
 
-## 5. Dashboard (Visao Operacional) - Novo Card
+## 5. Reescrever Pagina `NoDateQueue`
+
+**Arquivo:** `src/clinic/pages/NoDateQueue.tsx`
+
+Transformar de cards simples para tabela estrategica:
+
+### Cabecalho
+- Titulo: "Pacientes Vendidos (Sem Data)"
+- Subtitulo dinamico com total
+
+### Filtros (sempre visiveis no topo)
+Barra de filtros combinaveis:
+- Busca por nome do paciente (Input de texto)
+- Data da venda -- intervalo com dois DatePickers
+- Unidade/branch (Select)
+- Categoria (Select)
+- Procedimento (Select)
+- Responsavel/seller (Select)
+- Tempo sem agendar: Todos / +30 dias / +60 dias (Select)
+
+### Tabela
+Colunas: Paciente | Unidade | Procedimento | Categoria | VGV | Data da Venda | Dias desde Venda | Responsavel | Status Contrato | Observacoes | Acao
+
+### Regras Visuais
+- Linha com fundo amarelo sutil se `daysSinceSale >= 30`
+- Linha com fundo vermelho sutil se `daysSinceSale >= 60`
+- Badge colorido na coluna "Dias desde Venda"
+
+### Acao
+- Botao "Agendar" em cada linha abrindo o `ScheduleSurgeryDialog`
+
+---
+
+## 6. Atualizar Dashboard com Card Estrategico
 
 **Arquivo:** `src/clinic/pages/ClinicDashboard.tsx`
 
-Adicionar card estrategico:
-
-```text
-+-----------------------------------+
-| Vendidos Sem Data                 |
-| [TOTAL]                           |
-| X acima de 30 dias (amarelo)      |
-| Y acima de 60 dias (vermelho)     |
-+-----------------------------------+
-```
-
-Apenas numeros estrategicos, sem exagero visual. Usar icone `AlertTriangle` para destaque.
+Substituir o card simples "Sem Data Definida" por card estrategico:
+- Total de vendidos sem data
+- Quantidade acima de 30 dias (indicador amarelo)
+- Quantidade acima de 60 dias (indicador vermelho)
+- Apenas numeros, sem exagero visual
 
 ---
 
-## 6. Sidebar - Reorganizar Menu
+## 7. Reorganizar Sidebar
 
 **Arquivo:** `src/clinic/components/ClinicSidebar.tsx`
 
-Reorganizar items do menu conforme a nova estrutura:
+Nova ordem do menu:
+1. Dashboard (Visao Operacional)
+2. Agenda (nao alterada)
+3. Agenda Cirurgica (nova -- link para pagina de cirurgias agendadas)
+4. Pacientes Vendidos (Sem Data) -- renomear item existente
+5. Nova Venda
+6. Cadastrar Paciente
+7. Configuracoes (admin)
+
+---
+
+## 8. Logica de Status Derivado
+
+Regras automaticas aplicadas no hook e nas mutations:
 
 ```text
-Dashboard (Visao Operacional)
-Agenda (Cirurgias Agendadas)
-Pacientes Vendidos (Sem Data)   <-- renomear
-Nova Venda
-Cadastrar Paciente
-Configuracoes (admin)
+Se surgery_date IS NULL --> sem_data
+Se surgery_date >= hoje --> agendado
+Se schedule_status = 'realizado' --> concluido
+Se schedule_status = 'cancelado' --> cancelado (e paciente volta para Vendidos se nao houver outra futura)
 ```
 
----
-
-## 7. Logica de Status Derivado
-
-O status do paciente sera derivado automaticamente, nao manual:
-
-- Se `surgery_date IS NULL` → "Vendido (sem data)" / `sem_data`
-- Se `surgery_date IS NOT NULL` e `schedule_status = 'agendado'|'confirmado'` → "Agendado"
-- Se `schedule_status = 'realizado'` → "Concluido"
-
-Ao remover a data de uma cirurgia (set `surgery_date = null`), o hook/mutation atualizara automaticamente o `schedule_status` para `sem_data`.
+Na mutation `updateSurgery`:
+- Se `surgeryDate` for definido como `null`, `scheduleStatus` sera automaticamente `sem_data`
+- Se `surgeryDate` for preenchido e status era `sem_data`, muda para `agendado`
 
 ---
 
-## Sequencia de Implementacao
+## 9. Sequencia de Implementacao
 
-1. Atualizar hook `useClinicSurgeries` (JOIN com sales, novos campos, novas listas)
-2. Criar componente `ScheduleSurgeryDialog`
-3. Reescrever pagina `NoDateQueue` com tabela tecnica + filtros
-4. Atualizar `ClinicDashboard` com card estrategico
-5. Reorganizar `ClinicSidebar`
-6. Garantir logica de status derivado no `updateSurgery`
+1. Atualizar hook `useClinicSurgeries` (JOIN com sales, novos campos, logica de status derivado)
+2. Criar hook `useNoDatePatients` (logica de filtragem de vendidos sem cirurgia futura)
+3. Criar componente `ScheduleSurgeryDialog`
+4. Reescrever pagina `NoDateQueue` com tabela tecnica + filtros
+5. Atualizar `ClinicDashboard` com card estrategico
+6. Reorganizar `ClinicSidebar`
+7. Registrar novas rotas em `ClinicApp.tsx` se necessario
 
