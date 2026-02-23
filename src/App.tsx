@@ -435,6 +435,8 @@ function NeoTeamRoutes() {
   const InventoryPage = lazy(() => import('@/pages/neoteam/inventory/InventoryPage'));
   const ContractReviewPage = lazy(() => import('@/pages/neoteam/ContractReviewPage'));
   const CleaningRoutinePage = lazy(() => import('@/neohub/pages/neoteam/cleaning/CleaningRoutinePage'));
+  const ClinicDashboardPage = lazy(() => import('@/clinic/pages/ClinicDashboard'));
+  const NoDateQueuePage = lazy(() => import('@/clinic/pages/NoDateQueue'));
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
@@ -442,6 +444,8 @@ function NeoTeamRoutes() {
         <Routes>
           <Route index element={<NeoTeamHome />} />
           <Route path="schedule" element={<NeoTeamSchedule />} />
+          <Route path="agenda-cirurgica" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ClinicDashboardPage /></Suspense>} />
+          <Route path="vendidos-sem-data" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NoDateQueuePage /></Suspense>} />
           <Route path="waiting-room" element={<NeoTeamWaitingRoom />} />
           <Route path="waiting-room/reports" element={<NeoTeamWaitingRoomReports />} />
           <Route path="doctor-view" element={<NeoTeamDoctorView />} />
