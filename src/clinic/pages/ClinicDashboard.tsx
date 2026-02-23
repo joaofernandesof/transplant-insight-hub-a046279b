@@ -23,26 +23,26 @@ import {
   AlertTriangle,
   Filter,
 } from 'lucide-react';
-import { format, isToday, isTomorrow, parseISO, subDays } from 'date-fns';
+import { format, isToday, isTomorrow, parseISO, subDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NoDateQueue from './NoDateQueue';
 import { SurgeryWeekTable } from '../components/SurgeryWeekTable';
 import { SurgeryDetailDialog } from '../components/SurgeryDetailDialog';
+import type { DateRange } from 'react-day-picker';
 
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
   const { sales, stats: salesStats } = useClinicSales();
-  const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats, surgeries, updateSurgery } = useClinicSurgeries();
+  const { thisWeekSurgeries, noDateSurgeries, pendingChecklist, stats: surgeryStats, surgeries, scheduledSurgeries, updateSurgery } = useClinicSurgeries();
   const { stats: noDateStats, allPatients: noDatePatients } = useNoDatePatients();
   const { branches: allowedBranches } = useBranches();
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
-  const [selectedDelay, setSelectedDelay] = useState<string>('all');
-  const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('this-week');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
 
   const canFilterBranch = isAdmin || isGestao;
 
-  // Use branches from neoteam_branches table (configured units)
   const branchOptions = useMemo(() => {
     if (!canFilterBranch && allowedBranches.length > 0) {
       return allowedBranches.filter(Boolean).sort();
@@ -50,50 +50,71 @@ export default function ClinicDashboard() {
     return allowedBranches.filter(Boolean);
   }, [canFilterBranch, allowedBranches]);
 
-  // Apply branch filter to all data
   const filterByBranch = <T extends { branch: string }>(items: T[]) => {
     if (selectedBranch === 'all') return items;
     return items.filter(i => i.branch === selectedBranch);
   };
 
-  const filteredWeekSurgeries = useMemo(() => filterByBranch(thisWeekSurgeries), [thisWeekSurgeries, selectedBranch]);
-  const filteredPendingChecklist = useMemo(() => filterByBranch(pendingChecklist), [pendingChecklist, selectedBranch]);
-  const filteredNoDatePatients = useMemo(() => {
-    let result = filterByBranch(noDatePatients);
-    // Apply date/delay filter
-    if (selectedDelay === 'custom' && customDate) {
-      result = result.filter(p => new Date(p.saleDate) <= customDate);
-    } else if (selectedDelay !== 'all') {
-      const days = parseInt(selectedDelay);
-      if (!isNaN(days)) {
-        const cutoff = subDays(new Date(), days);
-        result = result.filter(p => new Date(p.saleDate) <= cutoff);
+  // Compute date range based on selected period
+  const periodRange = useMemo(() => {
+    const now = new Date();
+    switch (selectedPeriod) {
+      case 'today':
+        return { start: now, end: now };
+      case 'this-week': {
+        const ws = startOfWeek(now, { weekStartsOn: 1 });
+        const we = endOfWeek(now, { weekStartsOn: 1 });
+        return { start: ws, end: we };
       }
+      case 'this-month':
+        return { start: startOfMonth(now), end: endOfMonth(now) };
+      case 'last-month': {
+        const lm = addMonths(now, -1);
+        return { start: startOfMonth(lm), end: endOfMonth(lm) };
+      }
+      case 'next-month': {
+        const nm = addMonths(now, 1);
+        return { start: startOfMonth(nm), end: endOfMonth(nm) };
+      }
+      case 'custom':
+        if (dateRange?.from) {
+          return { start: dateRange.from, end: dateRange.to || dateRange.from };
+        }
+        return null;
+      default:
+        return null;
     }
-    return result;
-  }, [noDatePatients, selectedBranch, selectedDelay, customDate]);
+  }, [selectedPeriod, dateRange]);
 
-  const filteredNoDateStats = useMemo(() => ({
-    total: filteredNoDatePatients.length,
-    over30: filteredNoDatePatients.filter(p => p.daysSinceSale >= 30).length,
-    over60: filteredNoDatePatients.filter(p => p.daysSinceSale >= 60).length,
-  }), [filteredNoDatePatients]);
+  // Filter surgeries by period
+  const filteredSurgeries = useMemo(() => {
+    let items = filterByBranch(scheduledSurgeries);
+    if (periodRange) {
+      const startStr = format(periodRange.start, 'yyyy-MM-dd');
+      const endStr = format(periodRange.end, 'yyyy-MM-dd');
+      items = items.filter(s => {
+        if (!s.surgeryDate) return false;
+        return s.surgeryDate >= startStr && s.surgeryDate <= endStr;
+      });
+    }
+    return items;
+  }, [scheduledSurgeries, selectedBranch, periodRange]);
+
+  const filteredPendingChecklist = useMemo(() => filterByBranch(pendingChecklist), [pendingChecklist, selectedBranch]);
+
+  const filteredNoDateStats = useMemo(() => {
+    const filtered = filterByBranch(noDatePatients);
+    return {
+      total: filtered.length,
+      over30: filtered.filter(p => p.daysSinceSale >= 30).length,
+      over60: filtered.filter(p => p.daysSinceSale >= 60).length,
+    };
+  }, [noDatePatients, selectedBranch]);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  const formatDateLabel = (dateStr: string) => {
-    const date = parseISO(dateStr);
-    if (isToday(date)) return 'Hoje';
-    if (isTomorrow(date)) return 'Amanhã';
-    return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
-  };
-
-  // Current month sales (filtered by branch)
   const currentMonthSales = useMemo(() => {
     const now = new Date();
     return sales.filter(s => {
@@ -104,77 +125,99 @@ export default function ClinicDashboard() {
     });
   }, [sales, selectedBranch]);
 
+  const periodLabel = useMemo(() => {
+    switch (selectedPeriod) {
+      case 'today': return 'Hoje';
+      case 'this-week': return 'Esta Semana';
+      case 'this-month': return 'Este Mês';
+      case 'last-month': return 'Mês Anterior';
+      case 'next-month': return 'Próximo Mês';
+      case 'custom': return 'Personalizado';
+      default: return 'Período';
+    }
+  }, [selectedPeriod]);
+
   return (
     <div className="space-y-6">
-      {/* Header with Branch Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Agenda Cirúrgica</h1>
-          <p className="text-muted-foreground">
-            Bem-vindo, {user?.name}
-            {currentBranch && !canFilterBranch && allowedBranches.length <= 1 && (
-              <span> • {currentBranch}</span>
+      {/* Sticky Header with Filters */}
+      <div className="sticky top-0 z-20 bg-background pb-4 border-b border-border -mx-4 px-4 pt-2 md:-mx-6 md:px-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Agenda Cirúrgica</h1>
+            <p className="text-muted-foreground">
+              Bem-vindo, {user?.name}
+              {currentBranch && !canFilterBranch && allowedBranches.length <= 1 && (
+                <span> • {currentBranch}</span>
+              )}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Branch filter */}
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger className="w-[200px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filtrar unidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas unidades</SelectItem>
+                {branchOptions.map(b => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Period filter */}
+            <Select value={selectedPeriod} onValueChange={(v) => { setSelectedPeriod(v); if (v !== 'custom') setDateRange(undefined); }}>
+              <SelectTrigger className="w-[180px]">
+                <Clock className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Hoje</SelectItem>
+                <SelectItem value="this-week">Esta Semana</SelectItem>
+                <SelectItem value="this-month">Este Mês</SelectItem>
+                <SelectItem value="last-month">Mês Anterior</SelectItem>
+                <SelectItem value="next-month">Próximo Mês</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Date range picker */}
+            {selectedPeriod === 'custom' && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-[240px] justify-start text-left font-normal',
+                      !dateRange?.from && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        `${format(dateRange.from, 'dd/MM/yy')} — ${format(dateRange.to, 'dd/MM/yy')}`
+                      ) : (
+                        format(dateRange.from, 'dd/MM/yyyy')
+                      )
+                    ) : (
+                      'Selecionar intervalo'
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarPicker
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             )}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Branch filter - always visible */}
-          <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-            <SelectTrigger className="w-[200px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar unidade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas unidades</SelectItem>
-              {branchOptions.map(b => (
-                <SelectItem key={b} value={b}>{b}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Date/delay filter */}
-          <Select value={selectedDelay} onValueChange={(v) => { setSelectedDelay(v); if (v !== 'custom') setCustomDate(undefined); }}>
-            <SelectTrigger className="w-[160px]">
-              <Clock className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="0">Hoje</SelectItem>
-              <SelectItem value="2">D-2</SelectItem>
-              <SelectItem value="7">D-7</SelectItem>
-              <SelectItem value="10">D-10</SelectItem>
-              <SelectItem value="20">D-20</SelectItem>
-              <SelectItem value="custom">Personalizado</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Custom date picker */}
-          {selectedDelay === 'custom' && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-[180px] justify-start text-left font-normal',
-                    !customDate && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {customDate ? format(customDate, 'dd/MM/yyyy') : 'Selecionar data'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarPicker
-                  mode="single"
-                  selected={customDate}
-                  onSelect={setCustomDate}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          )}
+          </div>
         </div>
       </div>
 
@@ -198,13 +241,13 @@ export default function ClinicDashboard() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Cirurgias da Semana</CardTitle>
+                  <CardTitle className="text-sm font-medium">Cirurgias ({periodLabel})</CardTitle>
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{filteredWeekSurgeries.length}</div>
+                  <div className="text-2xl font-bold">{filteredSurgeries.length}</div>
                   <p className="text-xs text-muted-foreground">
-                    {filteredWeekSurgeries.filter(s => s.surgeryConfirmed).length} confirmadas
+                    {filteredSurgeries.filter(s => s.surgeryConfirmed).length} confirmadas
                   </p>
                 </CardContent>
               </Card>
@@ -212,7 +255,7 @@ export default function ClinicDashboard() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Pendências Pré-Op</CardTitle>
-                  <AlertCircle className="h-4 w-4 text-yellow-500" />
+                  <AlertCircle className="h-4 w-4 text-amber-500" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{filteredPendingChecklist.length}</div>
@@ -231,10 +274,10 @@ export default function ClinicDashboard() {
                   <div className="text-2xl font-bold">{filteredNoDateStats.total}</div>
                   <div className="flex gap-3 text-xs mt-1">
                     {filteredNoDateStats.over30 > 0 && (
-                      <span className="text-yellow-600">{filteredNoDateStats.over30} +30d</span>
+                      <span className="text-amber-600">{filteredNoDateStats.over30} +30d</span>
                     )}
                     {filteredNoDateStats.over60 > 0 && (
-                      <span className="text-red-600">{filteredNoDateStats.over60} +60d</span>
+                      <span className="text-destructive">{filteredNoDateStats.over60} +60d</span>
                     )}
                     {filteredNoDateStats.over30 === 0 && filteredNoDateStats.over60 === 0 && (
                       <span className="text-muted-foreground">Sem alertas</span>
@@ -246,7 +289,7 @@ export default function ClinicDashboard() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Vendas do Mês</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <TrendingUp className="h-4 w-4 text-emerald-500" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{currentMonthSales.length}</div>
@@ -258,11 +301,12 @@ export default function ClinicDashboard() {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-5">
-              {/* This Week Surgeries - Table */}
+              {/* Surgeries Table */}
               <div className="lg:col-span-3">
                 <SurgeryWeekTable
-                  surgeries={filteredWeekSurgeries}
+                  surgeries={filteredSurgeries}
                   onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+                  title={`Cirurgias — ${periodLabel}`}
                 />
               </div>
 

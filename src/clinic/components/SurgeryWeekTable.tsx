@@ -12,9 +12,10 @@ import { SurgeryDetailDialog } from './SurgeryDetailDialog';
 interface SurgeryWeekTableProps {
   surgeries: ClinicSurgery[];
   onUpdate?: (id: string, updates: Partial<ClinicSurgery>) => void;
+  title?: string;
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
 
   // Group by date
@@ -55,7 +56,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate }: SurgeryWeekTableProps)
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Cirurgias da Semana
+            {title || 'Cirurgias da Semana'}
           </CardTitle>
           <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
             <span className="font-medium">Legenda:</span>
