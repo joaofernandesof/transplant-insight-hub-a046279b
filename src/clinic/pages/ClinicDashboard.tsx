@@ -293,73 +293,18 @@ export default function ClinicDashboard() {
 
       {/* Content (scrollable) */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-6 pb-6 space-y-6">
-        <div className="grid gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-            <SurgeryWeekTable
-              surgeries={filteredSurgeries}
-              onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-              title={`Cirurgias — ${periodLabel}`}
-            />
-          </div>
+        <SurgeryWeekTable
+          surgeries={filteredSurgeries}
+          onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+          title={`Cirurgias — ${periodLabel}`}
+        />
 
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-amber-500" />
-                  Pendências Pré-Operatórias
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[300px]">
-                  {filteredPendingChecklist.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      Nenhuma pendência encontrada
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {filteredPendingChecklist.slice(0, 10).map(surgery => (
-                        <div
-                          key={surgery.id}
-                          className="p-3 rounded-lg border bg-card cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => setSelectedPendingSurgery(surgery)}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="font-medium truncate">{surgery.patientName}</p>
-                            {surgery.surgeryDate && (
-                              <span className="text-xs text-muted-foreground">
-                                {format(parseISO(surgery.surgeryDate), 'dd/MM')}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            {!surgery.examsSent && (
-                              <Badge variant="destructive" className="text-xs">
-                                Exames
-                              </Badge>
-                            )}
-                            {!surgery.contractSigned && (
-                              <Badge variant="destructive" className="text-xs">
-                                Contrato
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            <SurgeryDetailDialog
-              surgery={selectedPendingSurgery}
-              open={!!selectedPendingSurgery}
-              onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
-              onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-            />
-          </div>
-        </div>
+        <SurgeryDetailDialog
+          surgery={selectedPendingSurgery}
+          open={!!selectedPendingSurgery}
+          onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
+          onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+        />
       </div>
     </div>
   );
