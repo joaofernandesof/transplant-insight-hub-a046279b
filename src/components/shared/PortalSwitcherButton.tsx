@@ -8,7 +8,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { 
-  Layers, 
   ChevronDown, 
   ChevronRight,
   GraduationCap,
@@ -23,6 +22,7 @@ import {
   Flame,
   Shield
 } from "lucide-react";
+import { NeoHubIcon } from "@/components/icons/NeoHubIcon";
 import { cn } from "@/lib/utils";
 import {
   Collapsible,
@@ -108,7 +108,7 @@ export function PortalSwitcherButton({
         onClick={() => navigate('/portal-selector')}
         title={label}
       >
-        <Layers className={cn(
+        <NeoHubIcon className={cn(
           "h-5 w-5 flex-shrink-0",
           variant === "light" && "text-current",
           variant === "avivar" && "text-[hsl(var(--avivar-primary))]"
@@ -121,7 +121,7 @@ export function PortalSwitcherButton({
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className={className}>
       <CollapsibleTrigger asChild>
         <button className={cn(triggerStyles, variantStyles[variant])}>
-          <Layers className={cn(
+          <NeoHubIcon className={cn(
             "h-5 w-5 flex-shrink-0",
             variant === "light" && "text-current",
             variant === "avivar" && "text-[hsl(var(--avivar-primary))]"
