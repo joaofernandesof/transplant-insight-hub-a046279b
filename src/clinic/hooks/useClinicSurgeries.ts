@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { toast } from 'sonner';
+import { differenceInDays } from 'date-fns';
 
 export type ScheduleStatus = 'sem_data' | 'agendado' | 'confirmado' | 'realizado' | 'cancelado';
 
@@ -33,6 +34,12 @@ export interface ClinicSurgery {
   companionPhone: string | null;
   notes: string | null;
   createdAt: string;
+  // Sale-derived fields
+  saleDate: string | null;
+  vgv: number | null;
+  seller: string | null;
+  contractStatus: string | null;
+  daysSinceSale: number | null;
 }
 
 export interface SurgeryInput {
@@ -64,7 +71,8 @@ export function useClinicSurgeries() {
         .from('clinic_surgeries')
         .select(`
           *,
-          clinic_patients(full_name, phone)
+          clinic_patients(full_name, phone),
+          clinic_sales(sale_date, vgv, seller, contract_status, service_type)
         `)
         .order('surgery_date', { ascending: true, nullsFirst: false });
 
@@ -76,35 +84,47 @@ export function useClinicSurgeries() {
 
       if (error) throw error;
 
-      return (data || []).map((s): ClinicSurgery => ({
-        id: s.id,
-        patientId: s.patient_id,
-        patientName: s.clinic_patients?.full_name || 'Paciente não vinculado',
-        patientPhone: s.clinic_patients?.phone || null,
-        saleId: s.sale_id,
-        branch: s.branch,
-        procedure: s.procedure,
-        category: s.category,
-        grade: s.grade,
-        outsourcing: s.outsourcing || false,
-        surgeryDate: s.surgery_date,
-        surgeryTime: s.surgery_time,
-        scheduleStatus: s.schedule_status as ScheduleStatus,
-        expectedMonth: s.expected_month,
-        doctorOnDuty: s.doctor_on_duty,
-        examsSent: s.exams_sent || false,
-        contractSigned: s.contract_signed || false,
-        chartReady: s.chart_ready || false,
-        surgeryConfirmed: s.surgery_confirmed || false,
-        lunchChoice: s.lunch_choice,
-        bookingTermSigned: s.booking_term_signed || false,
-        dischargeTermSigned: s.discharge_term_signed || false,
-        gpiD1Done: s.gpi_d1_done || false,
-        companionName: s.companion_name,
-        companionPhone: s.companion_phone,
-        notes: s.notes,
-        createdAt: s.created_at,
-      }));
+      const today = new Date();
+
+      return (data || []).map((s: any): ClinicSurgery => {
+        const saleDate = s.clinic_sales?.sale_date || null;
+        const daysSinceSale = saleDate ? differenceInDays(today, new Date(saleDate)) : null;
+
+        return {
+          id: s.id,
+          patientId: s.patient_id,
+          patientName: s.clinic_patients?.full_name || 'Paciente não vinculado',
+          patientPhone: s.clinic_patients?.phone || null,
+          saleId: s.sale_id,
+          branch: s.branch,
+          procedure: s.procedure,
+          category: s.category,
+          grade: s.grade,
+          outsourcing: s.outsourcing || false,
+          surgeryDate: s.surgery_date,
+          surgeryTime: s.surgery_time,
+          scheduleStatus: s.schedule_status as ScheduleStatus,
+          expectedMonth: s.expected_month,
+          doctorOnDuty: s.doctor_on_duty,
+          examsSent: s.exams_sent || false,
+          contractSigned: s.contract_signed || false,
+          chartReady: s.chart_ready || false,
+          surgeryConfirmed: s.surgery_confirmed || false,
+          lunchChoice: s.lunch_choice,
+          bookingTermSigned: s.booking_term_signed || false,
+          dischargeTermSigned: s.discharge_term_signed || false,
+          gpiD1Done: s.gpi_d1_done || false,
+          companionName: s.companion_name,
+          companionPhone: s.companion_phone,
+          notes: s.notes,
+          createdAt: s.created_at,
+          saleDate,
+          vgv: s.clinic_sales?.vgv || null,
+          seller: s.clinic_sales?.seller || null,
+          contractStatus: s.clinic_sales?.contract_status || null,
+          daysSinceSale,
+        };
+      });
     },
     enabled: !!user,
   });
@@ -174,6 +194,11 @@ export function useClinicSurgeries() {
       if (updates.companionPhone !== undefined) dbUpdates.companion_phone = updates.companionPhone;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
 
+      // Derived status: if surgeryDate is set to null, auto-set status to sem_data
+      if (updates.surgeryDate === null && !('scheduleStatus' in updates)) {
+        dbUpdates.schedule_status = 'sem_data';
+      }
+
       const { data, error } = await supabase
         .from('clinic_surgeries')
         .update(dbUpdates)
@@ -196,6 +221,8 @@ export function useClinicSurgeries() {
   // Filter helpers
   const scheduledSurgeries = surgeries.filter(s => s.scheduleStatus !== 'sem_data');
   const noDateSurgeries = surgeries.filter(s => s.scheduleStatus === 'sem_data');
+  const noDateOver30 = noDateSurgeries.filter(s => (s.daysSinceSale ?? 0) >= 30);
+  const noDateOver60 = noDateSurgeries.filter(s => (s.daysSinceSale ?? 0) >= 60);
   
   const thisWeekSurgeries = scheduledSurgeries.filter(s => {
     if (!s.surgeryDate) return false;
@@ -216,6 +243,8 @@ export function useClinicSurgeries() {
     total: surgeries.length,
     scheduled: scheduledSurgeries.length,
     noDate: noDateSurgeries.length,
+    noDateOver30: noDateOver30.length,
+    noDateOver60: noDateOver60.length,
     thisWeek: thisWeekSurgeries.length,
     pendingChecklist: pendingChecklist.length,
     confirmed: surgeries.filter(s => s.surgeryConfirmed).length,
@@ -225,6 +254,8 @@ export function useClinicSurgeries() {
     surgeries,
     scheduledSurgeries,
     noDateSurgeries,
+    noDateOver30,
+    noDateOver60,
     thisWeekSurgeries,
     pendingChecklist,
     isLoading,
