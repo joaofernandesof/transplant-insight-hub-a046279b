@@ -39,17 +39,13 @@ export default function ClinicDashboard() {
 
   const canFilterBranch = isAdmin || isGestao;
 
-  // Always derive all available branches from data + allowed list
+  // Use branches from neoteam_branches table (configured units)
   const branchOptions = useMemo(() => {
-    const fromSurgeries = surgeries.map(s => s.branch);
-    const fromNoDate = noDatePatients.map(p => p.branch);
-    const all = [...new Set([...allowedBranches, ...fromSurgeries, ...fromNoDate])].filter(Boolean).sort();
-    // Non-admin users: restrict to allowed branches only
     if (!canFilterBranch && allowedBranches.length > 0) {
-      return all.filter(b => allowedBranches.includes(b));
+      return allowedBranches.filter(Boolean).sort();
     }
-    return all;
-  }, [canFilterBranch, surgeries, noDatePatients, allowedBranches]);
+    return allowedBranches.filter(Boolean);
+  }, [canFilterBranch, allowedBranches]);
 
   // Apply branch filter to all data
   const filterByBranch = <T extends { branch: string }>(items: T[]) => {

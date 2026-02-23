@@ -8,18 +8,16 @@ export function useBranches() {
   const { data: allBranches = [], isLoading } = useQuery({
     queryKey: ['clinic-branches'],
     queryFn: async () => {
-      // Get unique branches from staff_profiles
       const { data, error } = await supabase
-        .from('staff_profiles')
-        .select('branch')
-        .eq('is_active', true);
+        .from('neoteam_branches')
+        .select('name')
+        .eq('is_active', true)
+        .order('name');
 
       if (error) throw error;
 
-      const uniqueBranches = [...new Set(data?.map(d => d.branch) || [])].sort();
-      return uniqueBranches;
+      return data?.map(d => d.name) || [];
     },
-    enabled: !!user && (isAdmin || isGestao),
   });
 
   // For non-admin users, return their allowed branches
