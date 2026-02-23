@@ -23,6 +23,7 @@ export interface ClinicSurgery {
   expectedMonth: string | null;
   doctorOnDuty: string | null;
   examsSent: boolean;
+  guidesSent: boolean;
   contractSigned: boolean;
   chartReady: boolean;
   surgeryConfirmed: boolean;
@@ -32,6 +33,14 @@ export interface ClinicSurgery {
   gpiD1Done: boolean;
   companionName: string | null;
   companionPhone: string | null;
+  medicalRecord: string | null;
+  trichotomyDatetime: string | null;
+  d20Contact: boolean;
+  d15Contact: boolean;
+  d10Contact: boolean;
+  d7Contact: boolean;
+  d2Contact: boolean;
+  d1Contact: boolean;
   notes: string | null;
   createdAt: string;
   // Sale-derived fields
@@ -100,6 +109,7 @@ export function useClinicSurgeries() {
           expectedMonth: s.expected_month,
           doctorOnDuty: s.doctor_on_duty,
           examsSent: s.exams_sent || false,
+          guidesSent: s.guides_sent || false,
           contractSigned: s.contract_signed || false,
           chartReady: s.chart_ready || false,
           surgeryConfirmed: s.surgery_confirmed || false,
@@ -109,6 +119,14 @@ export function useClinicSurgeries() {
           gpiD1Done: s.gpi_d1_done || false,
           companionName: s.companion_name,
           companionPhone: s.companion_phone,
+          medicalRecord: s.medical_record,
+          trichotomyDatetime: s.trichotomy_datetime,
+          d20Contact: s.d20_contact || false,
+          d15Contact: s.d15_contact || false,
+          d10Contact: s.d10_contact || false,
+          d7Contact: s.d7_contact || false,
+          d2Contact: s.d2_contact || false,
+          d1Contact: s.d1_contact || false,
           notes: s.notes,
           createdAt: s.created_at,
           saleDate: null,
@@ -194,6 +212,13 @@ export function useClinicSurgeries() {
       if (updates.companionName !== undefined) dbUpdates.companion_name = updates.companionName;
       if (updates.companionPhone !== undefined) dbUpdates.companion_phone = updates.companionPhone;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if (updates.guidesSent !== undefined) dbUpdates.guides_sent = updates.guidesSent;
+      if (updates.d20Contact !== undefined) dbUpdates.d20_contact = updates.d20Contact;
+      if (updates.d15Contact !== undefined) dbUpdates.d15_contact = updates.d15Contact;
+      if (updates.d10Contact !== undefined) dbUpdates.d10_contact = updates.d10Contact;
+      if (updates.d7Contact !== undefined) dbUpdates.d7_contact = updates.d7Contact;
+      if (updates.d2Contact !== undefined) dbUpdates.d2_contact = updates.d2Contact;
+      if (updates.d1Contact !== undefined) dbUpdates.d1_contact = updates.d1Contact;
 
       const { data, error } = await supabase
         .from('clinic_surgeries')
