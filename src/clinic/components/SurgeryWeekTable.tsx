@@ -42,13 +42,18 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
     } catch { return dateStr; }
   };
 
-  const checklistCount = (s: ClinicSurgery) => {
-    let done = 0;
-    if (s.examsSent) done++;
-    if (s.contractSigned) done++;
-    
-    return done;
-  };
+  const checklistItems = [
+    { key: 'examsSent' as const, label: 'E', title: 'Exames' },
+    { key: 'contractSigned' as const, label: 'C', title: 'Contrato' },
+    { key: 'guidesSent' as const, label: 'G', title: 'Guias' },
+    { key: 'd20Contact' as const, label: '20', title: 'Contato D-20' },
+    { key: 'd15Contact' as const, label: '15', title: 'Contato D-15' },
+    { key: 'd10Contact' as const, label: '10', title: 'Contato D-10' },
+    { key: 'd7Contact' as const, label: '7', title: 'Contato D-7' },
+    { key: 'd2Contact' as const, label: '2', title: 'Contato D-2' },
+    { key: 'd1Contact' as const, label: '1', title: 'Contato D-1' },
+    { key: 'surgeryConfirmed' as const, label: '✓', title: 'Confirmada' },
+  ];
 
   return (
     <>
@@ -58,11 +63,18 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
             <Calendar className="h-5 w-5" />
             {title || 'Cirurgias da Semana'}
           </CardTitle>
-          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
             <span className="font-medium">Legenda:</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">E</span> Exames</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">C</span> Contrato</span>
-            
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">G</span> Guias</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">20</span> D-20</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">15</span> D-15</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">10</span> D-10</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">7</span> D-7</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">2</span> D-2</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">1</span> D-1</span>
+            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">✓</span> Confirmada</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -114,10 +126,10 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
                                 {surgery.grade || '—'}
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
-                                <div className="flex gap-1">
-                                  <CheckDot done={surgery.examsSent} label="E" />
-                                  <CheckDot done={surgery.contractSigned} label="C" />
-                                  
+                                <div className="flex gap-0.5 flex-wrap">
+                                  {checklistItems.map(item => (
+                                    <CheckDot key={item.key} done={!!surgery[item.key]} label={item.label} title={item.title} />
+                                  ))}
                                 </div>
                               </TableCell>
                               <TableCell className="text-right">
@@ -152,7 +164,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
   );
 }
 
-function CheckDot({ done, label }: { done: boolean; label: string }) {
+function CheckDot({ done, label, title }: { done: boolean; label: string; title?: string }) {
   return (
     <span
       className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold ${
@@ -160,7 +172,7 @@ function CheckDot({ done, label }: { done: boolean; label: string }) {
           ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
           : 'bg-muted text-muted-foreground'
       }`}
-      title={`${label === 'E' ? 'Exames' : label === 'C' ? 'Contrato' : 'Prontuário'}: ${done ? 'OK' : 'Pendente'}`}
+      title={`${title || label}: ${done ? 'OK' : 'Pendente'}`}
     >
       {label}
     </span>
