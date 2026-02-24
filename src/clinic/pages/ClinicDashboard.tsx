@@ -274,7 +274,7 @@ export default function ClinicDashboard() {
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2">
               <Stethoscope className="h-5 w-5 text-primary" />
-              Agenda Cirúrgica Ops
+              Agenda Cirúrgica
             </h1>
             <p className="text-muted-foreground text-xs mt-0.5">{periodLabel}</p>
           </div>
