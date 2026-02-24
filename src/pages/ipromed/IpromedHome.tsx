@@ -87,18 +87,14 @@ export default function IpromedHome() {
       <TaskStatsCards />
 
       {/* Área de Trabalho Geral */}
-      <div>
+      <div className="space-y-6">
         <h2 className="text-xl font-semibold mb-4">Área de Trabalho</h2>
-        {/* Tarefas e Agenda lado a lado, mesma altura */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          <div className="min-h-0 [&>*]:h-full">
-            <WorkspaceTaskList />
-          </div>
-          <div className="min-h-0 [&>*]:h-full">
-            <WorkspaceAgenda />
-          </div>
-        </div>
+        
+        {/* Tarefas */}
+        <WorkspaceTaskList />
 
+        {/* Agenda Kanban - 7 dias */}
+        <WorkspaceAgenda />
       </div>
 
     </div>
