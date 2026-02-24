@@ -3197,6 +3197,33 @@ export type Database = {
         }
         Relationships: []
       }
+      city_geocodes: {
+        Row: {
+          city: string
+          created_at: string | null
+          id: string
+          lat: number
+          lng: number
+          state: string
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          id?: string
+          lat: number
+          lng: number
+          state: string
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          state?: string
+        }
+        Relationships: []
+      }
       class_enrollments: {
         Row: {
           class_id: string
@@ -19681,6 +19708,14 @@ export type Database = {
         }
       }
       get_portal_user_id: { Args: { _auth_user_id: string }; Returns: string }
+      get_priority_cities_near_licensees: {
+        Args: { p_radius_km?: number }
+        Returns: {
+          city: string
+          distance_km: number
+          state: string
+        }[]
+      }
       get_semana_do_mes: { Args: { p_date: string }; Returns: number }
       get_staff_profile: {
         Args: { _user_id: string }
@@ -19759,6 +19794,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      haversine_km: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
       }
       increment_banner_click: {
         Args: { banner_uuid: string }
