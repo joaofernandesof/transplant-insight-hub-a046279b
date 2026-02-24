@@ -1,6 +1,5 @@
 /**
- * CPG Advocacia Médica Legal Hub - Gestão de Processos (Contencioso)
- * Integrado com banco de dados real
+ * CPG Advocacia - Gestão de Processos com tabela process_cases
  */
 
 import { useState } from "react";
@@ -11,300 +10,197 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Gavel,
-  Search,
-  Plus,
-  Clock,
-  ChevronRight,
-  Sparkles,
-  Loader2,
-  AlertCircle,
-  Eye,
-  FileText,
-  Calendar,
-  DollarSign,
-  Link,
-  Trash2,
-  UserPlus,
-  Tag,
-  Shield,
+  Gavel, Search, Plus, Clock, Sparkles, Loader2, AlertCircle, Eye,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import LegalCaseDetailView from "./LegalCaseDetailView";
+import ProcessCaseForm, { type ProcessCaseData } from "./ProcessCaseForm";
 
-interface LegalCase {
+interface ProcessCase {
   id: string;
-  case_number: string | null;
-  title: string;
-  description: string | null;
-  client_id: string | null;
-  status: 'active' | 'pending' | 'closed' | 'archived' | 'suspended';
-  case_type: string | null;
-  court: string | null;
-  risk_level: 'low' | 'medium' | 'high' | 'critical' | null;
-  estimated_value: number | null;
-  next_deadline: string | null;
-  responsible_lawyer_id: string | null;
-  created_at: string | null;
-  ipromed_legal_clients?: { name: string } | null;
+  numero_processo: string | null;
+  natureza_acao: string | null;
+  tipo_acao: string | null;
+  cliente_representado: string | null;
+  situacao_atual: string | null;
+  probabilidade_exito: string | null;
+  impacto_financeiro: string | null;
+  valor_causa: number | null;
+  valor_risco: number | null;
+  proximo_prazo: string | null;
+  advogado_responsavel: string | null;
+  estado_uf: string | null;
+  fase_processual: string | null;
+  created_at: string;
+  [key: string]: any;
 }
 
-const getStatusBadge = (status: LegalCase['status']) => {
-  const config = {
-    active: { label: 'Ativo', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
-    pending: { label: 'Pendente', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
-    closed: { label: 'Encerrado', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' },
-    archived: { label: 'Arquivado', className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400' },
-    suspended: { label: 'Suspenso', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+const getSituacaoBadge = (situacao: string | null) => {
+  const config: Record<string, { label: string; className: string }> = {
+    'Em andamento': { label: 'Em andamento', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+    'Aguardando citação': { label: 'Aguardando citação', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+    'Aguardando decisão': { label: 'Aguardando decisão', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+    'Aguardando prazo': { label: 'Aguardando prazo', className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
+    'Em recurso': { label: 'Em recurso', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+    'Suspenso': { label: 'Suspenso', className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400' },
+    'Arquivado': { label: 'Arquivado', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' },
+    'Encerrado': { label: 'Encerrado', className: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
   };
-  return <Badge className={config[status]?.className || 'bg-gray-100'}>{config[status]?.label || status}</Badge>;
+  if (!situacao) return <span className="text-muted-foreground">-</span>;
+  const c = config[situacao] || { label: situacao, className: 'bg-gray-100 text-gray-700' };
+  return <Badge className={c.className}>{c.label}</Badge>;
 };
 
-const getRiskBadge = (risk: LegalCase['risk_level']) => {
-  if (!risk) return <span className="text-muted-foreground">-</span>;
-  const config = {
-    low: { label: 'Baixo', className: 'bg-emerald-100 text-emerald-700' },
-    medium: { label: 'Médio', className: 'bg-amber-100 text-amber-700' },
-    high: { label: 'Alto', className: 'bg-orange-100 text-orange-700' },
-    critical: { label: 'Crítico', className: 'bg-rose-100 text-rose-700' },
+const getImpactoBadge = (impacto: string | null) => {
+  if (!impacto) return <span className="text-muted-foreground">-</span>;
+  const config: Record<string, string> = {
+    'Baixo': 'bg-emerald-100 text-emerald-700',
+    'Médio': 'bg-amber-100 text-amber-700',
+    'Alto': 'bg-orange-100 text-orange-700',
+    'Crítico': 'bg-rose-100 text-rose-700',
   };
-  return <Badge className={config[risk]?.className}>{config[risk]?.label}</Badge>;
+  return <Badge className={config[impacto] || 'bg-gray-100 text-gray-700'}>{impacto}</Badge>;
 };
 
 export default function LegalCasesManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
-  const [viewCase, setViewCase] = useState<LegalCase | null>(null);
-  const [newCase, setNewCase] = useState({
-    folder: '',
-    client_id: '',
-    client_qualification: '',
-    other_parties: [] as { name: string; qualification: string }[],
-    title: '',
-    label: '',
-    instance: '',
-    case_number: '',
-    judge_number: '',
-    court_branch: '',
-    forum: '',
-    action_type: '',
-    court_link: '',
-    case_object: '',
-    case_value: '',
-    distribution_date: '',
-    condemnation_value: '',
-    observations: '',
-    responsible_name: '',
-    access_type: 'public',
-    case_type: '',
-    court: '',
-    estimated_value: '',
-    risk_level: '',
-    description: '',
-  });
-  
-  const [newParty, setNewParty] = useState({ name: '', qualification: '' });
-  
-  const addParty = () => {
-    if (newParty.name.trim()) {
-      setNewCase(prev => ({
-        ...prev,
-        other_parties: [...prev.other_parties, { ...newParty }]
-      }));
-      setNewParty({ name: '', qualification: '' });
-    }
-  };
-  
-  const removeParty = (index: number) => {
-    setNewCase(prev => ({
-      ...prev,
-      other_parties: prev.other_parties.filter((_, i) => i !== index)
-    }));
-  };
+  const [editCase, setEditCase] = useState<ProcessCase | null>(null);
+  const queryClient = useQueryClient();
 
-  // Update case status
-  const updateCaseStatus = useMutation({
-    mutationFn: async ({ caseId, newStatus }: { caseId: string; newStatus: 'active' | 'pending' | 'closed' | 'archived' | 'suspended' }) => {
-      const { error } = await supabase
-        .from('ipromed_legal_cases')
-        .update({ status: newStatus })
-        .eq('id', caseId);
+  const { data: cases = [], isLoading, error } = useQuery({
+    queryKey: ['process-cases'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('process_cases')
+        .select('*')
+        .order('created_at', { ascending: false });
       if (error) throw error;
+      return data as ProcessCase[];
+    },
+  });
+
+  const createCase = useMutation({
+    mutationFn: async (formData: ProcessCaseData) => {
+      const payload = {
+        numero_processo: formData.numero_processo || null,
+        natureza_acao: formData.natureza_acao || null,
+        tipo_acao: formData.tipo_acao || null,
+        polo_processo: formData.polo_processo || null,
+        cliente_representado: formData.cliente_representado || null,
+        cpf_cnpj_cliente: formData.cpf_cnpj_cliente || null,
+        parte_contraria: formData.parte_contraria || null,
+        cpf_cnpj_parte_contraria: formData.cpf_cnpj_parte_contraria || null,
+        advogado_responsavel: formData.advogado_responsavel || null,
+        escritorio_responsavel: formData.escritorio_responsavel || null,
+        area_juridica: formData.area_juridica || null,
+        orgao_vara: formData.orgao_vara || null,
+        tribunal: formData.tribunal || null,
+        estado_uf: formData.estado_uf || null,
+        cidade: formData.cidade || null,
+        sistema_plataforma: formData.sistema_plataforma || null,
+        fase_processual: formData.fase_processual || null,
+        situacao_atual: formData.situacao_atual || null,
+        data_distribuicao: formData.data_distribuicao ? format(formData.data_distribuicao, 'yyyy-MM-dd') : null,
+        data_citacao: formData.data_citacao ? format(formData.data_citacao, 'yyyy-MM-dd') : null,
+        data_ultima_movimentacao: formData.data_ultima_movimentacao ? format(formData.data_ultima_movimentacao, 'yyyy-MM-dd') : null,
+        proximo_prazo: formData.proximo_prazo ? format(formData.proximo_prazo, 'yyyy-MM-dd') : null,
+        tipo_prazo: formData.tipo_prazo || null,
+        responsavel_prazo: formData.responsavel_prazo || null,
+        valor_causa: formData.valor_causa ? parseFloat(formData.valor_causa) : null,
+        valor_risco: formData.valor_risco ? parseFloat(formData.valor_risco) : null,
+        probabilidade_exito: formData.probabilidade_exito || null,
+        impacto_financeiro: formData.impacto_financeiro || null,
+        status_financeiro: formData.status_financeiro || null,
+        tipo_honorario: formData.tipo_honorario || null,
+        valor_honorarios: formData.valor_honorarios ? parseFloat(formData.valor_honorarios) : null,
+        objeto_processo: formData.objeto_processo || null,
+        resumo_caso: formData.resumo_caso || null,
+        estrategia_juridica: formData.estrategia_juridica || null,
+        observacoes_gerais: formData.observacoes_gerais || null,
+        possui_audiencia: formData.possui_audiencia || 'Não',
+        data_audiencia: formData.data_audiencia ? format(formData.data_audiencia, 'yyyy-MM-dd') : null,
+        tipo_audiencia: formData.tipo_audiencia || null,
+        possui_acordo: formData.possui_acordo || 'Não',
+        valor_acordo: formData.valor_acordo ? parseFloat(formData.valor_acordo) : null,
+        documentos_anexados: formData.documentos_anexados || 'Não',
+        link_documentos: formData.link_documentos || null,
+        data_encerramento: formData.data_encerramento ? format(formData.data_encerramento, 'yyyy-MM-dd') : null,
+        motivo_encerramento: formData.motivo_encerramento || null,
+      };
+
+      if (formData.id) {
+        const { error } = await supabase.from('process_cases').update(payload).eq('id', formData.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('process_cases').insert([payload]);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-legal-cases'] });
-      toast.success('Status atualizado!');
+      queryClient.invalidateQueries({ queryKey: ['process-cases'] });
+      toast.success(editCase ? 'Processo atualizado!' : 'Processo cadastrado!');
+      setIsNewCaseOpen(false);
+      setEditCase(null);
     },
     onError: (error) => {
       toast.error('Erro: ' + error.message);
     },
   });
 
-  // Handle view case
-  const handleViewCase = (caseItem: LegalCase) => {
-    setViewCase(caseItem);
-  };
-
-  const queryClient = useQueryClient();
-
-  // Fetch cases from database
-  const { data: cases = [], isLoading, error } = useQuery({
-    queryKey: ['ipromed-legal-cases'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ipromed_legal_cases')
-        .select(`
-          *,
-          ipromed_legal_clients!client_id (name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as LegalCase[];
-    },
-  });
-
-  // Fetch clients for dropdown
-  const { data: clients = [] } = useQuery({
-    queryKey: ['ipromed-clients-dropdown'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ipromed_legal_clients')
-        .select('id, name')
-        .order('name');
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Create case mutation
-  const createCase = useMutation({
-    mutationFn: async (caseData: typeof newCase) => {
-      const { data, error } = await supabase
-        .from('ipromed_legal_cases')
-        .insert([{
-          folder: caseData.folder || null,
-          client_id: caseData.client_id || null,
-          client_qualification: caseData.client_qualification || null,
-          other_parties: caseData.other_parties.length > 0 ? caseData.other_parties : null,
-          title: caseData.title,
-          label: caseData.label || null,
-          instance: caseData.instance || null,
-          case_number: caseData.case_number || null,
-          judge_number: caseData.judge_number || null,
-          court_branch: caseData.court_branch || null,
-          forum: caseData.forum || null,
-          action_type: caseData.action_type || null,
-          court_link: caseData.court_link || null,
-          case_object: caseData.case_object || null,
-          case_value: caseData.case_value ? parseFloat(caseData.case_value) : null,
-          distribution_date: caseData.distribution_date || null,
-          condemnation_value: caseData.condemnation_value ? parseFloat(caseData.condemnation_value) : null,
-          observations: caseData.observations || null,
-          responsible_name: caseData.responsible_name || null,
-          access_type: caseData.access_type || 'public',
-          case_type: caseData.case_type || null,
-          court: caseData.court || null,
-          estimated_value: caseData.estimated_value ? parseFloat(caseData.estimated_value) : null,
-          risk_level: caseData.risk_level as 'low' | 'medium' | 'high' | 'critical' | null || null,
-          description: caseData.description || null,
-          status: 'active' as const,
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-legal-cases'] });
-      toast.success('Processo cadastrado com sucesso!');
-      setIsNewCaseOpen(false);
-      setNewCase({
-        folder: '',
-        client_id: '',
-        client_qualification: '',
-        other_parties: [],
-        title: '',
-        label: '',
-        instance: '',
-        case_number: '',
-        judge_number: '',
-        court_branch: '',
-        forum: '',
-        action_type: '',
-        court_link: '',
-        case_object: '',
-        case_value: '',
-        distribution_date: '',
-        condemnation_value: '',
-        observations: '',
-        responsible_name: '',
-        access_type: 'public',
-        case_type: '',
-        court: '',
-        estimated_value: '',
-        risk_level: '',
-        description: '',
-      });
-    },
-    onError: (error) => {
-      toast.error('Erro ao cadastrar processo: ' + error.message);
-    },
-  });
-
   const filteredCases = cases.filter((c) => {
+    const search = searchTerm.toLowerCase();
     const matchesSearch =
-      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (c.case_number?.includes(searchTerm) ?? false) ||
-      (c.ipromed_legal_clients?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
+      (c.numero_processo?.toLowerCase().includes(search) ?? false) ||
+      (c.cliente_representado?.toLowerCase().includes(search) ?? false) ||
+      (c.natureza_acao?.toLowerCase().includes(search) ?? false);
+    const matchesStatus = statusFilter === 'all' || c.situacao_atual === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const handleSubmit = () => {
-    if (!newCase.title.trim()) {
-      toast.error('O título é obrigatório');
-      return;
-    }
-    createCase.mutate(newCase);
+  const handleEdit = (caseItem: ProcessCase) => {
+    setEditCase(caseItem);
+    setIsNewCaseOpen(true);
+  };
+
+  const getEditInitialData = (): Partial<ProcessCaseData> | undefined => {
+    if (!editCase) return undefined;
+    return {
+      ...editCase,
+      id: editCase.id,
+      numero_processo: editCase.numero_processo || '',
+      natureza_acao: editCase.natureza_acao || '',
+      cliente_representado: editCase.cliente_representado || '',
+      situacao_atual: editCase.situacao_atual || '',
+      valor_causa: editCase.valor_causa?.toString() || '',
+      valor_risco: editCase.valor_risco?.toString() || '',
+      valor_honorarios: editCase.valor_honorarios?.toString() || '',
+      valor_acordo: editCase.valor_acordo?.toString() || '',
+      data_distribuicao: editCase.data_distribuicao ? new Date(editCase.data_distribuicao) : null,
+      data_citacao: editCase.data_citacao ? new Date(editCase.data_citacao) : null,
+      data_ultima_movimentacao: editCase.data_ultima_movimentacao ? new Date(editCase.data_ultima_movimentacao) : null,
+      proximo_prazo: editCase.proximo_prazo ? new Date(editCase.proximo_prazo) : null,
+      data_audiencia: editCase.data_audiencia ? new Date(editCase.data_audiencia) : null,
+      data_encerramento: editCase.data_encerramento ? new Date(editCase.data_encerramento) : null,
+    } as any;
   };
 
   if (error) {
     return (
       <div className="flex items-center justify-center p-8 text-rose-600 gap-2">
         <AlertCircle className="h-5 w-5" />
-        Erro ao carregar processos: {error.message}
+        Erro ao carregar processos: {(error as Error).message}
       </div>
     );
   }
@@ -321,15 +217,11 @@ export default function LegalCasesManager() {
           <p className="text-muted-foreground">Contencioso e andamentos processuais</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={() => {
-            toast.info('IA Jurídica', {
-              description: 'A geração de peças com IA será ativada em breve. Configure a integração na aba de IA.',
-            });
-          }}>
+          <Button variant="outline" className="gap-2" onClick={() => toast.info('IA Jurídica em breve')}>
             <Sparkles className="h-4 w-4" />
             Gerar Peça com IA
           </Button>
-          <Dialog open={isNewCaseOpen} onOpenChange={setIsNewCaseOpen}>
+          <Dialog open={isNewCaseOpen} onOpenChange={(open) => { setIsNewCaseOpen(open); if (!open) setEditCase(null); }}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -340,305 +232,16 @@ export default function LegalCasesManager() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Gavel className="h-5 w-5" />
-                  Adicionar Processo
+                  {editCase ? 'Editar Processo' : 'Novo Processo'}
                 </DialogTitle>
               </DialogHeader>
-              <ScrollArea className="max-h-[70vh] pr-4">
-                <div className="grid gap-5 py-4">
-                  {/* Pasta */}
-                  <div className="space-y-2">
-                    <Label>Pasta</Label>
-                    <Input 
-                      placeholder="Digite o nome ou número da pasta" 
-                      value={newCase.folder}
-                      onChange={(e) => setNewCase({ ...newCase, folder: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Cliente + Qualificação */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Clientes *</Label>
-                      <Select 
-                        value={newCase.client_id}
-                        onValueChange={(value) => setNewCase({ ...newCase, client_id: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Digite o nome do cliente" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clients.map((client) => (
-                            <SelectItem key={client.id} value={client.id}>
-                              {client.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Qualificação</Label>
-                      <Select 
-                        value={newCase.client_qualification}
-                        onValueChange={(value) => setNewCase({ ...newCase, client_qualification: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Qualificação" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="autor">Autor</SelectItem>
-                          <SelectItem value="reu">Réu</SelectItem>
-                          <SelectItem value="terceiro">Terceiro Interessado</SelectItem>
-                          <SelectItem value="assistente">Assistente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Outros Envolvidos */}
-                  <div className="space-y-3">
-                    <Label>Outros Envolvidos</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input 
-                        placeholder="Digite o nome do envolvido"
-                        value={newParty.name}
-                        onChange={(e) => setNewParty({ ...newParty, name: e.target.value })}
-                      />
-                      <div className="flex gap-2">
-                        <Select 
-                          value={newParty.qualification}
-                          onValueChange={(value) => setNewParty({ ...newParty, qualification: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Qualificação" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="autor">Autor</SelectItem>
-                            <SelectItem value="reu">Réu</SelectItem>
-                            <SelectItem value="testemunha">Testemunha</SelectItem>
-                            <SelectItem value="perito">Perito</SelectItem>
-                            <SelectItem value="terceiro">Terceiro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button type="button" variant="outline" size="icon" onClick={addParty}>
-                          <UserPlus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    {newCase.other_parties.length > 0 && (
-                      <div className="space-y-2 mt-2">
-                        {newCase.other_parties.map((party, idx) => (
-                          <div key={idx} className="flex items-center justify-between bg-muted/50 rounded px-3 py-2 text-sm">
-                            <span>{party.name} - <span className="text-muted-foreground capitalize">{party.qualification}</span></span>
-                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeParty(idx)}>
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Título */}
-                  <div className="space-y-2">
-                    <Label>Título *</Label>
-                    <Input 
-                      placeholder="Digite o título do processo" 
-                      value={newCase.title}
-                      onChange={(e) => setNewCase({ ...newCase, title: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Etiqueta */}
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Tag className="h-4 w-4" />
-                      Etiqueta
-                    </Label>
-                    <Input 
-                      placeholder="Adicione uma etiqueta" 
-                      value={newCase.label}
-                      onChange={(e) => setNewCase({ ...newCase, label: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Instância + Número */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Instância</Label>
-                      <Select 
-                        value={newCase.instance}
-                        onValueChange={(value) => setNewCase({ ...newCase, instance: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1_grau">1º Grau</SelectItem>
-                          <SelectItem value="2_grau">2º Grau</SelectItem>
-                          <SelectItem value="superior">Tribunais Superiores</SelectItem>
-                          <SelectItem value="stf">STF</SelectItem>
-                          <SelectItem value="stj">STJ</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Número</Label>
-                      <Input 
-                        placeholder="Digite o número do processo" 
-                        value={newCase.case_number}
-                        onChange={(e) => setNewCase({ ...newCase, case_number: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Juízo: Nº, Vara, Foro */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Juízo Nº</Label>
-                      <Input 
-                        placeholder="Nº" 
-                        value={newCase.judge_number}
-                        onChange={(e) => setNewCase({ ...newCase, judge_number: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Vara</Label>
-                      <Input 
-                        placeholder="Vara" 
-                        value={newCase.court_branch}
-                        onChange={(e) => setNewCase({ ...newCase, court_branch: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Foro</Label>
-                      <Input 
-                        placeholder="Foro" 
-                        value={newCase.forum}
-                        onChange={(e) => setNewCase({ ...newCase, forum: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Ação */}
-                  <div className="space-y-2">
-                    <Label>Ação</Label>
-                    <Input 
-                      placeholder="Digite a ação" 
-                      value={newCase.action_type}
-                      onChange={(e) => setNewCase({ ...newCase, action_type: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Link no Tribunal */}
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Link className="h-4 w-4" />
-                      Link no Tribunal
-                    </Label>
-                    <Input 
-                      placeholder="Digite o link no tribunal" 
-                      value={newCase.court_link}
-                      onChange={(e) => setNewCase({ ...newCase, court_link: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Objeto */}
-                  <div className="space-y-2">
-                    <Label>Objeto</Label>
-                    <Textarea 
-                      placeholder="Digite a descrição do processo" 
-                      value={newCase.case_object}
-                      onChange={(e) => setNewCase({ ...newCase, case_object: e.target.value })}
-                      className="min-h-[80px]"
-                    />
-                  </div>
-
-                  {/* Valor da Causa + Distribuído em */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Valor da Causa</Label>
-                      <Input 
-                        type="number"
-                        placeholder="Digite o valor" 
-                        value={newCase.case_value}
-                        onChange={(e) => setNewCase({ ...newCase, case_value: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Distribuído em</Label>
-                      <Input 
-                        type="date"
-                        value={newCase.distribution_date}
-                        onChange={(e) => setNewCase({ ...newCase, distribution_date: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Valor da Condenação */}
-                  <div className="space-y-2">
-                    <Label>Valor da Condenação</Label>
-                    <Input 
-                      type="number"
-                      placeholder="Digite o valor" 
-                      value={newCase.condemnation_value}
-                      onChange={(e) => setNewCase({ ...newCase, condemnation_value: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Observações */}
-                  <div className="space-y-2">
-                    <Label>Observações</Label>
-                    <Textarea 
-                      placeholder="Digite mais detalhes" 
-                      value={newCase.observations}
-                      onChange={(e) => setNewCase({ ...newCase, observations: e.target.value })}
-                      className="min-h-[80px]"
-                    />
-                  </div>
-
-                  {/* Responsável */}
-                  <div className="space-y-2">
-                    <Label>Responsável *</Label>
-                    <Input 
-                      placeholder="Nome do responsável" 
-                      value={newCase.responsible_name}
-                      onChange={(e) => setNewCase({ ...newCase, responsible_name: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Acesso */}
-                  <div className="space-y-3">
-                    <Label>Acesso</Label>
-                    <RadioGroup 
-                      value={newCase.access_type} 
-                      onValueChange={(value) => setNewCase({ ...newCase, access_type: value })}
-                      className="flex gap-6"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="public" id="access-public" />
-                        <Label htmlFor="access-public" className="font-normal cursor-pointer">Público</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="private" id="access-private" />
-                        <Label htmlFor="access-private" className="font-normal cursor-pointer">Privado</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="envolvidos" id="access-envolvidos" />
-                        <Label htmlFor="access-envolvidos" className="font-normal cursor-pointer">Envolvidos</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-              </ScrollArea>
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button variant="outline" onClick={() => setIsNewCaseOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSubmit} disabled={createCase.isPending}>
-                  {createCase.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  SALVAR
-                </Button>
-              </div>
+              <ProcessCaseForm
+                initialData={getEditInitialData()}
+                onSubmit={(data) => createCase.mutate(data)}
+                onCancel={() => { setIsNewCaseOpen(false); setEditCase(null); }}
+                isPending={createCase.isPending}
+                isEdit={!!editCase}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -658,15 +261,19 @@ export default function LegalCasesManager() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Status" />
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Situação" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="active">Ativos</SelectItem>
-                <SelectItem value="pending">Pendentes</SelectItem>
-                <SelectItem value="closed">Encerrados</SelectItem>
-                <SelectItem value="archived">Arquivados</SelectItem>
+                <SelectItem value="Em andamento">Em andamento</SelectItem>
+                <SelectItem value="Aguardando citação">Aguardando citação</SelectItem>
+                <SelectItem value="Aguardando decisão">Aguardando decisão</SelectItem>
+                <SelectItem value="Aguardando prazo">Aguardando prazo</SelectItem>
+                <SelectItem value="Em recurso">Em recurso</SelectItem>
+                <SelectItem value="Suspenso">Suspenso</SelectItem>
+                <SelectItem value="Arquivado">Arquivado</SelectItem>
+                <SelectItem value="Encerrado">Encerrado</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -692,55 +299,44 @@ export default function LegalCasesManager() {
                 <TableRow>
                   <TableHead>Processo</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Risco</TableHead>
-                  <TableHead>Valor Est.</TableHead>
+                  <TableHead>Natureza</TableHead>
+                  <TableHead>Situação</TableHead>
+                  <TableHead>Impacto</TableHead>
+                  <TableHead>Valor Causa</TableHead>
                   <TableHead>Próx. Prazo</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCases.map((caseItem) => (
-                  <TableRow key={caseItem.id} className="cursor-pointer hover:bg-muted/50">
+                {filteredCases.map((c) => (
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleEdit(c)}>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-sm">{caseItem.case_number || 'Sem número'}</p>
+                        <p className="font-medium text-sm">{c.numero_processo || 'Sem número'}</p>
                         <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                          {caseItem.title}
+                          {c.tipo_acao || c.natureza_acao || ''}
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      {caseItem.ipromed_legal_clients?.name || '-'}
+                    <TableCell className="text-sm">{c.cliente_representado || '-'}</TableCell>
+                    <TableCell>
+                      {c.natureza_acao ? <Badge variant="outline" className="whitespace-nowrap">{c.natureza_acao}</Badge> : '-'}
+                    </TableCell>
+                    <TableCell>{getSituacaoBadge(c.situacao_atual)}</TableCell>
+                    <TableCell>{getImpactoBadge(c.impacto_financeiro)}</TableCell>
+                    <TableCell className="font-medium whitespace-nowrap">
+                      {c.valor_causa ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(c.valor_causa) : '-'}
                     </TableCell>
                     <TableCell>
-                      {caseItem.case_type ? (
-                        <Badge variant="outline">{caseItem.case_type}</Badge>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(caseItem.status)}</TableCell>
-                    <TableCell>{getRiskBadge(caseItem.risk_level)}</TableCell>
-                    <TableCell className="font-medium">
-                      {caseItem.estimated_value ? (
-                        new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        }).format(caseItem.estimated_value)
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {caseItem.next_deadline ? (
-                        <div className="flex items-center gap-1 text-sm">
+                      {c.proximo_prazo ? (
+                        <div className="flex items-center gap-1 text-sm whitespace-nowrap">
                           <Clock className="h-3 w-3 text-amber-600" />
-                          {format(new Date(caseItem.next_deadline), 'dd/MM/yy', { locale: ptBR })}
+                          {format(new Date(c.proximo_prazo), 'dd/MM/yy', { locale: ptBR })}
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">-</span>
-                      )}
+                      ) : '-'}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => handleViewCase(caseItem)}>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEdit(c); }}>
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -751,18 +347,6 @@ export default function LegalCasesManager() {
           )}
         </CardContent>
       </Card>
-
-      {/* Case Details Dialog - Full View */}
-      <Dialog open={!!viewCase} onOpenChange={(open) => !open && setViewCase(null)}>
-        <DialogContent className="max-w-5xl max-h-[95vh] p-0">
-          {viewCase && (
-            <LegalCaseDetailView 
-              caseData={viewCase as any} 
-              onClose={() => setViewCase(null)} 
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
