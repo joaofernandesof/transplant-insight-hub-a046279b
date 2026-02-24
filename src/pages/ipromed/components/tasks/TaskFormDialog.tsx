@@ -77,19 +77,23 @@ export function TaskFormDialog({
   });
   const [tagInput, setTagInput] = useState("");
 
-  // Buscar usuários com acesso ao portal jurídico (ipromed)
+  // Buscar usuários com perfil 'ipromed' (portal CPG)
   const { data: portalUsers = [] } = useQuery({
     queryKey: ["ipromed-portal-users"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("neohub_users")
-        .select("id, full_name, email, allowed_portals")
-        .contains("allowed_portals", ["ipromed"])
+        .from("neohub_user_profiles")
+        .select("neohub_user_id, neohub_users!inner(id, full_name, email, is_active)")
+        .eq("profile", "ipromed")
         .eq("is_active", true)
-        .order("full_name", { ascending: true });
+        .eq("neohub_users.is_active", true);
       
       if (error) throw error;
-      return data || [];
+      return (data || []).map(d => ({
+        id: (d.neohub_users as any).id,
+        full_name: (d.neohub_users as any).full_name,
+        email: (d.neohub_users as any).email,
+      })).sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
     },
   });
 
