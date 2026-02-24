@@ -49,7 +49,7 @@ const tourSteps: TourStep[] = [
     icon: <Scale className="h-5 w-5" />,
     iconColor: "text-primary",
     bgColor: "bg-primary/20",
-    route: "/ipromed",
+    route: "/cpg",
   },
   {
     id: "search",
@@ -58,7 +58,7 @@ const tourSteps: TourStep[] = [
     icon: <Search className="h-5 w-5" />,
     iconColor: "text-blue-600",
     bgColor: "bg-blue-100",
-    route: "/ipromed",
+    route: "/cpg",
     targetSelector: "[data-tour='global-search']",
   },
   {
@@ -68,7 +68,7 @@ const tourSteps: TourStep[] = [
     icon: <BarChart3 className="h-5 w-5" />,
     iconColor: "text-emerald-600",
     bgColor: "bg-emerald-100",
-    route: "/ipromed",
+    route: "/cpg",
     targetSelector: "[data-tour='sidebar-dashboard']",
   },
   {
@@ -78,7 +78,7 @@ const tourSteps: TourStep[] = [
     icon: <Users className="h-5 w-5" />,
     iconColor: "text-purple-600",
     bgColor: "bg-purple-100",
-    route: "/ipromed",
+    route: "/cpg",
     targetSelector: "[data-tour='sidebar-clients']",
   },
   {
@@ -88,7 +88,7 @@ const tourSteps: TourStep[] = [
     icon: <FileText className="h-5 w-5" />,
     iconColor: "text-rose-600",
     bgColor: "bg-rose-100",
-    route: "/ipromed",
+    route: "/cpg",
     targetSelector: "[data-tour='sidebar-contracts']",
   },
   {
@@ -98,7 +98,7 @@ const tourSteps: TourStep[] = [
     icon: <FolderOpen className="h-5 w-5" />,
     iconColor: "text-blue-600",
     bgColor: "bg-blue-100",
-    route: "/ipromed/legal?tab=cases",
+    route: "/cpg/legal?tab=cases",
     targetSelector: "[data-tour='sidebar-cases']",
   },
   {
@@ -108,7 +108,7 @@ const tourSteps: TourStep[] = [
     icon: <Calendar className="h-5 w-5" />,
     iconColor: "text-amber-600",
     bgColor: "bg-amber-100",
-    route: "/ipromed",
+    route: "/cpg",
     targetSelector: "[data-tour='sidebar-agenda']",
   },
   {
@@ -118,7 +118,7 @@ const tourSteps: TourStep[] = [
     icon: <DollarSign className="h-5 w-5" />,
     iconColor: "text-emerald-600",
     bgColor: "bg-emerald-100",
-    route: "/ipromed",
+    route: "/cpg",
     targetSelector: "[data-tour='sidebar-financial']",
   },
   {
@@ -128,7 +128,7 @@ const tourSteps: TourStep[] = [
     icon: <Sparkles className="h-5 w-5" />,
     iconColor: "text-violet-600",
     bgColor: "bg-violet-100",
-    route: "/ipromed/legal?tab=ai",
+    route: "/cpg/legal?tab=ai",
     targetSelector: "[data-tour='sidebar-ai']",
   },
   {
@@ -138,7 +138,7 @@ const tourSteps: TourStep[] = [
     icon: <GraduationCap className="h-5 w-5" />,
     iconColor: "text-indigo-600",
     bgColor: "bg-indigo-100",
-    route: "/ipromed",
+    route: "/cpg",
     targetSelector: "[data-tour='sidebar-university']",
   },
   {
@@ -148,7 +148,7 @@ const tourSteps: TourStep[] = [
     icon: <Rocket className="h-5 w-5" />,
     iconColor: "text-emerald-600",
     bgColor: "bg-emerald-100",
-    route: "/ipromed",
+    route: "/cpg",
   }
 ];
 
@@ -284,7 +284,7 @@ export default function IpromedGuidedTour({ isOpen, onComplete }: IpromedGuidedT
       toast.success("Tour concluído! Bem-vindo ao CPG Advocacia Médica! 🎉");
     }
     setCurrentStep(0);
-    navigate("/ipromed");
+    navigate("/cpg");
     onComplete();
   };
 

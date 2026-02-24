@@ -502,7 +502,7 @@ export default function IpromedClientDetail() {
                 </CardTitle>
                 <CardDescription>Documentos vinculados</CardDescription>
               </div>
-              <Button size="sm" variant="outline" onClick={() => navigate('/ipromed/contracts')}>
+              <Button size="sm" variant="outline" onClick={() => navigate('/cpg/contracts')}>
                 <Plus className="h-4 w-4 mr-1" />
                 Novo
               </Button>
@@ -514,7 +514,7 @@ export default function IpromedClientDetail() {
                   <p className="text-sm text-muted-foreground">
                     Nenhum contrato com documentos anexados
                   </p>
-                  <Button variant="link" size="sm" className="mt-1" onClick={() => navigate('/ipromed/contracts')}>
+                  <Button variant="link" size="sm" className="mt-1" onClick={() => navigate('/cpg/contracts')}>
                     Ir para Contratos
                   </Button>
                 </div>

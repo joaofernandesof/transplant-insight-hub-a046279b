@@ -116,7 +116,7 @@ export default function IpromedSurveys() {
             Análise das pesquisas de satisfação do módulo jurídico
           </p>
         </div>
-        <Button onClick={() => navigate('/ipromed/dashboard')}>
+        <Button onClick={() => navigate('/cpg/dashboard')}>
           <BarChart3 className="h-4 w-4 mr-2" />
           Ver Dashboard Completo
         </Button>

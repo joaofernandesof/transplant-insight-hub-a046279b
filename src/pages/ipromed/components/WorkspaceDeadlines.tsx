@@ -98,7 +98,7 @@ export function WorkspaceDeadlines() {
           dueDate: task.due_date!,
           type: 'task',
           status,
-          navigateTo: '/ipromed/legal',
+          navigateTo: '/cpg/legal',
         });
       });
 
@@ -128,7 +128,7 @@ export function WorkspaceDeadlines() {
           type: 'contract',
           status,
           reference: contract.contract_number,
-          navigateTo: '/ipromed/contracts',
+          navigateTo: '/cpg/contracts',
         });
       });
 
@@ -155,7 +155,7 @@ export function WorkspaceDeadlines() {
           dueDate: apt.start_datetime,
           type: 'case',
           status,
-          navigateTo: '/ipromed/legal?tab=agenda',
+          navigateTo: '/cpg/legal?tab=agenda',
         });
       });
 
@@ -211,7 +211,7 @@ export function WorkspaceDeadlines() {
           variant="outline" 
           size="sm" 
           className="gap-1"
-          onClick={() => navigate('/ipromed/legal?tab=agenda')}
+          onClick={() => navigate('/cpg/legal?tab=agenda')}
         >
           Agenda
           <ChevronRight className="h-4 w-4" />

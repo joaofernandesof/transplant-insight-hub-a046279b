@@ -143,13 +143,13 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     portalKey: 'neopay',
   },
   ipromed: {
-    title: 'IPROMED',
+    title: 'CPG Advocacia',
     description: 'Advocacia médica preventiva',
     icon: Scale,
     gradient: 'from-blue-600 to-indigo-700',
     bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
     profiles: ['ipromed'],
-    route: '/ipromed',
+    route: '/cpg',
     portalKey: 'ipromed',
   },
 };

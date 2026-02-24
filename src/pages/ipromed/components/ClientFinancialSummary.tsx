@@ -116,7 +116,7 @@ export function ClientFinancialSummary({ clientId, clientName }: ClientFinancial
         <Button 
           size="sm" 
           variant="outline" 
-          onClick={() => navigate('/ipromed/financial')}
+          onClick={() => navigate('/cpg/financial')}
           className="gap-1"
         >
           <ExternalLink className="h-3 w-3" />
@@ -240,7 +240,7 @@ export function ClientFinancialSummary({ clientId, clientName }: ClientFinancial
                 variant="ghost" 
                 size="sm" 
                 className="w-full text-xs"
-                onClick={() => navigate('/ipromed/financial?tab=receivables')}
+                onClick={() => navigate('/cpg/financial?tab=receivables')}
               >
                 Ver todas as {invoices.length} faturas
               </Button>
@@ -254,7 +254,7 @@ export function ClientFinancialSummary({ clientId, clientName }: ClientFinancial
               variant="link" 
               size="sm" 
               className="mt-1"
-              onClick={() => navigate('/ipromed/financial?tab=billing')}
+              onClick={() => navigate('/cpg/financial?tab=billing')}
             >
               Criar primeira cobrança
             </Button>

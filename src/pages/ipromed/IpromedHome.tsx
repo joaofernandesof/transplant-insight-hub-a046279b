@@ -29,7 +29,7 @@ const quickAccessModules = [
     title: 'Dashboard Jurídico',
     description: 'Visão geral das métricas',
     icon: BarChart3,
-    route: '/ipromed/dashboard',
+    route: '/cpg/dashboard',
     color: 'bg-gradient-to-br from-[#00629B] to-[#004d7a]',
   },
   {
@@ -37,7 +37,7 @@ const quickAccessModules = [
     title: 'Clientes',
     description: 'Gestão de clientes e casos',
     icon: Building2,
-    route: '/ipromed/clients',
+    route: '/cpg/clients',
     color: 'bg-cyan-500',
   },
   {
@@ -45,7 +45,7 @@ const quickAccessModules = [
     title: 'Contratos',
     description: 'Gestão e assinatura digital',
     icon: FileSignature,
-    route: '/ipromed/contracts',
+    route: '/cpg/contracts',
     color: 'bg-emerald-500',
   },
   {
@@ -53,7 +53,7 @@ const quickAccessModules = [
     title: 'Jornada do Cliente',
     description: 'Pipeline e etapas',
     icon: TrendingUp,
-    route: '/ipromed/journey',
+    route: '/cpg/journey',
     color: 'bg-purple-500',
   },
   {
@@ -61,7 +61,7 @@ const quickAccessModules = [
     title: 'Alunos',
     description: 'Gestão e classificação',
     icon: GraduationCap,
-    route: '/ipromed/students',
+    route: '/cpg/students',
     color: 'bg-indigo-500',
   },
   {
@@ -69,7 +69,7 @@ const quickAccessModules = [
     title: 'Hub Jurídico',
     description: 'Pareceres e documentos',
     icon: Scale,
-    route: '/ipromed/legal',
+    route: '/cpg/legal',
     color: 'bg-rose-500',
   },
 ];

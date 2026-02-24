@@ -118,10 +118,10 @@ const SYSTEM_MODULES: SystemModule[] = [
   },
   {
     key: 'ipromed',
-    name: 'IPROMED',
+    name: 'CPG Advocacia',
     description: 'Advocacia médica preventiva',
     icon: Scale,
-    route: '/ipromed',
+    route: '/cpg',
     color: 'bg-indigo-600',
     portalKey: 'ipromed',
     requiredProfiles: ['ipromed', 'administrador'],

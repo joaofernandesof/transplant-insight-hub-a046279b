@@ -48,28 +48,28 @@ interface SearchResult {
 // Mock data for search - in production, this would come from Supabase
 const mockSearchData: Omit<SearchResult, 'highlight'>[] = [
   // Processos
-  { id: '1', type: 'process', title: '0001234-12.2024.8.26.0100', subtitle: 'Maria Silva vs INSS - Aposentadoria', status: 'Ativo', statusColor: 'bg-emerald-500', route: '/ipromed/legal?tab=cases', icon: FolderOpen },
-  { id: '2', type: 'process', title: '0005678-34.2024.8.26.0100', subtitle: 'João Santos - Auxílio Doença', status: 'Aguardando', statusColor: 'bg-amber-500', route: '/ipromed/legal?tab=cases', icon: FolderOpen },
-  { id: '3', type: 'process', title: '0009876-56.2024.8.26.0100', subtitle: 'Ana Oliveira - BPC LOAS', status: 'Em Recurso', statusColor: 'bg-blue-500', route: '/ipromed/legal?tab=cases', icon: FolderOpen },
+  { id: '1', type: 'process', title: '0001234-12.2024.8.26.0100', subtitle: 'Maria Silva vs INSS - Aposentadoria', status: 'Ativo', statusColor: 'bg-emerald-500', route: '/cpg/legal?tab=cases', icon: FolderOpen },
+  { id: '2', type: 'process', title: '0005678-34.2024.8.26.0100', subtitle: 'João Santos - Auxílio Doença', status: 'Aguardando', statusColor: 'bg-amber-500', route: '/cpg/legal?tab=cases', icon: FolderOpen },
+  { id: '3', type: 'process', title: '0009876-56.2024.8.26.0100', subtitle: 'Ana Oliveira - BPC LOAS', status: 'Em Recurso', statusColor: 'bg-blue-500', route: '/cpg/legal?tab=cases', icon: FolderOpen },
   
   // Clientes
-  { id: '4', type: 'client', title: 'Maria Silva', subtitle: 'CPF: 123.456.789-00 • 3 processos ativos', route: '/ipromed/clients', icon: Users },
-  { id: '5', type: 'client', title: 'João Santos', subtitle: 'CPF: 987.654.321-00 • 1 processo ativo', route: '/ipromed/clients', icon: Users },
-  { id: '6', type: 'client', title: 'Ana Paula Oliveira', subtitle: 'CPF: 456.789.123-00 • 2 processos ativos', route: '/ipromed/clients', icon: Users },
-  { id: '7', type: 'client', title: 'Carlos Eduardo Ferreira', subtitle: 'CPF: 321.654.987-00 • Contrato pendente', route: '/ipromed/clients', icon: Users },
+  { id: '4', type: 'client', title: 'Maria Silva', subtitle: 'CPF: 123.456.789-00 • 3 processos ativos', route: '/cpg/clients', icon: Users },
+  { id: '5', type: 'client', title: 'João Santos', subtitle: 'CPF: 987.654.321-00 • 1 processo ativo', route: '/cpg/clients', icon: Users },
+  { id: '6', type: 'client', title: 'Ana Paula Oliveira', subtitle: 'CPF: 456.789.123-00 • 2 processos ativos', route: '/cpg/clients', icon: Users },
+  { id: '7', type: 'client', title: 'Carlos Eduardo Ferreira', subtitle: 'CPF: 321.654.987-00 • Contrato pendente', route: '/cpg/clients', icon: Users },
   
   // Tarefas
-  { id: '8', type: 'task', title: 'Elaborar petição inicial', subtitle: 'Maria Silva • Prazo: 15/02/2026', status: 'Urgente', statusColor: 'bg-red-500', route: '/ipromed/legal?tab=tasks', icon: CheckCircle },
-  { id: '9', type: 'task', title: 'Preparar recurso', subtitle: 'João Santos • Prazo: 20/02/2026', status: 'Pendente', statusColor: 'bg-amber-500', route: '/ipromed/legal?tab=tasks', icon: CheckCircle },
-  { id: '10', type: 'task', title: 'Audiência de instrução', subtitle: 'Ana Oliveira • 10/02/2026 às 14h', status: 'Agendada', statusColor: 'bg-blue-500', route: '/ipromed/legal?tab=agenda', icon: Calendar },
+  { id: '8', type: 'task', title: 'Elaborar petição inicial', subtitle: 'Maria Silva • Prazo: 15/02/2026', status: 'Urgente', statusColor: 'bg-red-500', route: '/cpg/legal?tab=tasks', icon: CheckCircle },
+  { id: '9', type: 'task', title: 'Preparar recurso', subtitle: 'João Santos • Prazo: 20/02/2026', status: 'Pendente', statusColor: 'bg-amber-500', route: '/cpg/legal?tab=tasks', icon: CheckCircle },
+  { id: '10', type: 'task', title: 'Audiência de instrução', subtitle: 'Ana Oliveira • 10/02/2026 às 14h', status: 'Agendada', statusColor: 'bg-blue-500', route: '/cpg/legal?tab=agenda', icon: Calendar },
   
   // Documentos (agora centralizados em contratos)
-  { id: '11', type: 'document', title: 'Procuração Maria Silva', subtitle: 'Documento • Atualizado em 01/02/2026', route: '/ipromed/legal?tab=contracts', icon: FileText },
-  { id: '12', type: 'document', title: 'Laudo Médico João Santos', subtitle: 'Anexo processual • 28/01/2026', route: '/ipromed/legal?tab=contracts', icon: FileText },
+  { id: '11', type: 'document', title: 'Procuração Maria Silva', subtitle: 'Documento • Atualizado em 01/02/2026', route: '/cpg/legal?tab=contracts', icon: FileText },
+  { id: '12', type: 'document', title: 'Laudo Médico João Santos', subtitle: 'Anexo processual • 28/01/2026', route: '/cpg/legal?tab=contracts', icon: FileText },
   
   // Contratos
-  { id: '13', type: 'contract', title: 'Contrato de Honorários #001', subtitle: 'Maria Silva • Assinado em 05/01/2026', status: 'Ativo', statusColor: 'bg-emerald-500', route: '/ipromed/contracts', icon: Scale },
-  { id: '14', type: 'contract', title: 'Contrato de Honorários #002', subtitle: 'Carlos Ferreira • Aguardando assinatura', status: 'Pendente', statusColor: 'bg-amber-500', route: '/ipromed/contracts', icon: Scale },
+  { id: '13', type: 'contract', title: 'Contrato de Honorários #001', subtitle: 'Maria Silva • Assinado em 05/01/2026', status: 'Ativo', statusColor: 'bg-emerald-500', route: '/cpg/contracts', icon: Scale },
+  { id: '14', type: 'contract', title: 'Contrato de Honorários #002', subtitle: 'Carlos Ferreira • Aguardando assinatura', status: 'Pendente', statusColor: 'bg-amber-500', route: '/cpg/contracts', icon: Scale },
 ];
 
 const typeLabels: Record<SearchResult['type'], string> = {

@@ -39,7 +39,7 @@ const portals = [
   { id: 'staff', label: 'Colaborador', icon: Users, href: '/neoteam', gradient: 'from-blue-500 to-cyan-600' },
   { id: 'doctor', label: 'Médico', icon: Stethoscope, href: '/neoteam/doctor-view', gradient: 'from-teal-500 to-cyan-600' },
   { id: 'avivar', label: 'Avivar', icon: Zap, href: '/avivar', gradient: 'from-purple-500 to-violet-600' },
-  { id: 'ipromed', label: 'IPROMED', icon: Scale, href: '/ipromed', gradient: 'from-blue-600 to-indigo-700' },
+  { id: 'ipromed', label: 'CPG Advocacia', icon: Scale, href: '/cpg', gradient: 'from-blue-600 to-indigo-700' },
   { id: 'vision', label: 'Vision', icon: Eye, href: '/vision', gradient: 'from-pink-500 to-rose-500' },
   { id: 'neopay', label: 'NeoPay', icon: CreditCard, href: '/neopay', gradient: 'from-green-500 to-emerald-600' },
   { id: 'hotleads', label: 'HotLeads', icon: Flame, href: '/hotleads', gradient: 'from-orange-500 to-red-600' },
