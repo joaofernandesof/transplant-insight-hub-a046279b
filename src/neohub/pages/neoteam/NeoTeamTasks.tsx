@@ -49,7 +49,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
-import { SurgeryTasksPanel } from '@/clinic/components/SurgeryTasksPanel';
+import { useAllSurgeryTasks } from '@/clinic/hooks/useSurgeryTasks';
 import { TaskKanban } from '@/neohub/components/TaskKanban';
 import { TasksDashboard } from '@/neohub/components/TasksDashboard';
 import { useNeoTeamTasks, Task, TaskStatus, TaskPriority, NewTask } from '@/neohub/hooks/useNeoTeamTasks';
@@ -95,11 +95,33 @@ export default function NeoTeamTasks() {
   });
 
   const { tasks, isLoading, createTask, updateTask, deleteTask, moveTask } = useNeoTeamTasks();
+  const { tasks: surgeryTasks, isLoading: surgeryLoading, completeTask: completeSurgeryTask } = useAllSurgeryTasks();
+
+  // Map surgery tasks to Task format and merge
+  const allTasks = useMemo(() => {
+    const mappedSurgeryTasks: Task[] = surgeryTasks.map((st: any) => ({
+      id: `surgery_${st.id}`,
+      title: st.title,
+      description: `${st.patient_name || ''} • ${st.responsible_name || ''}`,
+      status: (st.status === 'overdue' ? 'todo' : st.status === 'active' || st.status === 'pending' ? 'todo' : st.status === 'completed' ? 'done' : 'todo') as TaskStatus,
+      priority: (st.status === 'overdue' ? 'urgent' : 'high') as TaskPriority,
+      due_date: st.scheduled_date || undefined,
+      assignee_name: st.responsible_name,
+      category: 'cirúrgica',
+      tags: [st.phase_label, 'Cirúrgica'],
+      order_index: 0,
+      created_at: st.created_at,
+      updated_at: st.updated_at,
+      completed_at: st.completed_at || undefined,
+      _isSurgeryTask: true,
+      _surgeryTaskId: st.id,
+    }));
+    return [...tasks, ...mappedSurgeryTasks];
+  }, [tasks, surgeryTasks]);
 
   // Filter and sort tasks
   const filteredTasks = useMemo(() => {
-    let result = [...tasks];
-    
+    let result = [...allTasks];
     // Search filter
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
@@ -141,7 +163,7 @@ export default function NeoTeamTasks() {
     });
     
     return result;
-  }, [tasks, searchTerm, priorityFilter, statusFilter, sortBy]);
+  }, [allTasks, searchTerm, priorityFilter, statusFilter, sortBy]);
 
   const getTasksByStatus = (status: TaskStatus) => filteredTasks.filter(t => t.status === status);
 
@@ -335,7 +357,7 @@ export default function NeoTeamTasks() {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || surgeryLoading) {
     return (
       <div className="p-4 lg:p-6 flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -348,8 +370,6 @@ export default function NeoTeamTasks() {
       {/* Breadcrumb */}
       <NeoTeamBreadcrumb />
 
-      {/* Tarefas Operacionais da Agenda Cirúrgica */}
-      <SurgeryTasksPanel />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
