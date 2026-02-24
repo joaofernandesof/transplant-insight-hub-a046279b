@@ -145,7 +145,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
                 <ToggleItem label="D-20 Contato" checked={(surgery as any).d20Contact || false} field="d20Contact" onToggle={handleToggle} />
                 <ToggleItem label="D-15 Contato" checked={(surgery as any).d15Contact || false} field="d15Contact" onToggle={handleToggle} />
                 <ToggleItem label="D-10 Contato" checked={(surgery as any).d10Contact || false} field="d10Contact" onToggle={handleToggle} />
-                <ToggleItem label="D-7 Contato" checked={(surgery as any).d7Contact || false} field="d7Contact" onToggle={handleToggle} />
+                
                 <ToggleItem label="D-2 Contato" checked={(surgery as any).d2Contact || false} field="d2Contact" onToggle={handleToggle} />
                 <ToggleItem label="D-1 Contato" checked={(surgery as any).d1Contact || false} field="d1Contact" onToggle={handleToggle} />
               </div>
