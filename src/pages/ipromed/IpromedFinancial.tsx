@@ -50,7 +50,7 @@ export default function IpromedFinancial() {
   const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 max-w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

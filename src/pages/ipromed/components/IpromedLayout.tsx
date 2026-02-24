@@ -92,8 +92,10 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
           </div>
         </header>
         
-        <main className="flex-1 overflow-auto">
-          {children}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+          <div className="p-4 sm:p-6 max-w-full">
+            {children}
+          </div>
         </main>
         
         {/* Guided Tour */}
@@ -187,8 +189,10 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
           </div>
         </header>
         
-        <main className="flex-1 overflow-auto">
-          {children}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+          <div className="p-4 sm:p-6 max-w-full">
+            {children}
+          </div>
         </main>
       </div>
       
