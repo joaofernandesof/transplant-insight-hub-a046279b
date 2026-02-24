@@ -76,7 +76,7 @@ export default function IpromedHome() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-full">
+    <div className="space-y-6 max-w-full">
       {/* Portal Banner */}
       <PortalBanner
         portal="ipromed"

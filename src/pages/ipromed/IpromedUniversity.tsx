@@ -165,7 +165,7 @@ export default function IpromedUniversity() {
   }
 
   return (
-    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-full">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

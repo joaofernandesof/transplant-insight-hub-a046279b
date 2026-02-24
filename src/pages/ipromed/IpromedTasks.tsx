@@ -531,7 +531,7 @@ export default function IpromedTasks() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-6 pb-4 flex-shrink-0">
+      <div className="pb-4 flex-shrink-0">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">

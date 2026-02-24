@@ -450,7 +450,7 @@ export default function IpromedLegalHub() {
 
       {/* Page Content */}
       <main className="flex-1 overflow-auto">
-        <div className="p-6">
+        <div className="max-w-full">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Tab Navigation - Hidden since we use sidebar */}
             <div className="sr-only">
