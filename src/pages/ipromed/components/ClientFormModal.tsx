@@ -32,7 +32,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, User, Building2, MapPin, FileText, Stethoscope, Cake } from "lucide-react";
@@ -223,79 +224,41 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Dados Básicos
-                </TabsTrigger>
-                <TabsTrigger value="address" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Endereço
-                </TabsTrigger>
-                <TabsTrigger value="financial" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Financeiro
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Dados Básicos */}
-              <TabsContent value="basic" className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-6">
+                {/* ── Dados Básicos ── */}
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <User className="h-4 w-4 text-primary" />
+                    Dados Básicos
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (
                       <FormItem className="col-span-2">
                         <FormLabel>Nome Completo *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Dr. João da Silva" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="Dr. João da Silva" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="email" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="email@exemplo.com" {...field} />
-                        </FormControl>
+                        <FormControl><Input type="email" placeholder="email@exemplo.com" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="phone" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Telefone</FormLabel>
-                        <FormControl>
-                          <PhoneInput placeholder="(11) 99999-9999" value={field.value} onChange={field.onChange} />
-                        </FormControl>
+                        <FormControl><PhoneInput placeholder="(11) 99999-9999" value={field.value} onChange={field.onChange} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="client_type"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="client_type" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tipo de Cliente</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="pf">Pessoa Física</SelectItem>
                             <SelectItem value="pj">Pessoa Jurídica</SelectItem>
@@ -303,38 +266,19 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="cpf_cnpj"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="cpf_cnpj" render={({ field }) => (
                       <FormItem>
                         <FormLabel>CPF/CNPJ</FormLabel>
-                        <FormControl>
-                          <Input placeholder="000.000.000-00" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="000.000.000-00" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="medical_specialty"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="medical_specialty" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          <Stethoscope className="h-3.5 w-3.5" />
-                          Especialidade Médica
-                        </FormLabel>
+                        <FormLabel className="flex items-center gap-1"><Stethoscope className="h-3.5 w-3.5" /> Especialidade Médica</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione a especialidade" />
-                            </SelectTrigger>
-                          </FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione a especialidade" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="none">Nenhuma</SelectItem>
                             {(specialtyOptions || []).map((spec) => (
@@ -344,38 +288,19 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="birth_date"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="birth_date" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          <Cake className="h-3.5 w-3.5" />
-                          Data de Nascimento
-                        </FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
+                        <FormLabel className="flex items-center gap-1"><Cake className="h-3.5 w-3.5" /> Data de Nascimento</FormLabel>
+                        <FormControl><Input type="date" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="status" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="prospect">Prospecto</SelectItem>
                             <SelectItem value="active">Ativo</SelectItem>
@@ -384,21 +309,12 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="risk_level"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="risk_level" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nível de Risco</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="low">Baixo</SelectItem>
                             <SelectItem value="medium">Médio</SelectItem>
@@ -407,21 +323,12 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="journey_stage"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="journey_stage" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Estágio da Jornada</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="prospect">Prospecto</SelectItem>
                             <SelectItem value="onboarding">Onboarding</SelectItem>
@@ -432,172 +339,107 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="partner"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="partner" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Sócio/Parceiro</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Nome do sócio (se houver)" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="Nome do sócio (se houver)" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="notes" render={({ field }) => (
                       <FormItem className="col-span-2">
                         <FormLabel>Observações</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Notas sobre o cliente..."
-                            className="min-h-[80px]"
-                            {...field}
-                          />
-                        </FormControl>
+                        <FormControl><Textarea placeholder="Notas sobre o cliente..." className="min-h-[80px]" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
+                    )} />
+                  </div>
                 </div>
-              </TabsContent>
 
-              {/* Endereço */}
-              <TabsContent value="address" className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="zip_code"
-                    render={({ field }) => (
+                <Separator />
+
+                {/* ── Endereço ── */}
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    Endereço
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="zip_code" render={({ field }) => (
                       <FormItem>
                         <FormLabel>CEP</FormLabel>
-                        <FormControl>
-                          <Input placeholder="00000-000" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="00000-000" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <div /> {/* Spacer */}
-
-                  <FormField
-                    control={form.control}
-                    name="street"
-                    render={({ field }) => (
+                    )} />
+                    <div />
+                    <FormField control={form.control} name="street" render={({ field }) => (
                       <FormItem className="col-span-2">
                         <FormLabel>Rua/Logradouro</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Av. Paulista" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="Av. Paulista" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="number"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="number" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Número</FormLabel>
-                        <FormControl>
-                          <Input placeholder="1000" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="1000" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="complement"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="complement" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Complemento</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Sala 101" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="Sala 101" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="neighborhood"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="neighborhood" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Bairro</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Centro" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="Centro" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="city" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Cidade</FormLabel>
-                        <FormControl>
-                          <Input placeholder="São Paulo" {...field} />
-                        </FormControl>
+                        <FormControl><Input placeholder="São Paulo" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="state"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="state" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Estado</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                           <SelectContent>
-                            {["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"].map((uf) => (
+                            {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map((uf) => (
                               <SelectItem key={uf} value={uf}>{uf}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
+                    )} />
+                  </div>
                 </div>
-              </TabsContent>
 
-              {/* Financeiro */}
-              <TabsContent value="financial" className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="payment_status"
-                    render={({ field }) => (
+                <Separator />
+
+                {/* ── Financeiro ── */}
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <FileText className="h-4 w-4 text-primary" />
+                    Financeiro
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="payment_status" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status de Pagamento</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="pending">Pendente</SelectItem>
                             <SelectItem value="paid">Pago</SelectItem>
@@ -605,35 +447,19 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="payment_amount"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="payment_amount" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Valor (R$)</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="0,00" {...field} />
-                        </FormControl>
+                        <FormControl><Input type="number" placeholder="0,00" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="contract_status"
-                    render={({ field }) => (
+                    )} />
+                    <FormField control={form.control} name="contract_status" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status do Contrato</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="draft">Rascunho</SelectItem>
                             <SelectItem value="pending_signature">Aguardando Assinatura</SelectItem>
@@ -642,11 +468,11 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
+                    )} />
+                  </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </ScrollArea>
 
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onClose}>
