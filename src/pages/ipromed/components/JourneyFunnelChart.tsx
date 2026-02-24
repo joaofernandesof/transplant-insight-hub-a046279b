@@ -17,11 +17,11 @@ interface Props {
 }
 
 const phases = [
-  { key: 'novos', name: 'Novos\nclientes', color: 'bg-gray-400' },
-  { key: 'agendado', name: 'Onboarding\nagendado', color: 'bg-orange-400' },
-  { key: 'andamento', name: 'Pacote Jurídico\nem andamento', color: 'bg-blue-400' },
-  { key: 'reuniaoAgendada', name: 'Reunião de\nApresentação', color: 'bg-purple-400' },
-  { key: 'continuo', name: 'Acompanhamento\ncontínuo', color: 'bg-emerald-400' },
+  { key: 'novos', name: '1. Novos\nclientes', color: 'bg-gray-400' },
+  { key: 'agendado', name: '2. Onboarding\nagendado', color: 'bg-orange-400' },
+  { key: 'andamento', name: '3. Pacote Jurídico\nem andamento', color: 'bg-blue-400' },
+  { key: 'reuniaoAgendada', name: '4. Reunião de\nApresentação', color: 'bg-purple-400' },
+  { key: 'continuo', name: '5. Acompanhamento\ncontínuo', color: 'bg-emerald-400' },
 ] as const;
 
 export function JourneyFunnelChart({ data }: Props) {
