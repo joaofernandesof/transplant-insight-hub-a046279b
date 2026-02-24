@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar, CheckCircle2 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { SurgeryDetailDialog } from './SurgeryDetailDialog';
@@ -32,7 +32,28 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
     }
-    return map;
+    // Reorder: today first, then future dates, then past dates
+    const today = startOfDay(new Date());
+    const entries = Array.from(map.entries());
+    const todayEntries: typeof entries = [];
+    const futureEntries: typeof entries = [];
+    const pastEntries: typeof entries = [];
+    const noDateEntries: typeof entries = [];
+    for (const entry of entries) {
+      if (entry[0] === 'sem-data') {
+        noDateEntries.push(entry);
+      } else {
+        try {
+          const d = startOfDay(parseISO(entry[0]));
+          if (isToday(d)) todayEntries.push(entry);
+          else if (isBefore(d, today)) pastEntries.push(entry);
+          else futureEntries.push(entry);
+        } catch {
+          noDateEntries.push(entry);
+        }
+      }
+    }
+    return new Map([...todayEntries, ...futureEntries, ...pastEntries, ...noDateEntries]);
   }, [surgeries]);
 
   const formatDateHeader = (dateStr: string) => {
