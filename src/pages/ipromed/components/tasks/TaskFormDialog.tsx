@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -65,6 +65,18 @@ export function TaskFormDialog({
   const { user } = useUnifiedAuth();
   const isEditing = !!task;
 
+  const defaultAssignees = [
+    "Dra. Caroline Parahyba",
+    "Isabele Cartaxo",
+    "Dra. Larissa Guerreiro",
+  ];
+
+  const [customAssignees, setCustomAssignees] = useState<string[]>([]);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customName, setCustomName] = useState("");
+
+  const allAssignees = [...defaultAssignees, ...customAssignees];
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -76,26 +88,6 @@ export function TaskFormDialog({
     tags: [] as string[],
   });
   const [tagInput, setTagInput] = useState("");
-
-  // Buscar usuários com perfil 'ipromed' (portal CPG)
-  const { data: portalUsers = [] } = useQuery({
-    queryKey: ["ipromed-portal-users"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("neohub_user_profiles")
-        .select("neohub_user_id, neohub_users!inner(id, full_name, email, is_active)")
-        .eq("profile", "ipromed")
-        .eq("is_active", true)
-        .eq("neohub_users.is_active", true);
-      
-      if (error) throw error;
-      return (data || []).map(d => ({
-        id: (d.neohub_users as any).id,
-        full_name: (d.neohub_users as any).full_name,
-        email: (d.neohub_users as any).email,
-      })).sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
-    },
-  });
 
   useEffect(() => {
     if (task) {
@@ -125,19 +117,6 @@ export function TaskFormDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      // Find selected user to get their auth user_id for assigned_to
-      const selectedUser = portalUsers.find(u => u.full_name === formData.assigned_to_name);
-      
-      // Get the auth user_id for the selected user
-      let assignedToAuthId: string | null = null;
-      if (selectedUser) {
-        const { data: nuData } = await supabase
-          .from("neohub_users")
-          .select("user_id")
-          .eq("id", selectedUser.id)
-          .maybeSingle();
-        assignedToAuthId = nuData?.user_id || null;
-      }
 
       const payload = {
         title: formData.title,
@@ -146,7 +125,7 @@ export function TaskFormDialog({
         priority: formData.priority,
         due_date: formData.due_date?.toISOString() || null,
         category: formData.category || null,
-        assigned_to: assignedToAuthId,
+        assigned_to: null,
         assigned_to_name: formData.assigned_to_name || null,
         tags: formData.tags.length > 0 ? formData.tags : null,
         updated_at: new Date().toISOString(),
@@ -340,19 +319,68 @@ export function TaskFormDialog({
             <Label>Responsável</Label>
             <Select
               value={formData.assigned_to_name}
-              onValueChange={(v) => setFormData((prev) => ({ ...prev, assigned_to_name: v }))}
+              onValueChange={(v) => {
+                if (v === "__custom__") {
+                  setShowCustomInput(true);
+                } else {
+                  setFormData((prev) => ({ ...prev, assigned_to_name: v }));
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecionar responsável..." />
               </SelectTrigger>
               <SelectContent>
-                {portalUsers.map((u) => (
-                  <SelectItem key={u.id} value={u.full_name || u.email}>
-                    {u.full_name || u.email}
+                {allAssignees.map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
                   </SelectItem>
                 ))}
+                <SelectItem value="__custom__">
+                  <span className="flex items-center gap-1.5 text-primary">
+                    <Plus className="h-3.5 w-3.5" /> Cadastrar novo
+                  </span>
+                </SelectItem>
               </SelectContent>
             </Select>
+            {showCustomInput && (
+              <div className="flex gap-2 mt-2">
+                <Input
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="Nome do responsável"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (customName.trim()) {
+                        setCustomAssignees((prev) => [...prev, customName.trim()]);
+                        setFormData((prev) => ({ ...prev, assigned_to_name: customName.trim() }));
+                        setCustomName("");
+                        setShowCustomInput(false);
+                      }
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    if (customName.trim()) {
+                      setCustomAssignees((prev) => [...prev, customName.trim()]);
+                      setFormData((prev) => ({ ...prev, assigned_to_name: customName.trim() }));
+                      setCustomName("");
+                      setShowCustomInput(false);
+                    }
+                  }}
+                >
+                  Adicionar
+                </Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); setCustomName(""); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Tags */}
