@@ -1,15 +1,24 @@
 /**
- * CPG Advocacia Médica - Workspace Agenda (Kanban 7 dias)
- * Visualização horizontal tipo kanban dos próximos 7 dias
+ * CPG Advocacia Médica - Workspace Agenda (Kanban 5 dias)
+ * Visualização horizontal tipo kanban dos próximos 5 dias
  */
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Calendar,
   ChevronRight,
@@ -22,10 +31,14 @@ import {
   CheckCircle2,
   Cake,
   Stethoscope,
+  Pencil,
+  Save,
+  X,
 } from "lucide-react";
 import { format, addDays, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface UnifiedAppointment {
   id: string;
@@ -329,32 +342,160 @@ export function WorkspaceAgenda() {
 }
 
 function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointment }) {
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(appointment.title);
+  const [editLocation, setEditLocation] = useState(appointment.location || '');
+  const [editNotes, setEditNotes] = useState('');
+  const queryClient = useQueryClient();
+
   const startTime = format(new Date(appointment.start_datetime), "HH:mm");
+  const endTime = appointment.end_datetime 
+    ? format(new Date(appointment.end_datetime), "HH:mm") 
+    : null;
+  const fullDate = format(new Date(appointment.start_datetime), "dd/MM/yyyy");
   const config = typeConfig[appointment.appointment_type] || typeConfig.reuniao;
   const IconComponent = config.icon;
 
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      const table = appointment.source === 'meeting' ? 'ipromed_client_meetings' : 'ipromed_appointments';
+      const updates: Record<string, string> = { title: editTitle };
+      if (appointment.source === 'appointment') {
+        updates.location = editLocation;
+      }
+      const { error } = await supabase.from(table).update(updates).eq('id', appointment.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspace-agenda-kanban'] });
+      toast.success('Agendamento atualizado');
+      setEditing(false);
+    },
+    onError: () => toast.error('Erro ao atualizar'),
+  });
+
+  const isSynthetic = appointment.id.startsWith('birthday-') || appointment.id.startsWith('specialty-');
+
   return (
-    <div className={`p-2 rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all`}>
-      <div className="flex items-center gap-1.5 mb-1">
-        <span className="text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">
-          {startTime}
-        </span>
-        <Badge variant="outline" className={`text-[10px] px-1 py-0 ${config.color} border-current/20`}>
-          {config.label}
-        </Badge>
-      </div>
-      <div className="flex items-start gap-1.5">
-        <IconComponent className={`h-3.5 w-3.5 ${config.color} shrink-0 mt-0.5`} />
-        <span className="text-xs font-medium leading-tight line-clamp-2">
-          {appointment.title}
-        </span>
-      </div>
-      {appointment.client_name && (
-        <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
-          <Users className="h-3 w-3" />
-          <span className="truncate">{appointment.client_name}</span>
+    <>
+      <div
+        className={`p-2 rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all cursor-pointer`}
+        onClick={() => setOpen(true)}
+      >
+        <div className="flex items-center gap-1.5 mb-1">
+          <span className="text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">
+            {startTime}
+          </span>
+          <Badge variant="outline" className={`text-[10px] px-1 py-0 ${config.color} border-current/20`}>
+            {config.label}
+          </Badge>
         </div>
-      )}
-    </div>
+        <div className="flex items-start gap-1.5">
+          <IconComponent className={`h-3.5 w-3.5 ${config.color} shrink-0 mt-0.5`} />
+          <span className="text-xs font-medium leading-tight line-clamp-2">
+            {appointment.title}
+          </span>
+        </div>
+        {appointment.client_name && (
+          <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
+            <Users className="h-3 w-3" />
+            <span className="truncate">{appointment.client_name}</span>
+          </div>
+        )}
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <IconComponent className={`h-5 w-5 ${config.color}`} />
+              {editing ? 'Editar Agendamento' : 'Detalhes do Agendamento'}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            {/* Badge tipo */}
+            <Badge variant="outline" className={`${config.color} border-current/20`}>
+              {config.label}
+            </Badge>
+
+            {editing ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Título</label>
+                  <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} />
+                </div>
+                {appointment.source === 'appointment' && (
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Local</label>
+                    <Input value={editLocation} onChange={e => setEditLocation(e.target.value)} />
+                  </div>
+                )}
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
+                    <X className="h-3.5 w-3.5 mr-1" /> Cancelar
+                  </Button>
+                  <Button size="sm" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+                    <Save className="h-3.5 w-3.5 mr-1" /> Salvar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base">{appointment.title}</h3>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>{fullDate}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>{startTime}{endTime ? ` - ${endTime}` : ''}</span>
+                  </div>
+                </div>
+
+                {appointment.client_name && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>{appointment.client_name}</span>
+                  </div>
+                )}
+
+                {appointment.location && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{appointment.location}</span>
+                  </div>
+                )}
+
+                {appointment.is_virtual && appointment.meeting_url && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Video className="h-4 w-4 text-primary" />
+                    <a href={appointment.meeting_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
+                      Acessar reunião virtual
+                    </a>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="text-xs">Status:</span>
+                  <Badge variant="secondary" className="text-xs">{appointment.status}</Badge>
+                </div>
+
+                {!isSynthetic && (
+                  <div className="flex justify-end pt-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+                      <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
