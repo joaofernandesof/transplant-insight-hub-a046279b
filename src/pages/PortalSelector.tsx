@@ -189,7 +189,24 @@ export default function PortalSelector() {
     const hasPortalAccess = portals && portals.length > 0 && portals.includes(config.portalKey);
     const hasProfileAccess = config.profiles.some(profile => user?.profiles?.includes(profile));
 
-    return hasPortalAccess || hasProfileAccess;
+    const hasBaseAccess = hasPortalAccess || hasProfileAccess;
+    if (!hasBaseAccess) return false;
+    
+    // Verificação de permissões de módulo: portal só aparece se tiver pelo menos 1 módulo legível
+    const permissions = user?.permissions || [];
+    const portalPrefix = config.portalKey + '_';
+    
+    // HotLeads: verificado via permissão neolicense_hotleads
+    if (config.portalKey === 'hotleads') {
+      return permissions.some(p => p.startsWith('neolicense_hotleads') && p.endsWith(':read'));
+    }
+    
+    // Para o portal neolicense, excluir neolicense_hotleads (pertence ao HotLeads)
+    const hasAnyReadableModule = permissions.some(p => 
+      p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads')
+    );
+    
+    return hasAnyReadableModule;
   };
 
   // Obter todos os portais com status de acesso
