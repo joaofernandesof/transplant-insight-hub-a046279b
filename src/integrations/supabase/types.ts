@@ -18060,6 +18060,126 @@ export type Database = {
         }
         Relationships: []
       }
+      surgery_task_definitions: {
+        Row: {
+          created_at: string
+          d_offset: number | null
+          id: string
+          is_active: boolean
+          is_required: boolean
+          order_index: number
+          phase_color: string
+          phase_label: string
+          responsible_email: string
+          responsible_name: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          d_offset?: number | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          order_index?: number
+          phase_color?: string
+          phase_label: string
+          responsible_email: string
+          responsible_name: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          d_offset?: number | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          order_index?: number
+          phase_color?: string
+          phase_label?: string
+          responsible_email?: string
+          responsible_name?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      surgery_tasks: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          d_offset: number | null
+          definition_id: string | null
+          has_problem: boolean
+          id: string
+          is_required: boolean
+          observation: string | null
+          phase_color: string
+          phase_label: string
+          responsible_email: string
+          responsible_name: string
+          scheduled_date: string | null
+          status: string
+          surgery_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          d_offset?: number | null
+          definition_id?: string | null
+          has_problem?: boolean
+          id?: string
+          is_required?: boolean
+          observation?: string | null
+          phase_color?: string
+          phase_label: string
+          responsible_email: string
+          responsible_name: string
+          scheduled_date?: string | null
+          status?: string
+          surgery_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          d_offset?: number | null
+          definition_id?: string | null
+          has_problem?: boolean
+          id?: string
+          is_required?: boolean
+          observation?: string | null
+          phase_color?: string
+          phase_label?: string
+          responsible_email?: string
+          responsible_name?: string
+          scheduled_date?: string | null
+          status?: string
+          surgery_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgery_tasks_definition_id_fkey"
+            columns: ["definition_id"]
+            isOneToOne: false
+            referencedRelation: "surgery_task_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_tasks_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "surgery_schedule"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       survey_ai_insights: {
         Row: {
           class_id: string
@@ -19378,6 +19498,14 @@ export type Database = {
       }
       delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
       generate_lead_code: { Args: never; Returns: string }
+      generate_surgery_tasks: {
+        Args: {
+          p_include_sale?: boolean
+          p_surgery_date: string
+          p_surgery_id: string
+        }
+        Returns: number
+      }
       get_agent_for_lead_stage:
         | {
             Args: { p_lead_stage?: string; p_user_id: string }
@@ -19663,6 +19791,7 @@ export type Database = {
         Args: { p_conversation_id: string; p_user_id: string }
         Returns: string
       }
+      update_surgery_task_statuses: { Args: never; Returns: number }
       user_has_any_enrollment: { Args: { _user_id: string }; Returns: boolean }
       user_has_flow_tenant_access: {
         Args: { _tenant_id: string; _user_id: string }
