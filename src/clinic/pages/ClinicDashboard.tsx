@@ -35,6 +35,7 @@ import { SurgeryDetailDialog } from '../components/SurgeryDetailDialog';
 import { NoDateRiskQueue } from '../components/NoDateRiskQueue';
 import { NoDateTab } from '../components/NoDateTab';
 import { AddSurgeryDialog } from '../components/AddSurgeryDialog';
+import { SurgeryTasksPanel } from '../components/SurgeryTasksPanel';
 import type { DateRange } from 'react-day-picker';
 
 // D-XX filter definitions
@@ -593,6 +594,7 @@ export default function ClinicDashboard() {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-4 pb-6 space-y-4">
         {activeTab === 'agenda' ? (
           <>
+            <SurgeryTasksPanel />
             <NoDateRiskQueue
               surgeries={filteredNoDate}
               onSetDate={handleSetDate}
