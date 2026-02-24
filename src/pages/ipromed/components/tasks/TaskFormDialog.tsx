@@ -322,9 +322,9 @@ export function TaskFormDialog({
               onValueChange={(v) => {
                 if (v === "__custom__") {
                   setShowCustomInput(true);
-                } else {
-                  setFormData((prev) => ({ ...prev, assigned_to_name: v }));
+                  return;
                 }
+                setFormData((prev) => ({ ...prev, assigned_to_name: v }));
               }}
             >
               <SelectTrigger>
@@ -336,11 +336,12 @@ export function TaskFormDialog({
                     {name}
                   </SelectItem>
                 ))}
-                <SelectItem value="__custom__">
-                  <span className="flex items-center gap-1.5 text-primary">
-                    <Plus className="h-3.5 w-3.5" /> Cadastrar novo
-                  </span>
-                </SelectItem>
+                <div
+                  className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent text-primary"
+                  onClick={() => setShowCustomInput(true)}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" /> Cadastrar novo
+                </div>
               </SelectContent>
             </Select>
             {showCustomInput && (
