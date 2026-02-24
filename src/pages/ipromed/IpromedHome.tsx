@@ -9,9 +9,7 @@ import { Button } from "@/components/ui/button";
 import { PortalBanner } from '@/components/shared/PortalBanner';
 import { TaskStatsCards } from './components/TaskStatsCards';
 import { WorkspaceTaskList } from './components/WorkspaceTaskList';
-import { WorkspaceDeadlines } from './components/WorkspaceDeadlines';
 import { WorkspaceAgenda } from './components/WorkspaceAgenda';
-import { WorkspaceQuickActions } from './components/WorkspaceQuickActions';
 
 import {
   Scale,
@@ -101,11 +99,6 @@ export default function IpromedHome() {
           </div>
         </div>
 
-        {/* Prazos e Ações abaixo */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <WorkspaceDeadlines />
-          <WorkspaceQuickActions />
-        </div>
       </div>
 
     </div>
