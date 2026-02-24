@@ -70,7 +70,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
     { key: 'd20Contact' as const, label: '20', title: 'Contato D-20' },
     { key: 'd15Contact' as const, label: '15', title: 'Contato D-15' },
     { key: 'd10Contact' as const, label: '10', title: 'Contato D-10' },
-    { key: 'd7Contact' as const, label: '7', title: 'Contato D-7' },
+    
     { key: 'd2Contact' as const, label: '2', title: 'Contato D-2' },
     { key: 'd1Contact' as const, label: '1', title: 'Contato D-1' },
     { key: 'surgeryConfirmed' as const, label: '✓', title: 'Confirmada' },
@@ -92,7 +92,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">20</span> D-20</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">15</span> D-15</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">10</span> D-10</span>
-            <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">7</span> D-7</span>
+            
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">2</span> D-2</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">1</span> D-1</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">✓</span> Confirmada</span>
