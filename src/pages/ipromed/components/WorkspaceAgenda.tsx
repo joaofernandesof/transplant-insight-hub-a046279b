@@ -269,7 +269,7 @@ export function WorkspaceAgenda() {
       </CardHeader>
       <CardContent className="px-5 pb-5">
         <ScrollArea className="w-full">
-          <div className="flex gap-3 pb-3" style={{ minWidth: 'max-content' }}>
+          <div className="flex gap-3 pb-3 items-stretch" style={{ minWidth: 'max-content' }}>
             {days.map((day) => {
               const key = format(day, 'yyyy-MM-dd');
               const dayAppts = appointmentsByDay.get(key) || [];
@@ -306,7 +306,7 @@ export function WorkspaceAgenda() {
                   </div>
 
                   {/* Column body */}
-                  <div className="flex-1 p-2 space-y-2 min-h-[120px] max-h-[300px] overflow-y-auto">
+                  <div className="flex-1 p-2 space-y-2 min-h-[120px] overflow-y-auto">
                     {dayAppts.length === 0 ? (
                       <div className="flex items-center justify-center h-full text-xs text-muted-foreground py-8">
                         Sem eventos
