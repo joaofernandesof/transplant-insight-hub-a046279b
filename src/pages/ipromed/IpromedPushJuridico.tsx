@@ -37,9 +37,9 @@ export default function IpromedPushJuridico() {
   const [activeTab, setActiveTab] = useState('publications');
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-full">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Radar className="h-7 w-7 text-rose-600" />
@@ -49,7 +49,7 @@ export default function IpromedPushJuridico() {
             Monitoramento automatizado de publicações judiciais e alertas em tempo real
           </p>
         </div>
-        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 shrink-0">
           <Bell className="h-3 w-3 mr-1" />
           Monitoramento Ativo
         </Badge>
