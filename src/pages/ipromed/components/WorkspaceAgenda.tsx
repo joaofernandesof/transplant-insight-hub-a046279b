@@ -250,7 +250,7 @@ export function WorkspaceAgenda() {
           <div>
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              Agenda — Próximos 7 dias
+              Agenda
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
               {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
