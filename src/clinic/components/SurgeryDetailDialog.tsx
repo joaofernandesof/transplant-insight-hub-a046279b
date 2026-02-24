@@ -127,7 +127,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
               <div className="bg-muted/50 rounded-lg p-4 space-y-1">
                 <ToggleItem label="Exames Enviados" checked={surgery.examsSent} field="examsSent" onToggle={handleToggle} />
                 <ToggleItem label="Contrato Assinado" checked={surgery.contractSigned} field="contractSigned" onToggle={handleToggle} />
-                <ToggleItem label="Prontuário Pronto" checked={surgery.chartReady} field="chartReady" onToggle={handleToggle} />
+                
                 <ToggleItem label="Cirurgia Confirmada" checked={surgery.surgeryConfirmed} field="surgeryConfirmed" onToggle={handleToggle} />
                 <ToggleItem label="Guias Enviados" checked={(surgery as any).guidesSent || false} field="guidesSent" onToggle={handleToggle} />
               </div>
