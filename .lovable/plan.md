@@ -1,51 +1,19 @@
 
 
-## Restaurar Cards Financeiros (VGV, Upgrades, Upsells, Recebidos, Saldo Devedor)
+## Adicionar "Personalizado" nos botões rápidos de período
 
 ### Problema
+Os botões rápidos de período (barra inferior) mostram apenas: Hoje, Semana, Mês, Próximo. Falta a opção "Personalizado" que já existe no dropdown superior.
 
-Na reconstrucao do dashboard, os cards financeiros foram removidos. O usuario quer manter os 5 cards financeiros que existiam antes: **VGV Total**, **Upgrades**, **Upsells**, **Recebido** e **Saldo Devedor**.
+### Solução
+Adicionar o botão "Personalizado" na barra de botões rápidos (linha 422-439 do `ClinicDashboard.tsx`), e quando clicado, abrir o date range picker inline ao lado, igual ao comportamento que já existe no dropdown.
 
-### Situacao dos dados
+### Arquivo editado
+- `src/clinic/pages/ClinicDashboard.tsx`
 
-A tabela `clinic_surgeries` atualmente so tem a coluna `vgv`. Para exibir Upgrades, Upsells, Recebido (depositos + restante) e Saldo Devedor, preciso adicionar essas colunas na tabela.
+### Detalhes técnicos
+1. Adicionar `{ value: 'custom', label: 'Personalizado' }` no array de botões rápidos (linha 423-428)
+2. Manter o popover de calendário que já existe (linhas 291-314) visível quando `selectedPeriod === 'custom'` é ativado via botão rápido -- reutilizar a mesma lógica já implementada
 
-### Plano
+Nenhuma mudança de banco de dados necessária. Apenas um item a mais no array de botões.
 
-**1. Migracao de banco de dados** -- Adicionar 5 colunas financeiras na tabela `clinic_surgeries`:
-- `upgrade_value` (numeric, default 0)
-- `upsell_value` (numeric, default 0)
-- `deposit_paid` (numeric, default 0)
-- `remaining_paid` (numeric, default 0)
-- `balance_due` (numeric, default 0)
-
-**2. Atualizar o hook `useClinicSurgeries.ts`**:
-- Adicionar os 5 novos campos na interface `ClinicSurgery`
-- Mapear as colunas no retorno da query
-
-**3. Adicionar os cards financeiros no `ClinicDashboard.tsx`**:
-- Calcular totais financeiros a partir dos dados filtrados (mesma logica dos KPIs operacionais)
-- Inserir uma segunda linha de cards logo abaixo dos KPIs operacionais existentes, com o layout identico ao `SurgeryDashboardCards.tsx`:
-  - VGV Total (verde esmeralda, icone DollarSign)
-  - Upgrades (roxo, icone TrendingUp)
-  - Upsells (azul, icone TrendingUp)
-  - Recebido (verde, icone CheckCircle, com barra de progresso)
-  - Saldo Devedor (vermelho condicional, icone Clock, borda vermelha se > 0)
-
-### Detalhes tecnicos
-
-**Migracao SQL:**
-```sql
-ALTER TABLE clinic_surgeries
-  ADD COLUMN upgrade_value numeric DEFAULT 0,
-  ADD COLUMN upsell_value numeric DEFAULT 0,
-  ADD COLUMN deposit_paid numeric DEFAULT 0,
-  ADD COLUMN remaining_paid numeric DEFAULT 0,
-  ADD COLUMN balance_due numeric DEFAULT 0;
-```
-
-**Arquivos editados:**
-- `src/clinic/hooks/useClinicSurgeries.ts` -- interface + mapping
-- `src/clinic/pages/ClinicDashboard.tsx` -- calcular financeiros no `kpiStats` e renderizar a segunda linha de cards
-
-Os cards financeiros serao governados pelo mesmo filtro global (periodo, D-XX, filial, busca), mantendo consistencia com os KPIs operacionais.
