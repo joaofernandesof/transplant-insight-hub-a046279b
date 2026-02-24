@@ -260,7 +260,7 @@ export function WorkspaceAgenda() {
             variant="outline"
             size="sm"
             className="gap-1 shrink-0"
-            onClick={() => navigate('/cpg/legal?tab=agenda')}
+            onClick={() => navigate('/cpg/agenda')}
           >
             Ver agenda
             <ChevronRight className="h-4 w-4" />
