@@ -601,7 +601,7 @@ export default function IpromedClients() {
                           <TableRow 
                             key={client.id} 
                             className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                            onClick={() => navigate(`/cpg/clients/${client.id}`)}
                           >
                           {/* Nome */}
                           <TableCell>
