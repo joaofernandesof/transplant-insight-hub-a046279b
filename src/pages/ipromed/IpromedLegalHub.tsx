@@ -311,15 +311,7 @@ export default function IpromedLegalHub({ defaultTab = 'overview' }: { defaultTa
               <TooltipContent>Notificações</TooltipContent>
             </Tooltip>
             
-            {/* User Menu - Hidden on mobile */}
-            <div className="hidden lg:flex items-center gap-2 ml-2 lg:ml-4 pl-2 lg:pl-4 border-l border-border">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                  MR
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium hidden lg:inline">Mariana</span>
-            </div>
+            {/* User Menu removed - user info now in sidebar */}
           </div>
         </header>
 

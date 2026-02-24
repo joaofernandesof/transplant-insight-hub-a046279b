@@ -92,7 +92,10 @@ export default function AstreaStyleSidebar({
 }: AstreaStyleSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useUnifiedAuth();
+  const { logout, user } = useUnifiedAuth();
+
+  const userName = user?.fullName || 'Usuário';
+  const userInitials = userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   const isActive = (href: string) => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
@@ -134,8 +137,8 @@ export default function AstreaStyleSidebar({
 
         {/* Logo */}
         <div className={cn(
-          "h-14 flex items-center border-b",
-          isCollapsed ? "justify-center px-2" : "px-4"
+          "flex flex-col border-b py-3",
+          isCollapsed ? "items-center px-2" : "px-4"
         )}>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
@@ -145,6 +148,14 @@ export default function AstreaStyleSidebar({
               <span className="font-bold text-lg text-primary">CPG</span>
             )}
           </div>
+          {!isCollapsed && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-[10px] font-semibold text-primary">{userInitials}</span>
+              </div>
+              <span className="text-xs text-muted-foreground truncate">{userName}</span>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
