@@ -434,7 +434,7 @@ export default function AstreaPublicationsView() {
       <Card className="overflow-hidden">
         <CardContent className="p-0 overflow-x-auto">
           {/* Header */}
-          <div className="grid grid-cols-[40px_130px_60px_1fr_200px_180px_120px_100px] gap-2 items-center px-4 py-3 bg-muted/50 border-b text-xs font-semibold text-muted-foreground">
+          <div className="grid grid-cols-[32px_90px_1fr_minmax(0,160px)_90px_70px] gap-1 items-center px-3 py-2.5 bg-muted/50 border-b text-[11px] font-semibold text-muted-foreground uppercase">
             <div>
               <Checkbox 
                 checked={selectedItems.length === filteredPublications.length && filteredPublications.length > 0}
@@ -442,14 +442,12 @@ export default function AstreaPublicationsView() {
               />
             </div>
             <div className="flex items-center gap-1">
-              DIVULGADO EM
+              Data
               <ChevronDown className="h-3 w-3" />
             </div>
-            <div>TIPO</div>
-            <div>PROCESSO</div>
-            <div>DIÁRIO</div>
-            <div>NOME PESQUISADO</div>
-            <div>STATUS</div>
+            <div>Processo / Diário</div>
+            <div>Pesquisado</div>
+            <div>Status</div>
             <div></div>
           </div>
 
@@ -465,7 +463,7 @@ export default function AstreaPublicationsView() {
                 <div className="border-b last:border-b-0">
                   {/* Main Row */}
                   <div 
-                    className={`grid grid-cols-[40px_130px_60px_1fr_200px_180px_120px_100px] gap-2 items-center px-4 py-3 hover:bg-muted/30 transition-colors ${
+                    className={`grid grid-cols-[32px_90px_1fr_minmax(0,160px)_90px_70px] gap-1 items-center px-3 py-2.5 hover:bg-muted/30 transition-colors ${
                       pub.status === 'pending' ? 'bg-rose-50/50' : ''
                     }`}
                   >
@@ -476,34 +474,25 @@ export default function AstreaPublicationsView() {
                       />
                     </div>
                     
-                    <div className="text-sm">
-                      <div>{format(new Date(pub.publishDate), 'dd/MM/yyyy')}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Publicado em: {format(new Date(pub.availableDate), 'dd/MM/yyyy')}
+                    <div className="text-xs">
+                      <div>{format(new Date(pub.publishDate), 'dd/MM/yy')}</div>
+                      <div className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                        <TypeIcon className={`h-3 w-3 ${type.color}`} />
+                        {pub.type === 'sentence' ? 'Dec' : pub.type === 'dispatch' ? 'Des' : pub.type === 'intimation' ? 'Int' : 'Pub'}
                       </div>
                     </div>
                     
-                    <div>
-                      <TypeIcon className={`h-5 w-5 ${type.color}`} />
-                    </div>
-                    
-                    <div>
-                      <div className="font-mono text-sm font-medium">{pub.processNumber}</div>
-                      <div className="text-xs text-blue-600 hover:underline cursor-pointer">
+                    <div className="min-w-0">
+                      <div className="font-mono text-xs font-medium truncate">{pub.processNumber}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">
+                        {pub.court} · {pub.organ}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground truncate">
                         {pub.parties}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Responsável: {pub.responsible}
-                      </div>
                     </div>
                     
-                    <div className="text-sm">
-                      <span className="font-semibold">{pub.court}</span>
-                      <span className="mx-1">|</span>
-                      <span>{pub.organ}</span>
-                    </div>
-                    
-                    <div className="text-sm font-medium">{pub.searchedName}</div>
+                    <div className="text-xs truncate">{pub.searchedName}</div>
                     
                     <div>
                       <Badge className={`text-[10px] font-semibold ${status.color}`}>
@@ -511,31 +500,25 @@ export default function AstreaPublicationsView() {
                       </Badge>
                     </div>
                     
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                        <Check className="h-4 w-4" />
-                      </Button>
+                    <div className="flex items-center gap-0.5">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <MoreVertical className="h-3.5 w-3.5" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Vincular
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
                             <CheckCircle2 className="h-4 w-4 mr-2" />
-                            Marcar como Tratada
+                            Tratada
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Archive className="h-4 w-4 mr-2" />
                             Descartar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver Detalhes
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -544,10 +527,10 @@ export default function AstreaPublicationsView() {
                         <Button 
                           variant="default" 
                           size="sm"
-                          className="ml-2 bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                          className="h-7 bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2"
                           onClick={() => toggleRow(pub.id)}
                         >
-                          {isExpanded ? 'FECHAR' : 'ACESSAR PUBLICAÇÃO'}
+                          {isExpanded ? '✕' : 'Ver'}
                         </Button>
                       </CollapsibleTrigger>
                     </div>
