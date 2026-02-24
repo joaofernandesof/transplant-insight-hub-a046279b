@@ -24,6 +24,7 @@ import {
   MapPin,
   FileCheck,
   DollarSign,
+  TrendingUp,
   X,
 } from 'lucide-react';
 import { format, parseISO, differenceInDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
@@ -210,6 +211,13 @@ export default function ClinicDashboard() {
     const contractRate = items.length > 0 ? Math.round((contractsSigned / items.length) * 100) : 0;
     const totalVgv = items.reduce((sum, s) => sum + (s.vgv || 0), 0);
     const guidesPending = items.filter(s => !s.guidesSent).length;
+    const totalUpgrade = items.reduce((sum, s) => sum + s.upgradeValue, 0);
+    const totalUpsell = items.reduce((sum, s) => sum + s.upsellValue, 0);
+    const totalDeposit = items.reduce((sum, s) => sum + s.depositPaid, 0);
+    const totalRemaining = items.reduce((sum, s) => sum + s.remainingPaid, 0);
+    const totalBalanceDue = items.reduce((sum, s) => sum + s.balanceDue, 0);
+    const totalReceived = totalDeposit + totalRemaining;
+    const paymentProgress = totalVgv > 0 ? Math.round((totalReceived / totalVgv) * 100) : 0;
 
     return {
       total: items.length,
@@ -220,6 +228,11 @@ export default function ClinicDashboard() {
       contractRate,
       totalVgv,
       guidesPending,
+      totalUpgrade,
+      totalUpsell,
+      totalReceived,
+      totalBalanceDue,
+      paymentProgress,
     };
   }, [filteredSurgeries]);
 
@@ -337,6 +350,58 @@ export default function ClinicDashboard() {
                 <span className="text-[11px] text-muted-foreground">{kpiStats.contractRate}%</span>
               </div>
               <Progress value={kpiStats.contractRate} className="h-1 mt-1" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Financial Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5">
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <DollarSign className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-[11px] text-muted-foreground font-medium">VGV Total</span>
+              </div>
+              <p className="text-lg font-bold text-emerald-600">{formatCurrency(kpiStats.totalVgv)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <TrendingUp className="h-3.5 w-3.5 text-purple-600" />
+                <span className="text-[11px] text-muted-foreground font-medium">Upgrades</span>
+              </div>
+              <p className="text-lg font-bold text-purple-600">{formatCurrency(kpiStats.totalUpgrade)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
+                <span className="text-[11px] text-muted-foreground font-medium">Upsells</span>
+              </div>
+              <p className="text-lg font-bold text-blue-600">{formatCurrency(kpiStats.totalUpsell)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                <span className="text-[11px] text-muted-foreground font-medium">Recebido</span>
+              </div>
+              <p className="text-lg font-bold text-green-600">{formatCurrency(kpiStats.totalReceived)}</p>
+              <Progress value={kpiStats.paymentProgress} className="h-1 mt-1" />
+            </CardContent>
+          </Card>
+          <Card className={cn(kpiStats.totalBalanceDue > 0 && 'border-l-4 border-l-red-500')}>
+            <CardContent className="p-2.5">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Clock className="h-3.5 w-3.5 text-red-600" />
+                <span className="text-[11px] text-muted-foreground font-medium">Saldo Devedor</span>
+              </div>
+              <p className={cn('text-lg font-bold', kpiStats.totalBalanceDue > 0 ? 'text-red-600' : 'text-green-600')}>
+                {formatCurrency(kpiStats.totalBalanceDue)}
+              </p>
             </CardContent>
           </Card>
         </div>

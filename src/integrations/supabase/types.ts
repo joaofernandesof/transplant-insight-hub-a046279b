@@ -4076,6 +4076,7 @@ export type Database = {
       }
       clinic_surgeries: {
         Row: {
+          balance_due: number | null
           booking_term_signed: boolean | null
           branch: string
           category: string | null
@@ -4091,6 +4092,7 @@ export type Database = {
           d2_contact: boolean | null
           d20_contact: boolean | null
           d7_contact: boolean | null
+          deposit_paid: number | null
           discharge_term_signed: boolean | null
           doctor_on_duty: string | null
           exams_sent: boolean | null
@@ -4107,6 +4109,7 @@ export type Database = {
           patient_id: string | null
           patient_name: string | null
           procedure: string | null
+          remaining_paid: number | null
           sale_id: string | null
           sale_year: string | null
           schedule_status: string | null
@@ -4114,9 +4117,12 @@ export type Database = {
           surgery_date: string | null
           surgery_time: string | null
           trichotomy_datetime: string | null
+          upgrade_value: number | null
+          upsell_value: number | null
           vgv: number | null
         }
         Insert: {
+          balance_due?: number | null
           booking_term_signed?: boolean | null
           branch?: string
           category?: string | null
@@ -4132,6 +4138,7 @@ export type Database = {
           d2_contact?: boolean | null
           d20_contact?: boolean | null
           d7_contact?: boolean | null
+          deposit_paid?: number | null
           discharge_term_signed?: boolean | null
           doctor_on_duty?: string | null
           exams_sent?: boolean | null
@@ -4148,6 +4155,7 @@ export type Database = {
           patient_id?: string | null
           patient_name?: string | null
           procedure?: string | null
+          remaining_paid?: number | null
           sale_id?: string | null
           sale_year?: string | null
           schedule_status?: string | null
@@ -4155,9 +4163,12 @@ export type Database = {
           surgery_date?: string | null
           surgery_time?: string | null
           trichotomy_datetime?: string | null
+          upgrade_value?: number | null
+          upsell_value?: number | null
           vgv?: number | null
         }
         Update: {
+          balance_due?: number | null
           booking_term_signed?: boolean | null
           branch?: string
           category?: string | null
@@ -4173,6 +4184,7 @@ export type Database = {
           d2_contact?: boolean | null
           d20_contact?: boolean | null
           d7_contact?: boolean | null
+          deposit_paid?: number | null
           discharge_term_signed?: boolean | null
           doctor_on_duty?: string | null
           exams_sent?: boolean | null
@@ -4189,6 +4201,7 @@ export type Database = {
           patient_id?: string | null
           patient_name?: string | null
           procedure?: string | null
+          remaining_paid?: number | null
           sale_id?: string | null
           sale_year?: string | null
           schedule_status?: string | null
@@ -4196,6 +4209,8 @@ export type Database = {
           surgery_date?: string | null
           surgery_time?: string | null
           trichotomy_datetime?: string | null
+          upgrade_value?: number | null
+          upsell_value?: number | null
           vgv?: number | null
         }
         Relationships: [
