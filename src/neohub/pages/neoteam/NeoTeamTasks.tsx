@@ -49,6 +49,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { SurgeryTasksPanel } from '@/clinic/components/SurgeryTasksPanel';
 import { TaskKanban } from '@/neohub/components/TaskKanban';
 import { TasksDashboard } from '@/neohub/components/TasksDashboard';
 import { useNeoTeamTasks, Task, TaskStatus, TaskPriority, NewTask } from '@/neohub/hooks/useNeoTeamTasks';
@@ -346,6 +347,9 @@ export default function NeoTeamTasks() {
     <div className="p-4 lg:p-6 space-y-4">
       {/* Breadcrumb */}
       <NeoTeamBreadcrumb />
+
+      {/* Tarefas Operacionais da Agenda Cirúrgica */}
+      <SurgeryTasksPanel />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
