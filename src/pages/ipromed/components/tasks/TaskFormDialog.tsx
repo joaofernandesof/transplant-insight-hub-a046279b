@@ -125,6 +125,20 @@ export function TaskFormDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
+      // Find selected user to get their auth user_id for assigned_to
+      const selectedUser = portalUsers.find(u => u.full_name === formData.assigned_to_name);
+      
+      // Get the auth user_id for the selected user
+      let assignedToAuthId: string | null = null;
+      if (selectedUser) {
+        const { data: nuData } = await supabase
+          .from("neohub_users")
+          .select("user_id")
+          .eq("id", selectedUser.id)
+          .maybeSingle();
+        assignedToAuthId = nuData?.user_id || null;
+      }
+
       const payload = {
         title: formData.title,
         description: formData.description || null,
@@ -132,6 +146,7 @@ export function TaskFormDialog({
         priority: formData.priority,
         due_date: formData.due_date?.toISOString() || null,
         category: formData.category || null,
+        assigned_to: assignedToAuthId,
         assigned_to_name: formData.assigned_to_name || null,
         tags: formData.tags.length > 0 ? formData.tags : null,
         updated_at: new Date().toISOString(),
@@ -146,7 +161,7 @@ export function TaskFormDialog({
       } else {
         const { error } = await supabase.from("ipromed_legal_tasks").insert({
           ...payload,
-          created_by: user?.id,
+          created_by: user?.authUserId || user?.id,
         });
         if (error) throw error;
       }
