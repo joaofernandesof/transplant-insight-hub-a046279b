@@ -42,43 +42,43 @@ export function JourneyFunnelChart({ data }: Props) {
   const phases: JourneyPhase[] = [
     { 
       id: 'novos', 
-      name: 'Novos', 
+      name: 'Novos clientes', 
       label: 'Novos clientes',
       count: data.novos,
       icon: Users,
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-100 dark:bg-gray-900/40'
+    },
+    { 
+      id: 'agendado', 
+      name: 'Onboarding agendado', 
+      label: 'Onboarding agendado',
+      count: data.agendado,
+      icon: Calendar,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100 dark:bg-orange-900/40'
+    },
+    { 
+      id: 'andamento', 
+      name: 'Pacote Jurídico em andamento', 
+      label: 'Pacote Jurídico em andamento',
+      count: data.andamento,
+      icon: PlayCircle,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100 dark:bg-blue-900/40'
     },
     { 
-      id: 'agendado', 
-      name: 'Agendado', 
-      label: 'Onboarding agendado',
-      count: data.agendado,
-      icon: Calendar,
+      id: 'reuniaoAgendada', 
+      name: 'Reunião de Apresentação', 
+      label: 'Reunião de Apresentação',
+      count: data.reuniaoAgendada,
+      icon: Video,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100 dark:bg-purple-900/40'
     },
     { 
-      id: 'andamento', 
-      name: 'Andamento', 
-      label: 'Pacote em andamento',
-      count: data.andamento,
-      icon: PlayCircle,
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-100 dark:bg-amber-900/40'
-    },
-    { 
-      id: 'reuniaoAgendada', 
-      name: 'Reunião', 
-      label: 'Reunião agendada',
-      count: data.reuniaoAgendada,
-      icon: Video,
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-100 dark:bg-cyan-900/40'
-    },
-    { 
       id: 'continuo', 
-      name: 'Contínuo', 
+      name: 'Acompanhamento contínuo', 
       label: 'Acompanhamento contínuo',
       count: data.continuo,
       icon: CheckCircle2,
