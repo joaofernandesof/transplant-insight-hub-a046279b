@@ -1,56 +1,51 @@
 
 
-## Correcao: IA oferecendo horarios inexistentes e ocupados
+## Restaurar Cards Financeiros (VGV, Upgrades, Upsells, Recebidos, Saldo Devedor)
 
-### Problema identificado
+### Problema
 
-A IA ofereceu ao lead Werikes Botelho "amanha as 10h ou as 14h" sem chamar a ferramenta `get_available_slots`. Ambos os horarios estao errados:
+Na reconstrucao do dashboard, os cards financeiros foram removidos. O usuario quer manter os 5 cards financeiros que existiam antes: **VGV Total**, **Upgrades**, **Upsells**, **Recebido** e **Saldo Devedor**.
 
-- **10h NAO EXISTE na grade**: A agenda de Sao Paulo para quarta-feira tem periodos 08:00-09:00, 12:00-14:00, 14:00-15:00, 18:00-20:00. Nao existe slot as 10:00.
-- **14h ESTA OCUPADO**: Marivaldo Balbino Dos Santos ja esta confirmado as 14:00.
+### Situacao dos dados
 
-A IA "inventou" horarios bonitos (numeros redondos) em vez de consultar a ferramenta de disponibilidade. O prompt ja instrui para usar `get_available_slots`, mas a IA ignorou a instrucao.
+A tabela `clinic_surgeries` atualmente so tem a coluna `vgv`. Para exibir Upgrades, Upsells, Recebido (depositos + restante) e Saldo Devedor, preciso adicionar essas colunas na tabela.
 
-### Causa raiz
+### Plano
 
-O prompt do sistema tem a instrucao no bloco `<fluxo_agendamento>`, mas nao tem uma regra de **bloqueio absoluto** que impeca a IA de mencionar horarios sem ter chamado a ferramenta primeiro. A regra `<regra_anti_alucinacao_critica>` cobre cidades e precos mas NAO menciona explicitamente horarios.
+**1. Migracao de banco de dados** -- Adicionar 5 colunas financeiras na tabela `clinic_surgeries`:
+- `upgrade_value` (numeric, default 0)
+- `upsell_value` (numeric, default 0)
+- `deposit_paid` (numeric, default 0)
+- `remaining_paid` (numeric, default 0)
+- `balance_due` (numeric, default 0)
 
-### Solucao
+**2. Atualizar o hook `useClinicSurgeries.ts`**:
+- Adicionar os 5 novos campos na interface `ClinicSurgery`
+- Mapear as colunas no retorno da query
 
-Reforcar o prompt do sistema em dois pontos:
-
-1. **Adicionar horarios na regra anti-alucinacao** (linhas ~3579-3588): Incluir horarios na lista de dados que NUNCA podem ser inventados, exigindo que `get_available_slots` seja chamado antes de qualquer mencao a horario.
-
-2. **Adicionar regra de bloqueio explicita no fluxo de agendamento** (linhas ~3613-3627): Inserir instrucao que PROIBE a IA de sugerir horarios sem ter resultado de `get_available_slots` no turno atual. Se a IA quiser oferecer horarios, DEVE chamar a ferramenta primeiro como tool call.
-
-3. **Reforco adicional nas regras importantes** (linhas ~3590-3601): Adicionar regra explicita "NUNCA sugira horarios especificos sem antes chamar get_available_slots".
+**3. Adicionar os cards financeiros no `ClinicDashboard.tsx`**:
+- Calcular totais financeiros a partir dos dados filtrados (mesma logica dos KPIs operacionais)
+- Inserir uma segunda linha de cards logo abaixo dos KPIs operacionais existentes, com o layout identico ao `SurgeryDashboardCards.tsx`:
+  - VGV Total (verde esmeralda, icone DollarSign)
+  - Upgrades (roxo, icone TrendingUp)
+  - Upsells (azul, icone TrendingUp)
+  - Recebido (verde, icone CheckCircle, com barra de progresso)
+  - Saldo Devedor (vermelho condicional, icone Clock, borda vermelha se > 0)
 
 ### Detalhes tecnicos
 
-Arquivo: `supabase/functions/avivar-ai-agent/index.ts`
-
-**Alteracao 1** - Bloco `<regra_anti_alucinacao_critica>` (~linha 3579):
-Adicionar apos "ANTES de mencionar qualquer preco ou produto":
-```
-- ANTES de mencionar QUALQUER horário disponível, você DEVE usar get_available_slots primeiro
-- ABSOLUTAMENTE PROIBIDO: Inventar ou sugerir horários como "10h", "14h", "15h" sem ter chamado get_available_slots neste turno
-- Se você mencionar um horário que NÃO veio do resultado de get_available_slots, você FALHOU GRAVEMENTE na tarefa
-```
-
-**Alteracao 2** - Bloco `<fluxo_agendamento>` antes da oferta inicial (~linha 3614):
-Adicionar regra de bloqueio:
-```
-### PROIBICAO ABSOLUTA:
-- NUNCA mencione horários específicos (ex: "10h", "14h", "amanhã de manhã") sem ANTES chamar get_available_slots como tool call neste mesmo turno
-- Se você quiser oferecer horários ao lead, a PRIMEIRA acao OBRIGATORIA é chamar get_available_slots
-- Horários inventados (sem vir de get_available_slots) sao considerados FALHA CRITICA
-- Os horários retornados por get_available_slots ja consideram a grade configurada e os agendamentos existentes — confie EXCLUSIVAMENTE neles
+**Migracao SQL:**
+```sql
+ALTER TABLE clinic_surgeries
+  ADD COLUMN upgrade_value numeric DEFAULT 0,
+  ADD COLUMN upsell_value numeric DEFAULT 0,
+  ADD COLUMN deposit_paid numeric DEFAULT 0,
+  ADD COLUMN remaining_paid numeric DEFAULT 0,
+  ADD COLUMN balance_due numeric DEFAULT 0;
 ```
 
-**Alteracao 3** - Bloco `<regras_importantes>` (~linha 3596):
-Adicionar regra:
-```
-- NUNCA sugira horários sem chamar get_available_slots ANTES — qualquer horário mencionado DEVE vir do resultado dessa ferramenta
-```
+**Arquivos editados:**
+- `src/clinic/hooks/useClinicSurgeries.ts` -- interface + mapping
+- `src/clinic/pages/ClinicDashboard.tsx` -- calcular financeiros no `kpiStats` e renderizar a segunda linha de cards
 
-Essas alteracoes reforçam em 3 locais diferentes do prompt a mesma regra, reduzindo drasticamente a chance da IA ignorar e inventar horarios.
+Os cards financeiros serao governados pelo mesmo filtro global (periodo, D-XX, filial, busca), mantendo consistencia com os KPIs operacionais.
