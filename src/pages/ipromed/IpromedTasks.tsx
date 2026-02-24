@@ -52,6 +52,7 @@ import { toast } from "sonner";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { TaskFormDialog } from "./components/tasks/TaskFormDialog";
 import { TaskDetailSheet } from "./components/tasks/TaskDetailSheet";
+import { TaskDashboard } from "./components/tasks/TaskDashboard";
 
 export type TaskStatus = "todo" | "in_progress" | "in_review" | "done";
 export type TaskPriority = 1 | 2 | 3;
@@ -492,9 +493,7 @@ export default function IpromedTasks() {
           </div>
         ) : (
           /* ===== DASHBOARD VIEW ===== */
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Dashboard em breve
-          </div>
+          <TaskDashboard tasks={tasks} />
         )}
       </div>
 
