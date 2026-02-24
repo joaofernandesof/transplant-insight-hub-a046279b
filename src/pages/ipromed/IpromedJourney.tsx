@@ -208,7 +208,7 @@ function DraggableClientCard({
           </Avatar>
           <div className="flex-1 min-w-0">
             <p 
-              className="font-medium text-sm truncate hover:text-primary cursor-pointer"
+              className="font-medium text-sm hover:text-primary cursor-pointer leading-tight break-words"
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/ipromed/clients/${client.id}`);
@@ -338,7 +338,7 @@ function DroppableColumn({
     <div className="flex flex-col min-w-0">
       {/* Column Header - Avivar Style */}
       <div className={cn(
-        "rounded-lg px-3 py-2.5 flex items-center justify-between group",
+        "rounded-xl px-3 py-4 flex items-center justify-between group min-h-[56px]",
         phase.color
       )}>
         <div className="flex items-center gap-2">
@@ -363,7 +363,7 @@ function DroppableColumn({
               )}
             </div>
           </div>
-          <span className="font-semibold text-white text-sm truncate">{phase.label}</span>
+          <span className="font-semibold text-white text-sm leading-tight text-center break-words">{phase.label}</span>
         </div>
         <div className="flex items-center gap-1">
           {sortedClients.length > 0 && (
