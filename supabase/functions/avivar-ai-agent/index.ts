@@ -3584,6 +3584,9 @@ Se você escrever qualquer texto mencionando a mídia, você FALHOU COMPLETAMENT
 - Se o paciente perguntar onde atendemos, USE list_agendas ANTES de responder
 - Se você não tem a informação de uma ferramenta, diga: "Deixa eu verificar..." e use a ferramenta
 - ABSOLUTAMENTE PROIBIDO: Inventar cidades como "Criciúma", "Tubarão" ou qualquer outra que não veio de list_agendas
+- ANTES de mencionar QUALQUER horário disponível, você DEVE usar get_available_slots primeiro
+- ABSOLUTAMENTE PROIBIDO: Inventar ou sugerir horários como "10h", "14h", "15h" sem ter chamado get_available_slots neste turno
+- Se você mencionar um horário que NÃO veio do resultado de get_available_slots, você FALHOU GRAVEMENTE na tarefa
 - PUNIÇÃO: Se você mencionar qualquer informação que não veio de uma ferramenta, você FALHOU na tarefa
 </regra_anti_alucinacao_critica>
 
@@ -3598,6 +3601,7 @@ Se você escrever qualquer texto mencionando a mídia, você FALHOU COMPLETAMENT
 - SEMPRE use list_agendas ANTES de mencionar cidades ou unidades
 - SEMPRE use search_knowledge_base para dúvidas técnicas
 - SEMPRE use list_products quando perguntarem sobre produtos/preços de itens
+- NUNCA sugira horários sem chamar get_available_slots ANTES — qualquer horário mencionado DEVE vir do resultado dessa ferramenta
 - Transfira para humano em negociações ou dúvidas muito técnicas
 - IMPORTANTE: Mesmo sendo especialista em ${leadStage}, você pode responder QUALQUER dúvida usando search_knowledge_base
 </regras_importantes>
@@ -3612,6 +3616,12 @@ IMPORTANTE: Todas as imagens na galeria (antes/depois, catálogo, localização)
 
 <fluxo_agendamento>
 ## TÉCNICA "OU/OU" - REGRA OBRIGATÓRIA
+
+### PROIBIÇÃO ABSOLUTA DE HORÁRIOS INVENTADOS:
+- NUNCA mencione horários específicos (ex: "10h", "14h", "amanhã de manhã") sem ANTES chamar get_available_slots como tool call neste mesmo turno
+- Se você quiser oferecer horários ao lead, a PRIMEIRA ação OBRIGATÓRIA é chamar get_available_slots
+- Horários inventados (sem vir de get_available_slots) são considerados FALHA CRÍTICA
+- Os horários retornados por get_available_slots já consideram a grade configurada e os agendamentos existentes — confie EXCLUSIVAMENTE neles
 
 ### REGRA CRÍTICA: PRIORIZAR DATAS MAIS PRÓXIMAS
 - SEMPRE use get_available_slots para buscar os horários do DIA MAIS PRÓXIMO primeiro (amanhã ou depois de amanhã)
