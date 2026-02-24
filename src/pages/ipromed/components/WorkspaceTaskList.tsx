@@ -3,6 +3,7 @@
  * Lista detalhada de tarefas do colaborador logado com dados reais
  */
 
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import { format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns"
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { TaskFormDialog } from "./tasks/TaskFormDialog";
 
 interface Task {
   id: string;
@@ -81,6 +83,7 @@ export function WorkspaceTaskList() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['workspace-tasks'],
@@ -135,21 +138,33 @@ export function WorkspaceTaskList() {
   const pendingTasks = tasks || [];
 
   return (
+    <>
     <Card className="border-0 shadow-md">
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <Clock className="h-5 w-5 text-primary" />
           Minhas Tarefas
         </CardTitle>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="gap-1"
-          onClick={() => navigate('/cpg/legal')}
-        >
-          Ver todas
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1"
+            onClick={() => setShowCreateDialog(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Criar tarefa
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-1"
+            onClick={() => navigate('/cpg/tasks')}
+          >
+            Ver todas
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {pendingTasks.length === 0 ? (
@@ -160,7 +175,7 @@ export function WorkspaceTaskList() {
               variant="outline" 
               size="sm" 
               className="mt-3 gap-1"
-              onClick={() => navigate('/cpg/legal')}
+              onClick={() => setShowCreateDialog(true)}
             >
               <Plus className="h-4 w-4" />
               Criar tarefa
@@ -232,5 +247,16 @@ export function WorkspaceTaskList() {
         )}
       </CardContent>
     </Card>
+    <TaskFormDialog
+      open={showCreateDialog}
+      onOpenChange={setShowCreateDialog}
+      task={null}
+      onSuccess={() => {
+        queryClient.invalidateQueries({ queryKey: ['workspace-tasks'] });
+        queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
+        setShowCreateDialog(false);
+      }}
+    />
+    </>
   );
 }
