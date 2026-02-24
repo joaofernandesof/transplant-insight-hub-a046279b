@@ -301,22 +301,6 @@ export default function IpromedTasks() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
-              <TabsList>
-                <TabsTrigger value="kanban" className="gap-1.5">
-                  <LayoutGrid className="h-4 w-4" />
-                  Kanban
-                </TabsTrigger>
-                <TabsTrigger value="list" className="gap-1.5">
-                  <List className="h-4 w-4" />
-                  Lista
-                </TabsTrigger>
-                <TabsTrigger value="dashboard" className="gap-1.5">
-                  <BarChart3 className="h-4 w-4" />
-                  Dashboard
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
             <Button onClick={() => { setEditingTask(null); setIsFormOpen(true); }} className="gap-2 rounded-xl shadow-md">
               <Plus className="h-4 w-4" />
               Nova Tarefa
@@ -325,35 +309,9 @@ export default function IpromedTasks() {
         </div>
       </div>
 
-      {/* Stats Bar + Filters */}
+      {/* Filters + View Tabs */}
       <div className="pb-4 flex-shrink-0">
         <div className="flex flex-wrap items-center gap-3 p-3 bg-background rounded-2xl border shadow-sm">
-          {/* Inline stats as pills */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/40">
-              <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-              <span className="text-sm font-bold text-amber-700 dark:text-amber-300">{stats.todo}</span>
-              <span className="text-xs text-amber-600/80 dark:text-amber-400/80 hidden sm:inline">A Fazer</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/40">
-              <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-              <span className="text-sm font-bold text-blue-700 dark:text-blue-300">{stats.in_progress}</span>
-              <span className="text-xs text-blue-600/80 dark:text-blue-400/80 hidden sm:inline">Andamento</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-100 dark:bg-violet-900/40">
-              <div className="h-2.5 w-2.5 rounded-full bg-violet-500" />
-              <span className="text-sm font-bold text-violet-700 dark:text-violet-300">{stats.in_review}</span>
-              <span className="text-xs text-violet-600/80 dark:text-violet-400/80 hidden sm:inline">Revisão</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40">
-              <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{stats.done}</span>
-              <span className="text-xs text-emerald-600/80 dark:text-emerald-400/80 hidden sm:inline">Concluído</span>
-            </div>
-          </div>
-
-          <div className="h-6 w-px bg-border hidden md:block" />
-
           {/* Search */}
           <div className="relative flex-1 min-w-[180px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -390,6 +348,26 @@ export default function IpromedTasks() {
               <SelectItem value="due_date">Prazo</SelectItem>
             </SelectContent>
           </Select>
+
+          <div className="h-6 w-px bg-border hidden md:block" />
+
+          {/* View mode tabs centered */}
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
+            <TabsList>
+              <TabsTrigger value="kanban" className="gap-1.5">
+                <LayoutGrid className="h-4 w-4" />
+                Kanban
+              </TabsTrigger>
+              <TabsTrigger value="list" className="gap-1.5">
+                <List className="h-4 w-4" />
+                Lista
+              </TabsTrigger>
+              <TabsTrigger value="dashboard" className="gap-1.5">
+                <BarChart3 className="h-4 w-4" />
+                Dashboard
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
 
