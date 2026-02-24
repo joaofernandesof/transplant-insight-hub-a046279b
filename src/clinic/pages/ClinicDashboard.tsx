@@ -91,6 +91,8 @@ export default function ClinicDashboard() {
   const periodRange = useMemo(() => {
     const now = new Date();
     switch (selectedPeriod) {
+      case 'all':
+        return null;
       case 'today':
         return { start: now, end: now };
       case 'this-week': {
@@ -120,6 +122,7 @@ export default function ClinicDashboard() {
       const from = format(periodRange.start, 'dd MMM', { locale: ptBR });
       const to = format(periodRange.end, 'dd MMM', { locale: ptBR });
       const labels: Record<string, string> = {
+        'all': 'Todo o Período',
         'today': 'Hoje',
         'this-week': 'Esta Semana',
         'this-month': 'Este Mês',
@@ -128,6 +131,7 @@ export default function ClinicDashboard() {
       };
       return `${labels[selectedPeriod] || 'Período'} — ${from} a ${to}`;
     }
+    if (selectedPeriod === 'all') return 'Todo o Período';
     return 'Todas';
   }, [selectedPeriod, periodRange]);
 
@@ -281,6 +285,7 @@ export default function ClinicDashboard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Todo o Período</SelectItem>
                 <SelectItem value="today">Hoje</SelectItem>
                 <SelectItem value="this-week">Esta Semana</SelectItem>
                 <SelectItem value="this-month">Este Mês</SelectItem>
@@ -421,6 +426,7 @@ export default function ClinicDashboard() {
             {/* Quick period buttons */}
             <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
               {[
+                { value: 'all', label: 'Todo Período' },
                 { value: 'today', label: 'Hoje' },
                 { value: 'this-week', label: 'Semana' },
                 { value: 'this-month', label: 'Mês' },
