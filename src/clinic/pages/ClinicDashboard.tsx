@@ -425,17 +425,42 @@ export default function ClinicDashboard() {
                 { value: 'this-week', label: 'Semana' },
                 { value: 'this-month', label: 'Mês' },
                 { value: 'next-month', label: 'Próximo' },
+                { value: 'custom', label: 'Personalizado' },
               ].map((opt) => (
                 <Button
                   key={opt.value}
                   variant={selectedPeriod === opt.value ? 'secondary' : 'ghost'}
                   size="sm"
-                  onClick={() => { setSelectedPeriod(opt.value); setDateRange(undefined); }}
+                  onClick={() => { setSelectedPeriod(opt.value); if (opt.value !== 'custom') setDateRange(undefined); }}
                   className={cn('text-xs h-7 px-2.5', selectedPeriod === opt.value && 'bg-background shadow-sm')}
                 >
                   {opt.label}
                 </Button>
               ))}
+              {selectedPeriod === 'custom' && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn('h-7 text-xs', !dateRange?.from && 'text-muted-foreground')}>
+                      <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                      {dateRange?.from
+                        ? dateRange.to
+                          ? `${format(dateRange.from, 'dd/MM')} — ${format(dateRange.to, 'dd/MM')}`
+                          : format(dateRange.from, 'dd/MM/yyyy')
+                        : 'Intervalo'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <CalendarPicker
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      numberOfMonths={2}
+                      locale={ptBR}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
           </div>
 
