@@ -84,11 +84,13 @@ interface SurgeryDialogProps {
 }
 
 const categories = [
-  { value: "CATEGORIA A - INDICAÇÃO", label: "Cat A - Indicação" },
+  { value: "CATEGORIA A - MÉDICO SÊNIOR", label: "Cat A - Médico Sênior" },
   { value: "CATEGORIA B - MÉDICO DA EQUIPE", label: "Cat B - Médico da Equipe" },
   { value: "CATEGORIA C - PACIENTE MODELO VIP", label: "Cat C - Modelo VIP" },
   { value: "CATEGORIA D - PACIENTE MODELO NORMAL", label: "Cat D - Modelo Normal" },
-  { value: "RETOQUE", label: "Retoque" },
+  { value: "RETOUCHING", label: "Retouching" },
+  { value: "A DEFINIR", label: "A Definir" },
+  { value: "RETOQUE DE BARBA", label: "Retoque de Barba" },
 ];
 
 const procedures = [
@@ -97,7 +99,10 @@ const procedures = [
   "SOBRANCELHA",
   "CABELO + BARBA",
   "CABELO + SOBRANCELHA",
-  "CABELO + BARBA + SOBRANCELHA",
+  "SOBRANCELHA + BARBA",
+  "SOBRANCELHA + BARBA + CABELO",
+  "CABELO + BODY HAIR BARBA",
+  "CABELO + BODY HAIR PEITO",
 ];
 
 export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }: SurgeryDialogProps) {
