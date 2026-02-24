@@ -26,6 +26,7 @@ import {
   DollarSign,
   TrendingUp,
   X,
+  Plus,
 } from 'lucide-react';
 import { format, parseISO, differenceInDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, subDays, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -33,6 +34,7 @@ import { SurgeryWeekTable } from '../components/SurgeryWeekTable';
 import { SurgeryDetailDialog } from '../components/SurgeryDetailDialog';
 import { NoDateRiskQueue } from '../components/NoDateRiskQueue';
 import { NoDateTab } from '../components/NoDateTab';
+import { AddSurgeryDialog } from '../components/AddSurgeryDialog';
 import type { DateRange } from 'react-day-picker';
 
 // D-XX filter definitions
@@ -60,6 +62,7 @@ export default function ClinicDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeDFilters, setActiveDFilters] = useState<Set<DFilter>>(new Set());
   const [activeTab, setActiveTab] = useState<'agenda' | 'sem-data'>('agenda');
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const canFilterBranch = isAdmin || isGestao;
 
@@ -312,8 +315,12 @@ export default function ClinicDashboard() {
               </button>
             </div>
           </div>
-          {activeTab === 'agenda' && (
+           {activeTab === 'agenda' && (
             <div className="flex items-center gap-2">
+              <Button size="sm" className="h-8 text-xs gap-1.5" onClick={() => setShowAddDialog(true)}>
+                <Plus className="h-3.5 w-3.5" />
+                Adicionar
+              </Button>
               <Select value={selectedPeriod} onValueChange={(v) => { setSelectedPeriod(v); if (v !== 'custom') setDateRange(undefined); }}>
                 <SelectTrigger className="w-[150px] h-8 text-xs">
                   <Clock className="h-3.5 w-3.5 mr-1.5" />
@@ -354,6 +361,12 @@ export default function ClinicDashboard() {
                 </Popover>
               )}
             </div>
+          )}
+          {activeTab === 'sem-data' && (
+            <Button size="sm" className="h-8 text-xs gap-1.5" onClick={() => setShowAddDialog(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              Adicionar
+            </Button>
           )}
         </div>
 
@@ -600,6 +613,12 @@ export default function ClinicDashboard() {
           <NoDateTab />
         )}
       </div>
+
+      <AddSurgeryDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        defaultWithDate={activeTab === 'agenda'}
+      />
     </div>
   );
 }
