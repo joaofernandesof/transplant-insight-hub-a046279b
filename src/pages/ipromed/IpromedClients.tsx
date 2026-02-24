@@ -303,21 +303,7 @@ export default function IpromedClients() {
 
         {/* Clients Table - Full Width */}
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Clientes ({filteredClients.length})
-              </CardTitle>
-              {activeFiltersCount > 0 && (
-                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearFilters}>
-                  <Filter className="h-3 w-3 mr-1" />
-                  Limpar {activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''}
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -326,7 +312,7 @@ export default function IpromedClients() {
               <div className="w-full">
                 <Table className="w-full table-fixed">
                   <TableHeader>
-                    <TableRow className="hover:bg-transparent">
+                    <TableRow className="bg-muted/60 hover:bg-muted/60">
                       {/* Nome - 18% */}
                       <TableHead className="w-[18%]">
                         <DropdownMenu>
