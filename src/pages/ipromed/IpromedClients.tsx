@@ -287,9 +287,6 @@ export default function IpromedClients() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">Clientes</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Gestão completa de clientes e processos
-            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => navigate('/cpg/journey')}>
@@ -303,103 +300,6 @@ export default function IpromedClients() {
             </Button>
           </div>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('all')}>
-            <CardContent className="p-3 sm:pt-6 sm:px-6">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">Total</p>
-                  <p className="text-lg sm:text-2xl font-bold">{stats.total}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg sm:rounded-xl">
-                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('active')}>
-            <CardContent className="p-3 sm:pt-6 sm:px-6">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">Ativos</p>
-                  <p className="text-lg sm:text-2xl font-bold text-emerald-600">{stats.active}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg sm:rounded-xl">
-                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter('prospect')}>
-            <CardContent className="p-3 sm:pt-6 sm:px-6">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">Prospectos</p>
-                  <p className="text-lg sm:text-2xl font-bold text-blue-600">{stats.prospects}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg sm:rounded-xl">
-                  <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setPaymentFilter('paid')}>
-            <CardContent className="p-3 sm:pt-6 sm:px-6">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">Pagos</p>
-                  <p className="text-lg sm:text-2xl font-bold text-emerald-600">{stats.paid}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg sm:rounded-xl">
-                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setOnboardingFilter('completed')}>
-            <CardContent className="p-3 sm:pt-6 sm:px-6">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">Onboarding OK</p>
-                  <p className="text-lg sm:text-2xl font-bold text-purple-600">{stats.onboardingCompleted}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg sm:rounded-xl">
-                  <FileCheck className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setPaymentFilter('pending')}>
-            <CardContent className="p-3 sm:pt-6 sm:px-6">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">Aguard. Assinatura</p>
-                  <p className="text-lg sm:text-2xl font-bold text-amber-600">{stats.pendingSignature}</p>
-                </div>
-                <div className="p-2 sm:p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg sm:rounded-xl">
-                  <FileSignature className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search Only */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome, email, telefone, CPF/CNPJ ou código..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 max-w-lg"
-              />
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Clients Table - Full Width */}
         <Card>
