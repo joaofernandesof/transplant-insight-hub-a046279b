@@ -18175,7 +18175,7 @@ export type Database = {
             foreignKeyName: "surgery_tasks_surgery_id_fkey"
             columns: ["surgery_id"]
             isOneToOne: false
-            referencedRelation: "surgery_schedule"
+            referencedRelation: "clinic_surgeries"
             referencedColumns: ["id"]
           },
         ]
@@ -19501,7 +19501,7 @@ export type Database = {
       generate_surgery_tasks: {
         Args: {
           p_include_sale?: boolean
-          p_surgery_date: string
+          p_surgery_date?: string
           p_surgery_id: string
         }
         Returns: number
