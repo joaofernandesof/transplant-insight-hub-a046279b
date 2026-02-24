@@ -73,8 +73,8 @@ export interface PhaseDetail {
 export const journeyPhasesDetailed: PhaseDetail[] = [
   {
     id: 'Novos',
-    name: 'Novos clientes',
-    label: 'Novos clientes',
+    name: '1. Novos clientes',
+    label: '1. Novos clientes',
     color: 'text-blue-600',
     bgColor: 'bg-blue-500',
     description: 'Clientes recém-contratados aguardando início do processo de onboarding jurídico.',
@@ -109,8 +109,8 @@ export const journeyPhasesDetailed: PhaseDetail[] = [
   },
   {
     id: 'Agendado',
-    name: 'Onboarding agendado',
-    label: 'Onboarding agendado',
+    name: '2. Onboarding agendado',
+    label: '2. Onboarding agendado',
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-500',
     description: 'Clientes com reunião de onboarding já agendada, aguardando realização.',
@@ -144,8 +144,8 @@ export const journeyPhasesDetailed: PhaseDetail[] = [
   },
   {
     id: 'Andamento',
-    name: 'Pacote Jurídico em andamento',
-    label: 'Pacote Jurídico em andamento',
+    name: '3. Pacote Jurídico em andamento',
+    label: '3. Pacote Jurídico em andamento',
     color: 'text-purple-600',
     bgColor: 'bg-purple-500',
     description: 'Elaboração ativa do pacote jurídico preventivo personalizado do cliente.',
@@ -184,8 +184,8 @@ export const journeyPhasesDetailed: PhaseDetail[] = [
   },
   {
     id: 'ReuniaoAgendada',
-    name: 'Reunião de Apresentação do Pacote Jurídico Agendada',
-    label: 'Reunião de Apresentação do Pacote Jurídico Agendada',
+    name: '4. Reunião de Apresentação',
+    label: '4. Reunião de Apresentação',
     color: 'text-orange-600',
     bgColor: 'bg-orange-500',
     description: 'Reunião de apresentação do pacote jurídico agendada, aguardando realização.',
@@ -221,8 +221,8 @@ export const journeyPhasesDetailed: PhaseDetail[] = [
   },
   {
     id: 'Continuo',
-    name: 'Acompanhamento contínuo',
-    label: 'Acompanhamento contínuo',
+    name: '5. Acompanhamento contínuo',
+    label: '5. Acompanhamento contínuo',
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-500',
     description: 'Fase contínua de suporte, consultoria e acompanhamento preventivo do cliente.',
