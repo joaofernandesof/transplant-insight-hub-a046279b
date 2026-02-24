@@ -27,7 +27,7 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react';
-import { format, parseISO, differenceInDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
+import { format, parseISO, differenceInDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, subDays, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SurgeryWeekTable } from '../components/SurgeryWeekTable';
 import { SurgeryDetailDialog } from '../components/SurgeryDetailDialog';
@@ -95,6 +95,10 @@ export default function ClinicDashboard() {
     switch (selectedPeriod) {
       case 'all':
         return null;
+      case 'yesterday': {
+        const y = subDays(now, 1);
+        return { start: y, end: y };
+      }
       case 'today':
         return { start: now, end: now };
       case 'this-week': {
@@ -125,6 +129,7 @@ export default function ClinicDashboard() {
       const to = format(periodRange.end, 'dd MMM', { locale: ptBR });
       const labels: Record<string, string> = {
         'all': 'Todo o Período',
+        'yesterday': 'Ontem',
         'today': 'Hoje',
         'this-week': 'Esta Semana',
         'this-month': 'Este Mês',
@@ -316,6 +321,7 @@ export default function ClinicDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todo o Período</SelectItem>
+                  <SelectItem value="yesterday">Ontem</SelectItem>
                   <SelectItem value="today">Hoje</SelectItem>
                   <SelectItem value="this-week">Esta Semana</SelectItem>
                   <SelectItem value="this-month">Este Mês</SelectItem>
@@ -455,6 +461,7 @@ export default function ClinicDashboard() {
                 <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
                   {[
                     { value: 'all', label: 'Todo Período' },
+                    { value: 'yesterday', label: 'Ontem' },
                     { value: 'today', label: 'Hoje' },
                     { value: 'this-week', label: 'Semana' },
                     { value: 'this-month', label: 'Mês' },
