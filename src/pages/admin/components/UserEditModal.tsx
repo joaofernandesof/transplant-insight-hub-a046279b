@@ -190,12 +190,65 @@ export function UserEditModal({
 
       // Update user role if changed
       if (selectedRole !== userRole) {
+        // 1. Update user_roles table
         const { error: roleError } = await supabase
           .from('user_roles')
           .update({ role: selectedRole as 'admin' | 'licensee' | 'colaborador' | 'aluno' | 'paciente' })
           .eq('user_id', user.user_id);
 
         if (roleError) throw roleError;
+
+        // 2. Update neohub_user_profiles (the actual permission system)
+        // Map app_role to neohub_profile
+        const roleToProfileMap: Record<string, string> = {
+          admin: 'administrador',
+          licensee: 'licenciado',
+          colaborador: 'colaborador',
+          aluno: 'aluno',
+          paciente: 'paciente',
+        };
+
+        const oldProfile = roleToProfileMap[userRole] || userRole;
+        const newProfile = roleToProfileMap[selectedRole] || selectedRole;
+
+        // Get neohub_user_id
+        const { data: neohubUser } = await supabase
+          .from('neohub_users')
+          .select('id')
+          .eq('user_id', user.user_id)
+          .single();
+
+        if (neohubUser) {
+          // Deactivate old profile
+          await supabase
+            .from('neohub_user_profiles')
+            .update({ is_active: false })
+            .eq('neohub_user_id', neohubUser.id)
+            .eq('profile', oldProfile as any);
+
+          // Upsert new profile (insert or reactivate)
+          const { data: existingProfile } = await supabase
+            .from('neohub_user_profiles')
+            .select('id')
+            .eq('neohub_user_id', neohubUser.id)
+            .eq('profile', newProfile as any)
+            .maybeSingle();
+
+          if (existingProfile) {
+            await supabase
+              .from('neohub_user_profiles')
+              .update({ is_active: true })
+              .eq('id', existingProfile.id);
+          } else {
+            await supabase
+              .from('neohub_user_profiles')
+              .insert({
+                neohub_user_id: neohubUser.id,
+                profile: newProfile as any,
+                is_active: true,
+              });
+          }
+        }
       }
     },
     onSuccess: () => {
