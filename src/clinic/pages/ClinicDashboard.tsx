@@ -32,6 +32,7 @@ import { ptBR } from 'date-fns/locale';
 import { SurgeryWeekTable } from '../components/SurgeryWeekTable';
 import { SurgeryDetailDialog } from '../components/SurgeryDetailDialog';
 import { NoDateRiskQueue } from '../components/NoDateRiskQueue';
+import { NoDateTab } from '../components/NoDateTab';
 import type { DateRange } from 'react-day-picker';
 
 // D-XX filter definitions
@@ -58,6 +59,7 @@ export default function ClinicDashboard() {
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeDFilters, setActiveDFilters] = useState<Set<DFilter>>(new Set());
+  const [activeTab, setActiveTab] = useState<'agenda' | 'sem-data'>('agenda');
 
   const canFilterBranch = isAdmin || isGestao;
 
@@ -276,177 +278,55 @@ export default function ClinicDashboard() {
               <Stethoscope className="h-5 w-5 text-primary" />
               Agenda Cirúrgica
             </h1>
-            <p className="text-muted-foreground text-xs mt-0.5">{periodLabel}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={selectedPeriod} onValueChange={(v) => { setSelectedPeriod(v); if (v !== 'custom') setDateRange(undefined); }}>
-              <SelectTrigger className="w-[150px] h-8 text-xs">
-                <Clock className="h-3.5 w-3.5 mr-1.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todo o Período</SelectItem>
-                <SelectItem value="today">Hoje</SelectItem>
-                <SelectItem value="this-week">Esta Semana</SelectItem>
-                <SelectItem value="this-month">Este Mês</SelectItem>
-                <SelectItem value="next-month">Próximo Mês</SelectItem>
-                <SelectItem value="custom">Personalizado</SelectItem>
-              </SelectContent>
-            </Select>
-            {selectedPeriod === 'custom' && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn('h-8 text-xs', !dateRange?.from && 'text-muted-foreground')}>
-                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                    {dateRange?.from
-                      ? dateRange.to
-                        ? `${format(dateRange.from, 'dd/MM')} — ${format(dateRange.to, 'dd/MM')}`
-                        : format(dateRange.from, 'dd/MM/yyyy')
-                      : 'Intervalo'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <CalendarPicker
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={2}
-                    locale={ptBR}
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-        </div>
-
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <Card className="border-l-4 border-l-primary">
-            <CardContent className="p-2.5">
-              <p className="text-[11px] text-muted-foreground font-medium">Total Agendadas</p>
-              <p className="text-xl font-bold mt-0.5">{kpiStats.total}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-emerald-500">
-            <CardContent className="p-2.5">
-              <p className="text-[11px] text-muted-foreground font-medium">Confirmadas</p>
-              <div className="flex items-baseline gap-2">
-                <p className="text-xl font-bold text-emerald-600">{kpiStats.confirmed}</p>
-                <span className="text-[11px] text-muted-foreground">{kpiStats.confirmationRate}%</span>
-              </div>
-              <Progress value={kpiStats.confirmationRate} className="h-1 mt-1" />
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-amber-500">
-            <CardContent className="p-2.5">
-              <p className="text-[11px] text-muted-foreground font-medium">Exames Pendentes</p>
-              <p className="text-xl font-bold text-amber-600">{kpiStats.pendingExams}</p>
-              {kpiStats.pendingExams > 0 && (
-                <p className="text-[10px] text-amber-600 font-semibold mt-0.5">⚠ Ação necessária</p>
-              )}
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-blue-500">
-            <CardContent className="p-2.5">
-              <p className="text-[11px] text-muted-foreground font-medium">Termos Assinados</p>
-              <div className="flex items-baseline gap-2">
-                <p className="text-xl font-bold text-blue-600">{kpiStats.contractsSigned}</p>
-                <span className="text-[11px] text-muted-foreground">{kpiStats.contractRate}%</span>
-              </div>
-              <Progress value={kpiStats.contractRate} className="h-1 mt-1" />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Financial Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5">
-            <CardContent className="p-2.5">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <DollarSign className="h-3.5 w-3.5 text-emerald-600" />
-                <span className="text-[11px] text-muted-foreground font-medium">VGV Total</span>
-              </div>
-              <p className="text-lg font-bold text-emerald-600">{formatCurrency(kpiStats.totalVgv)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-2.5">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <TrendingUp className="h-3.5 w-3.5 text-purple-600" />
-                <span className="text-[11px] text-muted-foreground font-medium">Upgrades</span>
-              </div>
-              <p className="text-lg font-bold text-purple-600">{formatCurrency(kpiStats.totalUpgrade)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-2.5">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
-                <span className="text-[11px] text-muted-foreground font-medium">Upsells</span>
-              </div>
-              <p className="text-lg font-bold text-blue-600">{formatCurrency(kpiStats.totalUpsell)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-2.5">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                <span className="text-[11px] text-muted-foreground font-medium">Recebido</span>
-              </div>
-              <p className="text-lg font-bold text-green-600">{formatCurrency(kpiStats.totalReceived)}</p>
-              <Progress value={kpiStats.paymentProgress} className="h-1 mt-1" />
-            </CardContent>
-          </Card>
-          <Card className={cn(kpiStats.totalBalanceDue > 0 && 'border-l-4 border-l-red-500')}>
-            <CardContent className="p-2.5">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <Clock className="h-3.5 w-3.5 text-red-600" />
-                <span className="text-[11px] text-muted-foreground font-medium">Saldo Devedor</span>
-              </div>
-              <p className={cn('text-lg font-bold', kpiStats.totalBalanceDue > 0 ? 'text-red-600' : 'text-green-600')}>
-                {formatCurrency(kpiStats.totalBalanceDue)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search + Quick Filters + D-XX */}
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Buscar paciente, prontuário, acompanhante..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 h-8 text-sm"
-              />
+            {/* Tabs */}
+            <div className="flex gap-1 mt-1.5">
+              <button
+                onClick={() => setActiveTab('agenda')}
+                className={cn(
+                  'text-xs font-medium px-3 py-1 rounded-md transition-colors',
+                  activeTab === 'agenda'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                Agenda
+              </button>
+              <button
+                onClick={() => setActiveTab('sem-data')}
+                className={cn(
+                  'text-xs font-medium px-3 py-1 rounded-md transition-colors flex items-center gap-1.5',
+                  activeTab === 'sem-data'
+                    ? 'bg-destructive text-destructive-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                🔴 Sem Data Definida
+                {noDateStats.total > 0 && (
+                  <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{noDateStats.total}</Badge>
+                )}
+              </button>
             </div>
-            {/* Quick period buttons */}
-            <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
-              {[
-                { value: 'all', label: 'Todo Período' },
-                { value: 'today', label: 'Hoje' },
-                { value: 'this-week', label: 'Semana' },
-                { value: 'this-month', label: 'Mês' },
-                { value: 'next-month', label: 'Próximo' },
-                { value: 'custom', label: 'Personalizado' },
-              ].map((opt) => (
-                <Button
-                  key={opt.value}
-                  variant={selectedPeriod === opt.value ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => { setSelectedPeriod(opt.value); if (opt.value !== 'custom') setDateRange(undefined); }}
-                  className={cn('text-xs h-7 px-2.5', selectedPeriod === opt.value && 'bg-background shadow-sm')}
-                >
-                  {opt.label}
-                </Button>
-              ))}
+          </div>
+          {activeTab === 'agenda' && (
+            <div className="flex items-center gap-2">
+              <Select value={selectedPeriod} onValueChange={(v) => { setSelectedPeriod(v); if (v !== 'custom') setDateRange(undefined); }}>
+                <SelectTrigger className="w-[150px] h-8 text-xs">
+                  <Clock className="h-3.5 w-3.5 mr-1.5" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todo o Período</SelectItem>
+                  <SelectItem value="today">Hoje</SelectItem>
+                  <SelectItem value="this-week">Esta Semana</SelectItem>
+                  <SelectItem value="this-month">Este Mês</SelectItem>
+                  <SelectItem value="next-month">Próximo Mês</SelectItem>
+                  <SelectItem value="custom">Personalizado</SelectItem>
+                </SelectContent>
+              </Select>
               {selectedPeriod === 'custom' && (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className={cn('h-7 text-xs', !dateRange?.from && 'text-muted-foreground')}>
+                    <Button variant="outline" size="sm" className={cn('h-8 text-xs', !dateRange?.from && 'text-muted-foreground')}>
                       <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
                       {dateRange?.from
                         ? dateRange.to
@@ -468,98 +348,250 @@ export default function ClinicDashboard() {
                 </Popover>
               )}
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* D-XX Filter Chips */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] text-muted-foreground font-medium mr-1">Preparo:</span>
-            {D_FILTERS.map((d) => (
-              <Button
-                key={d.value}
-                variant={activeDFilters.has(d.value) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => toggleDFilter(d.value)}
-                className={cn(
-                  'h-6 px-2 text-[11px] rounded-full',
-                  activeDFilters.has(d.value) && 'bg-primary text-primary-foreground'
+        {activeTab === 'agenda' && (
+          <>
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <Card className="border-l-4 border-l-primary">
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium">Total Agendadas</p>
+                  <p className="text-xl font-bold mt-0.5">{kpiStats.total}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-emerald-500">
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium">Confirmadas</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-xl font-bold mt-0.5 text-emerald-600">{kpiStats.confirmed}</p>
+                    <span className="text-xs text-muted-foreground">{kpiStats.confirmationRate}%</span>
+                  </div>
+                  <Progress value={kpiStats.confirmationRate} className="h-1 mt-1" />
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-amber-500">
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium">Exames Pendentes</p>
+                  <p className="text-xl font-bold mt-0.5">{kpiStats.pendingExams}</p>
+                  {kpiStats.pendingExams > 0 && (
+                    <p className="text-[10px] text-amber-600 flex items-center gap-1 mt-0.5">
+                      <AlertTriangle className="h-3 w-3" /> Ação necessária
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-blue-500">
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium">Termos Assinados</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-xl font-bold mt-0.5 text-blue-600">{kpiStats.contractsSigned}</p>
+                    <span className="text-xs text-muted-foreground">{kpiStats.contractRate}%</span>
+                  </div>
+                  <Progress value={kpiStats.contractRate} className="h-1 mt-1" />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Financial KPIs */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              <Card className="border-l-4 border-l-emerald-600">
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                    <DollarSign className="h-3 w-3" /> VGV Total
+                  </p>
+                  <p className="text-lg font-bold mt-0.5 text-emerald-600">{formatCurrency(kpiStats.totalVgv)}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" /> Upgrades
+                  </p>
+                  <p className="text-lg font-bold mt-0.5">{formatCurrency(kpiStats.totalUpgrade)}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" /> Upsells
+                  </p>
+                  <p className="text-lg font-bold mt-0.5">{formatCurrency(kpiStats.totalUpsell)}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-emerald-500">
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" /> Recebido
+                  </p>
+                  <p className="text-lg font-bold mt-0.5 text-emerald-600">{formatCurrency(kpiStats.totalReceived)}</p>
+                  <Progress value={kpiStats.paymentProgress} className="h-1 mt-1" />
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-destructive">
+                <CardContent className="p-2.5">
+                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> Saldo Devedor
+                  </p>
+                  <p className="text-lg font-bold mt-0.5 text-destructive">{formatCurrency(kpiStats.totalBalanceDue)}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Search + Quick Filters */}
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar paciente, prontuário, acompanhante..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 h-8 text-sm"
+                  />
+                </div>
+                {/* Quick period buttons */}
+                <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
+                  {[
+                    { value: 'all', label: 'Todo Período' },
+                    { value: 'today', label: 'Hoje' },
+                    { value: 'this-week', label: 'Semana' },
+                    { value: 'this-month', label: 'Mês' },
+                    { value: 'next-month', label: 'Próximo' },
+                    { value: 'custom', label: 'Personalizado' },
+                  ].map((opt) => (
+                    <Button
+                      key={opt.value}
+                      variant={selectedPeriod === opt.value ? 'secondary' : 'ghost'}
+                      size="sm"
+                      onClick={() => { setSelectedPeriod(opt.value); if (opt.value !== 'custom') setDateRange(undefined); }}
+                      className={cn('text-xs h-7 px-2.5', selectedPeriod === opt.value && 'bg-background shadow-sm')}
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                  {selectedPeriod === 'custom' && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className={cn('h-7 text-xs', !dateRange?.from && 'text-muted-foreground')}>
+                          <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                          {dateRange?.from
+                            ? dateRange.to
+                              ? `${format(dateRange.from, 'dd/MM')} — ${format(dateRange.to, 'dd/MM')}`
+                              : format(dateRange.from, 'dd/MM/yyyy')
+                            : 'Intervalo'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <CalendarPicker
+                          mode="range"
+                          selected={dateRange}
+                          onSelect={setDateRange}
+                          numberOfMonths={2}
+                          locale={ptBR}
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
+              </div>
+
+              {/* D-XX Filter Chips */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] text-muted-foreground font-medium mr-1">Preparo:</span>
+                {D_FILTERS.map((d) => (
+                  <Button
+                    key={d.value}
+                    variant={activeDFilters.has(d.value) ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => toggleDFilter(d.value)}
+                    className={cn(
+                      'h-6 px-2 text-[11px] rounded-full',
+                      activeDFilters.has(d.value) && 'bg-primary text-primary-foreground'
+                    )}
+                  >
+                    {d.label}
+                  </Button>
+                ))}
+                {activeDFilters.size > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearDFilters}
+                    className="h-6 px-2 text-[11px] gap-1 text-muted-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                    Limpar
+                  </Button>
                 )}
-              >
-                {d.label}
-              </Button>
-            ))}
-            {activeDFilters.size > 0 && (
+              </div>
+            </div>
+
+            {/* Branch Filter */}
+            <div className="flex justify-center gap-1.5 flex-wrap">
               <Button
-                variant="ghost"
+                variant={selectedBranch === 'all' ? 'default' : 'outline'}
                 size="sm"
-                onClick={clearDFilters}
-                className="h-6 px-2 text-[11px] gap-1 text-muted-foreground"
+                onClick={() => setSelectedBranch('all')}
+                className="gap-1 h-7 text-xs"
               >
-                <X className="h-3 w-3" />
-                Limpar
+                <MapPin className="h-3 w-3" />
+                Todas
               </Button>
+              {branchOptions.map((b) => (
+                <Button
+                  key={b}
+                  variant={selectedBranch === b ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedBranch(b)}
+                  className="gap-1 h-7 text-xs"
+                >
+                  <MapPin className="h-3 w-3" />
+                  {b}
+                </Button>
+              ))}
+            </div>
+
+            {/* No-date alert banner */}
+            {noDateStats.total > 0 && (
+              <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs cursor-pointer" onClick={() => setActiveTab('sem-data')}>
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                <span className="text-amber-800 dark:text-amber-300 font-medium">
+                  {noDateStats.total} vendido{noDateStats.total > 1 ? 's' : ''} sem data
+                  {noDateStats.over60 > 0 && <span className="text-destructive ml-1">({noDateStats.over60} há +60 dias)</span>}
+                  {noDateStats.over60 === 0 && noDateStats.over30 > 0 && <span className="text-amber-600 ml-1">({noDateStats.over30} há +30 dias)</span>}
+                </span>
+              </div>
             )}
-          </div>
-        </div>
-
-        {/* Branch Filter */}
-        <div className="flex justify-center gap-1.5 flex-wrap">
-          <Button
-            variant={selectedBranch === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedBranch('all')}
-            className="gap-1 h-7 text-xs"
-          >
-            <MapPin className="h-3 w-3" />
-            Todas
-          </Button>
-          {branchOptions.map((b) => (
-            <Button
-              key={b}
-              variant={selectedBranch === b ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedBranch(b)}
-              className="gap-1 h-7 text-xs"
-            >
-              <MapPin className="h-3 w-3" />
-              {b}
-            </Button>
-          ))}
-        </div>
-
-        {/* No-date alert banner */}
-        {noDateStats.total > 0 && (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs">
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-            <span className="text-amber-800 dark:text-amber-300 font-medium">
-              {noDateStats.total} vendido{noDateStats.total > 1 ? 's' : ''} sem data
-              {noDateStats.over60 > 0 && <span className="text-destructive ml-1">({noDateStats.over60} há +60 dias)</span>}
-              {noDateStats.over60 === 0 && noDateStats.over30 > 0 && <span className="text-amber-600 ml-1">({noDateStats.over30} há +30 dias)</span>}
-            </span>
-          </div>
+          </>
         )}
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-4 pb-6 space-y-4">
-        {/* No Date Risk Queue */}
-        <NoDateRiskQueue
-          surgeries={filteredNoDate}
-          onSetDate={handleSetDate}
-        />
-
-        {/* Surgery Table */}
-        <SurgeryWeekTable
-          surgeries={filteredSurgeries}
-          onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-          title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
-        />
-
-        <SurgeryDetailDialog
-          surgery={selectedPendingSurgery}
-          open={!!selectedPendingSurgery}
-          onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
-          onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-        />
+        {activeTab === 'agenda' ? (
+          <>
+            <NoDateRiskQueue
+              surgeries={filteredNoDate}
+              onSetDate={handleSetDate}
+            />
+            <SurgeryWeekTable
+              surgeries={filteredSurgeries}
+              onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+              title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
+            />
+            <SurgeryDetailDialog
+              surgery={selectedPendingSurgery}
+              open={!!selectedPendingSurgery}
+              onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
+              onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
+            />
+          </>
+        ) : (
+          <NoDateTab />
+        )}
       </div>
     </div>
   );
