@@ -26,6 +26,7 @@ import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
+import { TaskDetailDialog } from "./tasks/TaskDetailDialog";
 
 interface Task {
   id: string;
@@ -84,6 +85,7 @@ export function WorkspaceTaskList() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['workspace-tasks'],
@@ -204,16 +206,12 @@ export function WorkspaceTaskList() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <a 
-                          href="#" 
-                          className="text-sm font-medium text-foreground hover:text-primary hover:underline truncate"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            navigate('/cpg/legal');
-                          }}
+                        <button 
+                          className="text-sm font-medium text-foreground hover:text-primary hover:underline truncate text-left"
+                          onClick={() => setSelectedTask(task)}
                         >
                           {task.title}
-                        </a>
+                        </button>
                         {isOverdue && (
                           <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
                         )}
@@ -256,6 +254,11 @@ export function WorkspaceTaskList() {
         queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
         setShowCreateDialog(false);
       }}
+    />
+    <TaskDetailDialog
+      task={selectedTask}
+      open={!!selectedTask}
+      onOpenChange={(open) => !open && setSelectedTask(null)}
     />
     </>
   );
