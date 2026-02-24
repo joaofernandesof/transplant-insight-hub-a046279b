@@ -89,63 +89,63 @@ export interface Task {
   subtasks_completed?: number;
 }
 
-const statusColumns: { id: TaskStatus; label: string; headerColor: string; headerText: string; borderColor: string; cardBorder: string; countBg: string; countText: string; emptyBg: string }[] = [
+const statusColumns: { id: TaskStatus; label: string; headerBg: string; headerText: string; cardBorder: string; countBg: string; countText: string; columnBg: string; dotColor: string }[] = [
   {
     id: "todo",
     label: "A Fazer",
-    headerColor: "bg-amber-50 dark:bg-amber-950/30",
-    headerText: "text-amber-700 dark:text-amber-400",
-    borderColor: "border-b-amber-400",
-    cardBorder: "border-l-amber-400",
-    countBg: "bg-amber-100 dark:bg-amber-900/50",
-    countText: "text-amber-700 dark:text-amber-300",
-    emptyBg: "bg-amber-50/50 dark:bg-amber-950/10",
+    headerBg: "bg-amber-500",
+    headerText: "text-white",
+    cardBorder: "border-l-amber-500",
+    countBg: "bg-white/25",
+    countText: "text-white",
+    columnBg: "bg-amber-50/60 dark:bg-amber-950/20",
+    dotColor: "bg-amber-500",
   },
   {
     id: "in_progress",
     label: "Em Andamento",
-    headerColor: "bg-orange-50 dark:bg-orange-950/30",
-    headerText: "text-orange-700 dark:text-orange-400",
-    borderColor: "border-b-orange-400",
-    cardBorder: "border-l-orange-400",
-    countBg: "bg-orange-100 dark:bg-orange-900/50",
-    countText: "text-orange-700 dark:text-orange-300",
-    emptyBg: "bg-orange-50/50 dark:bg-orange-950/10",
+    headerBg: "bg-blue-500",
+    headerText: "text-white",
+    cardBorder: "border-l-blue-500",
+    countBg: "bg-white/25",
+    countText: "text-white",
+    columnBg: "bg-blue-50/60 dark:bg-blue-950/20",
+    dotColor: "bg-blue-500",
   },
   {
     id: "in_review",
     label: "Em Revisão",
-    headerColor: "bg-sky-50 dark:bg-sky-950/30",
-    headerText: "text-sky-700 dark:text-sky-400",
-    borderColor: "border-b-sky-400",
-    cardBorder: "border-l-sky-400",
-    countBg: "bg-sky-100 dark:bg-sky-900/50",
-    countText: "text-sky-700 dark:text-sky-300",
-    emptyBg: "bg-sky-50/50 dark:bg-sky-950/10",
+    headerBg: "bg-violet-500",
+    headerText: "text-white",
+    cardBorder: "border-l-violet-500",
+    countBg: "bg-white/25",
+    countText: "text-white",
+    columnBg: "bg-violet-50/60 dark:bg-violet-950/20",
+    dotColor: "bg-violet-500",
   },
   {
     id: "done",
     label: "Concluído",
-    headerColor: "bg-emerald-50 dark:bg-emerald-950/30",
-    headerText: "text-emerald-700 dark:text-emerald-400",
-    borderColor: "border-b-emerald-400",
-    cardBorder: "border-l-emerald-400",
-    countBg: "bg-emerald-100 dark:bg-emerald-900/50",
-    countText: "text-emerald-700 dark:text-emerald-300",
-    emptyBg: "bg-emerald-50/50 dark:bg-emerald-950/10",
+    headerBg: "bg-emerald-500",
+    headerText: "text-white",
+    cardBorder: "border-l-emerald-500",
+    countBg: "bg-white/25",
+    countText: "text-white",
+    columnBg: "bg-emerald-50/60 dark:bg-emerald-950/20",
+    dotColor: "bg-emerald-500",
   },
 ];
 
 const priorityConfig = {
-  1: { label: "Baixa", color: "text-slate-500", bgColor: "bg-slate-100 dark:bg-slate-800", solidBg: "bg-slate-500" },
-  2: { label: "Média", color: "text-amber-600", bgColor: "bg-amber-100 dark:bg-amber-900/50", solidBg: "bg-amber-500" },
-  3: { label: "Alta", color: "text-rose-600", bgColor: "bg-rose-100 dark:bg-rose-900/50", solidBg: "bg-rose-500" },
+  1: { label: "Baixa", color: "text-slate-600", bgColor: "bg-slate-100 dark:bg-slate-800", solidBg: "bg-slate-400" },
+  2: { label: "Média", color: "text-amber-700", bgColor: "bg-amber-100 dark:bg-amber-900/50", solidBg: "bg-amber-500" },
+  3: { label: "Alta", color: "text-rose-700", bgColor: "bg-rose-100 dark:bg-rose-900/50", solidBg: "bg-rose-500" },
 };
 
 const statusConfig = {
-  todo: { label: "A Fazer", bgColor: "bg-slate-500", textColor: "text-white", lightBg: "bg-slate-50", dotColor: "bg-slate-500" },
+  todo: { label: "A Fazer", bgColor: "bg-amber-500", textColor: "text-white", lightBg: "bg-amber-50", dotColor: "bg-amber-500" },
   in_progress: { label: "Em Andamento", bgColor: "bg-blue-500", textColor: "text-white", lightBg: "bg-blue-50", dotColor: "bg-blue-500" },
-  in_review: { label: "Em Revisão", bgColor: "bg-amber-500", textColor: "text-white", lightBg: "bg-amber-50", dotColor: "bg-amber-500" },
+  in_review: { label: "Em Revisão", bgColor: "bg-violet-500", textColor: "text-white", lightBg: "bg-violet-50", dotColor: "bg-violet-500" },
   done: { label: "Concluído", bgColor: "bg-emerald-500", textColor: "text-white", lightBg: "bg-emerald-50", dotColor: "bg-emerald-500" },
 };
 
@@ -294,7 +294,7 @@ export default function IpromedTasks() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-            <Button onClick={() => { setEditingTask(null); setIsFormOpen(true); }} className="gap-2">
+            <Button onClick={() => { setEditingTask(null); setIsFormOpen(true); }} className="gap-2 rounded-xl shadow-md">
               <Plus className="h-4 w-4" />
               Nova Tarefa
             </Button>
@@ -304,25 +304,29 @@ export default function IpromedTasks() {
 
       {/* Stats Bar + Filters */}
       <div className="pb-4 flex-shrink-0">
-        <div className="flex flex-wrap items-center gap-4 p-3 bg-muted/40 rounded-xl border">
-          {/* Inline stats */}
-          <div className="flex items-center gap-4 mr-2">
-            <span className="flex items-center gap-1.5 text-sm">
-              <span className="text-xl font-bold">{stats.todo}</span>
-              <span className="text-muted-foreground">A Fazer</span>
-            </span>
-            <span className="flex items-center gap-1.5 text-sm">
-              <span className="text-xl font-bold text-orange-600">{stats.in_progress}</span>
-              <span className="text-muted-foreground">Em Andamento</span>
-            </span>
-            <span className="flex items-center gap-1.5 text-sm">
-              <span className="text-xl font-bold text-emerald-600">{stats.done}</span>
-              <span className="text-muted-foreground">Concluído</span>
-            </span>
-            <span className="flex items-center gap-1.5 text-sm">
-              <span className="text-xl font-bold text-sky-600">{stats.in_review}</span>
-              <span className="text-muted-foreground">Em Revisão</span>
-            </span>
+        <div className="flex flex-wrap items-center gap-3 p-3 bg-background rounded-2xl border shadow-sm">
+          {/* Inline stats as pills */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/40">
+              <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+              <span className="text-sm font-bold text-amber-700 dark:text-amber-300">{stats.todo}</span>
+              <span className="text-xs text-amber-600/80 dark:text-amber-400/80 hidden sm:inline">A Fazer</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/40">
+              <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+              <span className="text-sm font-bold text-blue-700 dark:text-blue-300">{stats.in_progress}</span>
+              <span className="text-xs text-blue-600/80 dark:text-blue-400/80 hidden sm:inline">Andamento</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-100 dark:bg-violet-900/40">
+              <div className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+              <span className="text-sm font-bold text-violet-700 dark:text-violet-300">{stats.in_review}</span>
+              <span className="text-xs text-violet-600/80 dark:text-violet-400/80 hidden sm:inline">Revisão</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40">
+              <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{stats.done}</span>
+              <span className="text-xs text-emerald-600/80 dark:text-emerald-400/80 hidden sm:inline">Concluído</span>
+            </div>
           </div>
 
           <div className="h-6 w-px bg-border hidden md:block" />
@@ -334,13 +338,13 @@ export default function IpromedTasks() {
               placeholder="Buscar tarefas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-background h-9"
+              className="pl-9 h-9 rounded-xl"
             />
           </div>
 
           {/* Priority filter */}
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-[120px] bg-background h-9">
+            <SelectTrigger className="w-[120px] h-9 rounded-xl">
               <Filter className="h-3.5 w-3.5 mr-1" />
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
@@ -354,7 +358,7 @@ export default function IpromedTasks() {
 
           {/* Sort */}
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[140px] bg-background h-9">
+            <SelectTrigger className="w-[140px] h-9 rounded-xl">
               <ArrowUpDown className="h-3.5 w-3.5 mr-1" />
               <SelectValue />
             </SelectTrigger>
@@ -374,27 +378,28 @@ export default function IpromedTasks() {
           </div>
         ) : viewMode === "kanban" ? (
           /* ===== KANBAN VIEW ===== */
-          <div className="h-full overflow-x-auto">
-            <div className="flex gap-4 h-full min-w-max pb-2">
+          <div className="h-full">
+            <div className="grid grid-cols-4 gap-4 h-full">
               {statusColumns.map((column) => {
                 const columnTasks = tasksByStatus[column.id] || [];
 
                 return (
-                  <div key={column.id} className="w-[300px] flex-shrink-0 flex flex-col h-full">
+                  <div key={column.id} className="flex flex-col h-full min-w-0 rounded-2xl overflow-hidden border shadow-sm">
                     {/* Column Header */}
-                    <div className={cn("px-4 py-3 rounded-t-lg border-b-2 flex items-center justify-between", column.headerColor, column.borderColor)}>
+                    <div className={cn("px-4 py-3 flex items-center justify-between", column.headerBg)}>
                       <span className={cn("font-semibold text-sm", column.headerText)}>{column.label}</span>
-                      <Badge variant="secondary" className={cn("font-bold text-xs", column.countBg, column.countText)}>
+                      <Badge className={cn("font-bold text-xs rounded-full h-6 min-w-6 flex items-center justify-center", column.countBg, column.countText)}>
                         {columnTasks.length}
                       </Badge>
                     </div>
 
                     {/* Column Body */}
                     <ScrollArea className="flex-1 min-h-0">
-                      <div className={cn("p-2 space-y-2 min-h-[200px]", column.emptyBg)}>
+                      <div className={cn("p-3 space-y-3 min-h-[200px]", column.columnBg)}>
                         {columnTasks.length === 0 ? (
-                          <div className="flex items-center justify-center h-[200px] text-sm text-muted-foreground">
-                            Arraste tarefas aqui
+                          <div className="flex flex-col items-center justify-center h-[200px] text-sm text-muted-foreground gap-1">
+                            <CheckSquare className="h-8 w-8 text-muted-foreground/30" />
+                            <span>Nenhuma tarefa</span>
                           </div>
                         ) : (
                           columnTasks.map((task) => (
@@ -414,7 +419,7 @@ export default function IpromedTasks() {
 
                     {/* Add task button */}
                     <button
-                      className="flex items-center justify-center gap-1.5 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors border-t"
+                      className="flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-t bg-background"
                       onClick={() => { setEditingTask(null); setIsFormOpen(true); }}
                     >
                       <Plus className="h-4 w-4" />
@@ -552,33 +557,35 @@ function TaskCard({
   return (
     <div
       className={cn(
-        "bg-background rounded-lg border border-l-4 p-3 cursor-pointer hover:shadow-md transition-all group",
+        "bg-background rounded-xl border border-l-4 p-3.5 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group",
         columnConfig.cardBorder,
-        dueDateInfo?.isOverdue && "ring-1 ring-rose-300 dark:ring-rose-800"
+        dueDateInfo?.isOverdue && "ring-2 ring-rose-400/50 dark:ring-rose-700/50"
       )}
       onClick={onView}
     >
-      {/* Grip + Title row */}
+      {/* Title row */}
       <div className="flex items-start gap-2">
-        <GripVertical className="h-4 w-4 text-muted-foreground/40 mt-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
         <div className="flex-1 min-w-0">
           {dueDateInfo?.isOverdue && (
-            <div className="flex items-center gap-1 text-[11px] text-rose-600 font-medium mb-1">
-              <AlertTriangle className="h-3 w-3" />
+            <div className="flex items-center gap-1 text-[11px] text-rose-600 font-semibold mb-1.5">
+              <AlertTriangle className="h-3.5 w-3.5" />
               Atrasada
             </div>
           )}
           <p className={cn(
-            "font-medium text-sm line-clamp-2",
+            "font-semibold text-sm line-clamp-2",
             task.status === "done" && "line-through text-muted-foreground"
           )}>
             {task.title}
           </p>
+          {task.description && (
+            <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{task.description}</p>
+          )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 flex-shrink-0">
-              <MoreVertical className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 flex-shrink-0 rounded-lg">
+              <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -596,11 +603,11 @@ function TaskCard({
         </DropdownMenu>
       </div>
 
-      {/* Footer: date + priority */}
-      <div className="flex items-center gap-2 mt-2.5">
+      {/* Footer: date + priority + assignee */}
+      <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-dashed">
         {dueDateInfo && (
           <div className={cn(
-            "flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded",
+            "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg",
             dueDateInfo.isOverdue
               ? "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300"
               : dueDateInfo.isDueToday
@@ -612,13 +619,13 @@ function TaskCard({
           </div>
         )}
         {priorityCfg && (
-          <div className={cn("flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded", priorityCfg.bgColor, priorityCfg.color)}>
+          <div className={cn("flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg", priorityCfg.bgColor, priorityCfg.color)}>
             <Flag className="h-3 w-3" />
             {priorityCfg.label}
           </div>
         )}
         {task.assigned_to_name && (
-          <span className="ml-auto text-[11px] text-muted-foreground truncate max-w-[80px]">
+          <span className="ml-auto text-[11px] font-medium text-muted-foreground truncate max-w-[90px]">
             {task.assigned_to_name.split(" ")[0]}
           </span>
         )}
