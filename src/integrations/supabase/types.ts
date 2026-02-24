@@ -17897,7 +17897,7 @@ export type Database = {
           referral_bonus: number | null
           remaining_paid: number | null
           scheduling_form: boolean | null
-          surgery_date: string
+          surgery_date: string | null
           surgery_time: string | null
           tipo_agendamento: string | null
           trichotomy_datetime: string | null
@@ -17942,7 +17942,7 @@ export type Database = {
           referral_bonus?: number | null
           remaining_paid?: number | null
           scheduling_form?: boolean | null
-          surgery_date: string
+          surgery_date?: string | null
           surgery_time?: string | null
           tipo_agendamento?: string | null
           trichotomy_datetime?: string | null
@@ -17987,7 +17987,7 @@ export type Database = {
           referral_bonus?: number | null
           remaining_paid?: number | null
           scheduling_form?: boolean | null
-          surgery_date?: string
+          surgery_date?: string | null
           surgery_time?: string | null
           tipo_agendamento?: string | null
           trichotomy_datetime?: string | null
