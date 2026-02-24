@@ -52,12 +52,26 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
   const [withDate, setWithDate] = useState(defaultWithDate);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const procedures = [
+    'CABELO',
+    'BARBA',
+    'SOBRANCELHA',
+    'CABELO + BARBA',
+    'CABELO + SOBRANCELHA',
+    'SOBRANCELHA + BARBA',
+    'SOBRANCELHA + BARBA + CABELO',
+    'CABELO + BODY HAIR BARBA',
+    'CABELO + BODY HAIR PEITO',
+  ];
+
   const categories = [
-    { value: 'CATEGORIA A', label: 'Cat A - Indicação' },
-    { value: 'CATEGORIA B', label: 'Cat B - Médico da Equipe' },
-    { value: 'CATEGORIA C', label: 'Cat C - Modelo VIP' },
-    { value: 'CATEGORIA D', label: 'Cat D - Modelo Normal' },
-    { value: 'RETOQUE', label: 'Retoque' },
+    { value: 'CATEGORIA A - MÉDICO SÊNIOR', label: 'Cat A - Médico Sênior' },
+    { value: 'CATEGORIA B - MÉDICO DA EQUIPE', label: 'Cat B - Médico da Equipe' },
+    { value: 'CATEGORIA C - PACIENTE MODELO VIP', label: 'Cat C - Modelo VIP' },
+    { value: 'CATEGORIA D - PACIENTE MODELO NORMAL', label: 'Cat D - Modelo Normal' },
+    { value: 'RETOUCHING', label: 'Retouching' },
+    { value: 'A DEFINIR', label: 'A Definir' },
+    { value: 'RETOQUE DE BARBA', label: 'Retoque de Barba' },
   ];
 
   const resetForm = () => {
@@ -168,13 +182,17 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
 
           {/* Procedure */}
           <div className="space-y-1.5">
-            <Label htmlFor="procedure">Procedimento *</Label>
-            <Input
-              id="procedure"
-              value={procedure}
-              onChange={(e) => setProcedure(e.target.value)}
-              placeholder="Ex: Rinoplastia, Lipoaspiração..."
-            />
+            <Label>Procedimento *</Label>
+            <Select value={procedure} onValueChange={setProcedure}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o procedimento" />
+              </SelectTrigger>
+              <SelectContent>
+                {procedures.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Branch */}
