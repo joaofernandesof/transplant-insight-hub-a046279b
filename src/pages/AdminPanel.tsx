@@ -293,6 +293,10 @@ export default function AdminPanel() {
     return userRoles.find(r => r.user_id === userId)?.role || 'licensee';
   };
 
+  const getRoleMeta = (role: AppRole) => {
+    return ACCESS_PROFILES.find(p => p.id === role) || ACCESS_PROFILES[1];
+  };
+
   // Filter and sort users
   const filteredAndSortedUsers = useMemo(() => {
     let result = [...users];
@@ -300,11 +304,14 @@ export default function AdminPanel() {
     // Filter by search term
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      result = result.filter(u => 
-        u.name.toLowerCase().includes(search) ||
-        u.email.toLowerCase().includes(search) ||
-        (u.clinic_name?.toLowerCase().includes(search) ?? false)
-      );
+      result = result.filter(u => {
+        const displayName = (u.full_name || u.name || '').toLowerCase();
+        return (
+          displayName.includes(search) ||
+          u.email.toLowerCase().includes(search) ||
+          (u.clinic_name?.toLowerCase().includes(search) ?? false)
+        );
+      });
     }
     
     // Filter by role
@@ -318,6 +325,10 @@ export default function AdminPanel() {
       let bVal: string | Date;
       
       switch (sortField) {
+        case 'name':
+          aVal = (a.full_name || a.name || '').toLowerCase();
+          bVal = (b.full_name || b.name || '').toLowerCase();
+          break;
         case 'role':
           aVal = getUserRole(a.user_id);
           bVal = getUserRole(b.user_id);
@@ -591,7 +602,10 @@ export default function AdminPanel() {
                     <TableBody>
                       {filteredAndSortedUsers.map((userProfile) => {
                         const role = getUserRole(userProfile.user_id);
+                        const roleMeta = getRoleMeta(role);
+                        const RoleIcon = roleMeta.icon;
                         const isCurrentUser = userProfile.user_id === user?.id;
+                        const displayName = userProfile.full_name || userProfile.name;
                         
                         return (
                           <TableRow key={userProfile.id}>
@@ -600,17 +614,18 @@ export default function AdminPanel() {
                                 <Avatar className="h-8 w-8">
                                   <AvatarImage src={userProfile.avatar_url || undefined} />
                                   <AvatarFallback className="text-xs">
-                                    {getInitials(userProfile.name)}
+                                    {getInitials(displayName)}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium text-sm">{userProfile.name}</span>
+                                    <span className="font-medium text-sm">{displayName}</span>
                                     {isCurrentUser && <Badge variant="outline" className="text-xs">Você</Badge>}
                                   </div>
-                                  {userProfile.city && (
+                                  {(userProfile.address_city || userProfile.city) && (
                                     <span className="text-xs text-muted-foreground">
-                                      {userProfile.city}{userProfile.state && `, ${userProfile.state}`}
+                                      {userProfile.address_city || userProfile.city}
+                                      {(userProfile.address_state || userProfile.state) && `, ${userProfile.address_state || userProfile.state}`}
                                     </span>
                                   )}
                                 </div>
@@ -619,18 +634,9 @@ export default function AdminPanel() {
                             <TableCell className="text-sm">{userProfile.email}</TableCell>
                             <TableCell className="text-sm">{userProfile.clinic_name || '-'}</TableCell>
                             <TableCell>
-                              <Badge className={role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}>
-                                {role === 'admin' ? (
-                                  <>
-                                    <Crown className="h-3 w-3 mr-1" />
-                                    Admin
-                                  </>
-                                ) : (
-                                  <>
-                                    <Shield className="h-3 w-3 mr-1" />
-                                    Licenciado
-                                  </>
-                                )}
+                              <Badge className={roleMeta.color}>
+                                <RoleIcon className="h-3 w-3 mr-1" />
+                                {roleMeta.name}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
