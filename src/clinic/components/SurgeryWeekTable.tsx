@@ -8,6 +8,8 @@ import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { SurgeryDetailDialog } from './SurgeryDetailDialog';
+import { useSurgeryTaskChips } from '../hooks/useSurgeryTaskChips';
+import { SurgeryTaskChips } from './SurgeryTaskChips';
 
 interface SurgeryWeekTableProps {
   surgeries: ClinicSurgery[];
@@ -17,6 +19,8 @@ interface SurgeryWeekTableProps {
 
 export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
+  const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
+  const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
 
   // Group by date
   const grouped = useMemo(() => {
@@ -123,6 +127,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
                             <TableHead className="hidden md:table-cell">Procedimento</TableHead>
                             <TableHead className="hidden lg:table-cell">Grau</TableHead>
                             <TableHead className="hidden md:table-cell">Checklist</TableHead>
+                            <TableHead className="hidden md:table-cell">Tarefas D-X</TableHead>
                             <TableHead className="text-right">Status</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -152,6 +157,11 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
                                     <CheckDot key={item.key} done={!!surgery[item.key]} label={item.label} title={item.title} />
                                   ))}
                                 </div>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell">
+                                {tasksBySurgery.get(surgery.id) && (
+                                  <SurgeryTaskChips tasks={tasksBySurgery.get(surgery.id)!} compact />
+                                )}
                               </TableCell>
                               <TableCell className="text-right">
                                 {surgery.surgeryConfirmed ? (
