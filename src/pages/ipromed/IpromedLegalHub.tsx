@@ -122,10 +122,10 @@ const mockNotifications = [
   { id: 3, title: 'Reunião agendada', description: 'Amanhã às 14h - Dr. Costa', type: 'success' },
 ];
 
-export default function IpromedLegalHub() {
+export default function IpromedLegalHub({ defaultTab = 'overview' }: { defaultTab?: string }) {
   const navigate = useNavigate();
   const { activeTab, setActiveTab } = useTabFromUrl({
-    defaultTab: 'overview',
+    defaultTab,
     validTabs,
   });
   

@@ -44,9 +44,9 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
   const quickActions = [
     { icon: UserPlus, label: "Novo Cliente", route: "/cpg/clients?new=1" },
     { icon: FileSignature, label: "Novo Contrato", route: "/cpg/contracts?new=1" },
-    { icon: FolderPlus, label: "Novo Processo", route: "/cpg/legal?tab=cases&new=1" },
-    { icon: CheckSquare, label: "Nova Tarefa", route: "/cpg/legal?tab=tasks&new=1" },
-    { icon: Calendar, label: "Agendar Reunião", route: "/cpg/legal?tab=agenda&new=1" },
+    { icon: FolderPlus, label: "Novo Processo", route: "/cpg/cases?new=1" },
+    { icon: CheckSquare, label: "Nova Tarefa", route: "/cpg/tasks?new=1" },
+    { icon: Calendar, label: "Agendar Reunião", route: "/cpg/agenda?new=1" },
   ];
 
   // Close mobile menu on route change

@@ -21,7 +21,7 @@ const quickActions = [
     id: 'new-task',
     label: 'Nova Tarefa',
     icon: Plus,
-    route: '/cpg/legal',
+    route: '/cpg/tasks',
     color: 'bg-primary hover:bg-primary/90 text-primary-foreground',
   },
   {
@@ -42,7 +42,7 @@ const quickActions = [
     id: 'new-appointment',
     label: 'Agendar',
     icon: CalendarPlus,
-    route: '/cpg/legal?tab=agenda',
+    route: '/cpg/agenda',
     color: 'bg-purple-600 hover:bg-purple-700 text-white',
   },
   {
