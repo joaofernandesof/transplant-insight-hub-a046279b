@@ -7,13 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
-  CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil
+  CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil,
+  ChevronDown, ChevronRight, Loader2
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
+import { useSurgeryTasks } from '../hooks/useSurgeryTasks';
 
 interface SurgeryDetailDialogProps {
   surgery: ClinicSurgery | null;
@@ -23,6 +26,8 @@ interface SurgeryDetailDialogProps {
 }
 
 export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: SurgeryDetailDialogProps) {
+  const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask } = useSurgeryTasks(surgery?.id);
+
   if (!surgery) return null;
 
   const handleFieldSave = (field: string, value: string | boolean | number | null) => {
@@ -135,32 +140,30 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
 
             <Separator />
 
-            {/* Timeline de Contato */}
+            {/* Task Checklist por Fase D-X */}
             <div>
               <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary" />
-                Contatos Realizados
+                Protocolo de Tarefas
               </h4>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-1">
-                <ToggleItem label="D-20 Contato" checked={(surgery as any).d20Contact || false} field="d20Contact" onToggle={handleToggle} />
-                <ToggleItem label="D-15 Contato" checked={(surgery as any).d15Contact || false} field="d15Contact" onToggle={handleToggle} />
-                <ToggleItem label="D-10 Contato" checked={(surgery as any).d10Contact || false} field="d10Contact" onToggle={handleToggle} />
-                
-                <ToggleItem label="D-2 Contato" checked={(surgery as any).d2Contact || false} field="d2Contact" onToggle={handleToggle} />
-                <ToggleItem label="D-1 Contato" checked={(surgery as any).d1Contact || false} field="d1Contact" onToggle={handleToggle} />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Pós-Op */}
-            <div>
-              <h4 className="font-semibold text-sm mb-3">Dia da Cirurgia / Pós</h4>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-1">
-                <ToggleItem label="Termo de Internação" checked={surgery.bookingTermSigned} field="bookingTermSigned" onToggle={handleToggle} />
-                <ToggleItem label="Ficha de Alta" checked={surgery.dischargeTermSigned} field="dischargeTermSigned" onToggle={handleToggle} />
-                <ToggleItem label="GPI D+1" checked={surgery.gpiD1Done} field="gpiD1Done" onToggle={handleToggle} />
-              </div>
+              {tasksLoading ? (
+                <div className="flex items-center justify-center py-4 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Carregando tarefas...
+                </div>
+              ) : phases.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">Nenhuma tarefa gerada para esta cirurgia.</p>
+              ) : (
+                <div className="space-y-2">
+                  {phases.map((phase) => (
+                    <PhaseChecklistGroup
+                      key={phase.label}
+                      phase={phase}
+                      onComplete={(taskId) => completeTask.mutate({ taskId })}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Notes - editable */}
@@ -264,6 +267,56 @@ function ToggleItem({ label, checked, field, onToggle }: {
     <div className="flex items-center justify-between py-1.5">
       <Label className="text-sm cursor-pointer">{label}</Label>
       <Switch checked={checked} onCheckedChange={(v) => onToggle(field, v)} />
+    </div>
+  );
+}
+
+function PhaseChecklistGroup({ phase, onComplete }: {
+  phase: import('../hooks/useSurgeryTasks').TaskPhaseGroup;
+  onComplete: (taskId: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const allDone = phase.completedCount === phase.totalCount;
+
+  return (
+    <div className="bg-muted/50 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-muted/80 transition-colors"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex items-center gap-2">
+          {expanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+          <span className="text-sm font-semibold">{phase.label}</span>
+          {phase.hasOverdue && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
+          {phase.hasProblem && <XCircle className="h-3.5 w-3.5 text-destructive" />}
+        </div>
+        <Badge variant={allDone ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+          {phase.completedCount}/{phase.totalCount}
+        </Badge>
+      </button>
+      {expanded && (
+        <div className="px-4 pb-3 space-y-1.5">
+          {phase.tasks.map((task) => (
+            <div key={task.id} className="flex items-center gap-2 py-1">
+              <Checkbox
+                checked={task.status === 'completed'}
+                disabled={task.status === 'completed'}
+                onCheckedChange={() => onComplete(task.id)}
+                className="h-4 w-4"
+              />
+              <div className="flex-1 min-w-0">
+                <span className={`text-sm ${task.status === 'completed' ? 'line-through text-muted-foreground' : task.status === 'overdue' ? 'text-destructive font-medium' : ''}`}>
+                  {task.title}
+                </span>
+                <span className="text-[10px] text-muted-foreground ml-1.5">({task.responsible_name})</span>
+              </div>
+              {task.status === 'completed' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
+              {task.status === 'overdue' && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
