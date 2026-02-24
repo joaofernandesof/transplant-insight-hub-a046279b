@@ -98,7 +98,7 @@ export function WorkspaceAgenda() {
       // Generate MM-DD for each day for birthday/specialty matching
       const dayMMDDs = days.map(d => format(d, 'MM-dd'));
 
-      const [regularRes, meetingsRes, clientsRes, specialtyDaysRes] = await Promise.all([
+      const [regularRes, meetingsRes, clientsRes, specialtyDaysRes, tasksRes] = await Promise.all([
         supabase
           .from('ipromed_appointments')
           .select(`*, ipromed_legal_clients(name)`)
@@ -120,6 +120,13 @@ export function WorkspaceAgenda() {
         supabase
           .from('ipromed_specialty_days')
           .select('specialty, celebration_date, description'),
+        // Fetch tasks with due_date in the range
+        supabase
+          .from('ipromed_legal_tasks')
+          .select('id, title, due_date, status, priority, assigned_to_name, tags, category')
+          .gte('due_date', todayStr)
+          .lte('due_date', endStr)
+          .in('status', ['pending', 'in_progress']),
       ]);
 
       if (regularRes.error) throw regularRes.error;
@@ -165,6 +172,25 @@ export function WorkspaceAgenda() {
           appointment_type: meeting.agenda_type || 'reuniao',
           client_name: meeting.ipromed_legal_clients?.name,
           source: 'meeting',
+        });
+      });
+
+      // Tasks as agenda events
+      (tasksRes.data || []).forEach((task: any) => {
+        const isOverdue = task.due_date < todayStr;
+        const priorityLabel = task.priority === 1 ? '🔴' : task.priority === 2 ? '🟡' : '';
+        allAppointments.push({
+          id: `task-${task.id}`,
+          title: `${priorityLabel} ${task.title}`.trim(),
+          start_datetime: `${task.due_date}T07:00:00`,
+          end_datetime: null,
+          location: null,
+          is_virtual: false,
+          meeting_url: null,
+          status: task.status,
+          appointment_type: 'tarefa',
+          client_name: task.assigned_to_name || null,
+          source: 'appointment',
         });
       });
 
