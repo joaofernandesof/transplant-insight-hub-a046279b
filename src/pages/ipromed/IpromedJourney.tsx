@@ -335,7 +335,7 @@ function DroppableColumn({
   const someSelected = sortedClients.some(c => selectedClients.has(c.id));
 
   return (
-    <div className="flex flex-col flex-1 min-w-[220px]">
+    <div className="flex flex-col min-w-0">
       {/* Column Header - Avivar Style */}
       <div className={cn(
         "rounded-lg px-3 py-2.5 flex items-center justify-between group",
@@ -1030,7 +1030,7 @@ export default function IpromedJourney() {
           onDragCancel={handleDragCancel}
         >
           <div className="flex-1 overflow-hidden px-4 py-4">
-            <div className="flex gap-4 h-full">
+            <div className="grid h-full gap-3" style={{ gridTemplateColumns: `repeat(${journeyPhases.length}, minmax(0, 1fr))` }}>
               {journeyPhases.map((phase) => (
                 <DroppableColumn
                   key={phase.id}
