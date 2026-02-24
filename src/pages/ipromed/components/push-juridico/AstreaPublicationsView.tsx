@@ -431,8 +431,8 @@ export default function AstreaPublicationsView() {
       </div>
 
       {/* Publications Table - Astrea Style */}
-      <Card>
-        <CardContent className="p-0">
+      <Card className="overflow-hidden">
+        <CardContent className="p-0 overflow-x-auto">
           {/* Header */}
           <div className="grid grid-cols-[40px_130px_60px_1fr_200px_180px_120px_100px] gap-2 items-center px-4 py-3 bg-muted/50 border-b text-xs font-semibold text-muted-foreground">
             <div>
