@@ -146,7 +146,6 @@ export function JourneyFunnelChart({ data }: Props) {
         <div className="relative">
           {phases.map((phase, index) => {
             const Icon = phase.icon;
-            const widthPercent = maxCount > 0 ? Math.max(20, (phase.count / maxCount) * 100) : 20;
             const conversionToNext = index < conversions.length ? conversions[index] : null;
             
             return (
@@ -157,37 +156,17 @@ export function JourneyFunnelChart({ data }: Props) {
                     <Icon className={`h-4 w-4 ${phase.color}`} />
                   </div>
                   
-                  <div className="flex-1 relative">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="w-full">
-                          <div 
-                            className={`h-10 ${phase.bgColor} rounded-lg flex items-center justify-between px-4 transition-all hover:opacity-90`}
-                            style={{ 
-                              width: `${widthPercent}%`,
-                              minWidth: '80px',
-                              clipPath: index === phases.length - 1 
-                                ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' 
-                                : 'polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%)'
-                            }}
-                          >
-                            <span className={`text-sm font-medium ${phase.color}`}>
-                              {phase.name}
-                            </span>
-                            <span className={`text-lg font-bold ${phase.color}`}>
-                              {phase.count}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p className="font-medium">{phase.label}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {phase.count} cliente{phase.count !== 1 ? 's' : ''} 
-                            {totalClients > 0 && ` (${Math.round((phase.count / totalClients) * 100)}% do total)`}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div className="flex-1">
+                    <div 
+                      className={`h-10 ${phase.bgColor} rounded-lg flex items-center justify-between px-4 w-full`}
+                    >
+                      <span className={`text-sm font-medium ${phase.color} truncate mr-2`}>
+                        {phase.name}
+                      </span>
+                      <span className={`text-lg font-bold ${phase.color} shrink-0`}>
+                        {phase.count}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
