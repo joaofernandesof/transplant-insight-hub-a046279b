@@ -102,6 +102,7 @@ interface LegalClient {
     contract_status?: string;
     partner?: string;
     specialty?: string;
+    journey_phase?: string;
   } | null;
   created_at: string;
   updated_at: string;
@@ -120,11 +121,12 @@ const riskConfig: Record<string, { label: string; color: string; icon: React.Ele
 };
 
 const journeyConfig: Record<string, { label: string; color: string }> = {
-  prospect: { label: 'Prospecto', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
-  onboarding: { label: 'Onboarding', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
-  retention: { label: 'Retenção', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
-  expansion: { label: 'Expansão', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
-  churned: { label: 'Cancelado', color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300' },
+  Novos: { label: 'Novos clientes', color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300' },
+  Agendado: { label: 'Onboarding agendado', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
+  Andamento: { label: 'Pacote Jurídico', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+  Reuniao: { label: 'Reunião Apresentação', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
+  Continuo: { label: 'Acompanhamento', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+  prospect: { label: 'Prospecto', color: 'bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-300' },
 };
 
 const paymentStatusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -182,7 +184,7 @@ export default function IpromedClients() {
         (client.address?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         (client.address?.state?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
       const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
-      const matchesJourney = journeyFilter === 'all' || client.journey_stage === journeyFilter;
+      const matchesJourney = journeyFilter === 'all' || (client.metadata?.journey_phase || client.journey_stage) === journeyFilter;
       const matchesPayment = paymentFilter === 'all' || client.metadata?.payment_status === paymentFilter;
       const matchesRisk = riskFilter === 'all' || client.risk_level === riskFilter;
       const matchesContract = contractFilter === 'all' || client.metadata?.contract_status === contractFilter;
@@ -440,17 +442,20 @@ export default function IpromedClients() {
                               Todos {journeyFilter === 'all' && '✓'}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setJourneyFilter('prospect')}>
-                              Prospecto {journeyFilter === 'prospect' && '✓'}
+                            <DropdownMenuItem onClick={() => setJourneyFilter('Novos')}>
+                              Novos clientes {journeyFilter === 'Novos' && '✓'}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setJourneyFilter('onboarding')}>
-                              Onboarding {journeyFilter === 'onboarding' && '✓'}
+                            <DropdownMenuItem onClick={() => setJourneyFilter('Agendado')}>
+                              Onboarding agendado {journeyFilter === 'Agendado' && '✓'}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setJourneyFilter('retention')}>
-                              Retenção {journeyFilter === 'retention' && '✓'}
+                            <DropdownMenuItem onClick={() => setJourneyFilter('Andamento')}>
+                              Pacote Jurídico {journeyFilter === 'Andamento' && '✓'}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setJourneyFilter('expansion')}>
-                              Expansão {journeyFilter === 'expansion' && '✓'}
+                            <DropdownMenuItem onClick={() => setJourneyFilter('Reuniao')}>
+                              Reunião Apresentação {journeyFilter === 'Reuniao' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setJourneyFilter('Continuo')}>
+                              Acompanhamento {journeyFilter === 'Continuo' && '✓'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -587,7 +592,7 @@ export default function IpromedClients() {
                         const status = statusConfig[client.status] || statusConfig.prospect;
                         const risk = riskConfig[client.risk_level] || riskConfig.low;
                         const RiskIcon = risk.icon;
-                        const journey = journeyConfig[client.journey_stage] || journeyConfig.prospect;
+                        const journey = journeyConfig[client.metadata?.journey_phase || client.journey_stage] || journeyConfig.prospect;
                         const paymentStatus = paymentStatusConfig[client.metadata?.payment_status || 'pending'];
                         const PaymentIcon = paymentStatus?.icon || Clock;
                         const contractStatus = contractStatusConfig[client.metadata?.contract_status || 'draft'];
