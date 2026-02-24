@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AstreaStyleSidebar from "./AstreaStyleSidebar";
 import IpromedGlobalSearch from "./IpromedGlobalSearch";
 import IpromedGuidedTour from "./IpromedGuidedTour";
+import { BirthdayPopup } from "./BirthdayPopup";
 import { Button } from "@/components/ui/button";
 import { 
   Menu, 
@@ -198,6 +199,9 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
       
       {/* Guided Tour */}
       <IpromedGuidedTour isOpen={showTour} onComplete={completeTour} />
+      
+      {/* Birthday Popup */}
+      <BirthdayPopup />
     </div>
   );
 }
