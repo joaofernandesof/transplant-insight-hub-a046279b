@@ -49,6 +49,11 @@ export interface ClinicSurgery {
   seller: string | null;
   contractStatus: string | null;
   daysSinceSale: number | null;
+  upgradeValue: number;
+  upsellValue: number;
+  depositPaid: number;
+  remainingPaid: number;
+  balanceDue: number;
 }
 
 export interface SurgeryInput {
@@ -134,6 +139,11 @@ export function useClinicSurgeries() {
           seller: null,
           contractStatus: null,
           daysSinceSale: null,
+          upgradeValue: Number(s.upgrade_value) || 0,
+          upsellValue: Number(s.upsell_value) || 0,
+          depositPaid: Number(s.deposit_paid) || 0,
+          remainingPaid: Number(s.remaining_paid) || 0,
+          balanceDue: Number(s.balance_due) || 0,
         };
       });
     },
