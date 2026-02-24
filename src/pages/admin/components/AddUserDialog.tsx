@@ -76,7 +76,19 @@ export function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogPr
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Try to parse the actual error message from the response
+        let msg = 'Erro ao criar usuário';
+        try {
+          if (error instanceof Response || error?.context?.body) {
+            const body = error?.context?.body ? await new Response(error.context.body).json() : null;
+            msg = body?.error || msg;
+          } else if (typeof error === 'object' && error.message) {
+            msg = error.message;
+          }
+        } catch { /* use default */ }
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
 
       toast.success(`Usuário ${form.full_name} criado com sucesso!`);
