@@ -281,8 +281,7 @@ export function WorkspaceAgenda() {
         </div>
       </CardHeader>
       <CardContent className="px-5 pb-5">
-        <ScrollArea className="w-full">
-          <div className="flex gap-3 pb-3 items-stretch" style={{ minWidth: 'max-content' }}>
+        <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
             {days.map((day) => {
               const key = format(day, 'yyyy-MM-dd');
               const dayAppts = appointmentsByDay.get(key) || [];
@@ -293,7 +292,7 @@ export function WorkspaceAgenda() {
               return (
                 <div
                   key={key}
-                  className={`flex flex-col rounded-xl border w-[200px] shrink-0 ${
+                  className={`flex flex-col rounded-xl border min-w-0 ${
                     isToday
                       ? 'border-primary/40 bg-primary/5'
                       : 'border-border bg-muted/30'
@@ -334,8 +333,6 @@ export function WorkspaceAgenda() {
               );
             })}
           </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
       </CardContent>
     </Card>
   );
