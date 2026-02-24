@@ -199,7 +199,7 @@ function DraggableClientCard({
             className="h-8 w-8 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/ipromed/clients/${client.id}`);
+              navigate(`/cpg/clients/${client.id}`);
             }}
           >
             <AvatarFallback className={cn("text-xs font-medium text-white", phase.color)}>
@@ -211,7 +211,7 @@ function DraggableClientCard({
               className="font-medium text-sm hover:text-primary cursor-pointer leading-tight break-words"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/ipromed/clients/${client.id}`);
+                navigate(`/cpg/clients/${client.id}`);
               }}
             >
               {client.name}
@@ -229,7 +229,7 @@ function DraggableClientCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
+              <DropdownMenuItem onClick={() => navigate(`/cpg/clients/${client.id}`)}>
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Ver Detalhes
               </DropdownMenuItem>
@@ -788,7 +788,7 @@ export default function IpromedJourney() {
           <div className="flex items-start gap-3">
             <Avatar 
               className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary"
-              onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+              onClick={() => navigate(`/cpg/clients/${client.id}`)}
             >
               <AvatarFallback className={cn(getPhaseColor(phase), "text-white")}>
                 {client.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
@@ -798,7 +798,7 @@ export default function IpromedJourney() {
               <div className="flex items-center justify-between">
                 <h4 
                   className="font-medium text-sm truncate cursor-pointer hover:text-primary"
-                  onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                  onClick={() => navigate(`/cpg/clients/${client.id}`)}
                 >
                   {client.name}
                 </h4>
@@ -817,7 +817,7 @@ export default function IpromedJourney() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
+                      <DropdownMenuItem onClick={() => navigate(`/cpg/clients/${client.id}`)}>
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Ver Detalhes
                       </DropdownMenuItem>
@@ -1158,7 +1158,7 @@ export default function IpromedJourney() {
                               selectedClients.has(client.id) && "bg-primary/5",
                               overdue && "bg-destructive/5"
                             )}
-                            onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                            onClick={() => navigate(`/cpg/clients/${client.id}`)}
                           >
                             <TableCell onClick={(e) => e.stopPropagation()}>
                               <div 
@@ -1268,7 +1268,7 @@ export default function IpromedJourney() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
+                                  <DropdownMenuItem onClick={() => navigate(`/cpg/clients/${client.id}`)}>
                                     <ExternalLink className="h-4 w-4 mr-2" />
                                     Ver Detalhes
                                   </DropdownMenuItem>
