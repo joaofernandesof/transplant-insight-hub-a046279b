@@ -60,7 +60,7 @@ const typeConfig: Record<string, {
   dia_especialidade: { label: 'Especialidade', icon: Stethoscope, color: 'text-emerald-700', bgColor: 'bg-emerald-50 border-emerald-200' },
 };
 
-const DAYS_AHEAD = 7;
+const DAYS_AHEAD = 5;
 
 function getDayLabel(date: Date, today: Date): string {
   if (isSameDay(date, today)) return 'Hoje';
