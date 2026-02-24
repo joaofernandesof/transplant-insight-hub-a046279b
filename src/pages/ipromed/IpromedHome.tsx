@@ -91,18 +91,20 @@ export default function IpromedHome() {
       {/* Área de Trabalho Geral */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Área de Trabalho</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Coluna Principal - Tarefas */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* Tarefas e Agenda lado a lado, mesma altura */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          <div className="min-h-0 [&>*]:h-full">
             <WorkspaceTaskList />
-            <WorkspaceDeadlines />
           </div>
-
-          {/* Coluna Lateral - Agenda e Ações */}
-          <div className="space-y-6">
+          <div className="min-h-0 [&>*]:h-full">
             <WorkspaceAgenda />
-            <WorkspaceQuickActions />
           </div>
+        </div>
+
+        {/* Prazos e Ações abaixo */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <WorkspaceDeadlines />
+          <WorkspaceQuickActions />
         </div>
       </div>
 
