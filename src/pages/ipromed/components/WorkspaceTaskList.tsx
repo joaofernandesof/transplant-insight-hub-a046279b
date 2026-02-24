@@ -95,7 +95,7 @@ export function WorkspaceTaskList() {
           case:case_id(case_number, title),
           contract:contract_id(contract_number)
         `)
-        .in('status', ['pending', 'in_progress'])
+        .in('status', ['todo', 'pendente', 'in_progress', 'em_andamento', 'pending', 'in_review'])
         .order('due_date', { ascending: true, nullsFirst: false })
         .order('priority', { ascending: false })
         .limit(10);
