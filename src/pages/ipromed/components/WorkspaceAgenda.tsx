@@ -246,27 +246,29 @@ export function WorkspaceAgenda() {
 
   return (
     <Card className="border-0 shadow-md">
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Agenda
-          </CardTitle>
-          <p className="text-xs text-muted-foreground mt-1">
-            {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-          </p>
+      <CardHeader className="pb-2 px-5 pt-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Agenda
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-1 shrink-0"
+            onClick={() => navigate('/cpg/legal?tab=agenda')}
+          >
+            Ver agenda
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="gap-1"
-          onClick={() => navigate('/cpg/legal?tab=agenda')}
-        >
-          Ver agenda
-          <ChevronRight className="h-4 w-4" />
-        </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-5 pb-5">
         {todayAppointments.length === 0 && tomorrowAppointments.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
             <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
@@ -282,12 +284,12 @@ export function WorkspaceAgenda() {
             </Button>
           </div>
         ) : (
-          <ScrollArea className="h-[280px]">
+          <ScrollArea className="h-[320px] -mr-2 pr-2">
             <div className="space-y-4">
               {/* Today's appointments */}
               {todayAppointments.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-medium text-muted-foreground uppercase mb-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Hoje ({todayAppointments.length})
                   </h4>
                   <div className="space-y-2">
@@ -301,7 +303,7 @@ export function WorkspaceAgenda() {
               {/* Tomorrow's appointments */}
               {tomorrowAppointments.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-medium text-muted-foreground uppercase mb-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Amanhã ({tomorrowAppointments.length})
                   </h4>
                   <div className="space-y-2">
