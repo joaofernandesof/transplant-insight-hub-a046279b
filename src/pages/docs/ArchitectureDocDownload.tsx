@@ -23,7 +23,7 @@ const PORTALS = [
   { id: 'academy', name: 'Academy', route: '/academy', color: 'bg-purple-500', desc: 'Plataforma educacional e cursos', modules: ['courses', 'classes', 'certificates', 'exams'] },
   { id: 'neolicense', name: 'NeoLicense', route: '/neolicense', color: 'bg-amber-500', desc: 'Portal do licenciado', modules: ['metrics', 'marketing', 'financial', 'university'] },
   { id: 'avivar', name: 'Avivar', route: '/avivar', color: 'bg-pink-500', desc: 'Marketing, CRM e automação com IA', modules: ['leads', 'crm', 'campaigns', 'inbox', 'cadences', 'agenda'] },
-  { id: 'ipromed', name: 'IPROMED', route: '/ipromed', color: 'bg-indigo-500', desc: 'Portal jurídico e compliance', modules: ['clients', 'contracts', 'exams', 'journey', 'legal-hub'] },
+  { id: 'ipromed', name: 'CPG Advocacia', route: '/cpg', color: 'bg-indigo-500', desc: 'Portal jurídico e compliance', modules: ['clients', 'contracts', 'exams', 'journey', 'legal-hub'] },
   { id: 'vision', name: 'Vision', route: '/vision', color: 'bg-cyan-500', desc: 'Análise capilar com IA', modules: ['scanner', 'reports', 'history'] },
   { id: 'neopay', name: 'NeoPay', route: '/neopay', color: 'bg-green-500', desc: 'Gateway de pagamentos', modules: ['transactions', 'invoices', 'subscriptions'] },
   { id: 'neohair', name: 'NeoHair', route: '/neohair', color: 'bg-orange-500', desc: 'Tratamento capilar', modules: ['protocols', 'tracking', 'results'] },

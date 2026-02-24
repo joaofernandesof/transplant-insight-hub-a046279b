@@ -257,7 +257,7 @@ export default function IpromedProposalEditor() {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => navigate("/ipromed/proposals")}
+            onClick={() => navigate("/cpg/proposals")}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

@@ -900,7 +900,7 @@ export default function IpromedJourney() {
               </Button>
             </div>
             
-            <Button className="gap-2" onClick={() => navigate('/ipromed/clients')}>
+            <Button className="gap-2" onClick={() => navigate('/cpg/clients')}>
               <Plus className="h-4 w-4" />
               Adicionar Cliente
             </Button>

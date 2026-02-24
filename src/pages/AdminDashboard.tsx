@@ -357,7 +357,7 @@ export default function AdminDashboard() {
               { id: 'staff', title: 'Colaborador', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
               { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
               { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
-              { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed' },
+              { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg' },
               { id: 'vision', title: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', path: '/vision' },
               { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
               

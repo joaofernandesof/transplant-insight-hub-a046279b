@@ -153,7 +153,7 @@ export function OperationalMetrics({ data, isLoading, navigate }: OperationalMet
         trend={{ value: "+3 este mês", isPositive: true }}
         action={{
           label: "Ver clientes",
-          onClick: () => navigate('/ipromed/clients')
+          onClick: () => navigate('/cpg/clients')
         }}
         isLoading={isLoading}
       />
@@ -171,7 +171,7 @@ export function OperationalMetrics({ data, isLoading, navigate }: OperationalMet
         status={data.clientsWithoutContract > 0 ? 'warning' : 'success'}
         action={{
           label: "Gerenciar contratos",
-          onClick: () => navigate('/ipromed/contracts')
+          onClick: () => navigate('/cpg/contracts')
         }}
         isLoading={isLoading}
       />
@@ -189,7 +189,7 @@ export function OperationalMetrics({ data, isLoading, navigate }: OperationalMet
         status={data.pendingSignatures > 2 ? 'danger' : data.pendingSignatures > 0 ? 'warning' : 'success'}
         action={data.pendingSignatures > 0 ? {
           label: "Ver pendências",
-          onClick: () => navigate('/ipromed/contracts?status=pending_signature')
+          onClick: () => navigate('/cpg/contracts?status=pending_signature')
         } : undefined}
         isLoading={isLoading}
       />
@@ -207,7 +207,7 @@ export function OperationalMetrics({ data, isLoading, navigate }: OperationalMet
         status={data.activeCases > 10 ? 'warning' : 'neutral'}
         action={{
           label: "Ver processos",
-          onClick: () => navigate('/ipromed/cases')
+          onClick: () => navigate('/cpg/cases')
         }}
         isLoading={isLoading}
       />
@@ -225,7 +225,7 @@ export function OperationalMetrics({ data, isLoading, navigate }: OperationalMet
         status={data.expiringContracts > 3 ? 'danger' : data.expiringContracts > 0 ? 'warning' : 'success'}
         action={data.expiringContracts > 0 ? {
           label: "Renovar contratos",
-          onClick: () => navigate('/ipromed/contracts?expiring=true')
+          onClick: () => navigate('/cpg/contracts?expiring=true')
         } : undefined}
         isLoading={isLoading}
       />
@@ -243,7 +243,7 @@ export function OperationalMetrics({ data, isLoading, navigate }: OperationalMet
         status="neutral"
         action={{
           label: "Ver agenda",
-          onClick: () => navigate('/ipromed')
+          onClick: () => navigate('/cpg')
         }}
         isLoading={isLoading}
       />

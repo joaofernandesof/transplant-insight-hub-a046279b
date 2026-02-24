@@ -145,7 +145,7 @@ export function WorkspaceTaskList() {
           variant="outline" 
           size="sm" 
           className="gap-1"
-          onClick={() => navigate('/ipromed/legal')}
+          onClick={() => navigate('/cpg/legal')}
         >
           Ver todas
           <ChevronRight className="h-4 w-4" />
@@ -160,7 +160,7 @@ export function WorkspaceTaskList() {
               variant="outline" 
               size="sm" 
               className="mt-3 gap-1"
-              onClick={() => navigate('/ipromed/legal')}
+              onClick={() => navigate('/cpg/legal')}
             >
               <Plus className="h-4 w-4" />
               Criar tarefa
@@ -194,7 +194,7 @@ export function WorkspaceTaskList() {
                           className="text-sm font-medium text-foreground hover:text-primary hover:underline truncate"
                           onClick={(e) => {
                             e.preventDefault();
-                            navigate('/ipromed/legal');
+                            navigate('/cpg/legal');
                           }}
                         >
                           {task.title}

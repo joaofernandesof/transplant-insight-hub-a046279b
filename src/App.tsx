@@ -821,31 +821,34 @@ function AppRoutes() {
       <Route path="/consolidated-results" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProfileGuard>} />
 
       {/* ====================================
-          IPROMED - Instituto de Proteção Médica
+          CPG Advocacia Médica
           ==================================== */}
-      <Route path="/ipromed" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedHome /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/dashboard" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedDashboard /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/students" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedStudents /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/exams" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedExams /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/mentors" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedMentors /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/surveys" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSurveys /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/leads" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLeads /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/clients" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClients /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/clients/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClientDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/journey" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedJourney /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/sales-funnel" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSalesFunnel /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/contracts" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContracts /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/contracts/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContractDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/legal" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/university" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedUniversity /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/financial" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFinancial /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/push-juridico" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedPushJuridico /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/logs" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedActivityLogs /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/tasks" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedTasks /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/proposals" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalsList /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/proposals/new" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/proposals/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/ipromed/reports" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedReports /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedHome /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/dashboard" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedDashboard /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/students" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedStudents /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/exams" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedExams /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/mentors" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedMentors /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/surveys" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSurveys /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/leads" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLeads /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/clients" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClients /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/clients/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClientDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/journey" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedJourney /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/sales-funnel" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSalesFunnel /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/contracts" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContracts /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/contracts/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContractDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/legal" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/university" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedUniversity /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/financial" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFinancial /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/push-juridico" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedPushJuridico /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/logs" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedActivityLogs /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/tasks" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedTasks /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/proposals" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalsList /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/proposals/new" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/proposals/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/reports" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedReports /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      {/* Legacy redirect */}
+      <Route path="/ipromed/*" element={<Navigate to="/cpg" replace />} />
+      <Route path="/ipromed" element={<Navigate to="/cpg" replace />} />
       
 {/* ====================================
           Vision - Diagnóstico Capilar IA

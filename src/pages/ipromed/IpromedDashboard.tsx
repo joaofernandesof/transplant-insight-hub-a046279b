@@ -315,7 +315,7 @@ export default function IpromedDashboard() {
             bgColor="bg-blue-100 dark:bg-blue-900/30"
             subtitle="Médicos protegidos"
             trend="+2 este mês"
-            onClick={() => navigate('/ipromed/clients')}
+            onClick={() => navigate('/cpg/clients')}
           />
           <StatCard
             title="Contratos Ativos"
@@ -324,7 +324,7 @@ export default function IpromedDashboard() {
             color="text-emerald-600"
             bgColor="bg-emerald-100 dark:bg-emerald-900/30"
             subtitle="Em vigência"
-            onClick={() => navigate('/ipromed/contracts?status=active')}
+            onClick={() => navigate('/cpg/contracts?status=active')}
           />
           <StatCard
             title="Aguard. Assinatura"
@@ -333,7 +333,7 @@ export default function IpromedDashboard() {
             color="text-purple-600"
             bgColor="bg-purple-100 dark:bg-purple-900/30"
             subtitle="Pendentes"
-            onClick={() => navigate('/ipromed/contracts?status=pending_signature')}
+            onClick={() => navigate('/cpg/contracts?status=pending_signature')}
           />
           <StatCard
             title="Processos Ativos"
@@ -342,7 +342,7 @@ export default function IpromedDashboard() {
             color="text-rose-600"
             bgColor="bg-rose-100 dark:bg-rose-900/30"
             subtitle="Em andamento"
-            onClick={() => navigate('/ipromed/cases')}
+            onClick={() => navigate('/cpg/cases')}
           />
           <StatCard
             title="Vencendo 30d"
@@ -351,7 +351,7 @@ export default function IpromedDashboard() {
             color="text-amber-600"
             bgColor="bg-amber-100 dark:bg-amber-900/30"
             subtitle="Renovar"
-            onClick={() => navigate('/ipromed/contracts?expiring=true')}
+            onClick={() => navigate('/cpg/contracts?expiring=true')}
           />
         </div>
       </div>
@@ -474,7 +474,7 @@ export default function IpromedDashboard() {
             <Button 
               variant="outline" 
               className="w-full justify-start gap-2"
-              onClick={() => navigate('/ipromed/clients')}
+              onClick={() => navigate('/cpg/clients')}
             >
               <Users className="h-4 w-4" />
               Novo Cliente
@@ -482,7 +482,7 @@ export default function IpromedDashboard() {
             <Button 
               variant="outline" 
               className="w-full justify-start gap-2"
-              onClick={() => navigate('/ipromed/contracts')}
+              onClick={() => navigate('/cpg/contracts')}
             >
               <FileText className="h-4 w-4" />
               Novo Contrato
@@ -490,7 +490,7 @@ export default function IpromedDashboard() {
             <Button 
               variant="outline" 
               className="w-full justify-start gap-2"
-              onClick={() => navigate('/ipromed/journey')}
+              onClick={() => navigate('/cpg/journey')}
             >
               <TrendingUp className="h-4 w-4" />
               Ver Jornadas
@@ -498,7 +498,7 @@ export default function IpromedDashboard() {
             <Button 
               variant="outline" 
               className="w-full justify-start gap-2"
-              onClick={() => navigate('/ipromed/legal')}
+              onClick={() => navigate('/cpg/legal')}
             >
               <Scale className="h-4 w-4" />
               Hub Jurídico
@@ -527,7 +527,7 @@ export default function IpromedDashboard() {
               <Button 
                 variant="outline" 
                 className="border-amber-300 text-amber-700 hover:bg-amber-100"
-                onClick={() => navigate('/ipromed/contracts')}
+                onClick={() => navigate('/cpg/contracts')}
               >
                 Ver Contratos
               </Button>

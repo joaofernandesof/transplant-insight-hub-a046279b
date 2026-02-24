@@ -52,29 +52,29 @@ interface NavItem {
 
 // CPG - Escritório Jurídico
 const cpgNavItems: NavItem[] = [
-  { id: 'home', label: 'Início', icon: Home, href: '/ipromed', tourId: 'sidebar-home' },
-  { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/ipromed/dashboard', tourId: 'sidebar-dashboard' },
-  { id: 'clients', label: 'Clientes', icon: Users, href: '/ipromed/clients', tourId: 'sidebar-clients' },
-  { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts', tourId: 'sidebar-contracts' },
-  { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
-  { id: 'sales-funnel', label: 'Funil Comercial', icon: Target, href: '/ipromed/sales-funnel' },
-  { id: 'proposals', label: 'Propostas', icon: FileSignature, href: '/ipromed/proposals', isNew: true },
-  { id: 'tasks', label: 'Tarefas', icon: CheckSquare, href: '/ipromed/tasks' },
-  { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', tourId: 'sidebar-financial' },
-  { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico' },
+  { id: 'home', label: 'Início', icon: Home, href: '/cpg', tourId: 'sidebar-home' },
+  { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/cpg/dashboard', tourId: 'sidebar-dashboard' },
+  { id: 'clients', label: 'Clientes', icon: Users, href: '/cpg/clients', tourId: 'sidebar-clients' },
+  { id: 'contracts', label: 'Contratos', icon: FileText, href: '/cpg/contracts', tourId: 'sidebar-contracts' },
+  { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/cpg/journey' },
+  { id: 'sales-funnel', label: 'Funil Comercial', icon: Target, href: '/cpg/sales-funnel' },
+  { id: 'proposals', label: 'Propostas', icon: FileSignature, href: '/cpg/proposals', isNew: true },
+  { id: 'tasks', label: 'Tarefas', icon: CheckSquare, href: '/cpg/tasks' },
+  { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/cpg/financial', tourId: 'sidebar-financial' },
+  { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/cpg/push-juridico' },
   
-  { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda', tourId: 'sidebar-agenda' },
-  { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases', tourId: 'sidebar-cases' },
-  { id: 'contracts-hub', label: 'Contratos', icon: FileBox, href: '/ipromed/legal?tab=contracts' },
-  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', tourId: 'sidebar-ai' },
-  { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/ipromed/reports' },
-  { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/ipromed/logs' },
+  { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/cpg/legal?tab=agenda', tourId: 'sidebar-agenda' },
+  { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/cpg/legal?tab=cases', tourId: 'sidebar-cases' },
+  { id: 'contracts-hub', label: 'Contratos', icon: FileBox, href: '/cpg/legal?tab=contracts' },
+  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/cpg/legal?tab=ai', tourId: 'sidebar-ai' },
+  { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/cpg/reports' },
+  { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/cpg/logs' },
 ];
 
 // CPG Advocacia Médica - Educacional
 const ipromedNavItems: NavItem[] = [
-  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', tourId: 'sidebar-university' },
-  { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
+  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/cpg/university', tourId: 'sidebar-university' },
+  { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/cpg/students' },
 ];
 
 interface AstreaStyleSidebarProps {

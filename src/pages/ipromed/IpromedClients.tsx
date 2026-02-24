@@ -292,7 +292,7 @@ export default function IpromedClients() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/ipromed/journey')}>
+            <Button variant="outline" size="sm" onClick={() => navigate('/cpg/journey')}>
               <TrendingUp className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Jornada</span>
             </Button>

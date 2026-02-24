@@ -84,7 +84,7 @@ export const PROFILE_ROUTES: Record<ProfileKey, string> = {
   aluno: '/academy',
   paciente: '/neocare',
   cliente_avivar: '/avivar',
-  ipromed: '/ipromed',
+  ipromed: '/cpg',
 };
 
 export const PROFILE_NAMES: Record<ProfileKey, string> = {
@@ -116,7 +116,7 @@ const ROUTE_PROFILE_MAP: Record<string, ProfileKey[]> = {
   '/neolicense': ['licenciado', 'administrador'],
   '/hotleads': ['licenciado', 'administrador'],
   '/avivar': ['cliente_avivar', 'administrador'],
-  '/ipromed': ['ipromed', 'administrador'],
+  '/cpg': ['ipromed', 'administrador'],
   '/neopay': ['administrador'],
   '/dashboard': ['licenciado', 'administrador'],
   '/financial': ['licenciado', 'administrador'],

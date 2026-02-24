@@ -140,7 +140,7 @@ export default function IpromedProposalsList() {
           </div>
         </div>
         <Button 
-          onClick={() => navigate("/ipromed/proposals/new")}
+          onClick={() => navigate("/cpg/proposals/new")}
           style={{ backgroundColor: CPG_COLORS.green }}
           className="hover:opacity-90"
         >
@@ -261,7 +261,7 @@ export default function IpromedProposalsList() {
                   : "Crie sua primeira proposta comercial"}
               </p>
               {!searchQuery && (
-                <Button onClick={() => navigate("/ipromed/proposals/new")}>
+                <Button onClick={() => navigate("/cpg/proposals/new")}>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Proposta
                 </Button>

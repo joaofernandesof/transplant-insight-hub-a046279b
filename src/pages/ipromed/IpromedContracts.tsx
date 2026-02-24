@@ -307,7 +307,7 @@ export default function IpromedContracts() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/ipromed/legal")}>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/cpg/legal")}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>

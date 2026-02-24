@@ -42,11 +42,11 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
 
   // Quick actions for header
   const quickActions = [
-    { icon: UserPlus, label: "Novo Cliente", route: "/ipromed/clients?new=1" },
-    { icon: FileSignature, label: "Novo Contrato", route: "/ipromed/contracts?new=1" },
-    { icon: FolderPlus, label: "Novo Processo", route: "/ipromed/legal?tab=cases&new=1" },
-    { icon: CheckSquare, label: "Nova Tarefa", route: "/ipromed/legal?tab=tasks&new=1" },
-    { icon: Calendar, label: "Agendar Reunião", route: "/ipromed/legal?tab=agenda&new=1" },
+    { icon: UserPlus, label: "Novo Cliente", route: "/cpg/clients?new=1" },
+    { icon: FileSignature, label: "Novo Contrato", route: "/cpg/contracts?new=1" },
+    { icon: FolderPlus, label: "Novo Processo", route: "/cpg/legal?tab=cases&new=1" },
+    { icon: CheckSquare, label: "Nova Tarefa", route: "/cpg/legal?tab=tasks&new=1" },
+    { icon: Calendar, label: "Agendar Reunião", route: "/cpg/legal?tab=agenda&new=1" },
   ];
 
   // Close mobile menu on route change

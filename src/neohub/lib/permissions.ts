@@ -35,7 +35,7 @@ export const PROFILE_ROUTES: Record<NeoHubProfile, string> = {
   aluno: '/academy',
   paciente: '/neocare',
   cliente_avivar: '/avivar',
-  ipromed: '/ipromed',
+  ipromed: '/cpg',
 };
 
 // Nomes amigáveis dos perfis
@@ -47,7 +47,7 @@ export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
   aluno: 'IBRAMEC',
   paciente: 'NeoCare',
   cliente_avivar: 'Avivar',
-  ipromed: 'IPROMED',
+  ipromed: 'CPG Advocacia',
 };
 
 // Nomes amigáveis dos portais
@@ -57,7 +57,7 @@ export const PORTAL_NAMES: Record<Portal, string> = {
   academy: 'IBRAMEC',
   neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
-  ipromed: 'IPROMED',
+  ipromed: 'CPG Advocacia',
   hotleads: 'HotLeads',
   vision: 'Vision',
   neopay: 'NeoPay',
@@ -118,7 +118,7 @@ export function getPortalFromRoute(route: string): Portal | null {
   if (route.startsWith('/hotleads')) return 'hotleads';
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/avivar')) return 'avivar';
-  if (route.startsWith('/ipromed')) return 'ipromed';
+  if (route.startsWith('/cpg')) return 'ipromed';
   return null;
 }
 
@@ -184,12 +184,12 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'avivar_profile', name: 'Perfil', route: '/avivar/profile', icon: 'Settings' },
   ],
   ipromed: [
-    { code: 'ipromed_home', name: 'Início', route: '/ipromed', icon: 'Home' },
-    { code: 'ipromed_dashboard', name: 'Dashboard', route: '/ipromed/dashboard', icon: 'BarChart3' },
-    { code: 'ipromed_clients', name: 'Clientes', route: '/ipromed/clients', icon: 'Users' },
-    { code: 'ipromed_journey', name: 'Jornada do Cliente', route: '/ipromed/journey', icon: 'TrendingUp' },
-    { code: 'ipromed_legal', name: 'Legal Hub', route: '/ipromed/legal-hub', icon: 'Scale' },
-    { code: 'ipromed_contracts', name: 'Contratos', route: '/ipromed/contracts', icon: 'FileSignature' },
+    { code: 'ipromed_home', name: 'Início', route: '/cpg', icon: 'Home' },
+    { code: 'ipromed_dashboard', name: 'Dashboard', route: '/cpg/dashboard', icon: 'BarChart3' },
+    { code: 'ipromed_clients', name: 'Clientes', route: '/cpg/clients', icon: 'Users' },
+    { code: 'ipromed_journey', name: 'Jornada do Cliente', route: '/cpg/journey', icon: 'TrendingUp' },
+    { code: 'ipromed_legal', name: 'Legal Hub', route: '/cpg/legal-hub', icon: 'Scale' },
+    { code: 'ipromed_contracts', name: 'Contratos', route: '/cpg/contracts', icon: 'FileSignature' },
   ],
   hotleads: [
     { code: 'hotleads_home', name: 'Dashboard', route: '/hotleads', icon: 'Flame' },
