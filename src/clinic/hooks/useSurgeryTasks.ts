@@ -130,15 +130,15 @@ export function useAllSurgeryTasks() {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('surgery_tasks')
-        .select('*, surgery_schedule!inner(patient_name, surgery_date)')
+        .select('*, clinic_surgeries!inner(patient_name, surgery_date)')
         .or(`status.eq.active,status.eq.overdue,and(status.eq.pending,scheduled_date.eq.${today})`)
         .order('scheduled_date', { ascending: true });
 
       if (error) throw error;
       return (data || []).map((t: any) => ({
         ...t,
-        patient_name: t.surgery_schedule?.patient_name,
-        surgery_date: t.surgery_schedule?.surgery_date,
+        patient_name: t.clinic_surgeries?.patient_name,
+        surgery_date: t.clinic_surgeries?.surgery_date,
       }));
     },
   });
