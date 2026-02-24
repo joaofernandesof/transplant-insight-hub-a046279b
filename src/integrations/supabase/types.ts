@@ -16196,6 +16196,159 @@ export type Database = {
           },
         ]
       }
+      process_cases: {
+        Row: {
+          advogado_responsavel: string | null
+          area_juridica: string | null
+          cidade: string | null
+          cliente_representado: string | null
+          cpf_cnpj_cliente: string | null
+          cpf_cnpj_parte_contraria: string | null
+          created_at: string
+          data_audiencia: string | null
+          data_citacao: string | null
+          data_distribuicao: string | null
+          data_encerramento: string | null
+          data_ultima_movimentacao: string | null
+          documentos_anexados: string | null
+          escritorio_responsavel: string | null
+          estado_uf: string | null
+          estrategia_juridica: string | null
+          fase_processual: string | null
+          id: string
+          impacto_financeiro: string | null
+          link_documentos: string | null
+          motivo_encerramento: string | null
+          natureza_acao: string | null
+          numero_processo: string | null
+          objeto_processo: string | null
+          observacoes_gerais: string | null
+          orgao_vara: string | null
+          parte_contraria: string | null
+          polo_processo: string | null
+          possui_acordo: string | null
+          possui_audiencia: string | null
+          probabilidade_exito: string | null
+          proximo_prazo: string | null
+          responsavel_prazo: string | null
+          resumo_caso: string | null
+          sistema_plataforma: string | null
+          situacao_atual: string | null
+          status_financeiro: string | null
+          tipo_acao: string | null
+          tipo_audiencia: string | null
+          tipo_honorario: string | null
+          tipo_prazo: string | null
+          tribunal: string | null
+          updated_at: string
+          user_id: string | null
+          valor_acordo: number | null
+          valor_causa: number | null
+          valor_honorarios: number | null
+          valor_risco: number | null
+        }
+        Insert: {
+          advogado_responsavel?: string | null
+          area_juridica?: string | null
+          cidade?: string | null
+          cliente_representado?: string | null
+          cpf_cnpj_cliente?: string | null
+          cpf_cnpj_parte_contraria?: string | null
+          created_at?: string
+          data_audiencia?: string | null
+          data_citacao?: string | null
+          data_distribuicao?: string | null
+          data_encerramento?: string | null
+          data_ultima_movimentacao?: string | null
+          documentos_anexados?: string | null
+          escritorio_responsavel?: string | null
+          estado_uf?: string | null
+          estrategia_juridica?: string | null
+          fase_processual?: string | null
+          id?: string
+          impacto_financeiro?: string | null
+          link_documentos?: string | null
+          motivo_encerramento?: string | null
+          natureza_acao?: string | null
+          numero_processo?: string | null
+          objeto_processo?: string | null
+          observacoes_gerais?: string | null
+          orgao_vara?: string | null
+          parte_contraria?: string | null
+          polo_processo?: string | null
+          possui_acordo?: string | null
+          possui_audiencia?: string | null
+          probabilidade_exito?: string | null
+          proximo_prazo?: string | null
+          responsavel_prazo?: string | null
+          resumo_caso?: string | null
+          sistema_plataforma?: string | null
+          situacao_atual?: string | null
+          status_financeiro?: string | null
+          tipo_acao?: string | null
+          tipo_audiencia?: string | null
+          tipo_honorario?: string | null
+          tipo_prazo?: string | null
+          tribunal?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valor_acordo?: number | null
+          valor_causa?: number | null
+          valor_honorarios?: number | null
+          valor_risco?: number | null
+        }
+        Update: {
+          advogado_responsavel?: string | null
+          area_juridica?: string | null
+          cidade?: string | null
+          cliente_representado?: string | null
+          cpf_cnpj_cliente?: string | null
+          cpf_cnpj_parte_contraria?: string | null
+          created_at?: string
+          data_audiencia?: string | null
+          data_citacao?: string | null
+          data_distribuicao?: string | null
+          data_encerramento?: string | null
+          data_ultima_movimentacao?: string | null
+          documentos_anexados?: string | null
+          escritorio_responsavel?: string | null
+          estado_uf?: string | null
+          estrategia_juridica?: string | null
+          fase_processual?: string | null
+          id?: string
+          impacto_financeiro?: string | null
+          link_documentos?: string | null
+          motivo_encerramento?: string | null
+          natureza_acao?: string | null
+          numero_processo?: string | null
+          objeto_processo?: string | null
+          observacoes_gerais?: string | null
+          orgao_vara?: string | null
+          parte_contraria?: string | null
+          polo_processo?: string | null
+          possui_acordo?: string | null
+          possui_audiencia?: string | null
+          probabilidade_exito?: string | null
+          proximo_prazo?: string | null
+          responsavel_prazo?: string | null
+          resumo_caso?: string | null
+          sistema_plataforma?: string | null
+          situacao_atual?: string | null
+          status_financeiro?: string | null
+          tipo_acao?: string | null
+          tipo_audiencia?: string | null
+          tipo_honorario?: string | null
+          tipo_prazo?: string | null
+          tribunal?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valor_acordo?: number | null
+          valor_causa?: number | null
+          valor_honorarios?: number | null
+          valor_risco?: number | null
+        }
+        Relationships: []
+      }
       profile_definitions: {
         Row: {
           created_at: string | null
