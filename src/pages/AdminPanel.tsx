@@ -61,12 +61,14 @@ import {
   TrendingUp,
   Filter,
   Info,
-  Grid3X3
+  Grid3X3,
+  UserPlus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { PORTAL_MODULES, PORTAL_NAMES, Portal } from '@/neohub/lib/permissions';
 import { UserEditModal } from './admin/components/UserEditModal';
+import { AddUserDialog } from './admin/components/AddUserDialog';
 
 interface PageVisibility {
   university: boolean;
@@ -194,6 +196,7 @@ export default function AdminPanel() {
     phone: '',
   });
   const [isSavingUser, setIsSavingUser] = useState(false);
+  const [showAddUserDialog, setShowAddUserDialog] = useState(false);
   
   // Page visibility state
   const [pageVisibility, setPageVisibility] = useState<PageVisibility>({
@@ -546,6 +549,10 @@ export default function AdminPanel() {
                         <SelectItem value="paciente">Paciente</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Button onClick={() => setShowAddUserDialog(true)} className="gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Adicionar
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -988,6 +995,11 @@ export default function AdminPanel() {
             fetchUsers();
             setEditingUser(null);
           }}
+        />
+        <AddUserDialog
+          open={showAddUserDialog}
+          onOpenChange={setShowAddUserDialog}
+          onSuccess={() => fetchUsers()}
         />
       </div>
   );
