@@ -113,6 +113,10 @@ export default function NeoTeamTasks() {
       created_at: st.created_at,
       updated_at: st.updated_at,
       completed_at: st.completed_at || undefined,
+      patient: st.patient_name ? {
+        id: st.surgery_id || '',
+        full_name: st.patient_name,
+      } : undefined,
       _isSurgeryTask: true,
       _surgeryTaskId: st.id,
     }));
