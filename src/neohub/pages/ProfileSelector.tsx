@@ -178,7 +178,24 @@ export default function ProfileSelector() {
     const hasPortalAccess = portals && portals.length > 0 && portals.includes(module.portalKey);
     const hasProfileAccess = module.requiredProfiles.some(profile => user.profiles.includes(profile as any));
     
-    return hasPortalAccess || hasProfileAccess;
+    const hasBaseAccess = hasPortalAccess || hasProfileAccess;
+    if (!hasBaseAccess) return false;
+    
+    // Verificação adicional: checar se o usuário tem pelo menos um módulo legível no portal
+    // Isso garante que portais "não liberados" (todos módulos com can_read=false) fiquem bloqueados
+    const portalPrefix = module.portalKey + '_';
+    
+    // HotLeads: verificado via permissão neolicense_hotleads
+    if (module.portalKey === 'hotleads') {
+      return user.permissions.some(p => p.startsWith('neolicense_hotleads') && p.endsWith(':read'));
+    }
+    
+    // Para o portal neolicense, excluir neolicense_hotleads (pertence ao HotLeads)
+    const hasAnyReadableModule = user.permissions.some(p => 
+      p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads')
+    );
+    
+    return hasAnyReadableModule;
   };
 
   const handleLogout = async () => {
