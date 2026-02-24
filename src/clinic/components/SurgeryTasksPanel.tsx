@@ -5,9 +5,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Bell, CheckCircle2, Clock, AlertTriangle, User, Calendar } from 'lucide-react';
+import { Bell, CheckCircle2, Clock, AlertTriangle, User } from 'lucide-react';
 import { useAllSurgeryTasks } from '../hooks/useSurgeryTasks';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -53,7 +52,7 @@ export function SurgeryTasksPanel() {
         {/* Today Section */}
         {todayTasks.length > 0 && (
           <div>
-            <h4 className="text-xs font-semibold text-blue-600 flex items-center gap-1.5 mb-2">
+            <h4 className="text-xs font-semibold text-primary flex items-center gap-1.5 mb-2">
               <Clock className="h-3.5 w-3.5" />
               VENCENDO HOJE ({todayTasks.length})
             </h4>
@@ -106,15 +105,15 @@ function TaskRow({ task, onComplete }: { task: any; onComplete: () => void }) {
     <div className={cn(
       'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all',
       task.status === 'overdue' && 'border-destructive/30 bg-destructive/5',
-      task.status === 'active' && 'border-blue-400/30 bg-blue-50 dark:bg-blue-950/20',
+      task.status === 'active' && 'border-primary/30 bg-primary/5',
     )}>
       <Button
         variant="ghost"
         size="icon"
-        className="h-6 w-6 shrink-0 rounded-full hover:bg-emerald-100"
+        className="h-6 w-6 shrink-0 rounded-full hover:bg-status-great/15"
         onClick={(e) => { e.stopPropagation(); onComplete(); }}
       >
-        <CheckCircle2 className="h-4 w-4 text-muted-foreground hover:text-emerald-600" />
+        <CheckCircle2 className="h-4 w-4 text-muted-foreground hover:text-status-great" />
       </Button>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-xs truncate">{task.title}</p>
@@ -130,7 +129,7 @@ function TaskRow({ task, onComplete }: { task: any; onComplete: () => void }) {
         className={cn(
           'text-[10px] shrink-0',
           task.status === 'overdue' && 'bg-destructive/10 text-destructive border-destructive/30',
-          task.status === 'active' && 'bg-blue-100 text-blue-700 border-blue-300',
+          task.status === 'active' && 'bg-primary/10 text-primary border-primary/30',
         )}
       >
         {task.phase_label}

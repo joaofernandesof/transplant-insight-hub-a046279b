@@ -67,13 +67,18 @@ export function SurgeryTaskChips({ tasks, compact = false }: SurgeryTaskChipsPro
   if (phases.length === 0) return null;
 
   const getChipStyle = (phase: TaskPhase) => {
-    if (phase.hasProblem) return 'bg-amber-400 text-amber-950 ring-amber-500/30';
+    if (phase.hasProblem) return 'bg-status-medium text-foreground ring-status-medium/30';
     switch (phase.status) {
-      case 'completed': return 'bg-emerald-500 text-white';
-      case 'active': return 'bg-blue-500 text-white animate-pulse';
-      case 'overdue': return 'bg-red-500 text-white';
-      case 'mixed': return 'bg-emerald-200 text-emerald-800 ring-emerald-400/30';
-      default: return 'bg-muted text-muted-foreground';
+      case 'completed':
+        return 'bg-status-great text-primary-foreground';
+      case 'active':
+        return 'bg-primary text-primary-foreground animate-pulse';
+      case 'overdue':
+        return 'bg-destructive text-destructive-foreground';
+      case 'mixed':
+        return 'bg-status-great/20 text-status-great ring-status-great/30';
+      default:
+        return 'bg-muted text-muted-foreground';
     }
   };
 
