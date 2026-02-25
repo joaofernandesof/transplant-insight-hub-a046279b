@@ -184,6 +184,37 @@ function useScheduleBlocks(doctorId: string | null, startDate: Date, endDate: Da
   });
 }
 
+function useWeekLocks(doctorId: string | null, startDate: Date, endDate: Date, branchName: string | null) {
+  const startStr = format(startDate, 'yyyy-MM-dd');
+  const endStr = format(endDate, 'yyyy-MM-dd');
+
+  return useQuery({
+    queryKey: ['schedule-week-locks-visual', doctorId, startStr, endStr, branchName],
+    queryFn: async () => {
+      if (!doctorId) return [];
+
+      let query = supabase
+        .from('schedule_week_locks')
+        .select('*')
+        .eq('agenda', 'Agenda de Consultas')
+        .eq('doctor_id', doctorId)
+        .eq('permitido', false)
+        .lte('week_start', endStr)
+        .gte('week_end', startStr);
+
+      if (branchName) {
+        const normalizedBranch = branchName.replace(/^Filial\s+/i, '');
+        query = query.eq('branch', normalizedBranch);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!doctorId,
+  });
+}
+
 // ── Helpers ────────────────────────────────────────────────────
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -222,6 +253,7 @@ export default function NeoTeamSchedule() {
 
   const { data: allAppointments = [] } = useNeoteamAppointments(selectedDoctorId, rangeStart, rangeEnd);
   const { data: scheduleBlocks = [] } = useScheduleBlocks(selectedDoctorId, rangeStart, rangeEnd);
+  const { data: weekLocks = [] } = useWeekLocks(selectedDoctorId, rangeStart, rangeEnd, selectedBranch);
 
   const appointments = useMemo(() => {
     if (!selectedBranch) return allAppointments;
@@ -254,6 +286,11 @@ export default function NeoTeamSchedule() {
     return doctorSchedules.find(s => s.day_of_week === dow);
   }, [doctorSchedules]);
 
+  const isDateWeekLocked = useCallback((date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return weekLocks.some(l => dateStr >= l.week_start && dateStr <= l.week_end);
+  }, [weekLocks]);
+
   const navigateDate = (dir: number) => {
     setSelectedDate(prev => addDays(prev, view === 'week' ? dir * 7 : dir));
   };
@@ -266,6 +303,7 @@ export default function NeoTeamSchedule() {
 
   const handleGridClick = (date: Date, hour: number) => {
     if (!selectedDoctorId) return;
+    if (isDateWeekLocked(date)) return;
     const timeStr = `${String(hour).padStart(2, '0')}:00`;
     setClickedTime(timeStr);
     setClickedDate(date);
@@ -524,6 +562,7 @@ export default function NeoTeamSchedule() {
                       defaultDuration={selectedDoctor?.consultation_duration_minutes || 30}
                       onClickAppointment={setSelectedAppointment}
                       onClickSlot={(hour) => handleGridClick(selectedDate, hour)}
+                      isWeekLocked={isDateWeekLocked(selectedDate)}
                     />
                   ) : (
                     <WeekGrid
@@ -535,6 +574,7 @@ export default function NeoTeamSchedule() {
                       defaultDuration={selectedDoctor?.consultation_duration_minutes || 30}
                       onClickAppointment={setSelectedAppointment}
                       onClickSlot={(date, hour) => handleGridClick(date, hour)}
+                      isDateWeekLocked={isDateWeekLocked}
                     />
                   )}
                 </div>
@@ -938,6 +978,7 @@ function DayGrid({
   defaultDuration,
   onClickAppointment,
   onClickSlot,
+  isWeekLocked = false,
 }: {
   date: Date;
   hours: number[];
@@ -947,13 +988,24 @@ function DayGrid({
   defaultDuration: number;
   onClickAppointment: (a: NeoteamAppointment) => void;
   onClickSlot: (hour: number) => void;
+  isWeekLocked?: boolean;
 }) {
   const workStart = schedule ? timeToMinutes(schedule.start_time) : null;
   const workEnd = schedule ? timeToMinutes(schedule.end_time) : null;
   const isBlocked = blocks.length > 0;
+  const isLocked = isWeekLocked || isBlocked;
 
   return (
     <div className="relative">
+      {/* Week lock overlay banner */}
+      {isWeekLocked && (
+        <div className="sticky top-0 z-20 bg-destructive/10 border-b border-destructive/30 px-4 py-2.5 flex items-center gap-2">
+          <Ban className="h-4 w-4 text-destructive" />
+          <span className="text-sm font-medium text-destructive">
+            🔒 Agenda travada para esta semana nesta unidade
+          </span>
+        </div>
+      )}
       {hours.map(hour => {
         const minuteStart = hour * 60;
         const isWorkHour = workStart !== null && workEnd !== null && minuteStart >= workStart && minuteStart < workEnd;
@@ -961,12 +1013,13 @@ function DayGrid({
           <div
             key={hour}
             className={cn(
-              'flex border-b border-border/40 cursor-pointer hover:bg-muted/20 transition-colors',
+              'flex border-b border-border/40 transition-colors',
+              isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/20',
               isWorkHour ? 'bg-background' : 'bg-muted/30',
-              isBlocked && isWorkHour && 'bg-red-50/50 dark:bg-red-950/20'
+              isLocked && isWorkHour && 'bg-destructive/5 dark:bg-destructive/10'
             )}
             style={{ height: HOUR_HEIGHT }}
-            onClick={() => onClickSlot(hour)}
+            onClick={() => !isLocked && onClickSlot(hour)}
           >
             <div className="w-16 flex-shrink-0 pr-2 pt-1 text-right">
               <span className="text-[11px] text-muted-foreground font-mono">
@@ -975,9 +1028,11 @@ function DayGrid({
             </div>
             <div className="flex-1 border-l border-border/30 relative">
               <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-border/20" />
-              {isBlocked && isWorkHour && (
+              {isLocked && isWorkHour && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span className="text-[10px] text-red-500/60 font-medium">BLOQUEADO</span>
+                  <span className="text-[10px] text-destructive/60 font-medium">
+                    {isWeekLocked ? '🔒 TRAVADO' : 'BLOQUEADO'}
+                  </span>
                 </div>
               )}
             </div>
@@ -1042,6 +1097,7 @@ function WeekGrid({
   defaultDuration,
   onClickAppointment,
   onClickSlot,
+  isDateWeekLocked,
 }: {
   days: Date[];
   hours: number[];
@@ -1051,6 +1107,7 @@ function WeekGrid({
   defaultDuration: number;
   onClickAppointment: (a: NeoteamAppointment) => void;
   onClickSlot: (date: Date, hour: number) => void;
+  isDateWeekLocked: (date: Date) => boolean;
 }) {
   const getAptsForDay = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -1073,22 +1130,24 @@ function WeekGrid({
         {days.map(day => {
           const isToday = isSameDay(day, new Date());
           const blocked = isDayBlocked(day);
+          const weekLocked = isDateWeekLocked(day);
+          const isRestricted = blocked || weekLocked;
           return (
             <div key={day.toISOString()} className={cn(
               'flex-1 text-center py-2 border-l border-border/30',
-              isToday && 'bg-primary/5',
-              blocked && 'bg-red-50/50 dark:bg-red-950/20'
+              isToday && !isRestricted && 'bg-primary/5',
+              isRestricted && 'bg-destructive/5 dark:bg-destructive/10'
             )}>
               <p className="text-[10px] uppercase text-muted-foreground font-medium">
                 {format(day, 'EEE', { locale: ptBR })}
               </p>
               <p className={cn(
                 'text-sm font-bold',
-                isToday && 'text-primary',
-                blocked && 'text-red-500'
+                isToday && !isRestricted && 'text-primary',
+                isRestricted && 'text-destructive'
               )}>
                 {format(day, 'dd')}
-                {blocked && ' 🔒'}
+                {isRestricted && ' 🔒'}
               </p>
             </div>
           );
@@ -1111,15 +1170,18 @@ function WeekGrid({
                 ? minuteStart >= timeToMinutes(daySchedule.start_time) && minuteStart < timeToMinutes(daySchedule.end_time)
                 : false;
               const blocked = isDayBlocked(day);
+              const weekLocked = isDateWeekLocked(day);
+              const isRestricted = blocked || weekLocked;
               return (
                 <div
                   key={day.toISOString()}
                   className={cn(
-                    'flex-1 border-l border-border/30 relative cursor-pointer hover:bg-muted/20 transition-colors',
+                    'flex-1 border-l border-border/30 relative transition-colors',
+                    isRestricted ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/20',
                     isWorkHour ? 'bg-background' : 'bg-muted/30',
-                    blocked && isWorkHour && 'bg-red-50/50 dark:bg-red-950/20'
+                    isRestricted && isWorkHour && 'bg-destructive/5 dark:bg-destructive/10'
                   )}
-                  onClick={() => onClickSlot(day, hour)}
+                  onClick={() => !isRestricted && onClickSlot(day, hour)}
                 >
                   <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-border/20" />
                 </div>
