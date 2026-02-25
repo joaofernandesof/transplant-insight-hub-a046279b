@@ -5,16 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   User, Phone, Mail, MapPin, Calendar, FileText,
   ArrowLeft, Edit, MessageCircle, Clock,
   AlertCircle, Stethoscope, ClipboardList,
-  RefreshCw, History, CheckCircle, XCircle, CalendarCheck
+  RefreshCw, History, CheckCircle, XCircle, CalendarCheck,
+  DollarSign, CreditCard, AlertTriangle, Receipt
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { AddSurgeryDialog } from '@/clinic/components/AddSurgeryDialog';
+import { toast } from 'sonner';
 
 interface PatientData {
   id: string;
@@ -51,6 +56,17 @@ interface TimelineEvent {
   status?: string;
 }
 
+interface FinancialSummary {
+  totalContract: number;
+  totalPaid: number;
+  totalPending: number;
+  totalOverdue: number;
+  installmentsCount: number;
+  paidCount: number;
+  pendingCount: number;
+  overdueCount: number;
+}
+
 const parseNotes = (notes: string | null): Record<string, string> => {
   if (!notes) return {};
   const result: Record<string, string> = {};
@@ -74,17 +90,28 @@ const getCategoryColor = (category: string) => {
   return 'bg-muted text-muted-foreground';
 };
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
 export default function NeoTeamPatientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [patient, setPatient] = useState<PatientData | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSurgeryDialog, setShowSurgeryDialog] = useState(false);
+  const [observationsText, setObservationsText] = useState('');
+  const [savingObs, setSavingObs] = useState(false);
+  const [financial, setFinancial] = useState<FinancialSummary>({
+    totalContract: 0, totalPaid: 0, totalPending: 0, totalOverdue: 0,
+    installmentsCount: 0, paidCount: 0, pendingCount: 0, overdueCount: 0,
+  });
 
   useEffect(() => {
     if (id) {
       fetchPatient();
       fetchTimeline();
+      fetchFinancial();
     }
   }, [id]);
 
@@ -101,6 +128,8 @@ export default function NeoTeamPatientDetail() {
 
       if (data) {
         const parsed = parseNotes(data.notes);
+        const obs = parsed['observações'] || parsed['obs'] || '';
+        setObservationsText(obs);
         setPatient({
           id: data.id,
           full_name: data.full_name,
@@ -123,7 +152,7 @@ export default function NeoTeamPatientDetail() {
           seller: parsed['vendedor'] || undefined,
           surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || undefined,
           leadSource: parsed['fonte'] || parsed['lead source'] || undefined,
-          observations: parsed['observações'] || parsed['obs'] || undefined,
+          observations: obs || undefined,
         });
       }
     } catch (error) {
@@ -138,7 +167,6 @@ export default function NeoTeamPatientDetail() {
     const events: TimelineEvent[] = [];
 
     try {
-      // Fetch patient name first for matching
       const { data: patientData } = await supabase
         .from('clinic_patients')
         .select('full_name, created_at')
@@ -147,7 +175,6 @@ export default function NeoTeamPatientDetail() {
 
       if (!patientData) return;
 
-      // Add registration event
       if (patientData.created_at) {
         events.push({
           id: 'registration',
@@ -158,7 +185,6 @@ export default function NeoTeamPatientDetail() {
         });
       }
 
-      // Fetch neoteam_appointments by patient_id or patient_name
       const { data: appointments } = await supabase
         .from('neoteam_appointments')
         .select('*')
@@ -179,7 +205,6 @@ export default function NeoTeamPatientDetail() {
         }
       }
 
-      // Fetch surgery_schedule by patient_name
       const { data: surgeries } = await supabase
         .from('surgery_schedule')
         .select('*')
@@ -200,11 +225,78 @@ export default function NeoTeamPatientDetail() {
         }
       }
 
-      // Sort by date descending
       events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setTimeline(events);
     } catch (error) {
       console.error('Error fetching timeline:', error);
+    }
+  };
+
+  const fetchFinancial = async () => {
+    if (!id) return;
+    try {
+      // Fetch surgery_schedule data for this patient to get financial info
+      const { data: patientData } = await supabase
+        .from('clinic_patients')
+        .select('full_name')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!patientData) return;
+
+      const { data: surgeries } = await supabase
+        .from('surgery_schedule')
+        .select('final_value, deposit_paid, remaining_paid, balance_due, contract_signed')
+        .ilike('patient_name', patientData.full_name);
+
+      if (surgeries && surgeries.length > 0) {
+        const totalContract = surgeries.reduce((s, r) => s + (r.final_value || 0), 0);
+        const totalPaid = surgeries.reduce((s, r) => s + (r.deposit_paid || 0) + (r.remaining_paid || 0), 0);
+        const totalBalance = surgeries.reduce((s, r) => s + (r.balance_due || 0), 0);
+
+        setFinancial({
+          totalContract,
+          totalPaid,
+          totalPending: totalBalance,
+          totalOverdue: 0,
+          installmentsCount: surgeries.length,
+          paidCount: surgeries.filter(s => (s.balance_due || 0) <= 0).length,
+          pendingCount: surgeries.filter(s => (s.balance_due || 0) > 0).length,
+          overdueCount: 0,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching financial data:', error);
+    }
+  };
+
+  const saveObservations = async () => {
+    if (!patient || !id) return;
+    setSavingObs(true);
+    try {
+      // Rebuild notes with updated observations
+      const currentNotes = patient.notes || '';
+      const parsed = parseNotes(currentNotes);
+      parsed['observações'] = observationsText;
+
+      const newNotes = Object.entries(parsed)
+        .filter(([, v]) => v.trim())
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(' | ');
+
+      const { error } = await supabase
+        .from('clinic_patients')
+        .update({ notes: newNotes })
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success('Observações salvas!');
+      setPatient(prev => prev ? { ...prev, notes: newNotes, observations: observationsText } : null);
+    } catch (err) {
+      console.error('Error saving observations:', err);
+      toast.error('Erro ao salvar observações');
+    } finally {
+      setSavingObs(false);
     }
   };
 
@@ -254,7 +346,6 @@ export default function NeoTeamPatientDetail() {
 
       {/* === CPG-Style Header === */}
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-        {/* Top bar with gradient */}
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-6 py-5">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate('/neoteam/patients')} className="self-start -ml-2">
@@ -276,56 +367,31 @@ export default function NeoTeamPatientDetail() {
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 {patient.email && (
-                  <span className="flex items-center gap-1">
-                    <Mail className="h-3.5 w-3.5" />
-                    {patient.email}
-                  </span>
+                  <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{patient.email}</span>
                 )}
                 {patient.phone && (
-                  <span className="flex items-center gap-1">
-                    <Phone className="h-3.5 w-3.5" />
-                    {patient.phone}
-                  </span>
+                  <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{patient.phone}</span>
                 )}
                 {patient.cpf && (
-                  <span className="flex items-center gap-1">
-                    <User className="h-3.5 w-3.5" />
-                    {patient.cpf}
-                  </span>
+                  <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{patient.cpf}</span>
                 )}
               </div>
-              {/* Badges row */}
               <div className="flex flex-wrap gap-2 mt-2">
                 {patient.category && (
-                  <Badge className={`${getCategoryColor(patient.category)} border-0 text-xs`}>
-                    {patient.category}
-                  </Badge>
+                  <Badge className={`${getCategoryColor(patient.category)} border-0 text-xs`}>{patient.category}</Badge>
                 )}
-                {patient.branch && (
-                  <Badge variant="outline" className="text-xs">
-                    {patient.branch}
-                  </Badge>
-                )}
-                {patient.baldnessGrade && (
-                  <Badge variant="outline" className="text-xs">
-                    Grau {patient.baldnessGrade}
-                  </Badge>
-                )}
+                {patient.branch && <Badge variant="outline" className="text-xs">{patient.branch}</Badge>}
+                {patient.baldnessGrade && <Badge variant="outline" className="text-xs">Grau {patient.baldnessGrade}</Badge>}
                 {patient.surgeryDate && (
                   <Badge variant="outline" className="text-xs border-blue-300 text-blue-700 dark:text-blue-400">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    Cirurgia: {patient.surgeryDate}
+                    <Calendar className="h-3 w-3 mr-1" />Cirurgia: {patient.surgeryDate}
                   </Badge>
                 )}
               </div>
             </div>
 
-            {/* Action buttons */}
             <div className="flex flex-wrap gap-2 self-start">
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-1.5" />
-                Editar
-              </Button>
+              <Button variant="outline" size="sm"><Edit className="h-4 w-4 mr-1.5" />Editar</Button>
             </div>
           </div>
         </div>
@@ -335,24 +401,20 @@ export default function NeoTeamPatientDetail() {
           {patient.phone && (
             <>
               <Button variant="outline" size="sm" onClick={() => openWhatsApp(patient.phone!)}>
-                <MessageCircle className="h-4 w-4 mr-1.5" />
-                WhatsApp
+                <MessageCircle className="h-4 w-4 mr-1.5" />WhatsApp
               </Button>
               <Button variant="outline" size="sm" onClick={() => window.open(`tel:${patient.phone}`)}>
-                <Phone className="h-4 w-4 mr-1.5" />
-                Ligar
+                <Phone className="h-4 w-4 mr-1.5" />Ligar
               </Button>
             </>
           )}
           {patient.email && (
             <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${patient.email}`)}>
-              <Mail className="h-4 w-4 mr-1.5" />
-              Enviar Email
+              <Mail className="h-4 w-4 mr-1.5" />Enviar Email
             </Button>
           )}
-          <Button variant="outline" size="sm">
-            <Calendar className="h-4 w-4 mr-1.5" />
-            Agendar Cirurgia
+          <Button variant="outline" size="sm" onClick={() => setShowSurgeryDialog(true)}>
+            <Calendar className="h-4 w-4 mr-1.5" />Agendar Cirurgia
           </Button>
         </div>
       </div>
@@ -383,10 +445,7 @@ export default function NeoTeamPatientDetail() {
                   value={patient.created_at ? format(new Date(patient.created_at), "dd/MM/yyyy", { locale: ptBR }) : undefined}
                 />
               </div>
-
               <Separator />
-
-              {/* Dados Comerciais */}
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                 <InfoField label="Filial" value={patient.branch} />
                 <InfoField label="Categoria" value={patient.category} />
@@ -416,20 +475,109 @@ export default function NeoTeamPatientDetail() {
             </CardContent>
           </Card>
 
-          {/* Observações */}
-          {patient.observations && (
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" />
-                  Observações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{patient.observations}</p>
-              </CardContent>
-            </Card>
-          )}
+          {/* Observações - always visible */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                Observações
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Textarea
+                value={observationsText}
+                onChange={(e) => setObservationsText(e.target.value)}
+                placeholder="Adicione observações sobre o paciente..."
+                rows={4}
+                className="resize-none"
+              />
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  onClick={saveObservations}
+                  disabled={savingObs || observationsText === (patient.observations || '')}
+                >
+                  {savingObs ? 'Salvando...' : 'Salvar Observações'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Resumo Financeiro */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-primary" />
+                Resumo Financeiro
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Honorários e pagamentos</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Summary cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-lg border bg-card p-3">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    Total Contrato
+                  </div>
+                  <p className="text-lg font-bold">{formatCurrency(financial.totalContract)}</p>
+                  <p className="text-xs text-muted-foreground">{financial.installmentsCount} parcela(s)</p>
+                </div>
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-900/50 p-3">
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 mb-1">
+                    <CheckCircle className="h-3.5 w-3.5" />
+                    Pago
+                  </div>
+                  <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{formatCurrency(financial.totalPaid)}</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-500">{financial.paidCount} parcela(s)</p>
+                </div>
+                <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/50 p-3">
+                  <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 mb-1">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Pendente
+                  </div>
+                  <p className="text-lg font-bold text-amber-700 dark:text-amber-400">{formatCurrency(financial.totalPending)}</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-500">{financial.pendingCount} parcela(s)</p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                    <Receipt className="h-3.5 w-3.5" />
+                    Vencido
+                  </div>
+                  <p className="text-lg font-bold">{formatCurrency(financial.totalOverdue)}</p>
+                  <p className="text-xs text-muted-foreground">{financial.overdueCount} parcela(s)</p>
+                </div>
+              </div>
+
+              {/* Tabs placeholder */}
+              <Tabs defaultValue="parcelas">
+                <TabsList className="h-8">
+                  <TabsTrigger value="parcelas" className="text-xs"><Receipt className="h-3 w-3 mr-1" />Parcelas</TabsTrigger>
+                  <TabsTrigger value="historico" className="text-xs"><History className="h-3 w-3 mr-1" />Histórico</TabsTrigger>
+                </TabsList>
+                <TabsContent value="parcelas">
+                  {financial.installmentsCount === 0 ? (
+                    <div className="text-center py-8">
+                      <CreditCard className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                      <p className="text-sm text-muted-foreground">Nenhuma parcela cadastrada</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <p className="text-sm text-muted-foreground">
+                        {financial.installmentsCount} registro(s) financeiro(s) encontrado(s) na agenda cirúrgica.
+                      </p>
+                    </div>
+                  )}
+                </TabsContent>
+                <TabsContent value="historico">
+                  <div className="text-center py-8">
+                    <History className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhum histórico de pagamento</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right column - Sidebar */}
@@ -464,7 +612,7 @@ export default function NeoTeamPatientDetail() {
                   <History className="h-4 w-4 text-primary" />
                   Linha do Tempo
                 </CardTitle>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { fetchPatient(); fetchTimeline(); }}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { fetchPatient(); fetchTimeline(); fetchFinancial(); }}>
                   <RefreshCw className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -481,11 +629,9 @@ export default function NeoTeamPatientDetail() {
                 </div>
               ) : (
                 <div className="relative space-y-0">
-                  {/* Vertical line */}
                   <div className="absolute left-3 top-2 bottom-2 w-px bg-border" />
                   {timeline.map((event) => (
                     <div key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
-                      {/* Dot */}
                       <div className={`relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
                         event.type === 'surgery'
                           ? 'border-destructive bg-destructive/10'
@@ -501,13 +647,10 @@ export default function NeoTeamPatientDetail() {
                           <User className="h-3 w-3 text-muted-foreground" />
                         )}
                       </div>
-                      {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-medium truncate">{event.title}</p>
-                          {event.status && (
-                            <TimelineStatusBadge status={event.status} />
-                          )}
+                          {event.status && <TimelineStatusBadge status={event.status} />}
                         </div>
                         {event.description && (
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">{event.description}</p>
@@ -538,9 +681,7 @@ export default function NeoTeamPatientDetail() {
                   <FileText className="h-4 w-4 text-primary" />
                   Documentos
                 </CardTitle>
-                <Button variant="outline" size="sm" className="h-7 text-xs">
-                  + Novo
-                </Button>
+                <Button variant="outline" size="sm" className="h-7 text-xs">+ Novo</Button>
               </div>
               <p className="text-xs text-muted-foreground">Exames, contratos e documentos</p>
             </CardHeader>
@@ -553,6 +694,13 @@ export default function NeoTeamPatientDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Surgery Dialog */}
+      <AddSurgeryDialog
+        open={showSurgeryDialog}
+        onOpenChange={setShowSurgeryDialog}
+        defaultWithDate={true}
+      />
     </div>
   );
 }
@@ -570,7 +718,6 @@ function TimelineStatusBadge({ status }: { status: string }) {
   return <Badge className={`${c.className} border-0 text-[10px] px-1.5 py-0`}>{c.label}</Badge>;
 }
 
-/* Reusable info field component */
 function InfoField({ label, value, span2 }: { label: string; value?: string; span2?: boolean }) {
   return (
     <div className={span2 ? 'col-span-2' : ''}>
