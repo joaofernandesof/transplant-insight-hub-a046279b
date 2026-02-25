@@ -10740,7 +10740,7 @@ export type Database = {
           max_attempts?: number
           payload: Json
           status?: string
-          webhook_url: string
+          webhook_url?: string
         }
         Update: {
           attempts?: number
