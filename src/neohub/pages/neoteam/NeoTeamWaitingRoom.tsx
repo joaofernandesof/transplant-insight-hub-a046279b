@@ -41,6 +41,7 @@ import { ptBR } from 'date-fns/locale';
 import { useNeoTeamWaitingRoom, TriageStatus, MoodStatus, AddToWaitingRoom } from '@/neohub/hooks/useNeoTeamWaitingRoom';
 import { useNeoTeamBranches } from '@/neohub/hooks/useNeoTeamBranches';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const typeOptions = [
   { value: 'consulta', label: 'Consulta', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
@@ -82,6 +83,7 @@ export default function NeoTeamWaitingRoom() {
     type: 'consulta',
     branch: '',
   });
+  const [selectedExistingPatient, setSelectedExistingPatient] = useState(false);
 
   const {
     patients,
@@ -168,7 +170,10 @@ export default function NeoTeamWaitingRoom() {
   };
 
   const handleAddPatient = async () => {
-    if (!newPatient.patient_name) return;
+    if (!newPatient.patient_name || !selectedExistingPatient) {
+      toast.error('Selecione um paciente já cadastrado. Caso não encontre, cadastre-o no módulo Pacientes.');
+      return;
+    }
     
     await addToWaitingRoom({
       ...newPatient,
@@ -181,6 +186,7 @@ export default function NeoTeamWaitingRoom() {
       type: 'consulta',
       branch: selectedBranch,
     });
+    setSelectedExistingPatient(false);
   };
 
   const handleDeleteConfirm = async () => {
@@ -398,9 +404,15 @@ export default function NeoTeamWaitingRoom() {
               <Label className="text-xs text-muted-foreground">Nome do Paciente</Label>
               <PatientAutocomplete
                 value={newPatient.patient_name}
-                onChange={(value) => setNewPatient({ ...newPatient, patient_name: value })}
-                onSelectPatient={(patient) => setNewPatient({ ...newPatient, patient_name: patient.full_name })}
-                placeholder="Buscar paciente..."
+                onChange={(value) => {
+                  setNewPatient({ ...newPatient, patient_name: value });
+                  setSelectedExistingPatient(false);
+                }}
+                onSelectPatient={(patient) => {
+                  setNewPatient({ ...newPatient, patient_name: patient.full_name });
+                  setSelectedExistingPatient(true);
+                }}
+                placeholder="Buscar paciente cadastrado..."
               />
             </div>
             <div className="space-y-2">
@@ -439,8 +451,9 @@ export default function NeoTeamWaitingRoom() {
             </div>
             <Button 
               onClick={handleAddPatient}
-              disabled={!newPatient.patient_name}
+              disabled={!newPatient.patient_name || !selectedExistingPatient}
               className="gap-2"
+              title={!selectedExistingPatient ? 'Selecione um paciente cadastrado' : ''}
             >
               <Plus className="h-4 w-4" />
               Adicionar

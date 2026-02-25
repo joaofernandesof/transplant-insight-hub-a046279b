@@ -700,6 +700,8 @@ export default function NeoTeamPatientDetail() {
         open={showSurgeryDialog}
         onOpenChange={setShowSurgeryDialog}
         defaultWithDate={true}
+        requireExistingPatient={true}
+        prefilledPatient={patient ? { id: patient.id, name: patient.full_name } : undefined}
       />
     </div>
   );
