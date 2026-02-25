@@ -19,11 +19,11 @@ import {
   Lock,
   Flame,
   CreditCard,
-  Scale
+  Scale,
+  LayoutGrid
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
-import { NeoHubIcon } from '@/components/icons/NeoHubIcon';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 
@@ -243,7 +243,7 @@ export default function PortalSelector() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 p-3 shadow-2xl animate-pulse flex items-center justify-center">
-            <NeoHubIcon size={40} className="text-white" />
+            <LayoutGrid size={40} className="text-white" />
           </div>
           <Skeleton className="h-6 w-32 mx-auto" />
         </div>
@@ -268,7 +268,7 @@ export default function PortalSelector() {
       <header className="p-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 p-2 shadow-lg flex items-center justify-center">
-            <NeoHubIcon size={24} className="text-white" />
+            <LayoutGrid size={24} className="text-white" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">
