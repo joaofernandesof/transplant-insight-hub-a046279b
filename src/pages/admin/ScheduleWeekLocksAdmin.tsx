@@ -121,37 +121,48 @@ export default function ScheduleWeekLocksAdmin() {
           />
         </div>
 
-        {/* Bulk Actions */}
-        <div className="flex flex-wrap gap-3 items-center">
-          <span className="text-sm font-medium text-muted-foreground">Ação em massa ({selectedBranch}):</span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700"
-            disabled={bulkUpdateLocks.isPending}
-            onClick={() => {
-              const ids = locks.filter(l => l.branch === selectedBranch && !l.permitido).map(l => l.id);
-              if (ids.length === 0) return;
-              bulkUpdateLocks.mutate({ ids, permitido: true });
-            }}
-          >
-            {bulkUpdateLocks.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <LockOpen className="h-4 w-4" />}
-            Desbloquear Tudo
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
-            disabled={bulkUpdateLocks.isPending}
-            onClick={() => {
-              const ids = locks.filter(l => l.branch === selectedBranch && l.permitido).map(l => l.id);
-              if (ids.length === 0) return;
-              bulkUpdateLocks.mutate({ ids, permitido: false });
-            }}
-          >
-            {bulkUpdateLocks.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <LockKeyhole className="h-4 w-4" />}
-            Bloquear Tudo
-          </Button>
+        {/* Bulk Actions per Doctor */}
+        <div className="flex flex-wrap gap-4 items-start">
+          {DOCTORS.map(doctor => {
+            const doctorLocks = locks.filter(l => l.branch === selectedBranch && l.doctor === doctor);
+            const allAllowed = doctorLocks.length > 0 && doctorLocks.every(l => l.permitido);
+            const allBlocked = doctorLocks.length > 0 && doctorLocks.every(l => !l.permitido);
+            return (
+              <Card key={doctor} className="flex-1 min-w-[160px]">
+                <CardContent className="p-3 space-y-2">
+                  <p className="text-sm font-semibold text-center">{doctor}</p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1 text-xs border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700"
+                      disabled={bulkUpdateLocks.isPending || allAllowed}
+                      onClick={() => {
+                        const ids = doctorLocks.filter(l => !l.permitido).map(l => l.id);
+                        if (ids.length) bulkUpdateLocks.mutate({ ids, permitido: true });
+                      }}
+                    >
+                      <LockOpen className="h-3.5 w-3.5" />
+                      Liberar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1 text-xs border-destructive/50 text-destructive hover:bg-destructive/10"
+                      disabled={bulkUpdateLocks.isPending || allBlocked}
+                      onClick={() => {
+                        const ids = doctorLocks.filter(l => l.permitido).map(l => l.id);
+                        if (ids.length) bulkUpdateLocks.mutate({ ids, permitido: false });
+                      }}
+                    >
+                      <LockKeyhole className="h-3.5 w-3.5" />
+                      Travar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Matrix Table */}
