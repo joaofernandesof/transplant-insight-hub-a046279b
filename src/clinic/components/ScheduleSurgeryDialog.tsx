@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -18,7 +18,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
+import { useValidateWeekLock } from '@/hooks/useScheduleWeekLocks';
 import type { NoDatePatient } from '../hooks/useNoDatePatients';
 
 interface ScheduleSurgeryDialogProps {
@@ -35,12 +37,33 @@ const timeSlots = Array.from({ length: 20 }, (_, i) => {
 
 export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleSurgeryDialogProps) {
   const { createSurgery } = useClinicSurgeries();
+  const { validate } = useValidateWeekLock();
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>('');
   const [doctor, setDoctor] = useState('');
+  const [weekLockMessage, setWeekLockMessage] = useState<string | null>(null);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!patient || !date) return;
+
+    setWeekLockMessage(null);
+
+    // Validate week lock if doctor is specified
+    if (doctor) {
+      try {
+        const lockResult = await validate({
+          date: format(date, 'yyyy-MM-dd'),
+          branch: patient.branch,
+          doctor: doctor.trim(),
+        });
+        if (!lockResult.permitido) {
+          setWeekLockMessage(lockResult.mensagem);
+          return;
+        }
+      } catch (err) {
+        console.error('Week lock validation error:', err);
+      }
+    }
 
     createSurgery.mutate({
       patientId: patient.patientId,
@@ -58,6 +81,7 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
         setDate(undefined);
         setTime('');
         setDoctor('');
+        setWeekLockMessage(null);
       },
     });
   };
@@ -140,6 +164,13 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
               onChange={(e) => setDoctor(e.target.value)}
             />
           </div>
+
+          {weekLockMessage && (
+            <Alert variant="destructive">
+              <ShieldAlert className="h-4 w-4" />
+              <AlertDescription>{weekLockMessage}</AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <DialogFooter>

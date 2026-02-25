@@ -33,6 +33,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, User, DollarSign, CheckSquare, FileText, ShieldAlert } from "lucide-react";
 import { SurgerySchedule } from "@/hooks/useSurgerySchedule";
 import { useValidateScheduleRotation, CIDADES, MEDICOS, TIPOS_AGENDAMENTO, CATEGORIAS_RODIZIO, getSemanaDOMes } from "@/hooks/useWeeklyScheduleRules";
+import { useValidateWeekLock } from "@/hooks/useScheduleWeekLocks";
 
 const formSchema = z.object({
   surgery_date: z.string().min(1, "Data obrigatória"),
@@ -107,6 +108,7 @@ const procedures = [
 
 export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }: SurgeryDialogProps) {
   const { validate } = useValidateScheduleRotation();
+  const { validate: validateWeekLock } = useValidateWeekLock();
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
   const [currentSemana, setCurrentSemana] = useState<number | null>(null);
 
@@ -248,6 +250,23 @@ export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }
       if (!result.permitido) {
         setBlockMessage(result.mensagem);
         return;
+      }
+    }
+
+    // Validate week lock if city/date/doctor are filled
+    if (data.cidade && data.surgery_date && data.medico) {
+      try {
+        const lockResult = await validateWeekLock({
+          date: data.surgery_date,
+          branch: data.cidade,
+          doctor: data.medico,
+        });
+        if (!lockResult.permitido) {
+          setBlockMessage(lockResult.mensagem);
+          return;
+        }
+      } catch (err) {
+        console.error('Week lock validation error:', err);
       }
     }
 

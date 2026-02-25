@@ -30,6 +30,9 @@ import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
 import { useBranches } from '../hooks/useBranches';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useValidateWeekLock } from '@/hooks/useScheduleWeekLocks';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ShieldAlert } from 'lucide-react';
 
 interface AddSurgeryDialogProps {
   open: boolean;
@@ -40,6 +43,7 @@ interface AddSurgeryDialogProps {
 export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }: AddSurgeryDialogProps) {
   const { createSurgery } = useClinicSurgeries();
   const { branches } = useBranches();
+  const { validate } = useValidateWeekLock();
 
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
@@ -51,6 +55,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
   const [surgeryTime, setSurgeryTime] = useState('');
   const [withDate, setWithDate] = useState(defaultWithDate);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [weekLockMessage, setWeekLockMessage] = useState<string | null>(null);
 
   const procedures = [
     'CABELO',
@@ -84,6 +89,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
     setSurgeryDate(undefined);
     setSurgeryTime('');
     setWithDate(defaultWithDate);
+    setWeekLockMessage(null);
   };
 
   const handleSubmit = async () => {
@@ -98,6 +104,25 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
     }
 
     setIsSubmitting(true);
+    setWeekLockMessage(null);
+
+    // Validate week lock if date and branch and doctor are set
+    if (withDate && surgeryDate && branch && doctorOnDuty) {
+      try {
+        const lockResult = await validate({
+          date: format(surgeryDate, 'yyyy-MM-dd'),
+          branch,
+          doctor: doctorOnDuty.trim(),
+        });
+        if (!lockResult.permitido) {
+          setWeekLockMessage(lockResult.mensagem);
+          setIsSubmitting(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Week lock validation error:', err);
+      }
+    }
 
     try {
       // First, create or find the patient
@@ -293,6 +318,13 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
                 />
               </div>
             </div>
+          )}
+
+          {weekLockMessage && (
+            <Alert variant="destructive">
+              <ShieldAlert className="h-4 w-4" />
+              <AlertDescription>{weekLockMessage}</AlertDescription>
+            </Alert>
           )}
         </div>
 
