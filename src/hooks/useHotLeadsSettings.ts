@@ -72,7 +72,7 @@ export function useHotLeadsSettings() {
     
     const imageUrl = `https://transplant-insight-hub.lovable.app/images/neofolic-licenca.jpeg`;
     
-    const message = `Olá, ${leadName}, tudo bem?\n\nMeu nome é ${settings.licensee_name} e falo da clínica ${settings.clinic_name}.\n\nRecebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.\n\nVocê prefere que eu te *ligue* ou continuamos *por aqui*?\n\nSe em algum momento você preferir não receber mais mensagens, é só me avisar 😊\n\n${imageUrl}`;
+    const message = `Olá, ${leadName}, tudo bem?\n\nMeu nome é ${settings.licensee_name} e falo da clínica ${settings.clinic_name}.\n\nRecebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.\n\nVocê prefere que eu te ligue ou continuamos por aqui?\n\n${imageUrl}`;
 
     return `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
   }, [settings]);
