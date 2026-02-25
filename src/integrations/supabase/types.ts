@@ -13317,6 +13317,42 @@ export type Database = {
           },
         ]
       }
+      neoteam_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          resource_id: string | null
+          resource_type: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       neoteam_branches: {
         Row: {
           address: string | null
@@ -13443,6 +13479,50 @@ export type Database = {
             columns: ["neohub_user_id"]
             isOneToOne: false
             referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_module_permissions: {
+        Row: {
+          can_create: boolean
+          can_delete: boolean
+          can_edit: boolean
+          can_view: boolean
+          created_at: string
+          id: string
+          module: Database["public"]["Enums"]["neoteam_module"]
+          team_member_id: string
+          updated_at: string
+        }
+        Insert: {
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          id?: string
+          module: Database["public"]["Enums"]["neoteam_module"]
+          team_member_id: string
+          updated_at?: string
+        }
+        Update: {
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          id?: string
+          module?: Database["public"]["Enums"]["neoteam_module"]
+          team_member_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_module_permissions_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_team_members"
             referencedColumns: ["id"]
           },
         ]
@@ -13632,6 +13712,47 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_team_members: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          doctor_id: string | null
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["neoteam_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          doctor_id?: string | null
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["neoteam_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          doctor_id?: string | null
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["neoteam_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_team_members_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_doctors"
             referencedColumns: ["id"]
           },
         ]
@@ -19624,6 +19745,7 @@ export type Database = {
         Args: { _action: string; _user_id: string }
         Returns: Json
       }
+      count_neoteam_masters: { Args: never; Returns: number }
       create_default_avivar_kanbans: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -19803,6 +19925,10 @@ export type Database = {
           profile: Database["public"]["Enums"]["neohub_profile"]
         }[]
       }
+      get_neoteam_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["neoteam_role"]
+      }
       get_or_create_avivar_contact: {
         Args: { p_name?: string; p_phone: string; p_user_id: string }
         Returns: string
@@ -19946,6 +20072,12 @@ export type Database = {
         Returns: boolean
       }
       is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_neoteam_admin_or_above: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_neoteam_master: { Args: { _user_id: string }; Returns: boolean }
+      is_neoteam_member: { Args: { _user_id: string }; Returns: boolean }
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
       release_random_queued_lead:
         | { Args: { p_mode?: string }; Returns: Json }
@@ -20230,6 +20362,24 @@ export type Database = {
         | "refunded"
         | "partially_refunded"
         | "chargeback"
+      neoteam_module:
+        | "clinico_agenda"
+        | "clinico_agenda_cirurgica"
+        | "clinico_sala_espera"
+        | "clinico_pacientes"
+        | "clinico_prontuarios"
+        | "clinico_visao_medico"
+        | "operacoes_tarefas"
+        | "operacoes_documentos"
+        | "operacoes_pos_venda"
+        | "operacoes_limpeza"
+        | "operacoes_educacao"
+        | "gestao_eventos"
+        | "gestao_galerias"
+        | "admin_equipe"
+        | "admin_relatorios"
+        | "admin_configuracoes"
+      neoteam_role: "MASTER" | "ADMIN" | "PROFISSIONAL" | "OPERACIONAL"
       portal_role:
         | "patient"
         | "doctor"
@@ -20613,6 +20763,25 @@ export const Constants = {
         "partially_refunded",
         "chargeback",
       ],
+      neoteam_module: [
+        "clinico_agenda",
+        "clinico_agenda_cirurgica",
+        "clinico_sala_espera",
+        "clinico_pacientes",
+        "clinico_prontuarios",
+        "clinico_visao_medico",
+        "operacoes_tarefas",
+        "operacoes_documentos",
+        "operacoes_pos_venda",
+        "operacoes_limpeza",
+        "operacoes_educacao",
+        "gestao_eventos",
+        "gestao_galerias",
+        "admin_equipe",
+        "admin_relatorios",
+        "admin_configuracoes",
+      ],
+      neoteam_role: ["MASTER", "ADMIN", "PROFISSIONAL", "OPERACIONAL"],
       portal_role: [
         "patient",
         "doctor",
