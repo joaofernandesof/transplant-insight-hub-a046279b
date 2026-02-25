@@ -48,7 +48,6 @@ export function useLeadRelease() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [defaultInterval, setDefaultIntervalState] = useState<number>(300);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
-  const autoReleaseTriggeredRef = useRef<string | null>(null);
 
   const triggerCelebration = useCallback(() => {
     setShowConfetti(true);
@@ -67,7 +66,7 @@ export function useLeadRelease() {
     }
   }, []);
 
-  const doRelease = useCallback(async (mode: 'scheduled' | 'manual_admin') => {
+  const doRelease = useCallback(async (mode: 'manual_admin') => {
     if (isReleasingRef.current) return null;
     isReleasingRef.current = true;
     setIsReleasing(true);
@@ -147,7 +146,7 @@ export function useLeadRelease() {
     };
   }, [triggerCelebration, fetchInfo]);
 
-  // Countdown timer + auto-release when it hits 0
+  // Countdown timer (display only - release is centralized in backend cron)
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -161,15 +160,6 @@ export function useLeadRelease() {
       const now = Date.now();
       const diff = Math.max(0, Math.floor((target - now) / 1000));
       setCountdown(diff);
-
-      if (diff <= 0 && autoReleaseTriggeredRef.current !== info.next_release_at) {
-        autoReleaseTriggeredRef.current = info.next_release_at;
-        doRelease('scheduled').catch(() => {
-          setTimeout(() => {
-            autoReleaseTriggeredRef.current = null;
-          }, 10000);
-        });
-      }
     };
 
     updateCountdown();
@@ -178,7 +168,7 @@ export function useLeadRelease() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [info?.next_release_at, doRelease]);
+  }, [info?.next_release_at]);
 
   // Initial fetch + periodic refresh
   useEffect(() => {
