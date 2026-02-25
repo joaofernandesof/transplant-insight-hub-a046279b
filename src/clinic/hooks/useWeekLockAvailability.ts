@@ -63,13 +63,19 @@ export function useWeekLockAvailability(date: Date | undefined, branch: string) 
    * Maps form values to the lock naming convention.
    */
   const isCategoryBlocked = (category: string, doctor?: string): boolean => {
-    if (!category) return false;
-    if (category.startsWith('CATEGORIA A') && doctor) {
-      return isBlocked(`Categoria A - ${doctor}`);
+    const normalized = category.trim().toLowerCase();
+
+    if (normalized.startsWith('categoria a')) {
+      const categoryDoctor = category.split(' - ')[1]?.trim();
+      const resolvedDoctor = categoryDoctor || doctor;
+      if (!resolvedDoctor) return false;
+      return isBlocked(`Categoria A - ${resolvedDoctor}`);
     }
-    if (category.startsWith('CATEGORIA B')) return isBlocked('Categoria B');
-    if (category.startsWith('CATEGORIA C')) return isBlocked('Categoria C');
-    if (category.startsWith('CATEGORIA D')) return isBlocked('Categoria D');
+
+    if (normalized.startsWith('categoria b')) return isBlocked('Categoria B');
+    if (normalized.startsWith('categoria c')) return isBlocked('Categoria C');
+    if (normalized.startsWith('categoria d')) return isBlocked('Categoria D');
+
     return false;
   };
 
