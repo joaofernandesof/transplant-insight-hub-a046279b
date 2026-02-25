@@ -128,6 +128,7 @@ const IpromedSurveys = lazy(() => import("./pages/ipromed/IpromedSurveys"));
 const IpromedLeads = lazy(() => import("./pages/ipromed/IpromedLeads"));
 const IpromedClients = lazy(() => import("./pages/ipromed/IpromedClients"));
 const IpromedClientDetail = lazy(() => import("./pages/ipromed/IpromedClientDetail"));
+const IpromedCaseDetail = lazy(() => import("./pages/ipromed/IpromedCaseDetail"));
 const IpromedContracts = lazy(() => import("./pages/ipromed/IpromedContracts"));
 const IpromedContractDetail = lazy(() => import("./pages/ipromed/IpromedContractDetail"));
 const IpromedJourney = lazy(() => import("./pages/ipromed/IpromedJourney"));
@@ -845,6 +846,7 @@ function AppRoutes() {
       <Route path="/cpg/legal" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><Navigate to="/cpg/dashboard" replace /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/agenda" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="agenda" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/cases" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="cases" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/cases/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedCaseDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/contracts-hub" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="contracts" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/ai" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="ai" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/university" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedUniversity /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />

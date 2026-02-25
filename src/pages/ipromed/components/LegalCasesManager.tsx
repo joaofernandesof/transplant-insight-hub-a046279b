@@ -24,6 +24,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import ProcessCaseForm, { type ProcessCaseData } from "./ProcessCaseForm";
 
 interface ProcessCase {
@@ -78,6 +79,7 @@ export default function LegalCasesManager() {
   const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
   const [editCase, setEditCase] = useState<ProcessCase | null>(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: cases = [], isLoading, error } = useQuery({
     queryKey: ['process-cases'],
@@ -309,7 +311,7 @@ export default function LegalCasesManager() {
               </TableHeader>
               <TableBody>
                 {filteredCases.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleEdit(c)}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/cpg/cases/${c.id}`)}>
                     <TableCell>
                       <div>
                         <p className="font-medium text-sm">{c.numero_processo || 'Sem número'}</p>
@@ -336,7 +338,7 @@ export default function LegalCasesManager() {
                       ) : '-'}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEdit(c); }}>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/cpg/cases/${c.id}`); }}>
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
