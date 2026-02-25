@@ -44,6 +44,7 @@ const ExportUsersCSV = lazy(() => import("./pages/ExportUsersCSV"));
  const HotLeadsLanding = lazy(() => import("./pages/HotLeadsLanding"));
  const TransplanteLanding = lazy(() => import("./pages/TransplanteLanding"));
  const AvivarCapilarLanding = lazy(() => import("./pages/AvivarCapilarLanding"));
+ const ConsultaCapilarLanding = lazy(() => import("./pages/ConsultaCapilarLanding"));
 
 // ====================================
 // Pages - Flow.do (Gestão Operacional)
@@ -697,8 +698,10 @@ function AppRoutes() {
        <Route path="/hotleads-vendas" element={<LazyRoute><HotLeadsLanding /></LazyRoute>} />
        
        {/* Landing Page Transplante Capilar - Captação de Leads */}
-       <Route path="/transplante-capilar" element={<LazyRoute><TransplanteLanding /></LazyRoute>} />
+        <Route path="/transplante-capilar" element={<LazyRoute><TransplanteLanding /></LazyRoute>} />
         
+        {/* Landing Page Consulta Capilar - Captação de Pacientes */}
+        <Route path="/consulta-capilar" element={<LazyRoute><ConsultaCapilarLanding /></LazyRoute>} />
         {/* Landing Page Avivar CRM Capilar - Página de Vendas */}
         <Route path="/avivar-capilar" element={<LazyRoute><AvivarCapilarLanding /></LazyRoute>} />
 
