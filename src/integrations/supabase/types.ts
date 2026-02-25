@@ -13388,6 +13388,7 @@ export type Database = {
       }
       neoteam_doctor_schedules: {
         Row: {
+          branch_id: string | null
           created_at: string
           day_of_week: number
           doctor_id: string
@@ -13398,6 +13399,7 @@ export type Database = {
           start_time: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           day_of_week: number
           doctor_id: string
@@ -13408,6 +13410,7 @@ export type Database = {
           start_time: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           day_of_week?: number
           doctor_id?: string
@@ -13418,6 +13421,13 @@ export type Database = {
           start_time?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "neoteam_doctor_schedules_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "neoteam_doctor_schedules_doctor_id_fkey"
             columns: ["doctor_id"]

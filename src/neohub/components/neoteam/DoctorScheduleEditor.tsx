@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, Clock } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Save, Clock, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 const DAYS = [
   { value: 0, label: 'Domingo', short: 'Dom' },
@@ -27,26 +28,60 @@ interface ScheduleRow {
   is_active: boolean;
 }
 
+interface Branch {
+  id: string;
+  name: string;
+}
+
 interface DoctorScheduleEditorProps {
   doctorId: string;
 }
 
+function useBranchesList() {
+  return useQuery({
+    queryKey: ['neoteam-branches-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('neoteam_branches')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      return data as Branch[];
+    },
+  });
+}
+
 export function DoctorScheduleEditor({ doctorId }: DoctorScheduleEditorProps) {
   const queryClient = useQueryClient();
+  const { data: branches = [], isLoading: branchesLoading } = useBranchesList();
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [schedules, setSchedules] = useState<ScheduleRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Auto-select first branch
   useEffect(() => {
-    loadSchedules();
-  }, [doctorId]);
+    if (branches.length > 0 && !selectedBranchId) {
+      setSelectedBranchId(branches[0].id);
+    }
+  }, [branches, selectedBranchId]);
+
+  // Load schedules when branch changes
+  useEffect(() => {
+    if (selectedBranchId) {
+      loadSchedules();
+    }
+  }, [doctorId, selectedBranchId]);
 
   const loadSchedules = async () => {
+    if (!selectedBranchId) return;
     setIsLoading(true);
     const { data, error } = await supabase
       .from('neoteam_doctor_schedules')
       .select('*')
       .eq('doctor_id', doctorId)
+      .eq('branch_id', selectedBranchId)
       .order('day_of_week');
 
     if (error) {
@@ -55,7 +90,6 @@ export function DoctorScheduleEditor({ doctorId }: DoctorScheduleEditorProps) {
       return;
     }
 
-    // Build full week, merging existing data
     const fullWeek: ScheduleRow[] = DAYS.map(day => {
       const existing = data?.find(s => s.day_of_week === day.value);
       if (existing) {
@@ -88,11 +122,14 @@ export function DoctorScheduleEditor({ doctorId }: DoctorScheduleEditorProps) {
   };
 
   const handleSave = async () => {
+    if (!selectedBranchId) {
+      toast.error('Selecione uma filial');
+      return;
+    }
     setIsSaving(true);
     try {
       for (const schedule of schedules) {
         if (schedule.id) {
-          // Update existing
           const { error } = await supabase
             .from('neoteam_doctor_schedules')
             .update({
@@ -104,7 +141,6 @@ export function DoctorScheduleEditor({ doctorId }: DoctorScheduleEditorProps) {
             .eq('id', schedule.id);
           if (error) throw error;
         } else if (schedule.is_active) {
-          // Insert only active new ones
           const { error } = await supabase
             .from('neoteam_doctor_schedules')
             .insert({
@@ -114,6 +150,7 @@ export function DoctorScheduleEditor({ doctorId }: DoctorScheduleEditorProps) {
               end_time: schedule.end_time,
               slot_duration_minutes: schedule.slot_duration_minutes,
               is_active: true,
+              branch_id: selectedBranchId,
             });
           if (error) throw error;
         }
@@ -129,7 +166,7 @@ export function DoctorScheduleEditor({ doctorId }: DoctorScheduleEditorProps) {
     }
   };
 
-  if (isLoading) {
+  if (branchesLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -144,68 +181,87 @@ export function DoctorScheduleEditor({ doctorId }: DoctorScheduleEditorProps) {
           <Clock className="h-4 w-4" />
           Horários de Atendimento
         </Label>
-        <Button size="sm" onClick={handleSave} disabled={isSaving}>
+        <Button size="sm" onClick={handleSave} disabled={isSaving || !selectedBranchId}>
           {isSaving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
           Salvar Agenda
         </Button>
       </div>
 
-      <div className="border rounded-lg overflow-hidden">
-        {/* Header */}
-        <div className="grid grid-cols-[120px_1fr_1fr_100px] gap-2 px-3 py-2 bg-muted/50 text-xs font-medium text-muted-foreground">
-          <span>Dia</span>
-          <span>Início — Fim</span>
-          <span>Duração (min)</span>
-          <span className="text-center">Ativo</span>
-        </div>
-
-        {/* Rows */}
-        {schedules.map(schedule => {
-          const day = DAYS.find(d => d.value === schedule.day_of_week)!;
-          return (
-            <div
-              key={schedule.day_of_week}
-              className={`grid grid-cols-[120px_1fr_1fr_100px] gap-2 px-3 py-2 items-center border-t ${
-                !schedule.is_active ? 'opacity-50' : ''
-              }`}
-            >
-              <span className="text-sm font-medium">{day.label}</span>
-              <div className="flex items-center gap-1">
-                <Input
-                  type="time"
-                  value={schedule.start_time}
-                  onChange={e => updateRow(schedule.day_of_week, 'start_time', e.target.value)}
-                  className="h-8 text-xs w-[100px]"
-                  disabled={!schedule.is_active}
-                />
-                <span className="text-muted-foreground text-xs">—</span>
-                <Input
-                  type="time"
-                  value={schedule.end_time}
-                  onChange={e => updateRow(schedule.day_of_week, 'end_time', e.target.value)}
-                  className="h-8 text-xs w-[100px]"
-                  disabled={!schedule.is_active}
-                />
-              </div>
-              <Input
-                type="number"
-                min={5}
-                max={120}
-                value={schedule.slot_duration_minutes}
-                onChange={e => updateRow(schedule.day_of_week, 'slot_duration_minutes', parseInt(e.target.value) || 30)}
-                className="h-8 text-xs w-[80px]"
-                disabled={!schedule.is_active}
-              />
-              <div className="flex justify-center">
-                <Switch
-                  checked={schedule.is_active}
-                  onCheckedChange={val => updateRow(schedule.day_of_week, 'is_active', val)}
-                />
-              </div>
-            </div>
-          );
-        })}
+      {/* Branch selector */}
+      <div className="flex items-center gap-2">
+        <Building2 className="h-4 w-4 text-muted-foreground" />
+        <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+          <SelectTrigger className="w-[220px] h-8 text-sm">
+            <SelectValue placeholder="Selecione a filial" />
+          </SelectTrigger>
+          <SelectContent>
+            {branches.map(b => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="grid grid-cols-[120px_1fr_1fr_100px] gap-2 px-3 py-2 bg-muted/50 text-xs font-medium text-muted-foreground">
+            <span>Dia</span>
+            <span>Início — Fim</span>
+            <span>Duração (min)</span>
+            <span className="text-center">Ativo</span>
+          </div>
+
+          {schedules.map(schedule => {
+            const day = DAYS.find(d => d.value === schedule.day_of_week)!;
+            return (
+              <div
+                key={schedule.day_of_week}
+                className={`grid grid-cols-[120px_1fr_1fr_100px] gap-2 px-3 py-2 items-center border-t ${
+                  !schedule.is_active ? 'opacity-50' : ''
+                }`}
+              >
+                <span className="text-sm font-medium">{day.label}</span>
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="time"
+                    value={schedule.start_time}
+                    onChange={e => updateRow(schedule.day_of_week, 'start_time', e.target.value)}
+                    className="h-8 text-xs w-[100px]"
+                    disabled={!schedule.is_active}
+                  />
+                  <span className="text-muted-foreground text-xs">—</span>
+                  <Input
+                    type="time"
+                    value={schedule.end_time}
+                    onChange={e => updateRow(schedule.day_of_week, 'end_time', e.target.value)}
+                    className="h-8 text-xs w-[100px]"
+                    disabled={!schedule.is_active}
+                  />
+                </div>
+                <Input
+                  type="number"
+                  min={5}
+                  max={120}
+                  value={schedule.slot_duration_minutes}
+                  onChange={e => updateRow(schedule.day_of_week, 'slot_duration_minutes', parseInt(e.target.value) || 30)}
+                  className="h-8 text-xs w-[80px]"
+                  disabled={!schedule.is_active}
+                />
+                <div className="flex justify-center">
+                  <Switch
+                    checked={schedule.is_active}
+                    onCheckedChange={val => updateRow(schedule.day_of_week, 'is_active', val)}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
