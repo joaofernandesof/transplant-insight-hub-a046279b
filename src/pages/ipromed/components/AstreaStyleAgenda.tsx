@@ -687,22 +687,32 @@ export default function AstreaStyleAgenda() {
     setIsFormOpen(true);
   };
 
-  // Get appointments for a specific day
+  // Filter appointments by activity type
+  const filteredAppointments = useMemo(() => {
+    if (activityFilter === 'all') return appointments;
+    return appointments.filter((apt) => apt.appointment_type === activityFilter);
+  }, [appointments, activityFilter]);
+
+  // Get appointments for a specific day (using filtered list)
   const getAppointmentsForDay = (day: Date) =>
-    appointments.filter((apt) => isSameDay(parseISO(apt.start_datetime), day));
+    filteredAppointments.filter((apt) => isSameDay(parseISO(apt.start_datetime), day));
 
   // Selected day appointments
   const selectedDayAppointments = useMemo(
     () => getAppointmentsForDay(selectedDate),
-    [appointments, selectedDate]
+    [filteredAppointments, selectedDate]
   );
 
-  // Generate calendar days
+  // Generate calendar days based on view mode
   const calendarDays = useMemo(() => {
+    if (viewMode === 'week') {
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      return eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+    }
     const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
     const endDate = addDays(startOfWeek(monthEnd, { weekStartsOn: 0 }), 6);
     return eachDayOfInterval({ start: startDate, end: endDate });
-  }, [currentDate]);
+  }, [currentDate, viewMode]);
 
   // Group calendar days into weeks
   const weeks = useMemo(() => {
@@ -713,8 +723,20 @@ export default function AstreaStyleAgenda() {
     return result;
   }, [calendarDays]);
 
-  const navigatePrev = () => setCurrentDate(subMonths(currentDate, 1));
-  const navigateNext = () => setCurrentDate(addMonths(currentDate, 1));
+  const navigatePrev = () => {
+    if (viewMode === 'week') {
+      setCurrentDate(addDays(currentDate, -7));
+    } else {
+      setCurrentDate(subMonths(currentDate, 1));
+    }
+  };
+  const navigateNext = () => {
+    if (viewMode === 'week') {
+      setCurrentDate(addDays(currentDate, 7));
+    } else {
+      setCurrentDate(addMonths(currentDate, 1));
+    }
+  };
   const goToToday = () => {
     setCurrentDate(new Date());
     setSelectedDate(new Date());
@@ -1006,7 +1028,10 @@ export default function AstreaStyleAgenda() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold capitalize">
-                  {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+                  {viewMode === 'week' 
+                    ? `${format(calendarDays[0], "d MMM", { locale: ptBR })} — ${format(calendarDays[6], "d MMM yyyy", { locale: ptBR })}`
+                    : format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })
+                  }
                 </h2>
                 <Button variant="ghost" size="icon" className="h-6 w-6">
                   <ChevronLeft className="h-4 w-4" />
