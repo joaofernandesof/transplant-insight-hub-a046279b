@@ -74,13 +74,13 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
   ];
 
   const categories = [
-    { value: 'CATEGORIA A - MÉDICO SÊNIOR', label: 'Cat A - Médico Sênior' },
-    { value: 'CATEGORIA B - MÉDICO DA EQUIPE', label: 'Cat B - Médico da Equipe' },
-    { value: 'CATEGORIA C - PACIENTE MODELO VIP', label: 'Cat C - Modelo VIP' },
-    { value: 'CATEGORIA D - PACIENTE MODELO NORMAL', label: 'Cat D - Modelo Normal' },
-    { value: 'RETOUCHING', label: 'Retouching' },
-    { value: 'A DEFINIR', label: 'A Definir' },
-    { value: 'RETOQUE DE BARBA', label: 'Retoque de Barba' },
+    { value: 'Categoria A - Hygor', label: 'Categoria A - Hygor' },
+    { value: 'Categoria A - Patrick', label: 'Categoria A - Patrick' },
+    { value: 'Categoria B', label: 'Categoria B' },
+    { value: 'Categoria C', label: 'Categoria C' },
+    { value: 'Categoria D', label: 'Categoria D' },
+    { value: 'A DEFINIR', label: 'A DEFINIR' },
+    { value: 'RETOUCHING', label: 'RETOUCHING' },
   ];
 
   // Clear category/doctor if they become blocked after date/branch change
@@ -325,15 +325,9 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
               </SelectTrigger>
               <SelectContent>
                 {categories.map((c) => {
-                  // Check if this category is blocked (for Cat A, check both doctors)
                   let blocked = false;
                   if (withDate && surgeryDate && branch) {
-                    if (c.value.startsWith('CATEGORIA A')) {
-                      // Cat A is blocked if ALL doctors are blocked
-                      blocked = isCategoryBlocked(c.value, 'Hygor') && isCategoryBlocked(c.value, 'Patrick');
-                    } else {
-                      blocked = isCategoryBlocked(c.value);
-                    }
+                    blocked = isCategoryBlocked(c.value);
                   }
                   return (
                     <SelectItem
@@ -363,9 +357,8 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
               </SelectTrigger>
               <SelectContent>
                 {['Hygor', 'Patrick', 'Márcia'].map((d) => {
-                  // If Cat A is selected, check if this specific doctor is blocked
                   let blocked = false;
-                  if (withDate && surgeryDate && branch && category?.startsWith('CATEGORIA A')) {
+                  if (withDate && surgeryDate && branch && /^categoria a/i.test(category || '')) {
                     blocked = isCategoryBlocked(category, d);
                   }
                   return (
