@@ -114,10 +114,25 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
     // Validate week lock if date and branch and doctor are set
     if (withDate && surgeryDate && branch && doctorOnDuty) {
       try {
+        // Map form category + doctor to the lock's doctor field
+        // Lock categories: "Categoria A - Hygor", "Categoria A - Patrick", "Categoria B", "Categoria C", "Categoria D"
+        let lockDoctor = doctorOnDuty.trim();
+        if (category) {
+          if (category.startsWith('CATEGORIA A')) {
+            lockDoctor = `Categoria A - ${doctorOnDuty.trim()}`;
+          } else if (category.startsWith('CATEGORIA B')) {
+            lockDoctor = 'Categoria B';
+          } else if (category.startsWith('CATEGORIA C')) {
+            lockDoctor = 'Categoria C';
+          } else if (category.startsWith('CATEGORIA D')) {
+            lockDoctor = 'Categoria D';
+          }
+        }
+
         const lockResult = await validate({
           date: format(surgeryDate, 'yyyy-MM-dd'),
           branch,
-          doctor: doctorOnDuty.trim(),
+          doctor: lockDoctor,
           agenda: 'Agenda Cirúrgica',
         });
         if (!lockResult.permitido) {
