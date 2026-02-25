@@ -37,7 +37,7 @@ const PROFILES = [
   { id: 'aluno', name: 'Aluno', access: ['academy'], desc: 'Estudantes matriculados. Acesso a cursos e certificados.' },
   { id: 'licenciado', name: 'Licenciado', access: ['neolicense', 'avivar', 'neoteam'], desc: 'Donos de clínicas licenciadas. Dashboard e métricas.' },
   { id: 'cliente_avivar', name: 'Cliente Avivar', access: ['avivar'], desc: 'Clientes do CRM Avivar. Gestão de leads e marketing.' },
-  { id: 'ipromed', name: 'IPROMED', access: ['ipromed'], desc: 'Advogados e consultores jurídicos.' },
+  { id: 'ipromed', name: 'CPG Advocacia', access: ['ipromed'], desc: 'Advogados e consultores jurídicos.' },
 ];
 
 const FOLDER_STRUCTURE = [

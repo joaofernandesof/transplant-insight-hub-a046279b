@@ -400,7 +400,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                   { key: 'paciente', label: 'Paciente', icon: HeartPulse },
                   { key: 'aluno', label: 'Aluno', icon: GraduationCap },
                   { key: 'licenciado', label: 'Licenciado', icon: Building2 },
-                  { key: 'ipromed', label: 'IPROMED', icon: Scale },
+                  { key: 'ipromed', label: 'CPG Advocacia', icon: Scale },
                 ].map(({ key, label, icon: Icon }) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">

@@ -51,7 +51,7 @@ const portals = [
   { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense', description: 'Gestão de licenças' },
   { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads', description: 'Marketplace de leads' },
   { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar', description: 'CRM & Marketing IA' },
-  { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed', description: 'Portal jurídico' },
+  { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg', description: 'Portal jurídico' },
   { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision', description: 'Análise capilar' },
   { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay', description: 'Gateway pagamentos' },
 ];

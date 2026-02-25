@@ -236,7 +236,7 @@ Avalie o perfil de risco completo deste profissional médico.
 
     try {
       const systemContext = `
-Você é uma advogada especialista em Direito Médico do IPROMED. Responda de forma clara, objetiva e fundamentada.
+Você é uma advogada especialista em Direito Médico da CPG Advocacia. Responda de forma clara, objetiva e fundamentada.
 Cliente atual: ${clientName || "Não especificado"}
 Especialidade: ${clientData?.specialty || "Não informada"}
       `.trim();
@@ -500,7 +500,7 @@ Especialidade: ${clientData?.specialty || "Não informada"}
                       <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                         <Bot className="h-12 w-12 mb-4 opacity-50" />
                         <p className="text-sm">
-                          Olá! Sou a assistente jurídica do IPROMED.<br />
+                          Olá! Sou a assistente jurídica da CPG Advocacia.<br />
                           Como posso ajudar você hoje?
                         </p>
                         <div className="mt-4 grid grid-cols-1 gap-2 text-xs">
