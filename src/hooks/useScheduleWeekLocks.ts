@@ -11,26 +11,33 @@ export interface ScheduleWeekLock {
   branch: string;
   doctor: string;
   permitido: boolean;
+  agenda: string;
   created_at: string;
   updated_at: string;
 }
 
 export const BRANCHES = ['Fortaleza', 'Juazeiro', 'São Paulo'] as const;
 export const DOCTORS = ['Hygor', 'Patrick', 'Márcia'] as const;
+export const AGENDAS = ['Agenda Cirúrgica', 'Agenda de Consultas'] as const;
 
-export function useScheduleWeekLocks() {
+export function useScheduleWeekLocks(agenda?: string) {
   const queryClient = useQueryClient();
 
   const { data: locks = [], isLoading } = useQuery({
-    queryKey: ['schedule-week-locks'],
+    queryKey: ['schedule-week-locks', agenda],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('schedule_week_locks')
         .select('*')
         .order('week_number')
         .order('branch')
         .order('doctor');
 
+      if (agenda) {
+        query = query.eq('agenda', agenda);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as ScheduleWeekLock[];
     },
@@ -87,11 +94,13 @@ export function useValidateWeekLock() {
     date: string;
     branch: string;
     doctor: string;
+    agenda?: string;
   }): Promise<{ permitido: boolean; week_number: number; mensagem: string }> => {
     const { data, error } = await supabase.rpc('validate_schedule_week_lock', {
       p_date: params.date,
       p_branch: params.branch,
       p_doctor: params.doctor,
+      p_agenda: params.agenda || 'Agenda Cirúrgica',
     });
 
     if (error) {

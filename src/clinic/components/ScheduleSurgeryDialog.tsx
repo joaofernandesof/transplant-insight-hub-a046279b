@@ -59,6 +59,7 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
           date: format(date, 'yyyy-MM-dd'),
           branch: patient.branch,
           doctor: doctor.trim(),
+          agenda: 'Agenda Cirúrgica',
         });
         if (!lockResult.permitido) {
           setWeekLockMessage(lockResult.mensagem);

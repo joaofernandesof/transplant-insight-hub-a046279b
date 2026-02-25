@@ -17237,6 +17237,7 @@ export type Database = {
       }
       schedule_week_locks: {
         Row: {
+          agenda: string
           branch: string
           created_at: string
           doctor: string
@@ -17249,6 +17250,7 @@ export type Database = {
           week_start: string
         }
         Insert: {
+          agenda?: string
           branch: string
           created_at?: string
           doctor: string
@@ -17261,6 +17263,7 @@ export type Database = {
           week_start: string
         }
         Update: {
+          agenda?: string
           branch?: string
           created_at?: string
           doctor?: string
@@ -20008,10 +20011,20 @@ export type Database = {
         }
         Returns: Json
       }
-      validate_schedule_week_lock: {
-        Args: { p_branch: string; p_date: string; p_doctor: string }
-        Returns: Json
-      }
+      validate_schedule_week_lock:
+        | {
+            Args: { p_branch: string; p_date: string; p_doctor: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_agenda?: string
+              p_branch: string
+              p_date: string
+              p_doctor: string
+            }
+            Returns: Json
+          }
     }
     Enums: {
       app_role: "admin" | "licensee" | "colaborador" | "aluno" | "paciente"
