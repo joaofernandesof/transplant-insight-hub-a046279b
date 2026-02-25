@@ -625,6 +625,7 @@ function AddAppointmentDialog({
   const [type, setType] = useState('Consulta');
   const [branch, setBranch] = useState('');
   const [notes, setNotes] = useState('');
+  const [lockWarning, setLockWarning] = useState('');
 
   // Reset form when dialog opens
   React.useEffect(() => {
@@ -638,13 +639,78 @@ function AddAppointmentDialog({
       setType('Consulta');
       setBranch('');
       setNotes('');
+      setLockWarning('');
     }
   }, [open, defaultDate, defaultTime, defaultDuration]);
+
+  // Check schedule_week_locks when date or branch changes
+  React.useEffect(() => {
+    if (!doctorId || !appointmentDate) {
+      setLockWarning('');
+      return;
+    }
+
+    const checkLock = async () => {
+      // Normalize branch: remove "Filial " prefix
+      const normalizedBranch = branch ? branch.replace(/^Filial\s+/i, '') : '';
+
+      // Build query to check if this doctor is locked for the selected date
+      let query = supabase
+        .from('schedule_week_locks')
+        .select('permitido, branch')
+        .eq('agenda', 'Agenda de Consultas')
+        .eq('doctor_id', doctorId)
+        .eq('permitido', false)
+        .lte('week_start', appointmentDate)
+        .gte('week_end', appointmentDate);
+
+      if (normalizedBranch) {
+        query = query.eq('branch', normalizedBranch);
+      }
+
+      const { data } = await query;
+
+      if (data && data.length > 0) {
+        const blockedBranches = data.map(l => l.branch).join(', ');
+        setLockWarning(
+          normalizedBranch
+            ? `🔒 ${doctorName} está com a agenda travada para esta semana em ${blockedBranches}.`
+            : `🔒 ${doctorName} está com a agenda travada para esta semana em: ${blockedBranches}.`
+        );
+      } else {
+        setLockWarning('');
+      }
+    };
+
+    checkLock();
+  }, [doctorId, doctorName, appointmentDate, branch]);
 
   const createAppointment = useMutation({
     mutationFn: async () => {
       if (!doctorId || !patientName.trim() || !appointmentDate || !appointmentTime) {
         throw new Error('Preencha todos os campos obrigatórios');
+      }
+
+      // Final lock validation before creating
+      const normalizedBranch = branch ? branch.replace(/^Filial\s+/i, '') : '';
+      let lockQuery = supabase
+        .from('schedule_week_locks')
+        .select('permitido, branch')
+        .eq('agenda', 'Agenda de Consultas')
+        .eq('doctor_id', doctorId)
+        .eq('permitido', false)
+        .lte('week_start', appointmentDate)
+        .gte('week_end', appointmentDate);
+
+      if (normalizedBranch) {
+        lockQuery = lockQuery.eq('branch', normalizedBranch);
+      }
+
+      const { data: lockData } = await lockQuery;
+
+      if (lockData && lockData.length > 0) {
+        const blockedBranches = lockData.map(l => l.branch).join(', ');
+        throw new Error(`Agenda travada para ${doctorName} nesta semana (${blockedBranches}). Não é possível agendar.`);
       }
 
       const { error } = await supabase
@@ -751,10 +817,16 @@ function AddAppointmentDialog({
           <div className="text-xs text-muted-foreground">
             Profissional: <strong>{doctorName}</strong>
           </div>
+
+          {lockWarning && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive flex items-start gap-2">
+              <span>{lockWarning}</span>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={() => createAppointment.mutate()} disabled={createAppointment.isPending}>
+          <Button onClick={() => createAppointment.mutate()} disabled={createAppointment.isPending || !!lockWarning}>
             {createAppointment.isPending ? 'Salvando...' : 'Agendar'}
           </Button>
         </DialogFooter>
