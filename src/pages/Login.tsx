@@ -13,36 +13,36 @@ import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 // Validation schemas
 const loginSchema = z.object({
   email: z.string().trim().email({ message: 'Email inválido' }),
-  password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
+  password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' })
 });
 
 const resetPasswordSchema = z.object({
-  email: z.string().trim().email({ message: 'Email inválido' }),
+  email: z.string().trim().email({ message: 'Email inválido' })
 });
 
 const signupSchema = z.object({
   fullName: z.string().min(3, { message: 'Nome deve ter no mínimo 3 caracteres' }),
   email: z.string().trim().email({ message: 'Email inválido' }),
   password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
-  path: ['confirmPassword'],
+  path: ['confirmPassword']
 });
 
 type ViewMode = 'login' | 'forgot-password' | 'signup';
 
 const modules = [
-  { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Pacientes' },
-  { id: 'neoteam', name: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-500', description: 'Colaboradores' },
-  { id: 'academy', name: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Alunos' },
-  { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
-  { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
-  { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
-  { id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico IA' },
-  { id: 'neopay', name: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', description: 'Pagamentos' },
-  { id: 'hotleads', name: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', description: 'Leads' },
-];
+{ id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Pacientes' },
+{ id: 'neoteam', name: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-500', description: 'Colaboradores' },
+{ id: 'academy', name: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Alunos' },
+{ id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
+{ id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
+{ id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
+{ id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico IA' },
+{ id: 'neopay', name: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', description: 'Pagamentos' },
+{ id: 'hotleads', name: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', description: 'Leads' }];
+
 
 export default function Login() {
   const [viewMode, setViewMode] = useState<ViewMode>('login');
@@ -57,19 +57,19 @@ export default function Login() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  
+
   // Signup fields
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [showSignupPassword, setShowSignupPassword] = useState(false);
-  
+
   const { login } = useUnifiedAuth();
   const navigate = useNavigate();
   const biometric = useBiometricAuth();
   const [showBiometricSetup, setShowBiometricSetup] = useState(false);
-  const [biometricPendingCredentials, setBiometricPendingCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [biometricPendingCredentials, setBiometricPendingCredentials] = useState<{email: string;password: string;} | null>(null);
 
   // Load remembered email on mount
   React.useEffect(() => {
@@ -88,7 +88,7 @@ export default function Login() {
     setIsLoading(true);
 
     const result = resetPasswordSchema.safeParse({ email });
-    
+
     if (!result.success) {
       const errors: Record<string, string> = {};
       result.error.errors.forEach((err) => {
@@ -104,9 +104,9 @@ export default function Login() {
     try {
       // Use published URL to avoid Lovable auth bridge interception on preview
       const publishedUrl = 'https://transplant-insight-hub.lovable.app';
-      const redirectUrl = window.location.hostname.includes('lovable')
-        ? `${publishedUrl}/reset-password`
-        : `${window.location.origin}/reset-password`;
+      const redirectUrl = window.location.hostname.includes('lovable') ?
+      `${publishedUrl}/reset-password` :
+      `${window.location.origin}/reset-password`;
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         email.trim().toLowerCase(),
@@ -124,8 +124,8 @@ export default function Login() {
 
     setIsLoading(false);
   };
-  
-  const handleSubmit = async (e: React.FormEvent, biometricCredentials?: { email: string; password: string }) => {
+
+  const handleSubmit = async (e: React.FormEvent, biometricCredentials?: {email: string;password: string;}) => {
     e?.preventDefault?.();
     setError('');
     setFieldErrors({});
@@ -137,7 +137,7 @@ export default function Login() {
 
     try {
       const result = loginSchema.safeParse({ email: loginEmail, password: loginPassword });
-      
+
       if (!result.success) {
         const errors: Record<string, string> = {};
         result.error.errors.forEach((err) => {
@@ -151,15 +151,15 @@ export default function Login() {
       }
 
       const { success, error: loginError } = await login(loginEmail, loginPassword);
-      
+
       if (success) {
         // Check if user is pending approval (after auth, so RLS works)
-        const { data: neohubUser } = await supabase
-          .from('neohub_users')
-          .select('is_active')
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id || '')
-          .maybeSingle();
-        
+        const { data: neohubUser } = await supabase.
+        from('neohub_users').
+        select('is_active').
+        eq('user_id', (await supabase.auth.getUser()).data.user?.id || '').
+        maybeSingle();
+
         if (neohubUser && !neohubUser.is_active) {
           await supabase.auth.signOut();
           setError('Seu cadastro está aguardando aprovação do administrador. Você receberá acesso assim que for aprovado.');
@@ -176,7 +176,7 @@ export default function Login() {
         } else {
           localStorage.removeItem('rememberedEmail');
         }
-        
+
         navigate('/portal-selector');
       } else {
         setError(loginError || 'Email ou senha incorretos');
@@ -184,20 +184,20 @@ export default function Login() {
     } catch (err) {
       setError('Ocorreu um erro. Tente novamente.');
     }
-    
+
     setIsLoading(false);
   };
 
   // Login com biometria (Face ID / Touch ID)
   const handleBiometricLogin = async () => {
     if (!biometric.isAvailable || !biometric.hasCredentials) return;
-    
+
     setError('');
     setIsLoading(true);
 
     try {
       const credentials = await biometric.authenticate();
-      
+
       if (credentials) {
         // Simula um evento de form submit
         await handleSubmit({ preventDefault: () => {} } as React.FormEvent, credentials);
@@ -213,7 +213,7 @@ export default function Login() {
   // Configura biometria após login bem-sucedido
   const handleSetupBiometric = async (accept: boolean) => {
     setShowBiometricSetup(false);
-    
+
     if (accept && biometricPendingCredentials) {
       try {
         await biometric.saveCredentials(biometricPendingCredentials.email, biometricPendingCredentials.password);
@@ -221,7 +221,7 @@ export default function Login() {
         console.error('Failed to save biometric credentials');
       }
     }
-    
+
     setBiometricPendingCredentials(null);
   };
 
@@ -247,7 +247,7 @@ export default function Login() {
       fullName: signupName,
       email: signupEmail,
       password: signupPassword,
-      confirmPassword: signupConfirmPassword,
+      confirmPassword: signupConfirmPassword
     });
 
     if (!result.success) {
@@ -269,8 +269,8 @@ export default function Login() {
         password: signupPassword,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { full_name: signupName },
-        },
+          data: { full_name: signupName }
+        }
       });
 
       if (authError) {
@@ -290,15 +290,15 @@ export default function Login() {
       }
 
       // Create neohub_users with is_active = false (pending approval)
-      const { error: userError } = await supabase
-        .from('neohub_users')
-        .insert({
-          user_id: authData.user.id,
-          email: signupEmail.trim().toLowerCase(),
-          full_name: signupName,
-          is_active: false,
-          allowed_portals: [],
-        });
+      const { error: userError } = await supabase.
+      from('neohub_users').
+      insert({
+        user_id: authData.user.id,
+        email: signupEmail.trim().toLowerCase(),
+        full_name: signupName,
+        is_active: false,
+        allowed_portals: []
+      });
 
       if (userError) {
         console.error('Error creating neohub user:', userError);
@@ -318,7 +318,7 @@ export default function Login() {
 
     setIsLoading(false);
   };
-  
+
   return (
     <div className="min-h-screen min-h-[100dvh] flex flex-col lg:flex-row bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
       {/* Theme Toggle */}
@@ -339,11 +339,11 @@ export default function Login() {
           {/* Logo and Title */}
           <div className="mb-8 text-center">
             <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 p-1 shadow-2xl">
-              <img 
-                src={iconeNeofolic} 
-                alt="NeoHub" 
-                className="w-full h-full object-contain rounded-xl"
-              />
+              
+
+
+
+
             </div>
             <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2">
               Neo<span className="bg-gradient-to-b from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">Hub</span>
@@ -367,17 +367,17 @@ export default function Login() {
               const radius = 170;
               const x = Math.cos(angle) * radius;
               const y = Math.sin(angle) * radius;
-              
+
               return (
                 <React.Fragment key={module.id}>
                   {/* Connection line */}
-                  <div 
+                  <div
                     className="absolute top-1/2 left-1/2 h-0.5 bg-gradient-to-r from-slate-600 to-transparent origin-left"
                     style={{
                       width: 170,
-                      transform: `rotate(${index * (360 / modules.length) - 90}deg)`,
-                    }}
-                  />
+                      transform: `rotate(${index * (360 / modules.length) - 90}deg)`
+                    }} />
+
                   
                   {/* Module node */}
                   <div
@@ -385,13 +385,13 @@ export default function Login() {
                     style={{
                       left: `calc(50% + ${x}px)`,
                       top: `calc(50% + ${y}px)`,
-                      transform: 'translate(-50%, -50%)',
-                    }}
-                  >
+                      transform: 'translate(-50%, -50%)'
+                    }}>
+
                     <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg`}>
                       <Icon
-                        className={`w-6 h-6 ${module.id === 'vision' ? 'text-amber-200' : 'text-white'}`}
-                      />
+                        className={`w-6 h-6 ${module.id === 'vision' ? 'text-amber-200' : 'text-white'}`} />
+
                     </div>
                     <span className="block w-[92px] text-white text-xs font-medium text-center leading-tight">
                       {module.name}
@@ -400,8 +400,8 @@ export default function Login() {
                       {module.description}
                     </span>
                   </div>
-                </React.Fragment>
-              );
+                </React.Fragment>);
+
             })}
           </div>
 
@@ -413,15 +413,15 @@ export default function Login() {
                 <div
                   key={module.id}
                   className={`w-14 h-14 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg`}
-                  title={module.name}
-                >
-                  {Icon && (
-                    <Icon
-                      className={`w-7 h-7 ${module.id === 'vision' ? 'text-amber-200' : 'text-white'}`}
-                    />
-                  )}
-                </div>
-              );
+                  title={module.name}>
+
+                  {Icon &&
+                  <Icon
+                    className={`w-7 h-7 ${module.id === 'vision' ? 'text-amber-200' : 'text-white'}`} />
+
+                  }
+                </div>);
+
             })}
           </div>
 
@@ -444,13 +444,13 @@ export default function Login() {
         <div className="w-full max-w-md">
           {/* Login/Signup/Forgot Password Form */}
           <div className="bg-card rounded-2xl border border-border shadow-xl p-5 sm:p-8">
-            {viewMode === 'forgot-password' ? (
-              <>
+            {viewMode === 'forgot-password' ?
+            <>
                 <button
-                  type="button"
-                  onClick={() => { setViewMode('login'); resetForm(); }}
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 text-sm"
-                >
+                type="button"
+                onClick={() => {setViewMode('login');resetForm();}}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 text-sm">
+
                   <ArrowLeft className="w-4 h-4" />
                   Voltar ao login
                 </button>
@@ -463,18 +463,18 @@ export default function Login() {
                 </p>
                 
                 <form onSubmit={handlePasswordReset} className="space-y-4 sm:space-y-5">
-                  {error && (
-                    <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                  {error &&
+                <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                       <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                       <span>{error}</span>
                     </div>
-                  )}
+                }
 
-                  {successMessage && (
-                    <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm">
+                  {successMessage &&
+                <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm">
                       {successMessage}
                     </div>
-                  )}
+                }
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
@@ -483,36 +483,36 @@ export default function Login() {
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="seu@email.com"
-                        required
-                        autoComplete="email"
-                        className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.email ? 'border-destructive' : ''}`}
-                      />
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      required
+                      autoComplete="email"
+                      className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.email ? 'border-destructive' : ''}`} />
+
                     </div>
-                    {fieldErrors.email && (
-                      <p className="text-destructive text-xs mt-1">{fieldErrors.email}</p>
-                    )}
+                    {fieldErrors.email &&
+                  <p className="text-destructive text-xs mt-1">{fieldErrors.email}</p>
+                  }
                   </div>
                   
                   <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2"
-                  >
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2">
+
                     {isLoading ? 'Enviando...' : 'Enviar email de recuperação'}
                   </button>
                 </form>
-              </>
-            ) : viewMode === 'signup' ? (
-              <>
+              </> :
+            viewMode === 'signup' ?
+            <>
                 <button
-                  type="button"
-                  onClick={() => { setViewMode('login'); resetForm(); }}
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 text-sm"
-                >
+                type="button"
+                onClick={() => {setViewMode('login');resetForm();}}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 text-sm">
+
                   <ArrowLeft className="w-4 h-4" />
                   Voltar ao login
                 </button>
@@ -525,35 +525,35 @@ export default function Login() {
                 </p>
 
                 <form onSubmit={handleSignup} className="space-y-4 sm:space-y-5">
-                  {error && (
-                    <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                  {error &&
+                <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                       <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                       <span>{error}</span>
                     </div>
-                  )}
+                }
 
-                  {successMessage && (
-                    <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm">
+                  {successMessage &&
+                <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm">
                       <Check className="w-4 h-4 shrink-0" />
                       <span>{successMessage}</span>
                     </div>
-                  )}
+                }
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5">
                       Nome completo
                     </label>
                     <input
-                      type="text"
-                      value={signupName}
-                      onChange={(e) => setSignupName(e.target.value)}
-                      placeholder="Seu nome completo"
-                      required
-                      className="input-metric w-full h-12 text-base"
-                    />
-                    {fieldErrors.fullName && (
-                      <p className="text-destructive text-xs mt-1">{fieldErrors.fullName}</p>
-                    )}
+                    type="text"
+                    value={signupName}
+                    onChange={(e) => setSignupName(e.target.value)}
+                    placeholder="Seu nome completo"
+                    required
+                    className="input-metric w-full h-12 text-base" />
+
+                    {fieldErrors.fullName &&
+                  <p className="text-destructive text-xs mt-1">{fieldErrors.fullName}</p>
+                  }
                   </div>
 
                   <div>
@@ -563,18 +563,18 @@ export default function Login() {
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
-                        type="email"
-                        value={signupEmail}
-                        onChange={(e) => setSignupEmail(e.target.value)}
-                        placeholder="seu@email.com"
-                        required
-                        autoComplete="email"
-                        className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.email ? 'border-destructive' : ''}`}
-                      />
+                      type="email"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      required
+                      autoComplete="email"
+                      className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.email ? 'border-destructive' : ''}`} />
+
                     </div>
-                    {fieldErrors.email && (
-                      <p className="text-destructive text-xs mt-1">{fieldErrors.email}</p>
-                    )}
+                    {fieldErrors.email &&
+                  <p className="text-destructive text-xs mt-1">{fieldErrors.email}</p>
+                  }
                   </div>
 
                   <div>
@@ -584,25 +584,25 @@ export default function Login() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
-                        type={showSignupPassword ? 'text' : 'password'}
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        autoComplete="new-password"
-                        className={`input-metric pl-10 pr-12 w-full h-12 text-base ${fieldErrors.password ? 'border-destructive' : ''}`}
-                      />
+                      type={showSignupPassword ? 'text' : 'password'}
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      autoComplete="new-password"
+                      className={`input-metric pl-10 pr-12 w-full h-12 text-base ${fieldErrors.password ? 'border-destructive' : ''}`} />
+
                       <button
-                        type="button"
-                        onClick={() => setShowSignupPassword(!showSignupPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                      >
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1">
+
                         {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
-                    {fieldErrors.password && (
-                      <p className="text-destructive text-xs mt-1">{fieldErrors.password}</p>
-                    )}
+                    {fieldErrors.password &&
+                  <p className="text-destructive text-xs mt-1">{fieldErrors.password}</p>
+                  }
                   </div>
 
                   <div>
@@ -612,25 +612,25 @@ export default function Login() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
-                        type={showSignupPassword ? 'text' : 'password'}
-                        value={signupConfirmPassword}
-                        onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        autoComplete="new-password"
-                        className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.confirmPassword ? 'border-destructive' : ''}`}
-                      />
+                      type={showSignupPassword ? 'text' : 'password'}
+                      value={signupConfirmPassword}
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      autoComplete="new-password"
+                      className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.confirmPassword ? 'border-destructive' : ''}`} />
+
                     </div>
-                    {fieldErrors.confirmPassword && (
-                      <p className="text-destructive text-xs mt-1">{fieldErrors.confirmPassword}</p>
-                    )}
+                    {fieldErrors.confirmPassword &&
+                  <p className="text-destructive text-xs mt-1">{fieldErrors.confirmPassword}</p>
+                  }
                   </div>
 
                   <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2"
-                  >
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2">
+
                     {isLoading ? 'Criando conta...' : 'Criar conta'}
                   </button>
                 </form>
@@ -639,34 +639,34 @@ export default function Login() {
                   <p className="text-sm text-muted-foreground">
                     Já tem uma conta?{' '}
                     <button
-                      type="button"
-                      onClick={() => { setViewMode('login'); resetForm(); }}
-                      className="text-primary hover:underline font-medium"
-                    >
+                    type="button"
+                    onClick={() => {setViewMode('login');resetForm();}}
+                    className="text-primary hover:underline font-medium">
+
                       Fazer login
                     </button>
                   </p>
                 </div>
-              </>
-            ) : (
-              <>
+              </> :
+
+            <>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-5 sm:mb-6 text-center">
                   Acesse sua conta
                 </h2>
                 
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-                  {error && (
-                    <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                  {error &&
+                <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                       <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                       <span>{error}</span>
                     </div>
-                  )}
+                }
 
-                  {successMessage && (
-                    <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm">
+                  {successMessage &&
+                <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm">
                       {successMessage}
                     </div>
-                  )}
+                }
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
@@ -675,18 +675,18 @@ export default function Login() {
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="seu@email.com"
-                        required
-                        autoComplete="email"
-                        className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.email ? 'border-destructive' : ''}`}
-                      />
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      required
+                      autoComplete="email"
+                      className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.email ? 'border-destructive' : ''}`} />
+
                     </div>
-                    {fieldErrors.email && (
-                      <p className="text-destructive text-xs mt-1">{fieldErrors.email}</p>
-                    )}
+                    {fieldErrors.email &&
+                  <p className="text-destructive text-xs mt-1">{fieldErrors.email}</p>
+                  }
                   </div>
                   
                   <div>
@@ -696,71 +696,71 @@ export default function Login() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        autoComplete="current-password"
-                        className={`input-metric pl-10 pr-12 w-full h-12 text-base ${fieldErrors.password ? 'border-destructive' : ''}`}
-                      />
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      autoComplete="current-password"
+                      className={`input-metric pl-10 pr-12 w-full h-12 text-base ${fieldErrors.password ? 'border-destructive' : ''}`} />
+
                       <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                      >
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1">
+
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
-                    {fieldErrors.password && (
-                      <p className="text-destructive text-xs mt-1">{fieldErrors.password}</p>
-                    )}
+                    {fieldErrors.password &&
+                  <p className="text-destructive text-xs mt-1">{fieldErrors.password}</p>
+                  }
                   </div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-2">
                     <label className="flex items-center gap-2 cursor-pointer order-1 sm:order-none">
                       <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-5 h-5 sm:w-4 sm:h-4 rounded border-border text-primary focus:ring-primary/20"
-                      />
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-5 h-5 sm:w-4 sm:h-4 rounded border-border text-primary focus:ring-primary/20" />
+
                       <span className="text-sm text-muted-foreground">Lembrar meu login</span>
                     </label>
                     <button
-                      type="button"
-                      className="text-sm text-primary hover:underline text-left sm:text-right order-2 sm:order-none"
-                      onClick={() => { setViewMode('forgot-password'); resetForm(); }}
-                    >
+                    type="button"
+                    className="text-sm text-primary hover:underline text-left sm:text-right order-2 sm:order-none"
+                    onClick={() => {setViewMode('forgot-password');resetForm();}}>
+
                       Esqueceu a senha?
                     </button>
                   </div>
                   
                   <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2"
-                  >
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2">
+
                     {isLoading ? 'Entrando...' : 'Entrar'}
                   </button>
 
                   {/* Botão de login biométrico */}
-                  {biometric.isAvailable && biometric.hasCredentials && (
-                    <button
-                      type="button"
-                      onClick={handleBiometricLogin}
-                      disabled={isLoading}
-                      className="w-full py-3 mt-3 flex items-center justify-center gap-2 rounded-lg border border-border bg-card hover:bg-muted transition-colors text-foreground font-medium"
-                    >
+                  {biometric.isAvailable && biometric.hasCredentials &&
+                <button
+                  type="button"
+                  onClick={handleBiometricLogin}
+                  disabled={isLoading}
+                  className="w-full py-3 mt-3 flex items-center justify-center gap-2 rounded-lg border border-border bg-card hover:bg-muted transition-colors text-foreground font-medium">
+
                       <Fingerprint className="w-5 h-5" />
                       <span>Entrar com {biometric.biometryName}</span>
                     </button>
-                  )}
+                }
                 </form>
 
                 {/* Modal de configuração biométrica */}
-                {showBiometricSetup && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                {showBiometricSetup &&
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
                     <div className="bg-card rounded-xl border border-border shadow-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in-95">
                       <div className="text-center">
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
@@ -774,22 +774,22 @@ export default function Login() {
                         </p>
                         <div className="flex gap-3">
                           <button
-                            onClick={() => handleSetupBiometric(false)}
-                            className="flex-1 py-2.5 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-medium"
-                          >
+                        onClick={() => handleSetupBiometric(false)}
+                        className="flex-1 py-2.5 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-medium">
+
                             Agora não
                           </button>
                           <button
-                            onClick={() => handleSetupBiometric(true)}
-                            className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
-                          >
+                        onClick={() => handleSetupBiometric(true)}
+                        className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium">
+
                             Ativar
                           </button>
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
+              }
                 
                 {/* Criar conta */}
                 <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border text-center space-y-3">
@@ -797,10 +797,10 @@ export default function Login() {
                     Não tem uma conta?
                   </p>
                   <button
-                    type="button"
-                    onClick={() => { setViewMode('signup'); resetForm(); }}
-                    className="w-full py-3 rounded-xl border-2 border-primary text-primary font-semibold text-base hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-                  >
+                  type="button"
+                  onClick={() => {setViewMode('signup');resetForm();}}
+                  className="w-full py-3 rounded-xl border-2 border-primary text-primary font-semibold text-base hover:bg-primary hover:text-primary-foreground transition-all duration-200">
+
                     Criar conta
                   </button>
                   <p className="text-xs text-muted-foreground/70">
@@ -812,7 +812,7 @@ export default function Login() {
                   </div>
                 </div>
               </>
-            )}
+            }
           </div>
 
           
@@ -820,6 +820,6 @@ export default function Login() {
           <div className="h-4 sm:h-0" />
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
