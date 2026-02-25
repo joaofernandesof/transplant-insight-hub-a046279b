@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Loader2, ShieldCheck, Lock, Unlock, CalendarDays, LockOpen, LockKeyhole } from 'lucide-react';
-import { useScheduleWeekLocks, BRANCHES, DOCTORS, AGENDAS, type ScheduleWeekLock } from '@/hooks/useScheduleWeekLocks';
+import { useScheduleWeekLocks, BRANCHES, AGENDAS, getColumnsForAgenda, type ScheduleWeekLock } from '@/hooks/useScheduleWeekLocks';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,6 +17,7 @@ export default function ScheduleWeekLocksAdmin() {
   const { locks, weeks, isLoading, updateLock, bulkUpdateLocks } = useScheduleWeekLocks(selectedAgenda);
   const [selectedBranch, setSelectedBranch] = useState<string>('Fortaleza');
   const [searchWeek, setSearchWeek] = useState('');
+  const columns = getColumnsForAgenda(selectedAgenda);
 
   const filteredWeeks = useMemo(() => {
     if (!searchWeek) return weeks;
@@ -134,7 +135,7 @@ export default function ScheduleWeekLocksAdmin() {
 
         {/* Bulk Actions per Doctor */}
         <div className="flex flex-wrap gap-4 items-start">
-          {DOCTORS.map(doctor => {
+          {columns.map(doctor => {
             const doctorLocks = locks.filter(l => l.branch === selectedBranch && l.doctor === doctor);
             const allAllowed = doctorLocks.length > 0 && doctorLocks.every(l => l.permitido);
             const allBlocked = doctorLocks.length > 0 && doctorLocks.every(l => !l.permitido);
@@ -185,12 +186,12 @@ export default function ScheduleWeekLocksAdmin() {
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="w-full">
-              <div className="min-w-[600px]">
+              <div className="min-w-[750px]">
                 {/* Table Header */}
-                <div className="grid grid-cols-[120px_100px_1fr_1fr_1fr] gap-0 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground sticky top-0">
+                <div className={`grid gap-0 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground sticky top-0`} style={{ gridTemplateColumns: `120px 100px ${columns.map(() => '1fr').join(' ')}` }}>
                   <div>Semana</div>
                   <div>Período</div>
-                  {DOCTORS.map(d => (
+                  {columns.map(d => (
                     <div key={d} className="text-center">{d}</div>
                   ))}
                 </div>
@@ -202,9 +203,10 @@ export default function ScheduleWeekLocksAdmin() {
                     return (
                       <div
                         key={week.week_number}
-                        className={`grid grid-cols-[120px_100px_1fr_1fr_1fr] gap-0 px-4 py-2.5 items-center transition-colors ${
+                        className={`grid gap-0 px-4 py-2.5 items-center transition-colors ${
                           isCurrent ? 'bg-primary/5 border-l-2 border-l-primary' : 'hover:bg-muted/30'
                         }`}
+                        style={{ gridTemplateColumns: `120px 100px ${columns.map(() => '1fr').join(' ')}` }}
                       >
                         <div className="flex items-center gap-2">
                           <Badge
@@ -220,7 +222,7 @@ export default function ScheduleWeekLocksAdmin() {
                         <div className="text-xs text-muted-foreground">
                           {formatDate(week.week_start)} — {formatDate(week.week_end)}
                         </div>
-                        {DOCTORS.map(doctor => {
+                        {columns.map(doctor => {
                           const lock = getLockForWeekDoctor(week.week_number, doctor);
                           if (!lock) return <div key={doctor} className="text-center text-xs text-muted-foreground">—</div>;
                           return (
