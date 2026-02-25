@@ -44,13 +44,6 @@ export default function LandingPage() {
       <header className="relative z-10 pt-8 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 p-0.5 shadow-xl">
-              <img 
-                src={iconeNeofolic} 
-                alt="NeoHub" 
-                className="w-full h-full object-contain rounded-lg"
-              />
-            </div>
             <div>
               <h1 className="text-2xl font-bold text-white">
                 Neo<span className="bg-gradient-to-b from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">Hub</span>
@@ -149,7 +142,6 @@ export default function LandingPage() {
       <footer className="relative z-10 py-6 px-6 border-t border-slate-800">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
           <div className="flex items-center gap-2">
-            <img src={iconeNeofolic} alt="" className="w-5 h-5" />
             <span>© {new Date().getFullYear()} NeoHub by NeoFolic. Todos os direitos reservados.</span>
           </div>
           <div className="flex items-center gap-4">
