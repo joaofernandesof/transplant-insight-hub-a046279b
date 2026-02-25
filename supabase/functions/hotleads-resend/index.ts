@@ -70,6 +70,15 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Skip webhooks for test leads
+    if (lead.name?.startsWith('[TESTE]')) {
+      console.log(`[hotleads-resend] Skipping webhook for test lead ${lead_id}`)
+      return new Response(
+        JSON.stringify({ success: true, message: 'Lead de teste - webhook ignorado.' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Resend webhook to n8n
     const webhookUrl = Deno.env.get('N8N_HOTLEADS_WEBHOOK_URL')
     if (webhookUrl) {

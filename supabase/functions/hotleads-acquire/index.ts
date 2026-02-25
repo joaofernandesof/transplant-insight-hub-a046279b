@@ -113,11 +113,17 @@ Deno.serve(async (req) => {
 
     console.log(`[hotleads-acquire] Lead ${lead_id} claimed successfully by ${userId}`)
 
-    // Send webhooks to n8n in parallel
+    // Skip webhooks for test leads (created via admin test button)
+    const isTestLead = claimedLead.name?.startsWith('[TESTE]')
+    if (isTestLead) {
+      console.log(`[hotleads-acquire] Skipping webhooks for test lead ${lead_id}`)
+    }
+
+    // Send webhooks to n8n in parallel (skip for test leads)
     const webhookPromises: Promise<void>[] = []
 
     // Webhook 1: existing lead data webhook
-    const webhookUrl = Deno.env.get('N8N_HOTLEADS_WEBHOOK_URL')
+    const webhookUrl = !isTestLead ? Deno.env.get('N8N_HOTLEADS_WEBHOOK_URL') : null
     if (webhookUrl) {
       webhookPromises.push((async () => {
         try {
@@ -147,7 +153,7 @@ Deno.serve(async (req) => {
     }
 
     // Webhook 2: group notification webhook
-    const groupWebhookUrl = Deno.env.get('N8N_HOTLEADS_GROUP_WEBHOOK_URL')
+    const groupWebhookUrl = !isTestLead ? Deno.env.get('N8N_HOTLEADS_GROUP_WEBHOOK_URL') : null
     if (groupWebhookUrl) {
       webhookPromises.push((async () => {
         try {
