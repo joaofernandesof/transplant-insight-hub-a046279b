@@ -19,6 +19,11 @@ export interface ScheduleWeekLock {
 export const BRANCHES = ['Fortaleza', 'Juazeiro', 'São Paulo'] as const;
 export const DOCTORS = ['Hygor', 'Patrick', 'Márcia'] as const;
 export const AGENDAS = ['Agenda Cirúrgica', 'Agenda de Consultas'] as const;
+export const CATEGORIAS_CIRURGICA = ['Cat A Hygor', 'Cat A Patrick', 'Cat B', 'Cat C'] as const;
+
+export function getColumnsForAgenda(agenda: string) {
+  return agenda === 'Agenda Cirúrgica' ? [...CATEGORIAS_CIRURGICA] : [...DOCTORS];
+}
 
 export function useScheduleWeekLocks(agenda?: string) {
   const queryClient = useQueryClient();
