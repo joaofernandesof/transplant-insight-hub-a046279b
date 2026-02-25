@@ -17196,6 +17196,84 @@ export type Database = {
         }
         Relationships: []
       }
+      schedule_week_block_logs: {
+        Row: {
+          blocked_reason: string
+          branch: string
+          category: string | null
+          created_at: string
+          doctor: string
+          id: string
+          procedure_type: string | null
+          surgery_date: string
+          user_id: string
+          week_number: number
+        }
+        Insert: {
+          blocked_reason: string
+          branch: string
+          category?: string | null
+          created_at?: string
+          doctor: string
+          id?: string
+          procedure_type?: string | null
+          surgery_date: string
+          user_id: string
+          week_number: number
+        }
+        Update: {
+          blocked_reason?: string
+          branch?: string
+          category?: string | null
+          created_at?: string
+          doctor?: string
+          id?: string
+          procedure_type?: string | null
+          surgery_date?: string
+          user_id?: string
+          week_number?: number
+        }
+        Relationships: []
+      }
+      schedule_week_locks: {
+        Row: {
+          branch: string
+          created_at: string
+          doctor: string
+          id: string
+          month: string
+          permitido: boolean
+          updated_at: string
+          week_end: string
+          week_number: number
+          week_start: string
+        }
+        Insert: {
+          branch: string
+          created_at?: string
+          doctor: string
+          id?: string
+          month: string
+          permitido?: boolean
+          updated_at?: string
+          week_end: string
+          week_number: number
+          week_start: string
+        }
+        Update: {
+          branch?: string
+          created_at?: string
+          doctor?: string
+          id?: string
+          month?: string
+          permitido?: boolean
+          updated_at?: string
+          week_end?: string
+          week_number?: number
+          week_start?: string
+        }
+        Relationships: []
+      }
       sentinel_alert_recipients: {
         Row: {
           created_at: string
@@ -19928,6 +20006,10 @@ export type Database = {
           p_medico?: string
           p_tipo: string
         }
+        Returns: Json
+      }
+      validate_schedule_week_lock: {
+        Args: { p_branch: string; p_date: string; p_doctor: string }
         Returns: Json
       }
     }
