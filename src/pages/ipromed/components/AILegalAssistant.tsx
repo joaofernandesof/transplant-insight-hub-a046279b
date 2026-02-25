@@ -220,7 +220,7 @@ Para processos éticos no Conselho Regional de Medicina:
 *Consulte a Dra. Larissa ou Dra. Caroline para acompanhamento específico.*`;
     }
 
-    return `**Resposta da IA Jurídica IPROMED**
+    return `**Resposta da IA Jurídica CPG Advocacia**
 
 Analisei sua consulta e aqui está minha orientação:
 
@@ -278,7 +278,7 @@ ${input.length > 50 ?
 
 ## CONSIDERAÇÕES PRELIMINARES
 
-Este documento foi gerado automaticamente pelo sistema IPROMED com base no template "${template?.title}".
+Este documento foi gerado automaticamente pelo sistema CPG Advocacia com base no template "${template?.title}".
 
 ## CONTEÚDO
 
@@ -293,7 +293,7 @@ Este documento foi gerado automaticamente pelo sistema IPROMED com base no templ
 ---
 
 *Documento gerado em ${new Date().toLocaleString('pt-BR')}*
-*IPROMED - Instituto de Proteção Médica*`);
+*CPG Advocacia*`);
 
       toast.success("Documento gerado com sucesso!");
     } catch (error) {
@@ -371,7 +371,7 @@ Este documento foi gerado automaticamente pelo sistema IPROMED com base no templ
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                       <Sparkles className="h-12 w-12 mb-4 opacity-20" />
-                      <p className="font-medium">Assistente Jurídico IPROMED</p>
+                      <p className="font-medium">Assistente Jurídico CPG Advocacia</p>
                       <p className="text-sm mt-1">
                         Faça perguntas sobre direito médico, analise contratos ou solicite orientações jurídicas.
                       </p>

@@ -33,7 +33,7 @@ const tourSteps: TourStep[] = [
   {
     id: 'publications-tracking',
     title: 'Acompanhe cada publicação ⭐',
-    message: 'Com o IPROMED, você não perde novidade de vista.',
+    message: 'Com o CPG Advocacia, você não perde novidade de vista.',
     position: 'bottom',
   },
   {

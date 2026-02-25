@@ -16,7 +16,7 @@ const PROFILES = [
   { value: 'medico', label: 'Médico' },
   { value: 'paciente', label: 'Paciente' },
   { value: 'cliente_avivar', label: 'Cliente Avivar' },
-  { value: 'ipromed', label: 'IproMed' },
+  { value: 'ipromed', label: 'CPG Advocacia' },
 ];
 
 interface AddUserDialogProps {

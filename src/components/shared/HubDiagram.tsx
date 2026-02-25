@@ -54,7 +54,7 @@ const portals: PortalNode[] = [
   },
   {
     id: 'ipromed',
-    name: 'IPROMED',
+    name: 'CPG',
     subtitle: 'Jurídico',
     icon: <Scale className="h-6 w-6" />,
     color: 'bg-cyan-600',
