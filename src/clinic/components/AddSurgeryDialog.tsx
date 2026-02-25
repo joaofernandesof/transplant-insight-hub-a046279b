@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Lock, AlertCircle } from 'lucide-react';
+import { CalendarIcon, Plus, Lock, AlertCircle, Check } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -60,7 +61,7 @@ export function AddSurgeryDialog({
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [procedure, setProcedure] = useState('');
+  const [selectedProcedures, setSelectedProcedures] = useState<string[]>([]);
   const [branch, setBranch] = useState('');
   const [category, setCategory] = useState('');
   
@@ -79,13 +80,17 @@ export function AddSurgeryDialog({
     'CABELO',
     'BARBA',
     'SOBRANCELHA',
-    'CABELO + BARBA',
-    'CABELO + SOBRANCELHA',
-    'SOBRANCELHA + BARBA',
-    'SOBRANCELHA + BARBA + CABELO',
-    'CABELO + BODY HAIR BARBA',
-    'CABELO + BODY HAIR PEITO',
+    'BODY HAIR BARBA',
+    'BODY HAIR PEITO',
   ];
+
+  const toggleProcedure = useCallback((p: string) => {
+    setSelectedProcedures(prev => 
+      prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]
+    );
+  }, []);
+
+  const procedure = selectedProcedures.join(' + ');
 
   const categories = [
     { value: 'Categoria A - Hygor', label: 'Categoria A - Hygor' },
@@ -119,7 +124,7 @@ export function AddSurgeryDialog({
     setPatientName('');
     setPatientPhone('');
     setSelectedPatientId(null);
-    setProcedure('');
+    setSelectedProcedures([]);
     setBranch('');
     setCategory('');
     
@@ -409,19 +414,25 @@ export function AddSurgeryDialog({
             </Select>
           </div>
 
-          {/* Procedure */}
+          {/* Procedure - Multi-select */}
           <div className="space-y-1.5">
             <Label>Procedimento *</Label>
-            <Select value={procedure} onValueChange={setProcedure}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o procedimento" />
-              </SelectTrigger>
-              <SelectContent>
-                {procedures.map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="border rounded-md p-3 space-y-2">
+              {procedures.map((p) => (
+                <label key={p} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-2 py-1.5 -mx-2">
+                  <Checkbox
+                    checked={selectedProcedures.includes(p)}
+                    onCheckedChange={() => toggleProcedure(p)}
+                  />
+                  <span className="text-sm">{p}</span>
+                </label>
+              ))}
+            </div>
+            {selectedProcedures.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Selecionado: {procedure}
+              </p>
+            )}
           </div>
 
           {weekLockMessage && (
