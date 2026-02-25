@@ -9,7 +9,7 @@ import {
   User, Phone, Mail, MapPin, Calendar, FileText,
   ArrowLeft, Edit, MessageCircle, Clock,
   AlertCircle, Stethoscope, ClipboardList,
-  RefreshCw, History
+  RefreshCw, History, CheckCircle, XCircle, CalendarCheck
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -25,7 +25,6 @@ interface PatientData {
   notes?: string;
   created_at?: string;
   medical_record?: string;
-  // Parsed from notes
   branch?: string;
   category?: string;
   baldnessGrade?: string;
@@ -40,6 +39,16 @@ interface PatientData {
   surgeryDate?: string;
   leadSource?: string;
   observations?: string;
+}
+
+interface TimelineEvent {
+  id: string;
+  date: string;
+  time?: string;
+  title: string;
+  description?: string;
+  type: 'appointment' | 'surgery' | 'registration';
+  status?: string;
 }
 
 const parseNotes = (notes: string | null): Record<string, string> => {
@@ -69,10 +78,14 @@ export default function NeoTeamPatientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [patient, setPatient] = useState<PatientData | null>(null);
+  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) fetchPatient();
+    if (id) {
+      fetchPatient();
+      fetchTimeline();
+    }
   }, [id]);
 
   const fetchPatient = async () => {
@@ -117,6 +130,81 @@ export default function NeoTeamPatientDetail() {
       console.error('Error fetching patient:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTimeline = async () => {
+    if (!id) return;
+    const events: TimelineEvent[] = [];
+
+    try {
+      // Fetch patient name first for matching
+      const { data: patientData } = await supabase
+        .from('clinic_patients')
+        .select('full_name, created_at')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!patientData) return;
+
+      // Add registration event
+      if (patientData.created_at) {
+        events.push({
+          id: 'registration',
+          date: patientData.created_at,
+          title: 'Paciente cadastrado',
+          description: 'Registro do paciente no sistema',
+          type: 'registration',
+        });
+      }
+
+      // Fetch neoteam_appointments by patient_id or patient_name
+      const { data: appointments } = await supabase
+        .from('neoteam_appointments')
+        .select('*')
+        .or(`patient_id.eq.${id},patient_name.ilike.${patientData.full_name}`)
+        .order('appointment_date', { ascending: false });
+
+      if (appointments) {
+        for (const apt of appointments) {
+          events.push({
+            id: `apt-${apt.id}`,
+            date: apt.appointment_date,
+            time: apt.appointment_time,
+            title: apt.type || 'Consulta',
+            description: [apt.doctor_name && `Dr(a). ${apt.doctor_name}`, apt.branch, apt.notes].filter(Boolean).join(' · '),
+            type: 'appointment',
+            status: apt.status,
+          });
+        }
+      }
+
+      // Fetch surgery_schedule by patient_name
+      const { data: surgeries } = await supabase
+        .from('surgery_schedule')
+        .select('*')
+        .ilike('patient_name', patientData.full_name)
+        .order('surgery_date', { ascending: false });
+
+      if (surgeries) {
+        for (const surg of surgeries) {
+          events.push({
+            id: `surg-${surg.id}`,
+            date: surg.surgery_date,
+            time: surg.surgery_time || undefined,
+            title: surg.procedure_type || 'Cirurgia',
+            description: [surg.medico && `Dr(a). ${surg.medico}`, surg.cidade, surg.confirmed ? 'Confirmada' : 'Pendente'].filter(Boolean).join(' · '),
+            type: 'surgery',
+            status: surg.confirmed ? 'confirmed' : 'scheduled',
+          });
+        }
+      }
+
+      // Sort by date descending
+      events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setTimeline(events);
+    } catch (error) {
+      console.error('Error fetching timeline:', error);
     }
   };
 
@@ -376,20 +464,69 @@ export default function NeoTeamPatientDetail() {
                   <History className="h-4 w-4 text-primary" />
                   Linha do Tempo
                 </CardTitle>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={fetchPatient}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { fetchPatient(); fetchTimeline(); }}>
                   <RefreshCw className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">Histórico completo de atividades</p>
+              <p className="text-xs text-muted-foreground">Agendamentos, cirurgias e atividades</p>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Clock className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-                <p className="text-sm text-muted-foreground">Nenhuma atividade registrada</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  As atividades aparecerão aqui conforme você interagir com o paciente
-                </p>
-              </div>
+              {timeline.length === 0 ? (
+                <div className="text-center py-8">
+                  <Clock className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhuma atividade registrada</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    As atividades aparecerão aqui conforme você interagir com o paciente
+                  </p>
+                </div>
+              ) : (
+                <div className="relative space-y-0">
+                  {/* Vertical line */}
+                  <div className="absolute left-3 top-2 bottom-2 w-px bg-border" />
+                  {timeline.map((event) => (
+                    <div key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
+                      {/* Dot */}
+                      <div className={`relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                        event.type === 'surgery'
+                          ? 'border-destructive bg-destructive/10'
+                          : event.type === 'appointment'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-muted-foreground bg-muted'
+                      }`}>
+                        {event.type === 'surgery' ? (
+                          <Stethoscope className="h-3 w-3 text-destructive" />
+                        ) : event.type === 'appointment' ? (
+                          <CalendarCheck className="h-3 w-3 text-primary" />
+                        ) : (
+                          <User className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-medium truncate">{event.title}</p>
+                          {event.status && (
+                            <TimelineStatusBadge status={event.status} />
+                          )}
+                        </div>
+                        {event.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">{event.description}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {(() => {
+                            try {
+                              return format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR });
+                            } catch {
+                              return event.date;
+                            }
+                          })()}
+                          {event.time && ` às ${event.time.slice(0, 5)}`}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -418,6 +555,19 @@ export default function NeoTeamPatientDetail() {
       </div>
     </div>
   );
+}
+
+function TimelineStatusBadge({ status }: { status: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    scheduled: { label: 'Agendado', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+    confirmed: { label: 'Confirmado', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+    completed: { label: 'Realizado', className: 'bg-muted text-muted-foreground' },
+    cancelled: { label: 'Cancelado', className: 'bg-destructive/10 text-destructive' },
+    no_show: { label: 'Não compareceu', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+    in_progress: { label: 'Em andamento', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  };
+  const c = config[status] || { label: status, className: 'bg-muted text-muted-foreground' };
+  return <Badge className={`${c.className} border-0 text-[10px] px-1.5 py-0`}>{c.label}</Badge>;
 }
 
 /* Reusable info field component */
