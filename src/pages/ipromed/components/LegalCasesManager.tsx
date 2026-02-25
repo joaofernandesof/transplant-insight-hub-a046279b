@@ -219,10 +219,6 @@ export default function LegalCasesManager() {
           <p className="text-muted-foreground">Contencioso e andamentos processuais</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={() => toast.info('IA Jurídica em breve')}>
-            <Sparkles className="h-4 w-4" />
-            Gerar Peça com IA
-          </Button>
           <Dialog open={isNewCaseOpen} onOpenChange={(open) => { setIsNewCaseOpen(open); if (!open) setEditCase(null); }}>
             <DialogTrigger asChild>
               <Button className="gap-2">
