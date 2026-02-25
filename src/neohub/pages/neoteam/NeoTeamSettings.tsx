@@ -21,7 +21,7 @@ import {
 import { 
   Settings, User, Bell, Shield, Clock,
   Camera, Save, Building2, Plus, Trash2, Edit, Loader2,
-  Sun, Moon, Monitor, Palette, Users
+  Sun, Moon, Monitor, Palette, Users, Stethoscope
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNeoTeamBranches, Branch, NewBranch } from '@/neohub/hooks/useNeoTeamBranches';
@@ -29,6 +29,7 @@ import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import { useTheme } from 'next-themes';
 import { TeamManagementTab } from '@/neohub/components/neoteam/TeamManagementTab';
 import { PermissionsTab } from '@/neohub/components/neoteam/PermissionsTab';
+import { ProfessionalsManagementTab } from '@/neohub/components/neoteam/ProfessionalsManagementTab';
 
 export default function NeoTeamSettings() {
   const { user } = useUnifiedAuth();
@@ -107,7 +108,7 @@ export default function NeoTeamSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="general" className="gap-2">
             <Settings className="h-4 w-4" />
             Geral
@@ -115,6 +116,10 @@ export default function NeoTeamSettings() {
           <TabsTrigger value="team" className="gap-2">
             <Users className="h-4 w-4" />
             Equipe
+          </TabsTrigger>
+          <TabsTrigger value="professionals" className="gap-2">
+            <Stethoscope className="h-4 w-4" />
+            Profissionais
           </TabsTrigger>
           <TabsTrigger value="permissions" className="gap-2">
             <Shield className="h-4 w-4" />
@@ -453,6 +458,11 @@ export default function NeoTeamSettings() {
         {/* ===== TEAM TAB ===== */}
         <TabsContent value="team" className="mt-6">
           <TeamManagementTab onSelectMember={handleSelectMemberForPermissions} />
+        </TabsContent>
+
+        {/* ===== PROFESSIONALS TAB ===== */}
+        <TabsContent value="professionals" className="mt-6">
+          <ProfessionalsManagementTab />
         </TabsContent>
 
         {/* ===== PERMISSIONS TAB ===== */}
