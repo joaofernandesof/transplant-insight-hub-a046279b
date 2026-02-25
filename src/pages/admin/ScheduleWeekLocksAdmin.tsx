@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ShieldCheck, Lock, Unlock, CalendarDays } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, ShieldCheck, Lock, Unlock, CalendarDays, LockOpen, LockKeyhole } from 'lucide-react';
 import { useScheduleWeekLocks, BRANCHES, DOCTORS, type ScheduleWeekLock } from '@/hooks/useScheduleWeekLocks';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 
 export default function ScheduleWeekLocksAdmin() {
-  const { locks, weeks, isLoading, updateLock } = useScheduleWeekLocks();
+  const { locks, weeks, isLoading, updateLock, bulkUpdateLocks } = useScheduleWeekLocks();
   const [selectedBranch, setSelectedBranch] = useState<string>('Fortaleza');
   const [searchWeek, setSearchWeek] = useState('');
 
@@ -118,6 +119,39 @@ export default function ScheduleWeekLocksAdmin() {
             onChange={e => setSearchWeek(e.target.value)}
             className="max-w-xs"
           />
+        </div>
+
+        {/* Bulk Actions */}
+        <div className="flex flex-wrap gap-3 items-center">
+          <span className="text-sm font-medium text-muted-foreground">Ação em massa ({selectedBranch}):</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700"
+            disabled={bulkUpdateLocks.isPending}
+            onClick={() => {
+              const ids = locks.filter(l => l.branch === selectedBranch && !l.permitido).map(l => l.id);
+              if (ids.length === 0) return;
+              bulkUpdateLocks.mutate({ ids, permitido: true });
+            }}
+          >
+            {bulkUpdateLocks.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <LockOpen className="h-4 w-4" />}
+            Desbloquear Tudo
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+            disabled={bulkUpdateLocks.isPending}
+            onClick={() => {
+              const ids = locks.filter(l => l.branch === selectedBranch && l.permitido).map(l => l.id);
+              if (ids.length === 0) return;
+              bulkUpdateLocks.mutate({ ids, permitido: false });
+            }}
+          >
+            {bulkUpdateLocks.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <LockKeyhole className="h-4 w-4" />}
+            Bloquear Tudo
+          </Button>
         </div>
 
         {/* Matrix Table */}
