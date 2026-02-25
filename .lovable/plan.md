@@ -1,19 +1,22 @@
 
 
-## Adicionar "Personalizado" nos botões rápidos de período
+## Diagnóstico: Por que a IA não respondeu ao lead "Werikes Botelho"
 
-### Problema
-Os botões rápidos de período (barra inferior) mostram apenas: Hoje, Semana, Mês, Próximo. Falta a opção "Personalizado" que já existe no dropdown superior.
+### Causa Raiz Identificada
+
+A flag **`ai_enabled` está `false`** na conversa deste lead (`d01002cb-5dbd-4359-887b-4b3942777ff8`).
+
+**Cronologia dos eventos:**
+1. **24/02 às 13:50** — IA respondeu normalmente (último job completado na fila)
+2. **Em algum momento após 13:50** — A flag `ai_enabled` foi desativada (provavelmente por envio de mensagem manual ou human takeover)
+3. **24/02 às 14:47** — Lead enviou "Como é questão do pós cirurgia?"
+4. **Nenhum job foi criado na fila** — O webhook/debounce verificou `ai_enabled = false` e ignorou a mensagem
+
+Isso é o comportamento esperado do sistema: conforme a regra de "Human Takeover", quando um atendente humano envia uma mensagem manual ou desativa o toggle, a IA para de responder automaticamente.
 
 ### Solução
-Adicionar o botão "Personalizado" na barra de botões rápidos (linha 422-439 do `ClinicDashboard.tsx`), e quando clicado, abrir o date range picker inline ao lado, igual ao comportamento que já existe no dropdown.
 
-### Arquivo editado
-- `src/clinic/pages/ClinicDashboard.tsx`
+O toggle da IA (ícone de robô no chat) precisa ser **reativado manualmente** para que a IA volte a processar mensagens deste lead. No inbox, basta clicar no ícone do bot (que está aparecendo como "BotOff") para reativar.
 
-### Detalhes técnicos
-1. Adicionar `{ value: 'custom', label: 'Personalizado' }` no array de botões rápidos (linha 423-428)
-2. Manter o popover de calendário que já existe (linhas 291-314) visível quando `selectedPeriod === 'custom'` é ativado via botão rápido -- reutilizar a mesma lógica já implementada
-
-Nenhuma mudança de banco de dados necessária. Apenas um item a mais no array de botões.
+Não há bug — o sistema está funcionando conforme projetado para evitar conflito entre atendente humano e IA.
 
