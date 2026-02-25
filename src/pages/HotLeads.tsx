@@ -39,11 +39,15 @@ interface HotLeadsProps {
   initialView?: 'marketplace' | 'dashboard' | 'settings';
 }
 
+// Emails com permissão de criar leads de teste (além de admins)
+const TEST_BUTTON_ALLOWED_EMAILS = ['nicholas.barreto@neofolic.com.br'];
+
 export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps) {
   const { isAdmin: realIsAdmin, user } = useAuth();
   const { activeProfile } = useUnifiedAuth();
   // Respect profile simulation: if admin is simulating another profile, hide admin UI
   const isAdmin = realIsAdmin && (!activeProfile || activeProfile === 'administrador');
+  const canCreateTestLeads = isAdmin || TEST_BUTTON_ALLOWED_EMAILS.includes(user?.email || '');
   const navigate = useNavigate();
   const {
     leads,
@@ -423,16 +427,18 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                     <Unlock className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Liberar</span>
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setIsTestLeadOpen(true)}>
-                    <FlaskConical className="h-4 w-4 mr-1.5" />
-                    <span className="hidden sm:inline">Teste</span>
-                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
                     <Upload className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Importar</span>
                   </Button>
                   <LeadExportButton leads={leads} getClaimerName={getClaimerName} />
                 </>
+              )}
+              {canCreateTestLeads && (
+                <Button variant="outline" size="sm" onClick={() => setIsTestLeadOpen(true)}>
+                  <FlaskConical className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Teste</span>
+                </Button>
               )}
               {!isAdmin && (
                 <Button
@@ -478,16 +484,18 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 <Unlock className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Liberar</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setIsTestLeadOpen(true)}>
-                <FlaskConical className="h-4 w-4 mr-1.5" />
-                <span className="hidden sm:inline">Teste</span>
-              </Button>
               <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
                 <Upload className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Importar</span>
               </Button>
               <LeadExportButton leads={leads} getClaimerName={getClaimerName} />
             </>
+          )}
+          {canCreateTestLeads && (
+            <Button variant="outline" size="sm" onClick={() => setIsTestLeadOpen(true)}>
+              <FlaskConical className="h-4 w-4 mr-1.5" />
+              <span className="hidden sm:inline">Teste</span>
+            </Button>
           )}
           {!isAdmin && (
             <Button variant="outline" size="sm" onClick={() => setIsSettingsOpen(true)}>
