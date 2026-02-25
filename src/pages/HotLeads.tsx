@@ -247,11 +247,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   // Disponíveis: unclaimed, available — non-admins only see leads from their state
   const filteredAvailable = useMemo(() => {
     const base = filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available');
-    if (isAdmin) return base;
+    if (realIsAdmin) return base; // Admin real sempre vê todos, mesmo simulando licenciado
     const userState = user?.state;
     if (!userState) return []; // Sem estado definido = não pode ver nenhum lead disponível
     return base.filter(l => !l.state || l.state === userState);
-  }, [filteredLeads, isAdmin, user?.state]);
+  }, [filteredLeads, realIsAdmin, user?.state]);
   
   // Adquiridos: claimed by me, NO outcome yet
   const filteredAcquired = useMemo(() => 
