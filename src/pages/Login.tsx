@@ -338,13 +338,6 @@ export default function Login() {
         <div className="relative z-10 flex flex-col items-center">
           {/* Logo and Title */}
           <div className="mb-8 text-center">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 p-1 shadow-2xl">
-              
-
-
-
-
-            </div>
             <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2">
               Neo<span className="bg-gradient-to-b from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">Hub</span>
             </h1>
