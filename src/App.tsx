@@ -102,6 +102,7 @@ const CodeAssistantPage = lazy(() => import("./pages/admin/CodeAssistantPage"));
 const LicenseeOnboardingPage = lazy(() => import("./pages/admin/LicenseeOnboardingPage"));
 const SalesUrgencyPage = lazy(() => import("./pages/admin/SalesUrgencyPage"));
 const ScheduleRulesAdmin = lazy(() => import("./pages/admin/ScheduleRulesAdmin"));
+const ScheduleWeekLocksAdmin = lazy(() => import("./pages/admin/ScheduleWeekLocksAdmin"));
 const UserApprovals = lazy(() => import("./pages/admin/UserApprovals"));
 const WeeklyReports = lazy(() => import("./pages/WeeklyReports"));
 const SurgerySchedule = lazy(() => import("./pages/SurgerySchedule"));
@@ -817,6 +818,7 @@ function AppRoutes() {
       <Route path="/admin/code-assistant" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/surgery-schedule" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SurgerySchedule /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/schedule-rules" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><ScheduleRulesAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/travas-agenda" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><ScheduleWeekLocksAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/licensee-onboarding" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/sales-urgency" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SalesUrgencyPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/approvals" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><UserApprovals /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
