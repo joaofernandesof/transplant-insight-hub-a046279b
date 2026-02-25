@@ -259,7 +259,10 @@ export function WorkspaceAgenda() {
     appointmentsByDay.set(key, []);
   });
   appointments?.forEach(apt => {
-    const key = format(new Date(apt.start_datetime), 'yyyy-MM-dd');
+    if (!apt.start_datetime) return;
+    const d = new Date(apt.start_datetime);
+    if (isNaN(d.getTime())) return;
+    const key = format(d, 'yyyy-MM-dd');
     if (appointmentsByDay.has(key)) {
       appointmentsByDay.get(key)!.push(apt);
     }
