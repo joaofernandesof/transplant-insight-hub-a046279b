@@ -1,250 +1,656 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Calendar } from '@/components/ui/calendar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Plus, ChevronLeft, ChevronRight, Clock, User,
-  Phone, MoreVertical, Check, X, AlertCircle
-} from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
+  Search, ChevronLeft, ChevronRight, Phone, User,
+  Clock, CalendarDays, Plus
+} from 'lucide-react';
+import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
-type AppointmentStatus = 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
-
-interface Appointment {
+// ── Types ──────────────────────────────────────────────────────
+interface Doctor {
   id: string;
-  patientName: string;
-  patientPhone: string;
-  time: string;
-  duration: number;
-  type: string;
-  doctor: string;
-  status: AppointmentStatus;
-  notes?: string;
+  full_name: string;
+  specialty: string | null;
+  consultation_duration_minutes: number | null;
+  is_active: boolean;
+  avatar_url: string | null;
 }
 
-const statusConfig: Record<AppointmentStatus, { label: string; color: string; bg: string }> = {
-  scheduled: { label: 'Agendado', color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-  confirmed: { label: 'Confirmado', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
-  in_progress: { label: 'Em Atendimento', color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-  completed: { label: 'Concluído', color: 'text-gray-600', bg: 'bg-gray-100 dark:bg-gray-800' },
-  cancelled: { label: 'Cancelado', color: 'text-red-600', bg: 'bg-red-100 dark:bg-red-900/30' },
-  no_show: { label: 'Não Compareceu', color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30' },
+interface DoctorScheduleRow {
+  id: string;
+  doctor_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  slot_duration_minutes: number | null;
+  is_active: boolean;
+}
+
+interface AppointmentRow {
+  id: string;
+  patient_id: string;
+  doctor_id: string | null;
+  scheduled_at: string;
+  duration_minutes: number | null;
+  appointment_type: string;
+  status: string | null;
+  notes: string | null;
+  unit_id: string | null;
+  patient?: { full_name: string; phone: string | null } | null;
+}
+
+type AppointmentStatus = 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'pending' | 'cancelled' | 'no_show';
+
+const STATUS_CONFIG: Record<string, { label: string; border: string; bg: string; text: string }> = {
+  confirmed:   { label: 'Confirmado',     border: 'border-l-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40',  text: 'text-emerald-700 dark:text-emerald-400' },
+  scheduled:   { label: 'Agendado',       border: 'border-l-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/40',       text: 'text-blue-700 dark:text-blue-400' },
+  in_progress: { label: 'Em Atendimento', border: 'border-l-violet-500',  bg: 'bg-violet-50 dark:bg-violet-950/40',   text: 'text-violet-700 dark:text-violet-400' },
+  completed:   { label: 'Concluído',      border: 'border-l-gray-400',    bg: 'bg-gray-50 dark:bg-gray-800/50',       text: 'text-muted-foreground' },
+  pending:     { label: 'Pendente',        border: 'border-l-red-500',     bg: 'bg-red-50 dark:bg-red-950/40',         text: 'text-red-700 dark:text-red-400' },
+  cancelled:   { label: 'Cancelado',      border: 'border-l-gray-300',    bg: 'bg-gray-50 dark:bg-gray-800/50',       text: 'text-muted-foreground line-through' },
+  no_show:     { label: 'Não Compareceu', border: 'border-l-orange-500',  bg: 'bg-orange-50 dark:bg-orange-950/40',   text: 'text-orange-700 dark:text-orange-400' },
 };
 
+const HOUR_HEIGHT = 64; // px per hour
+const GRID_START_HOUR = 6;
+const GRID_END_HOUR = 23;
+
+// ── Hooks ──────────────────────────────────────────────────────
+function useNeoTeamDoctors() {
+  return useQuery({
+    queryKey: ['neoteam-doctors-schedule'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('neoteam_doctors')
+        .select('id, full_name, specialty, consultation_duration_minutes, is_active, avatar_url')
+        .eq('is_active', true)
+        .order('full_name');
+      if (error) throw error;
+      return data as Doctor[];
+    },
+  });
+}
+
+function useDoctorWeekSchedule(doctorId: string | null) {
+  return useQuery({
+    queryKey: ['neoteam-doctor-week-schedule', doctorId],
+    queryFn: async () => {
+      if (!doctorId) return [];
+      const { data, error } = await supabase
+        .from('neoteam_doctor_schedules')
+        .select('*')
+        .eq('doctor_id', doctorId)
+        .eq('is_active', true);
+      if (error) throw error;
+      return data as DoctorScheduleRow[];
+    },
+    enabled: !!doctorId,
+  });
+}
+
+function useAppointmentsForRange(doctorId: string | null, startDate: Date, endDate: Date) {
+  return useQuery({
+    queryKey: ['neoteam-appointments', doctorId, startDate.toISOString(), endDate.toISOString()],
+    queryFn: async () => {
+      if (!doctorId) return [];
+      const startISO = new Date(startDate);
+      startISO.setHours(0, 0, 0, 0);
+      const endISO = new Date(endDate);
+      endISO.setHours(23, 59, 59, 999);
+
+      const { data, error } = await supabase
+        .from('portal_appointments')
+        .select('id, patient_id, doctor_id, scheduled_at, duration_minutes, appointment_type, status, notes, unit_id, portal_patients(full_name, phone)')
+        .eq('doctor_id', doctorId)
+        .gte('scheduled_at', startISO.toISOString())
+        .lte('scheduled_at', endISO.toISOString())
+        .neq('status', 'cancelled')
+        .order('scheduled_at');
+      if (error) throw error;
+      return (data || []).map((d: any) => ({
+        ...d,
+        patient: d.portal_patients,
+      })) as AppointmentRow[];
+    },
+    enabled: !!doctorId,
+  });
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + (m || 0);
+}
+
+function getStatusConfig(status: string | null) {
+  return STATUS_CONFIG[status || 'scheduled'] || STATUS_CONFIG.scheduled;
+}
+
+// ── Main Component ─────────────────────────────────────────────
 export default function NeoTeamSchedule() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [view, setView] = useState<'day' | 'week'>('day');
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentRow | null>(null);
 
-  // Mock data
-  const appointments: Appointment[] = [
-    { id: '1', patientName: 'Maria Silva', patientPhone: '(11) 99999-1234', time: '08:00', duration: 30, type: 'Consulta', doctor: 'Dr. Ricardo Mendes', status: 'completed' },
-    { id: '2', patientName: 'João Santos', patientPhone: '(11) 99999-5678', time: '08:30', duration: 45, type: 'Avaliação', doctor: 'Dr. Ricardo Mendes', status: 'completed' },
-    { id: '3', patientName: 'Ana Costa', patientPhone: '(11) 99999-9012', time: '09:15', duration: 30, type: 'Retorno', doctor: 'Dra. Paula Lima', status: 'in_progress' },
-    { id: '4', patientName: 'Pedro Lima', patientPhone: '(11) 99999-3456', time: '10:00', duration: 60, type: 'Procedimento', doctor: 'Dr. Ricardo Mendes', status: 'confirmed' },
-    { id: '5', patientName: 'Carla Souza', patientPhone: '(11) 99999-7890', time: '11:00', duration: 30, type: 'Consulta', doctor: 'Dra. Paula Lima', status: 'scheduled' },
-    { id: '6', patientName: 'Bruno Alves', patientPhone: '(11) 99999-2345', time: '11:30', duration: 30, type: 'Retorno', doctor: 'Dr. Ricardo Mendes', status: 'scheduled' },
-    { id: '7', patientName: 'Fernanda Dias', patientPhone: '(11) 99999-6789', time: '14:00', duration: 45, type: 'Avaliação', doctor: 'Dra. Paula Lima', status: 'scheduled' },
-    { id: '8', patientName: 'Lucas Martins', patientPhone: '(11) 99999-0123', time: '15:00', duration: 30, type: 'Consulta', doctor: 'Dr. Ricardo Mendes', status: 'cancelled' },
-  ];
+  const { data: doctors = [], isLoading: loadingDoctors } = useNeoTeamDoctors();
+  const { data: doctorSchedules = [] } = useDoctorWeekSchedule(selectedDoctorId);
 
-  const weekDays = Array.from({ length: 7 }, (_, i) => 
-    addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), i)
-  );
+  const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
+  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
 
-  const stats = {
-    total: appointments.length,
-    confirmed: appointments.filter(a => a.status === 'confirmed').length,
-    completed: appointments.filter(a => a.status === 'completed').length,
-    pending: appointments.filter(a => a.status === 'scheduled').length,
+  const rangeStart = view === 'day' ? selectedDate : weekStart;
+  const rangeEnd = view === 'day' ? selectedDate : weekDays[6];
+
+  const { data: appointments = [], isLoading: loadingAppointments } = useAppointmentsForRange(selectedDoctorId, rangeStart, rangeEnd);
+
+  const selectedDoctor = doctors.find(d => d.id === selectedDoctorId) || null;
+
+  const filteredDoctors = useMemo(() => {
+    if (!searchQuery.trim()) return doctors;
+    const q = searchQuery.toLowerCase();
+    return doctors.filter(d =>
+      d.full_name.toLowerCase().includes(q) ||
+      (d.specialty && d.specialty.toLowerCase().includes(q))
+    );
+  }, [doctors, searchQuery]);
+
+  const getAppointmentsForDay = useCallback((date: Date) => {
+    return appointments.filter(a => {
+      const aDate = new Date(a.scheduled_at);
+      return isSameDay(aDate, date);
+    });
+  }, [appointments]);
+
+  const getDaySchedule = useCallback((date: Date) => {
+    const dow = date.getDay();
+    return doctorSchedules.find(s => s.day_of_week === dow);
+  }, [doctorSchedules]);
+
+  const navigateDate = (dir: number) => {
+    setSelectedDate(prev => addDays(prev, view === 'week' ? dir * 7 : dir));
   };
 
+  const hours = useMemo(() => {
+    const h: number[] = [];
+    for (let i = GRID_START_HOUR; i <= GRID_END_HOUR; i++) h.push(i);
+    return h;
+  }, []);
+
+  // ── Render ─────────────────────────────────────────────────────
   return (
-    <div className="p-4 lg:p-6 space-y-6">
-      {/* Breadcrumb */}
+    <div className="p-4 lg:p-6 space-y-4">
       <NeoTeamBreadcrumb />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Agenda</h1>
-          <p className="text-muted-foreground">Gerencie os agendamentos da clínica</p>
+          <h1 className="text-2xl font-bold tracking-tight">Agenda</h1>
+          <p className="text-sm text-muted-foreground">Gestão de agendamentos por profissional</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Agendamento
-        </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-sm text-muted-foreground">Total do Dia</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-green-600">{stats.confirmed}</p>
-            <p className="text-sm text-muted-foreground">Confirmados</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-purple-600">{stats.completed}</p>
-            <p className="text-sm text-muted-foreground">Concluídos</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
-            <p className="text-sm text-muted-foreground">Pendentes</p>
-          </CardContent>
-        </Card>
-      </div>
+      <div className="flex gap-6 h-[calc(100vh-180px)]">
+        {/* ── LEFT PANEL ──────────────────────────────────── */}
+        <div className="w-[300px] flex-shrink-0 flex flex-col gap-4 overflow-y-auto">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar profissional..."
+              className="pl-9"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+          </div>
 
-      <div className="grid lg:grid-cols-[300px,1fr] gap-6">
-        {/* Calendar Sidebar */}
-        <div className="space-y-4">
+          {/* Doctor Selection */}
           <Card>
-            <CardContent className="p-3">
+            <CardHeader className="pb-2 pt-3 px-3">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Profissional
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-2 pb-2">
+              <ScrollArea className="h-[180px]">
+                <div className="space-y-1">
+                  {filteredDoctors.map(doc => {
+                    const isSelected = selectedDoctorId === doc.id;
+                    return (
+                      <button
+                        key={doc.id}
+                        onClick={() => setSelectedDoctorId(doc.id)}
+                        className={cn(
+                          'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-sm',
+                          isSelected
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'hover:bg-muted/60'
+                        )}
+                      >
+                        <div className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0',
+                          isSelected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
+                        )}>
+                          {doc.full_name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{doc.full_name}</p>
+                          {doc.specialty && (
+                            <p className={cn('text-xs truncate', isSelected ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                              {doc.specialty}
+                            </p>
+                          )}
+                        </div>
+                        <div className={cn(
+                          'ml-auto w-2 h-2 rounded-full flex-shrink-0',
+                          doc.is_active ? 'bg-emerald-500' : 'bg-gray-400'
+                        )} />
+                      </button>
+                    );
+                  })}
+                  {filteredDoctors.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-4">Nenhum profissional encontrado</p>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Mini Calendar */}
+          <Card>
+            <CardContent className="p-2">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
-                className="rounded-md"
+                className="rounded-md pointer-events-auto"
                 locale={ptBR}
               />
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Médicos Disponíveis</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="text-sm">Dr. Ricardo Mendes</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="text-sm">Dra. Paula Lima</span>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Doctor Info */}
+          {selectedDoctor && (
+            <Card>
+              <CardContent className="p-3 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Detalhes</p>
+                <div className="text-sm space-y-1">
+                  <p><span className="text-muted-foreground">Duração padrão:</span> {selectedDoctor.consultation_duration_minutes || 30}min</p>
+                  <p><span className="text-muted-foreground">Especialidade:</span> {selectedDoctor.specialty || '—'}</p>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <div className={cn('w-2 h-2 rounded-full', selectedDoctor.is_active ? 'bg-emerald-500' : 'bg-gray-400')} />
+                  <span className="text-xs text-muted-foreground">{selectedDoctor.is_active ? 'Ativo' : 'Inativo'}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        {/* Schedule List */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => setSelectedDate(addDays(selectedDate, -1))}>
+        {/* ── RIGHT PANEL ─────────────────────────────────── */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Navigation Bar */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => navigateDate(-1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <div>
-                <CardTitle className="text-lg">
-                  {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                </CardTitle>
-                <CardDescription>
-                  {appointments.length} agendamentos
-                </CardDescription>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedDate(addDays(selectedDate, 1))}>
+              <h2 className="text-base font-semibold min-w-[200px] text-center">
+                {view === 'day'
+                  ? format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })
+                  : `${format(weekDays[0], "dd MMM", { locale: ptBR })} — ${format(weekDays[6], "dd MMM yyyy", { locale: ptBR })}`
+                }
+              </h2>
+              <Button variant="ghost" size="icon" onClick={() => navigateDate(1)}>
                 <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setSelectedDate(new Date())} className="ml-2 text-xs">
+                Hoje
               </Button>
             </div>
             <Tabs value={view} onValueChange={(v) => setView(v as 'day' | 'week')}>
-              <TabsList>
-                <TabsTrigger value="day">Dia</TabsTrigger>
-                <TabsTrigger value="week">Semana</TabsTrigger>
+              <TabsList className="h-8">
+                <TabsTrigger value="day" className="text-xs px-3">Dia</TabsTrigger>
+                <TabsTrigger value="week" className="text-xs px-3">Semana</TabsTrigger>
               </TabsList>
             </Tabs>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[500px] pr-4">
-              <div className="space-y-3">
-                {appointments.map((apt) => (
-                  <div 
-                    key={apt.id}
-                    className={`p-4 rounded-lg border transition-colors hover:bg-muted/50 ${
-                      apt.status === 'cancelled' ? 'opacity-60' : ''
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-4">
-                        <div className="text-center min-w-[60px]">
-                          <p className="text-lg font-bold">{apt.time}</p>
-                          <p className="text-xs text-muted-foreground">{apt.duration}min</p>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium">{apt.patientName}</p>
-                            <Badge 
-                              variant="secondary" 
-                              className={`${statusConfig[apt.status].bg} ${statusConfig[apt.status].color} text-xs`}
-                            >
-                              {statusConfig[apt.status].label}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {apt.type}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              {apt.doctor}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
-                              {apt.patientPhone}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Check className="h-4 w-4 mr-2" />
-                            Confirmar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Clock className="h-4 w-4 mr-2" />
-                            Remarcar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <X className="h-4 w-4 mr-2" />
-                            Cancelar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                ))}
+          </div>
+
+          {/* Grid */}
+          {!selectedDoctorId ? (
+            <div className="flex-1 flex items-center justify-center border rounded-lg bg-muted/20">
+              <div className="text-center space-y-2">
+                <User className="h-12 w-12 text-muted-foreground/40 mx-auto" />
+                <p className="text-muted-foreground font-medium">Selecione um profissional para visualizar a agenda.</p>
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+            </div>
+          ) : (
+            <Card className="flex-1 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="min-w-[600px]">
+                  {view === 'day' ? (
+                    <DayGrid
+                      date={selectedDate}
+                      hours={hours}
+                      appointments={getAppointmentsForDay(selectedDate)}
+                      schedule={getDaySchedule(selectedDate)}
+                      defaultDuration={selectedDoctor?.consultation_duration_minutes || 30}
+                      onClickAppointment={setSelectedAppointment}
+                    />
+                  ) : (
+                    <WeekGrid
+                      days={weekDays}
+                      hours={hours}
+                      appointments={appointments}
+                      schedules={doctorSchedules}
+                      defaultDuration={selectedDoctor?.consultation_duration_minutes || 30}
+                      onClickAppointment={setSelectedAppointment}
+                    />
+                  )}
+                </div>
+              </ScrollArea>
+            </Card>
+          )}
+        </div>
       </div>
+
+      {/* Appointment Detail Modal */}
+      <Dialog open={!!selectedAppointment} onOpenChange={() => setSelectedAppointment(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Agendamento</DialogTitle>
+          </DialogHeader>
+          {selectedAppointment && (
+            <AppointmentDetail appointment={selectedAppointment} />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ── Day Grid ───────────────────────────────────────────────────
+function DayGrid({
+  date,
+  hours,
+  appointments,
+  schedule,
+  defaultDuration,
+  onClickAppointment,
+}: {
+  date: Date;
+  hours: number[];
+  appointments: AppointmentRow[];
+  schedule: DoctorScheduleRow | undefined;
+  defaultDuration: number;
+  onClickAppointment: (a: AppointmentRow) => void;
+}) {
+  const workStart = schedule ? timeToMinutes(schedule.start_time) : null;
+  const workEnd = schedule ? timeToMinutes(schedule.end_time) : null;
+
+  return (
+    <div className="relative">
+      {/* Time rows */}
+      {hours.map(hour => {
+        const minuteStart = hour * 60;
+        const isWorkHour = workStart !== null && workEnd !== null && minuteStart >= workStart && minuteStart < workEnd;
+        return (
+          <div
+            key={hour}
+            className={cn(
+              'flex border-b border-border/40',
+              isWorkHour ? 'bg-background' : 'bg-muted/30'
+            )}
+            style={{ height: HOUR_HEIGHT }}
+          >
+            <div className="w-16 flex-shrink-0 pr-2 pt-1 text-right">
+              <span className="text-[11px] text-muted-foreground font-mono">
+                {String(hour).padStart(2, '0')}:00
+              </span>
+            </div>
+            <div className="flex-1 border-l border-border/30 relative">
+              {/* Half-hour line */}
+              <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-border/20" />
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Appointment blocks */}
+      <div className="absolute top-0 left-16 right-0">
+        {appointments.map(apt => {
+          const aptDate = new Date(apt.scheduled_at);
+          const aptMinutes = aptDate.getHours() * 60 + aptDate.getMinutes();
+          const duration = apt.duration_minutes || defaultDuration;
+          const top = ((aptMinutes - GRID_START_HOUR * 60) / 60) * HOUR_HEIGHT;
+          const height = Math.max((duration / 60) * HOUR_HEIGHT, 28);
+          const config = getStatusConfig(apt.status);
+
+          return (
+            <button
+              key={apt.id}
+              onClick={() => onClickAppointment(apt)}
+              className={cn(
+                'absolute left-1 right-3 rounded-md border-l-[3px] px-2.5 py-1 transition-all hover:shadow-md cursor-pointer overflow-hidden',
+                config.border, config.bg
+              )}
+              style={{ top, height }}
+            >
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 text-left">
+                  <p className={cn('text-xs font-semibold truncate', config.text)}>
+                    {apt.patient?.full_name || 'Paciente'}
+                  </p>
+                  {height > 36 && (
+                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                      {apt.appointment_type} • {format(aptDate, 'HH:mm')}–{format(new Date(aptDate.getTime() + duration * 60000), 'HH:mm')}
+                    </p>
+                  )}
+                </div>
+                {apt.patient?.phone && height > 36 && (
+                  <a href={`tel:${apt.patient.phone}`} className="text-muted-foreground hover:text-foreground flex-shrink-0 mt-0.5" onClick={e => e.stopPropagation()}>
+                    <Phone className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Week Grid ──────────────────────────────────────────────────
+function WeekGrid({
+  days,
+  hours,
+  appointments,
+  schedules,
+  defaultDuration,
+  onClickAppointment,
+}: {
+  days: Date[];
+  hours: number[];
+  appointments: AppointmentRow[];
+  schedules: DoctorScheduleRow[];
+  defaultDuration: number;
+  onClickAppointment: (a: AppointmentRow) => void;
+}) {
+  const getAptsForDay = (date: Date) =>
+    appointments.filter(a => isSameDay(new Date(a.scheduled_at), date));
+
+  const getScheduleForDay = (date: Date) =>
+    schedules.find(s => s.day_of_week === date.getDay());
+
+  return (
+    <div className="relative">
+      {/* Day headers */}
+      <div className="flex sticky top-0 z-10 bg-background border-b">
+        <div className="w-16 flex-shrink-0" />
+        {days.map(day => {
+          const isToday = isSameDay(day, new Date());
+          return (
+            <div key={day.toISOString()} className={cn(
+              'flex-1 text-center py-2 border-l border-border/30',
+              isToday && 'bg-primary/5'
+            )}>
+              <p className="text-[10px] uppercase text-muted-foreground font-medium">
+                {format(day, 'EEE', { locale: ptBR })}
+              </p>
+              <p className={cn(
+                'text-sm font-bold',
+                isToday && 'text-primary'
+              )}>
+                {format(day, 'dd')}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Grid */}
+      <div className="relative">
+        {hours.map(hour => (
+          <div key={hour} className="flex border-b border-border/40" style={{ height: HOUR_HEIGHT }}>
+            <div className="w-16 flex-shrink-0 pr-2 pt-1 text-right">
+              <span className="text-[11px] text-muted-foreground font-mono">
+                {String(hour).padStart(2, '0')}:00
+              </span>
+            </div>
+            {days.map(day => {
+              const daySchedule = getScheduleForDay(day);
+              const minuteStart = hour * 60;
+              const isWorkHour = daySchedule
+                ? minuteStart >= timeToMinutes(daySchedule.start_time) && minuteStart < timeToMinutes(daySchedule.end_time)
+                : false;
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={cn(
+                    'flex-1 border-l border-border/30 relative',
+                    isWorkHour ? 'bg-background' : 'bg-muted/30'
+                  )}
+                >
+                  <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-border/20" />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+
+        {/* Appointment overlays for each day column */}
+        <div className="absolute top-0 left-16 right-0 flex">
+          {days.map((day, colIdx) => {
+            const dayApts = getAptsForDay(day);
+            return (
+              <div key={day.toISOString()} className="flex-1 relative" style={{ minHeight: hours.length * HOUR_HEIGHT }}>
+                {dayApts.map(apt => {
+                  const aptDate = new Date(apt.scheduled_at);
+                  const aptMinutes = aptDate.getHours() * 60 + aptDate.getMinutes();
+                  const duration = apt.duration_minutes || defaultDuration;
+                  const top = ((aptMinutes - GRID_START_HOUR * 60) / 60) * HOUR_HEIGHT;
+                  const height = Math.max((duration / 60) * HOUR_HEIGHT, 24);
+                  const config = getStatusConfig(apt.status);
+
+                  return (
+                    <button
+                      key={apt.id}
+                      onClick={() => onClickAppointment(apt)}
+                      className={cn(
+                        'absolute left-0.5 right-0.5 rounded border-l-[3px] px-1 py-0.5 transition-all hover:shadow-md cursor-pointer overflow-hidden',
+                        config.border, config.bg
+                      )}
+                      style={{ top, height }}
+                    >
+                      <p className={cn('text-[10px] font-semibold truncate', config.text)}>
+                        {apt.patient?.full_name || 'Paciente'}
+                      </p>
+                      {height > 30 && (
+                        <p className="text-[9px] text-muted-foreground truncate">
+                          {format(aptDate, 'HH:mm')}
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Appointment Detail ─────────────────────────────────────────
+function AppointmentDetail({ appointment }: { appointment: AppointmentRow }) {
+  const aptDate = new Date(appointment.scheduled_at);
+  const duration = appointment.duration_minutes || 30;
+  const config = getStatusConfig(appointment.status);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className={cn(
+          'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold',
+          'bg-muted text-muted-foreground'
+        )}>
+          {(appointment.patient?.full_name || 'P').split(' ').map(n => n[0]).slice(0, 2).join('')}
+        </div>
+        <div>
+          <p className="font-semibold">{appointment.patient?.full_name || 'Paciente'}</p>
+          {appointment.patient?.phone && (
+            <a href={`tel:${appointment.patient.phone}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+              <Phone className="h-3 w-3" />
+              {appointment.patient.phone}
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <p className="text-muted-foreground text-xs">Data</p>
+          <p className="font-medium">{format(aptDate, "dd/MM/yyyy")}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground text-xs">Horário</p>
+          <p className="font-medium">
+            {format(aptDate, 'HH:mm')} – {format(new Date(aptDate.getTime() + duration * 60000), 'HH:mm')}
+          </p>
+        </div>
+        <div>
+          <p className="text-muted-foreground text-xs">Tipo</p>
+          <p className="font-medium">{appointment.appointment_type}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground text-xs">Status</p>
+          <Badge variant="outline" className={cn('text-xs', config.text, config.bg)}>
+            {config.label}
+          </Badge>
+        </div>
+      </div>
+
+      {appointment.notes && (
+        <div>
+          <p className="text-muted-foreground text-xs mb-1">Observações</p>
+          <p className="text-sm bg-muted/50 p-2 rounded">{appointment.notes}</p>
+        </div>
+      )}
     </div>
   );
 }
