@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, Plus } from 'lucide-react';
+import { CalendarIcon, Plus, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -30,9 +30,9 @@ import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
 import { useBranches } from '../hooks/useBranches';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useValidateWeekLock } from '@/hooks/useScheduleWeekLocks';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
+import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
 
 interface AddSurgeryDialogProps {
   open: boolean;
@@ -43,7 +43,6 @@ interface AddSurgeryDialogProps {
 export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }: AddSurgeryDialogProps) {
   const { createSurgery } = useClinicSurgeries();
   const { branches } = useBranches();
-  const { validate } = useValidateWeekLock();
 
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
@@ -56,6 +55,11 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
   const [withDate, setWithDate] = useState(defaultWithDate);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [weekLockMessage, setWeekLockMessage] = useState<string | null>(null);
+
+  const { isCategoryBlocked, getBlockedCategories, isLoading: locksLoading } = useWeekLockAvailability(
+    withDate ? surgeryDate : undefined,
+    branch
+  );
 
   const procedures = [
     'CABELO',
@@ -78,6 +82,16 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
     { value: 'A DEFINIR', label: 'A Definir' },
     { value: 'RETOQUE DE BARBA', label: 'Retoque de Barba' },
   ];
+
+  // Clear category/doctor if they become blocked after date/branch change
+  useEffect(() => {
+    if (withDate && surgeryDate && branch && category) {
+      if (isCategoryBlocked(category, doctorOnDuty || undefined)) {
+        setCategory('');
+        setWeekLockMessage(null);
+      }
+    }
+  }, [surgeryDate, branch]);
 
   const resetForm = () => {
     setPatientName('');
@@ -108,42 +122,15 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
       return;
     }
 
+    // Final block check before submitting
+    if (withDate && surgeryDate && branch && category && isCategoryBlocked(category, doctorOnDuty || undefined)) {
+      const blocked = getBlockedCategories();
+      setWeekLockMessage(`Categoria bloqueada para esta semana/filial. Bloqueados: ${blocked.join(', ')}`);
+      return;
+    }
+
     setIsSubmitting(true);
     setWeekLockMessage(null);
-
-    // Validate week lock if date and branch and doctor are set
-    if (withDate && surgeryDate && branch && doctorOnDuty) {
-      try {
-        // Map form category + doctor to the lock's doctor field
-        // Lock categories: "Categoria A - Hygor", "Categoria A - Patrick", "Categoria B", "Categoria C", "Categoria D"
-        let lockDoctor = doctorOnDuty.trim();
-        if (category) {
-          if (category.startsWith('CATEGORIA A')) {
-            lockDoctor = `Categoria A - ${doctorOnDuty.trim()}`;
-          } else if (category.startsWith('CATEGORIA B')) {
-            lockDoctor = 'Categoria B';
-          } else if (category.startsWith('CATEGORIA C')) {
-            lockDoctor = 'Categoria C';
-          } else if (category.startsWith('CATEGORIA D')) {
-            lockDoctor = 'Categoria D';
-          }
-        }
-
-        const lockResult = await validate({
-          date: format(surgeryDate, 'yyyy-MM-dd'),
-          branch,
-          doctor: lockDoctor,
-          agenda: 'Agenda Cirúrgica',
-        });
-        if (!lockResult.permitido) {
-          setWeekLockMessage(lockResult.mensagem);
-          setIsSubmitting(false);
-          return;
-        }
-      } catch (err) {
-        console.error('Week lock validation error:', err);
-      }
-    }
 
     try {
       // First, create or find the patient
@@ -192,6 +179,9 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
       setIsSubmitting(false);
     }
   };
+
+  const blockedCategories = getBlockedCategories();
+  const hasLockInfo = withDate && surgeryDate && branch && blockedCategories.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); onOpenChange(v); }}>
@@ -256,36 +246,6 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
             </Select>
           </div>
 
-          {/* Category */}
-          <div className="space-y-1.5">
-            <Label>Categoria</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Doctor */}
-          <div className="space-y-1.5">
-            <Label>Médico Responsável {withDate ? '*' : ''}</Label>
-            <Select value={doctorOnDuty} onValueChange={setDoctorOnDuty}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o médico" />
-              </SelectTrigger>
-              <SelectContent>
-                {['Hygor', 'Patrick', 'Márcia'].map((d) => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Date toggle */}
           <div className="flex items-center gap-3 pt-1">
             <Button
@@ -344,6 +304,88 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
               </div>
             </div>
           )}
+
+          {/* Lock availability info */}
+          {hasLockInfo && (
+            <Alert>
+              <Lock className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                <span className="font-medium">Categorias bloqueadas nesta semana:</span>{' '}
+                {blockedCategories.join(', ')}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Category - show lock status */}
+          <div className="space-y-1.5">
+            <Label>Categoria</Label>
+            <Select value={category} onValueChange={(val) => { setCategory(val); setWeekLockMessage(null); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((c) => {
+                  // Check if this category is blocked (for Cat A, check both doctors)
+                  let blocked = false;
+                  if (withDate && surgeryDate && branch) {
+                    if (c.value.startsWith('CATEGORIA A')) {
+                      // Cat A is blocked if ALL doctors are blocked
+                      blocked = isCategoryBlocked(c.value, 'Hygor') && isCategoryBlocked(c.value, 'Patrick');
+                    } else {
+                      blocked = isCategoryBlocked(c.value);
+                    }
+                  }
+                  return (
+                    <SelectItem
+                      key={c.value}
+                      value={c.value}
+                      disabled={blocked}
+                      className={cn(blocked && 'opacity-50')}
+                    >
+                      <span className="flex items-center gap-2">
+                        {blocked && <Lock className="h-3 w-3 text-destructive" />}
+                        {c.label}
+                        {blocked && <span className="text-xs text-destructive">(bloqueada)</span>}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Doctor - show lock status per doctor when Cat A is selected */}
+          <div className="space-y-1.5">
+            <Label>Médico Responsável {withDate ? '*' : ''}</Label>
+            <Select value={doctorOnDuty} onValueChange={(val) => { setDoctorOnDuty(val); setWeekLockMessage(null); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o médico" />
+              </SelectTrigger>
+              <SelectContent>
+                {['Hygor', 'Patrick', 'Márcia'].map((d) => {
+                  // If Cat A is selected, check if this specific doctor is blocked
+                  let blocked = false;
+                  if (withDate && surgeryDate && branch && category?.startsWith('CATEGORIA A')) {
+                    blocked = isCategoryBlocked(category, d);
+                  }
+                  return (
+                    <SelectItem
+                      key={d}
+                      value={d}
+                      disabled={blocked}
+                      className={cn(blocked && 'opacity-50')}
+                    >
+                      <span className="flex items-center gap-2">
+                        {blocked && <Lock className="h-3 w-3 text-destructive" />}
+                        {d}
+                        {blocked && <span className="text-xs text-destructive">(bloqueado)</span>}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
 
           {weekLockMessage && (
             <Alert variant="destructive">
