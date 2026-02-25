@@ -13728,6 +13728,7 @@ export type Database = {
       }
       neoteam_team_members: {
         Row: {
+          branch_id: string | null
           created_at: string
           created_by: string | null
           doctor_id: string | null
@@ -13738,6 +13739,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           doctor_id?: string | null
@@ -13748,6 +13750,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           doctor_id?: string | null
@@ -13758,6 +13761,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "neoteam_team_members_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "neoteam_team_members_doctor_id_fkey"
             columns: ["doctor_id"]
