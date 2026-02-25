@@ -20079,6 +20079,7 @@ export type Database = {
       is_neoteam_master: { Args: { _user_id: string }; Returns: boolean }
       is_neoteam_member: { Args: { _user_id: string }; Returns: boolean }
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
+      neoteam_is_empty: { Args: never; Returns: boolean }
       release_random_queued_lead:
         | { Args: { p_mode?: string }; Returns: Json }
         | { Args: { p_user_id: string }; Returns: Json }
