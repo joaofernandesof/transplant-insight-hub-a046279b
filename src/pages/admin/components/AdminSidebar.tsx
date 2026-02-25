@@ -17,6 +17,7 @@ import {
   Bell,
   Home,
   UserPlus,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,6 +40,7 @@ const managementMenu = [
 const systemMenu = [
   { id: 'monitoring', label: 'Monitoramento', icon: Activity, href: '/admin-portal/monitoring' },
   { id: 'announcements', label: 'Anúncios', icon: Bell, href: '/admin/announcements' },
+  { id: 'travas-agenda', label: 'Travas da Agenda', icon: Lock, href: '/admin/travas-agenda' },
   { id: 'event-logs', label: 'Logs', icon: Activity, href: '/admin/event-logs' },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/admin/sentinel' },
 ];
