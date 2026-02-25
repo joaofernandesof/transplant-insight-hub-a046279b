@@ -44,7 +44,7 @@ interface TaskFormDialogProps {
   onSuccess: () => void;
 }
 
-const categories = [
+const defaultCategories = [
   "Petição",
   "Parecer",
   "Contrato",
@@ -56,6 +56,67 @@ const categories = [
   "Outro",
 ];
 
+const defaultStatuses = [
+  { value: "todo", label: "A Fazer" },
+  { value: "in_progress", label: "Em Andamento" },
+  { value: "in_review", label: "Em Revisão" },
+  { value: "done", label: "Concluído" },
+];
+
+const defaultPriorities = [
+  { value: 1, label: "Baixa", color: "text-slate-500" },
+  { value: 2, label: "Média", color: "text-amber-500" },
+  { value: 3, label: "Alta", color: "text-rose-500" },
+];
+
+const defaultAssignees = [
+  "Dra. Caroline Parahyba",
+  "Isabele Cartaxo",
+  "Dra. Larissa Guerreiro",
+];
+
+// Inline add input component
+function InlineAddInput({
+  onAdd,
+  onCancel,
+  placeholder,
+}: {
+  onAdd: (value: string) => void;
+  onCancel: () => void;
+  placeholder: string;
+}) {
+  const [value, setValue] = useState("");
+  const handleAdd = () => {
+    if (value.trim()) {
+      onAdd(value.trim());
+      setValue("");
+    }
+  };
+  return (
+    <div className="flex gap-2 mt-2">
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={placeholder}
+        autoFocus
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleAdd();
+          }
+          if (e.key === "Escape") onCancel();
+        }}
+      />
+      <Button type="button" size="sm" onClick={handleAdd}>
+        Adicionar
+      </Button>
+      <Button type="button" size="sm" variant="ghost" onClick={onCancel}>
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
 export function TaskFormDialog({
   open,
   onOpenChange,
@@ -65,16 +126,21 @@ export function TaskFormDialog({
   const { user } = useUnifiedAuth();
   const isEditing = !!task;
 
-  const defaultAssignees = [
-    "Dra. Caroline Parahyba",
-    "Isabele Cartaxo",
-    "Dra. Larissa Guerreiro",
-  ];
-
+  // Custom options state
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [customStatuses, setCustomStatuses] = useState<{ value: string; label: string }[]>([]);
+  const [customPriorities, setCustomPriorities] = useState<{ value: number; label: string; color: string }[]>([]);
   const [customAssignees, setCustomAssignees] = useState<string[]>([]);
-  const [showCustomInput, setShowCustomInput] = useState(false);
-  const [customName, setCustomName] = useState("");
 
+  // Show inline input toggles
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showAddStatus, setShowAddStatus] = useState(false);
+  const [showAddPriority, setShowAddPriority] = useState(false);
+  const [showAddAssignee, setShowAddAssignee] = useState(false);
+
+  const allCategories = [...defaultCategories, ...customCategories];
+  const allStatuses = [...defaultStatuses, ...customStatuses];
+  const allPriorities = [...defaultPriorities, ...customPriorities];
   const allAssignees = [...defaultAssignees, ...customAssignees];
 
   const [formData, setFormData] = useState({
@@ -117,7 +183,6 @@ export function TaskFormDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
-
       const payload = {
         title: formData.title,
         description: formData.description || null,
@@ -225,12 +290,32 @@ export function TaskFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todo">A Fazer</SelectItem>
-                  <SelectItem value="in_progress">Em Andamento</SelectItem>
-                  <SelectItem value="in_review">Em Revisão</SelectItem>
-                  <SelectItem value="done">Concluído</SelectItem>
+                  {allStatuses.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                  <div
+                    className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent text-primary"
+                    onClick={() => setShowAddStatus(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Cadastrar novo
+                  </div>
                 </SelectContent>
               </Select>
+              {showAddStatus && (
+                <InlineAddInput
+                  placeholder="Nome do status"
+                  onCancel={() => setShowAddStatus(false)}
+                  onAdd={(val) => {
+                    const key = val.toLowerCase().replace(/\s+/g, "_");
+                    setCustomStatuses((prev) => [...prev, { value: key, label: val }]);
+                    setFormData((prev) => ({ ...prev, status: key }));
+                    setShowAddStatus(false);
+                    toast.success(`Status "${val}" adicionado`);
+                  }}
+                />
+              )}
             </div>
 
             <div className="space-y-2">
@@ -243,23 +328,34 @@ export function TaskFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">
-                    <div className="flex items-center gap-2">
-                      <Flag className="h-3.5 w-3.5 text-slate-500" /> Baixa
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="2">
-                    <div className="flex items-center gap-2">
-                      <Flag className="h-3.5 w-3.5 text-amber-500" /> Média
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="3">
-                    <div className="flex items-center gap-2">
-                      <Flag className="h-3.5 w-3.5 text-rose-500" /> Alta
-                    </div>
-                  </SelectItem>
+                  {allPriorities.map((p) => (
+                    <SelectItem key={p.value} value={String(p.value)}>
+                      <div className="flex items-center gap-2">
+                        <Flag className={cn("h-3.5 w-3.5", p.color)} /> {p.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                  <div
+                    className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent text-primary"
+                    onClick={() => setShowAddPriority(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Cadastrar nova
+                  </div>
                 </SelectContent>
               </Select>
+              {showAddPriority && (
+                <InlineAddInput
+                  placeholder="Nome da prioridade"
+                  onCancel={() => setShowAddPriority(false)}
+                  onAdd={(val) => {
+                    const nextValue = Math.max(...allPriorities.map((p) => p.value)) + 1;
+                    setCustomPriorities((prev) => [...prev, { value: nextValue, label: val, color: "text-purple-500" }]);
+                    setFormData((prev) => ({ ...prev, priority: nextValue }));
+                    setShowAddPriority(false);
+                    toast.success(`Prioridade "${val}" adicionada`);
+                  }}
+                />
+              )}
             </div>
           </div>
 
@@ -304,13 +400,31 @@ export function TaskFormDialog({
                   <SelectValue placeholder="Selecionar..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
+                  {allCategories.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
                     </SelectItem>
                   ))}
+                  <div
+                    className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent text-primary"
+                    onClick={() => setShowAddCategory(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Cadastrar nova
+                  </div>
                 </SelectContent>
               </Select>
+              {showAddCategory && (
+                <InlineAddInput
+                  placeholder="Nome da categoria"
+                  onCancel={() => setShowAddCategory(false)}
+                  onAdd={(val) => {
+                    setCustomCategories((prev) => [...prev, val]);
+                    setFormData((prev) => ({ ...prev, category: val }));
+                    setShowAddCategory(false);
+                    toast.success(`Categoria "${val}" adicionada`);
+                  }}
+                />
+              )}
             </div>
           </div>
 
@@ -320,10 +434,6 @@ export function TaskFormDialog({
             <Select
               value={formData.assigned_to_name}
               onValueChange={(v) => {
-                if (v === "__custom__") {
-                  setShowCustomInput(true);
-                  return;
-                }
                 setFormData((prev) => ({ ...prev, assigned_to_name: v }));
               }}
             >
@@ -338,49 +448,23 @@ export function TaskFormDialog({
                 ))}
                 <div
                   className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent text-primary"
-                  onClick={() => setShowCustomInput(true)}
+                  onClick={() => setShowAddAssignee(true)}
                 >
                   <Plus className="h-3.5 w-3.5 mr-1.5" /> Cadastrar novo
                 </div>
               </SelectContent>
             </Select>
-            {showCustomInput && (
-              <div className="flex gap-2 mt-2">
-                <Input
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  placeholder="Nome do responsável"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      if (customName.trim()) {
-                        setCustomAssignees((prev) => [...prev, customName.trim()]);
-                        setFormData((prev) => ({ ...prev, assigned_to_name: customName.trim() }));
-                        setCustomName("");
-                        setShowCustomInput(false);
-                      }
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => {
-                    if (customName.trim()) {
-                      setCustomAssignees((prev) => [...prev, customName.trim()]);
-                      setFormData((prev) => ({ ...prev, assigned_to_name: customName.trim() }));
-                      setCustomName("");
-                      setShowCustomInput(false);
-                    }
-                  }}
-                >
-                  Adicionar
-                </Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); setCustomName(""); }}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+            {showAddAssignee && (
+              <InlineAddInput
+                placeholder="Nome do responsável"
+                onCancel={() => setShowAddAssignee(false)}
+                onAdd={(val) => {
+                  setCustomAssignees((prev) => [...prev, val]);
+                  setFormData((prev) => ({ ...prev, assigned_to_name: val }));
+                  setShowAddAssignee(false);
+                  toast.success(`Responsável "${val}" adicionado`);
+                }}
+              />
             )}
           </div>
 
