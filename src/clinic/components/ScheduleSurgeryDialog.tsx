@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, ShieldAlert } from 'lucide-react';
+import { CalendarIcon, ShieldAlert, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -15,12 +15,11 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
-import { useValidateWeekLock } from '@/hooks/useScheduleWeekLocks';
+import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
 import type { NoDatePatient } from '../hooks/useNoDatePatients';
 
 interface ScheduleSurgeryDialogProps {
@@ -37,51 +36,28 @@ const timeSlots = Array.from({ length: 20 }, (_, i) => {
 
 export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleSurgeryDialogProps) {
   const { createSurgery } = useClinicSurgeries();
-  const { validate } = useValidateWeekLock();
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>('');
   const [doctor, setDoctor] = useState('');
   const [weekLockMessage, setWeekLockMessage] = useState<string | null>(null);
 
+  const { isCategoryBlocked, getBlockedCategories } = useWeekLockAvailability(
+    date,
+    patient?.branch || ''
+  );
+
   const handleSubmit = async () => {
     if (!patient || !date) return;
+    if (!doctor) return;
 
-    if (!doctor) {
+    // Final block check
+    const cat = patient.category || '';
+    if (cat && isCategoryBlocked(cat, doctor)) {
+      setWeekLockMessage(`Categoria bloqueada para esta semana/filial.`);
       return;
     }
 
     setWeekLockMessage(null);
-
-    // Validate week lock
-    {
-      try {
-        // Map form category + doctor to lock's doctor field
-        let lockDoctor = doctor.trim();
-        const cat = patient.category || '';
-        if (cat.startsWith('CATEGORIA A')) {
-          lockDoctor = `Categoria A - ${doctor.trim()}`;
-        } else if (cat.startsWith('CATEGORIA B')) {
-          lockDoctor = 'Categoria B';
-        } else if (cat.startsWith('CATEGORIA C')) {
-          lockDoctor = 'Categoria C';
-        } else if (cat.startsWith('CATEGORIA D')) {
-          lockDoctor = 'Categoria D';
-        }
-
-        const lockResult = await validate({
-          date: format(date, 'yyyy-MM-dd'),
-          branch: patient.branch,
-          doctor: lockDoctor,
-          agenda: 'Agenda Cirúrgica',
-        });
-        if (!lockResult.permitido) {
-          setWeekLockMessage(lockResult.mensagem);
-          return;
-        }
-      } catch (err) {
-        console.error('Week lock validation error:', err);
-      }
-    }
 
     createSurgery.mutate({
       patientId: patient.patientId,
@@ -108,6 +84,16 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
   if (!patient) return null;
+
+  const blockedCategories = getBlockedCategories();
+  const hasLockInfo = date && patient.branch && blockedCategories.length > 0;
+
+  // Check which doctors are blocked for this patient's category
+  const isDoctorBlocked = (d: string): boolean => {
+    const cat = patient.category || '';
+    if (!cat || !date) return false;
+    return isCategoryBlocked(cat, d);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -149,7 +135,7 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={setDate}
+                  onSelect={(d) => { setDate(d); setDoctor(''); setWeekLockMessage(null); }}
                   disabled={(d) => d < new Date()}
                   initialFocus
                   className="p-3 pointer-events-auto"
@@ -157,6 +143,17 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Lock availability info */}
+          {hasLockInfo && (
+            <Alert>
+              <Lock className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                <span className="font-medium">Categorias bloqueadas nesta semana:</span>{' '}
+                {blockedCategories.join(', ')}
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Time */}
           <div className="space-y-2">
@@ -173,17 +170,31 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
             </Select>
           </div>
 
-          {/* Doctor */}
+          {/* Doctor - show blocked status based on patient category + selected date */}
           <div className="space-y-2">
             <Label>Médico plantonista *</Label>
-            <Select value={doctor} onValueChange={setDoctor}>
+            <Select value={doctor} onValueChange={(val) => { setDoctor(val); setWeekLockMessage(null); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o médico" />
               </SelectTrigger>
               <SelectContent>
-                {['Hygor', 'Patrick', 'Márcia'].map((d) => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
+                {['Hygor', 'Patrick', 'Márcia'].map((d) => {
+                  const blocked = isDoctorBlocked(d);
+                  return (
+                    <SelectItem
+                      key={d}
+                      value={d}
+                      disabled={blocked}
+                      className={cn(blocked && 'opacity-50')}
+                    >
+                      <span className="flex items-center gap-2">
+                        {blocked && <Lock className="h-3 w-3 text-destructive" />}
+                        {d}
+                        {blocked && <span className="text-xs text-destructive">(bloqueado)</span>}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
