@@ -17382,6 +17382,7 @@ export type Database = {
           branch: string
           created_at: string
           doctor: string
+          doctor_id: string | null
           id: string
           month: string
           permitido: boolean
@@ -17395,6 +17396,7 @@ export type Database = {
           branch: string
           created_at?: string
           doctor: string
+          doctor_id?: string | null
           id?: string
           month: string
           permitido?: boolean
@@ -17408,6 +17410,7 @@ export type Database = {
           branch?: string
           created_at?: string
           doctor?: string
+          doctor_id?: string | null
           id?: string
           month?: string
           permitido?: boolean
@@ -17416,7 +17419,15 @@ export type Database = {
           week_number?: number
           week_start?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "schedule_week_locks_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_doctors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sentinel_alert_recipients: {
         Row: {
