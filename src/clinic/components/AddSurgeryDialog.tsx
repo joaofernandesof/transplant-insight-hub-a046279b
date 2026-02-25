@@ -22,7 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Lock } from 'lucide-react';
+import { CalendarIcon, Plus, Lock, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -33,19 +33,33 @@ import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
 import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
+import { PatientAutocomplete } from '@/neohub/components/PatientAutocomplete';
+import { useNavigate } from 'react-router-dom';
 
 interface AddSurgeryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultWithDate?: boolean;
+  /** When true, blocks inline patient creation — requires selecting an existing patient */
+  requireExistingPatient?: boolean;
+  /** Pre-fill with existing patient data */
+  prefilledPatient?: { id: string; name: string };
 }
 
-export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }: AddSurgeryDialogProps) {
+export function AddSurgeryDialog({ 
+  open, 
+  onOpenChange, 
+  defaultWithDate = true,
+  requireExistingPatient = false,
+  prefilledPatient,
+}: AddSurgeryDialogProps) {
   const { createSurgery } = useClinicSurgeries();
   const { branches } = useBranches();
+  const navigate = useNavigate();
 
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [procedure, setProcedure] = useState('');
   const [branch, setBranch] = useState('');
   const [category, setCategory] = useState('');
@@ -83,6 +97,14 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
     { value: 'RETOUCHING', label: 'RETOUCHING' },
   ];
 
+  // Apply prefilled patient when dialog opens
+  useEffect(() => {
+    if (open && prefilledPatient) {
+      setPatientName(prefilledPatient.name);
+      setSelectedPatientId(prefilledPatient.id);
+    }
+  }, [open, prefilledPatient]);
+
   // Clear category/doctor if they become blocked after date/branch change
   useEffect(() => {
     if (withDate && surgeryDate && branch && category) {
@@ -96,6 +118,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
   const resetForm = () => {
     setPatientName('');
     setPatientPhone('');
+    setSelectedPatientId(null);
     setProcedure('');
     setBranch('');
     setCategory('');
@@ -112,11 +135,16 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
       return;
     }
 
+    // In requireExistingPatient mode, must have selected a patient
+    if (requireExistingPatient && !selectedPatientId) {
+      toast.error('Selecione um paciente já cadastrado. Se o paciente não existe, cadastre-o primeiro no módulo Pacientes.');
+      return;
+    }
+
     if (withDate && !surgeryDate) {
       toast.error('Selecione uma data para a cirurgia.');
       return;
     }
-
 
     // Final block check before submitting
     if (withDate && surgeryDate && branch && category && isCategoryBlocked(category)) {
@@ -129,32 +157,36 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
     setWeekLockMessage(null);
 
     try {
-      // First, create or find the patient
-      const { data: existingPatient } = await supabase
-        .from('clinic_patients')
-        .select('id')
-        .eq('full_name', patientName.trim())
-        .maybeSingle();
-
-      let patientId = existingPatient?.id;
+      let patientId = selectedPatientId;
 
       if (!patientId) {
-        const { data: newPatient, error: patientError } = await supabase
+        // Only allow inline creation when NOT in requireExistingPatient mode
+        const { data: existingPatient } = await supabase
           .from('clinic_patients')
-          .insert({
-            full_name: patientName.trim(),
-            phone: patientPhone.trim() || null,
-          })
           .select('id')
-          .single();
+          .eq('full_name', patientName.trim())
+          .maybeSingle();
 
-        if (patientError) throw patientError;
-        patientId = newPatient.id;
+        patientId = existingPatient?.id || null;
+
+        if (!patientId) {
+          const { data: newPatient, error: patientError } = await supabase
+            .from('clinic_patients')
+            .insert({
+              full_name: patientName.trim(),
+              phone: patientPhone.trim() || null,
+            })
+            .select('id')
+            .single();
+
+          if (patientError) throw patientError;
+          patientId = newPatient.id;
+        }
       }
 
       // Create the surgery
       createSurgery.mutate({
-        patientId,
+        patientId: patientId!,
         branch,
         procedure: procedure.trim(),
         category: category || undefined,
@@ -193,24 +225,72 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
           {/* Patient Name */}
           <div className="space-y-1.5">
             <Label htmlFor="patientName">Nome do Paciente *</Label>
-            <Input
-              id="patientName"
-              value={patientName}
-              onChange={(e) => setPatientName(e.target.value)}
-              placeholder="Nome completo"
-            />
+            {requireExistingPatient ? (
+              <>
+                {prefilledPatient ? (
+                  <Input
+                    value={patientName}
+                    disabled
+                    className="bg-muted"
+                  />
+                ) : (
+                  <PatientAutocomplete
+                    value={patientName}
+                    onChange={(value) => {
+                      setPatientName(value);
+                      // Clear selected patient if user types manually
+                      setSelectedPatientId(null);
+                    }}
+                    onSelectPatient={(patient) => {
+                      setPatientName(patient.full_name);
+                      setSelectedPatientId(patient.id);
+                      if (patient.phone) setPatientPhone(patient.phone);
+                    }}
+                    placeholder="Buscar paciente cadastrado..."
+                  />
+                )}
+                {!selectedPatientId && patientName.length >= 2 && (
+                  <Alert className="mt-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                      Selecione um paciente da lista. Caso não encontre,{' '}
+                      <button
+                        type="button"
+                        className="underline font-medium text-primary hover:text-primary/80"
+                        onClick={() => {
+                          onOpenChange(false);
+                          resetForm();
+                          navigate('/neoteam/patients');
+                        }}
+                      >
+                        cadastre-o no módulo Pacientes
+                      </button>.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </>
+            ) : (
+              <Input
+                id="patientName"
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+                placeholder="Nome completo"
+              />
+            )}
           </div>
 
-          {/* Phone */}
-          <div className="space-y-1.5">
-            <Label htmlFor="patientPhone">Telefone</Label>
-            <Input
-              id="patientPhone"
-              value={patientPhone}
-              onChange={(e) => setPatientPhone(e.target.value)}
-              placeholder="(00) 00000-0000"
-            />
-          </div>
+          {/* Phone - hide when prefilled or in requireExisting mode with selected patient */}
+          {!(requireExistingPatient && selectedPatientId) && !prefilledPatient && (
+            <div className="space-y-1.5">
+              <Label htmlFor="patientPhone">Telefone</Label>
+              <Input
+                id="patientPhone"
+                value={patientPhone}
+                onChange={(e) => setPatientPhone(e.target.value)}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+          )}
 
           {/* Branch */}
           <div className="space-y-1.5">
@@ -356,7 +436,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
           <Button variant="outline" onClick={() => { resetForm(); onOpenChange(false); }}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
+          <Button onClick={handleSubmit} disabled={isSubmitting || (requireExistingPatient && !selectedPatientId)}>
             {isSubmitting ? 'Salvando...' : 'Adicionar'}
           </Button>
         </DialogFooter>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useClinicSurgeries, ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useNoDatePatients } from '../hooks/useNoDatePatients';
@@ -55,6 +56,8 @@ export default function ClinicDashboard() {
   const { scheduledSurgeries, noDateSurgeries, updateSurgery } = useClinicSurgeries();
   const { allPatients: noDatePatients } = useNoDatePatients();
   const { branches: allowedBranches } = useBranches();
+  const location = useLocation();
+  const isNeoTeamContext = location.pathname.includes('/neoteam/');
 
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('this-week');
@@ -619,6 +622,7 @@ export default function ClinicDashboard() {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         defaultWithDate={activeTab === 'agenda'}
+        requireExistingPatient={isNeoTeamContext}
       />
     </div>
   );
