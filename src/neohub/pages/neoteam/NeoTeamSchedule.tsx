@@ -296,10 +296,32 @@ export default function NeoTeamSchedule() {
   };
 
   const hours = useMemo(() => {
+    if (doctorSchedules.length === 0) {
+      // No schedule configured: show default range
+      const h: number[] = [];
+      for (let i = GRID_START_HOUR; i <= GRID_END_HOUR; i++) h.push(i);
+      return h;
+    }
+
+    // Compute min start and max end across all configured days
+    let minHour = 23;
+    let maxHour = 0;
+    for (const s of doctorSchedules) {
+      const startH = Math.floor(timeToMinutes(s.start_time) / 60);
+      const endMinutes = timeToMinutes(s.end_time);
+      const endH = Math.ceil(endMinutes / 60);
+      if (startH < minHour) minHour = startH;
+      if (endH > maxHour) maxHour = endH;
+    }
+
+    // Add 1 hour buffer before and after for context
+    minHour = Math.max(GRID_START_HOUR, minHour - 1);
+    maxHour = Math.min(GRID_END_HOUR, maxHour);
+
     const h: number[] = [];
-    for (let i = GRID_START_HOUR; i <= GRID_END_HOUR; i++) h.push(i);
+    for (let i = minHour; i <= maxHour; i++) h.push(i);
     return h;
-  }, []);
+  }, [doctorSchedules]);
 
   const handleGridClick = (date: Date, hour: number) => {
     if (!selectedDoctorId) return;
