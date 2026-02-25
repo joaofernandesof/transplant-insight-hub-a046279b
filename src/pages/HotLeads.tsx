@@ -4,7 +4,7 @@ import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, LayoutGrid, List } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, LayoutGrid, List, FlaskConical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -27,6 +27,8 @@ import { BulkActionsBar } from '@/components/hotleads/BulkActionsBar';
 import { AdminManualReleaseDialog } from '@/components/hotleads/AdminManualReleaseDialog';
 import { HotLeadsStats } from '@/components/hotleads/HotLeadsStats';
 import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashboard';
+import { AdminTestLeadDialog } from '@/components/hotleads/AdminTestLeadDialog';
+import { OverdueLeadsPopup } from '@/components/hotleads/OverdueLeadsPopup';
 
 import type { HotLead, LeadTab } from '@/hooks/useHotLeads';
 import { CompleteProfileGate } from '@/components/hotleads/CompleteProfileGate';
@@ -91,6 +93,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
+  const [isTestLeadOpen, setIsTestLeadOpen] = useState(false);
+  const [isOverduePopupOpen, setIsOverduePopupOpen] = useState(false);
   const [hasNewLeads, setHasNewLeads] = useState(false);
   const adminView = initialView === 'dashboard' ? 'dashboard' : 'marketplace';
 
@@ -419,6 +423,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                     <Unlock className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Liberar</span>
                   </Button>
+                  <Button variant="outline" size="sm" onClick={() => setIsTestLeadOpen(true)}>
+                    <FlaskConical className="h-4 w-4 mr-1.5" />
+                    <span className="hidden sm:inline">Teste</span>
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
                     <Upload className="h-4 w-4 mr-1.5" />
                     <span className="hidden sm:inline">Importar</span>
@@ -469,6 +477,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               <Button variant="outline" size="sm" onClick={() => setIsManualReleaseOpen(true)}>
                 <Unlock className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Liberar</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setIsTestLeadOpen(true)}>
+                <FlaskConical className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Teste</span>
               </Button>
               <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
                 <Upload className="h-4 w-4 mr-1.5" />
@@ -537,25 +549,31 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                   Você possui {overdueLeads.length} {overdueLeads.length === 1 ? 'lead' : 'leads'} sem atualização há mais de 7 dias
                 </p>
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                  Atualize o status dos leads em <strong>Adquiridos</strong> ou <strong>Em Atendimento</strong> para <strong>Vendido</strong>, <strong>Em Atendimento</strong> ou <strong>Descartado</strong> para desbloquear novas aquisições.
+                  Atualize o status para desbloquear novas aquisições. Toque abaixo para ver os detalhes:
                 </p>
-                <div className="flex gap-2 mt-2">
-                  {overdueLeads.some(l => !l.lead_outcome) && (
-                    <button
-                      onClick={() => setActiveTab('acquired')}
-                      className="text-xs font-medium text-amber-700 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
-                    >
-                      Ver Adquiridos →
-                    </button>
+                {/* Show first 3 overdue lead names inline */}
+                <div className="mt-2 space-y-1">
+                  {overdueLeads.slice(0, 3).map(lead => (
+                    <div key={lead.id} className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300">
+                      <span className="font-medium truncate max-w-[200px]">• {lead.name}</span>
+                      <span className="text-amber-500 dark:text-amber-400">
+                        ({!lead.lead_outcome ? 'Sem desfecho' : 'Atualizar atendimento'})
+                      </span>
+                    </div>
+                  ))}
+                  {overdueLeads.length > 3 && (
+                    <p className="text-[11px] text-amber-500">...e mais {overdueLeads.length - 3}</p>
                   )}
-                  {overdueLeads.some(l => l.lead_outcome === 'em_atendimento') && (
-                    <button
-                      onClick={() => setActiveTab('in_progress')}
-                      className="text-xs font-medium text-amber-700 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
-                    >
-                      Ver Em Atendimento →
-                    </button>
-                  )}
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300"
+                    onClick={() => setIsOverduePopupOpen(true)}
+                  >
+                    Ver todos os detalhes →
+                  </Button>
                 </div>
               </div>
             </div>
@@ -799,12 +817,26 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
       />
 
       {isAdmin && (
-        <AdminManualReleaseDialog
-          open={isManualReleaseOpen}
-          onOpenChange={setIsManualReleaseOpen}
-          onLeadReleased={handleRefresh}
-        />
+        <>
+          <AdminManualReleaseDialog
+            open={isManualReleaseOpen}
+            onOpenChange={setIsManualReleaseOpen}
+            onLeadReleased={handleRefresh}
+          />
+          <AdminTestLeadDialog
+            open={isTestLeadOpen}
+            onOpenChange={setIsTestLeadOpen}
+            onCreated={handleRefresh}
+          />
+        </>
       )}
+
+      <OverdueLeadsPopup
+        open={isOverduePopupOpen}
+        onOpenChange={setIsOverduePopupOpen}
+        overdueLeads={overdueLeads}
+        onGoToTab={(tab) => setActiveTab(tab)}
+      />
     </div>
     </CompleteProfileGate>
   );
