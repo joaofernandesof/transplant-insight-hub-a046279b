@@ -6,13 +6,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  Search, ChevronLeft, ChevronRight, Phone, User,
-  Clock, CalendarDays, Plus
+  Search, ChevronLeft, ChevronRight, Phone, User, Clock
 } from 'lucide-react';
-import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import { useQuery } from '@tanstack/react-query';
@@ -39,32 +37,42 @@ interface DoctorScheduleRow {
   is_active: boolean;
 }
 
-interface AppointmentRow {
+interface NeoteamAppointment {
   id: string;
-  patient_id: string;
+  patient_id: string | null;
+  patient_name: string;
+  patient_phone: string | null;
+  patient_email: string | null;
   doctor_id: string | null;
-  scheduled_at: string;
-  duration_minutes: number | null;
-  appointment_type: string;
-  status: string | null;
+  doctor_name: string | null;
+  appointment_date: string;
+  appointment_time: string;
+  duration_minutes: number;
+  type: string;
+  status: string;
   notes: string | null;
-  unit_id: string | null;
-  patient?: { full_name: string; phone: string | null } | null;
+  branch: string | null;
+  created_by: string | null;
 }
 
-type AppointmentStatus = 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'pending' | 'cancelled' | 'no_show';
-
 const STATUS_CONFIG: Record<string, { label: string; border: string; bg: string; text: string }> = {
+  confirmado:     { label: 'Confirmado',     border: 'border-l-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40',  text: 'text-emerald-700 dark:text-emerald-400' },
+  agendado:       { label: 'Agendado',       border: 'border-l-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/40',       text: 'text-blue-700 dark:text-blue-400' },
+  em_atendimento: { label: 'Em Atendimento', border: 'border-l-violet-500',  bg: 'bg-violet-50 dark:bg-violet-950/40',   text: 'text-violet-700 dark:text-violet-400' },
+  concluido:      { label: 'Concluído',      border: 'border-l-gray-400',    bg: 'bg-gray-50 dark:bg-gray-800/50',       text: 'text-muted-foreground' },
+  pendente:       { label: 'Pendente',        border: 'border-l-red-500',     bg: 'bg-red-50 dark:bg-red-950/40',         text: 'text-red-700 dark:text-red-400' },
+  cancelado:      { label: 'Cancelado',      border: 'border-l-gray-300',    bg: 'bg-gray-50 dark:bg-gray-800/50',       text: 'text-muted-foreground line-through' },
+  nao_compareceu: { label: 'Não Compareceu', border: 'border-l-orange-500',  bg: 'bg-orange-50 dark:bg-orange-950/40',   text: 'text-orange-700 dark:text-orange-400' },
+  // English fallbacks
   confirmed:   { label: 'Confirmado',     border: 'border-l-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40',  text: 'text-emerald-700 dark:text-emerald-400' },
   scheduled:   { label: 'Agendado',       border: 'border-l-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/40',       text: 'text-blue-700 dark:text-blue-400' },
   in_progress: { label: 'Em Atendimento', border: 'border-l-violet-500',  bg: 'bg-violet-50 dark:bg-violet-950/40',   text: 'text-violet-700 dark:text-violet-400' },
   completed:   { label: 'Concluído',      border: 'border-l-gray-400',    bg: 'bg-gray-50 dark:bg-gray-800/50',       text: 'text-muted-foreground' },
   pending:     { label: 'Pendente',        border: 'border-l-red-500',     bg: 'bg-red-50 dark:bg-red-950/40',         text: 'text-red-700 dark:text-red-400' },
   cancelled:   { label: 'Cancelado',      border: 'border-l-gray-300',    bg: 'bg-gray-50 dark:bg-gray-800/50',       text: 'text-muted-foreground line-through' },
-  no_show:     { label: 'Não Compareceu', border: 'border-l-orange-500',  bg: 'bg-orange-50 dark:bg-orange-950/40',   text: 'text-orange-700 dark:text-orange-400' },
 };
 
-const HOUR_HEIGHT = 64; // px per hour
+const HOUR_HEIGHT = 64;
 const GRID_START_HOUR = 6;
 const GRID_END_HOUR = 23;
 
@@ -101,31 +109,43 @@ function useDoctorWeekSchedule(doctorId: string | null) {
   });
 }
 
-function useAppointmentsForRange(doctorId: string | null, startDate: Date, endDate: Date) {
+function useNeoteamAppointments(doctorId: string | null, startDate: Date, endDate: Date) {
+  const startStr = format(startDate, 'yyyy-MM-dd');
+  const endStr = format(endDate, 'yyyy-MM-dd');
+
   return useQuery({
-    queryKey: ['neoteam-appointments', doctorId, startDate.toISOString(), endDate.toISOString()],
+    queryKey: ['neoteam-appointments', doctorId, startStr, endStr],
     queryFn: async () => {
       if (!doctorId) return [];
-      const startISO = new Date(startDate);
-      startISO.setHours(0, 0, 0, 0);
-      const endISO = new Date(endDate);
-      endISO.setHours(23, 59, 59, 999);
 
       const { data, error } = await supabase
-        .from('portal_appointments')
-        .select('id, patient_id, doctor_id, scheduled_at, duration_minutes, appointment_type, status, notes, unit_id, portal_patients(full_name, phone)')
+        .from('neoteam_appointments')
+        .select('*')
         .eq('doctor_id', doctorId)
-        .gte('scheduled_at', startISO.toISOString())
-        .lte('scheduled_at', endISO.toISOString())
-        .neq('status', 'cancelled')
-        .order('scheduled_at');
+        .gte('appointment_date', startStr)
+        .lte('appointment_date', endStr)
+        .neq('status', 'cancelado')
+        .order('appointment_date')
+        .order('appointment_time');
       if (error) throw error;
-      return (data || []).map((d: any) => ({
-        ...d,
-        patient: d.portal_patients,
-      })) as AppointmentRow[];
+      return (data || []) as NeoteamAppointment[];
     },
     enabled: !!doctorId,
+  });
+}
+
+function useNeoteamBranches() {
+  return useQuery({
+    queryKey: ['neoteam-branches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('neoteam_branches')
+        .select('id, name, code')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
   });
 }
 
@@ -136,7 +156,7 @@ function timeToMinutes(time: string): number {
 }
 
 function getStatusConfig(status: string | null) {
-  return STATUS_CONFIG[status || 'scheduled'] || STATUS_CONFIG.scheduled;
+  return STATUS_CONFIG[status || 'agendado'] || STATUS_CONFIG.agendado;
 }
 
 // ── Main Component ─────────────────────────────────────────────
@@ -145,10 +165,12 @@ export default function NeoTeamSchedule() {
   const [view, setView] = useState<'day' | 'week'>('day');
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentRow | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<NeoteamAppointment | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
 
-  const { data: doctors = [], isLoading: loadingDoctors } = useNeoTeamDoctors();
+  const { data: doctors = [] } = useNeoTeamDoctors();
   const { data: doctorSchedules = [] } = useDoctorWeekSchedule(selectedDoctorId);
+  const { data: branches = [] } = useNeoteamBranches();
 
   const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
@@ -156,7 +178,13 @@ export default function NeoTeamSchedule() {
   const rangeStart = view === 'day' ? selectedDate : weekStart;
   const rangeEnd = view === 'day' ? selectedDate : weekDays[6];
 
-  const { data: appointments = [], isLoading: loadingAppointments } = useAppointmentsForRange(selectedDoctorId, rangeStart, rangeEnd);
+  const { data: allAppointments = [] } = useNeoteamAppointments(selectedDoctorId, rangeStart, rangeEnd);
+
+  // Filter by branch if selected
+  const appointments = useMemo(() => {
+    if (!selectedBranch) return allAppointments;
+    return allAppointments.filter(a => a.branch === selectedBranch);
+  }, [allAppointments, selectedBranch]);
 
   const selectedDoctor = doctors.find(d => d.id === selectedDoctorId) || null;
 
@@ -170,10 +198,8 @@ export default function NeoTeamSchedule() {
   }, [doctors, searchQuery]);
 
   const getAppointmentsForDay = useCallback((date: Date) => {
-    return appointments.filter(a => {
-      const aDate = new Date(a.scheduled_at);
-      return isSameDay(aDate, date);
-    });
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return appointments.filter(a => a.appointment_date === dateStr);
   }, [appointments]);
 
   const getDaySchedule = useCallback((date: Date) => {
@@ -191,7 +217,6 @@ export default function NeoTeamSchedule() {
     return h;
   }, []);
 
-  // ── Render ─────────────────────────────────────────────────────
   return (
     <div className="p-4 lg:p-6 space-y-4">
       <NeoTeamBreadcrumb />
@@ -279,6 +304,40 @@ export default function NeoTeamSchedule() {
                 className="rounded-md pointer-events-auto"
                 locale={ptBR}
               />
+            </CardContent>
+          </Card>
+
+          {/* Branch Filter */}
+          <Card>
+            <CardHeader className="pb-2 pt-3 px-3">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                🏥 Unidade
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-2 pb-2">
+              <div className="space-y-1">
+                <button
+                  onClick={() => setSelectedBranch(null)}
+                  className={cn(
+                    'w-full text-left text-sm px-3 py-2 rounded-lg transition-colors',
+                    !selectedBranch ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/60'
+                  )}
+                >
+                  Todas
+                </button>
+                {branches.map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => setSelectedBranch(b.name)}
+                    className={cn(
+                      'w-full text-left text-sm px-3 py-2 rounded-lg transition-colors',
+                      selectedBranch === b.name ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/60'
+                    )}
+                  >
+                    {b.name}
+                  </button>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -393,17 +452,16 @@ function DayGrid({
 }: {
   date: Date;
   hours: number[];
-  appointments: AppointmentRow[];
+  appointments: NeoteamAppointment[];
   schedule: DoctorScheduleRow | undefined;
   defaultDuration: number;
-  onClickAppointment: (a: AppointmentRow) => void;
+  onClickAppointment: (a: NeoteamAppointment) => void;
 }) {
   const workStart = schedule ? timeToMinutes(schedule.start_time) : null;
   const workEnd = schedule ? timeToMinutes(schedule.end_time) : null;
 
   return (
     <div className="relative">
-      {/* Time rows */}
       {hours.map(hour => {
         const minuteStart = hour * 60;
         const isWorkHour = workStart !== null && workEnd !== null && minuteStart >= workStart && minuteStart < workEnd;
@@ -422,7 +480,6 @@ function DayGrid({
               </span>
             </div>
             <div className="flex-1 border-l border-border/30 relative">
-              {/* Half-hour line */}
               <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-border/20" />
             </div>
           </div>
@@ -432,12 +489,14 @@ function DayGrid({
       {/* Appointment blocks */}
       <div className="absolute top-0 left-16 right-0">
         {appointments.map(apt => {
-          const aptDate = new Date(apt.scheduled_at);
-          const aptMinutes = aptDate.getHours() * 60 + aptDate.getMinutes();
+          const aptMinutes = timeToMinutes(apt.appointment_time);
           const duration = apt.duration_minutes || defaultDuration;
           const top = ((aptMinutes - GRID_START_HOUR * 60) / 60) * HOUR_HEIGHT;
           const height = Math.max((duration / 60) * HOUR_HEIGHT, 28);
           const config = getStatusConfig(apt.status);
+          const endTime = aptMinutes + duration;
+          const endH = String(Math.floor(endTime / 60)).padStart(2, '0');
+          const endM = String(endTime % 60).padStart(2, '0');
 
           return (
             <button
@@ -452,16 +511,16 @@ function DayGrid({
               <div className="flex items-start justify-between gap-1">
                 <div className="min-w-0 text-left">
                   <p className={cn('text-xs font-semibold truncate', config.text)}>
-                    {apt.patient?.full_name || 'Paciente'}
+                    {apt.patient_name}
                   </p>
                   {height > 36 && (
                     <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                      {apt.appointment_type} • {format(aptDate, 'HH:mm')}–{format(new Date(aptDate.getTime() + duration * 60000), 'HH:mm')}
+                      {apt.type} • {apt.appointment_time.substring(0, 5)}–{endH}:{endM}
                     </p>
                   )}
                 </div>
-                {apt.patient?.phone && height > 36 && (
-                  <a href={`tel:${apt.patient.phone}`} className="text-muted-foreground hover:text-foreground flex-shrink-0 mt-0.5" onClick={e => e.stopPropagation()}>
+                {apt.patient_phone && height > 36 && (
+                  <a href={`tel:${apt.patient_phone}`} className="text-muted-foreground hover:text-foreground flex-shrink-0 mt-0.5" onClick={e => e.stopPropagation()}>
                     <Phone className="h-3 w-3" />
                   </a>
                 )}
@@ -485,13 +544,15 @@ function WeekGrid({
 }: {
   days: Date[];
   hours: number[];
-  appointments: AppointmentRow[];
+  appointments: NeoteamAppointment[];
   schedules: DoctorScheduleRow[];
   defaultDuration: number;
-  onClickAppointment: (a: AppointmentRow) => void;
+  onClickAppointment: (a: NeoteamAppointment) => void;
 }) {
-  const getAptsForDay = (date: Date) =>
-    appointments.filter(a => isSameDay(new Date(a.scheduled_at), date));
+  const getAptsForDay = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return appointments.filter(a => a.appointment_date === dateStr);
+  };
 
   const getScheduleForDay = (date: Date) =>
     schedules.find(s => s.day_of_week === date.getDay());
@@ -552,15 +613,14 @@ function WeekGrid({
           </div>
         ))}
 
-        {/* Appointment overlays for each day column */}
+        {/* Appointment overlays */}
         <div className="absolute top-0 left-16 right-0 flex">
-          {days.map((day, colIdx) => {
+          {days.map(day => {
             const dayApts = getAptsForDay(day);
             return (
               <div key={day.toISOString()} className="flex-1 relative" style={{ minHeight: hours.length * HOUR_HEIGHT }}>
                 {dayApts.map(apt => {
-                  const aptDate = new Date(apt.scheduled_at);
-                  const aptMinutes = aptDate.getHours() * 60 + aptDate.getMinutes();
+                  const aptMinutes = timeToMinutes(apt.appointment_time);
                   const duration = apt.duration_minutes || defaultDuration;
                   const top = ((aptMinutes - GRID_START_HOUR * 60) / 60) * HOUR_HEIGHT;
                   const height = Math.max((duration / 60) * HOUR_HEIGHT, 24);
@@ -577,11 +637,11 @@ function WeekGrid({
                       style={{ top, height }}
                     >
                       <p className={cn('text-[10px] font-semibold truncate', config.text)}>
-                        {apt.patient?.full_name || 'Paciente'}
+                        {apt.patient_name}
                       </p>
                       {height > 30 && (
                         <p className="text-[9px] text-muted-foreground truncate">
-                          {format(aptDate, 'HH:mm')}
+                          {apt.appointment_time.substring(0, 5)}
                         </p>
                       )}
                     </button>
@@ -597,26 +657,25 @@ function WeekGrid({
 }
 
 // ── Appointment Detail ─────────────────────────────────────────
-function AppointmentDetail({ appointment }: { appointment: AppointmentRow }) {
-  const aptDate = new Date(appointment.scheduled_at);
+function AppointmentDetail({ appointment }: { appointment: NeoteamAppointment }) {
   const duration = appointment.duration_minutes || 30;
+  const endMinutes = timeToMinutes(appointment.appointment_time) + duration;
+  const endH = String(Math.floor(endMinutes / 60)).padStart(2, '0');
+  const endM = String(endMinutes % 60).padStart(2, '0');
   const config = getStatusConfig(appointment.status);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <div className={cn(
-          'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold',
-          'bg-muted text-muted-foreground'
-        )}>
-          {(appointment.patient?.full_name || 'P').split(' ').map(n => n[0]).slice(0, 2).join('')}
+        <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground">
+          {appointment.patient_name.split(' ').map(n => n[0]).slice(0, 2).join('')}
         </div>
         <div>
-          <p className="font-semibold">{appointment.patient?.full_name || 'Paciente'}</p>
-          {appointment.patient?.phone && (
-            <a href={`tel:${appointment.patient.phone}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+          <p className="font-semibold">{appointment.patient_name}</p>
+          {appointment.patient_phone && (
+            <a href={`tel:${appointment.patient_phone}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
               <Phone className="h-3 w-3" />
-              {appointment.patient.phone}
+              {appointment.patient_phone}
             </a>
           )}
         </div>
@@ -625,17 +684,17 @@ function AppointmentDetail({ appointment }: { appointment: AppointmentRow }) {
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
           <p className="text-muted-foreground text-xs">Data</p>
-          <p className="font-medium">{format(aptDate, "dd/MM/yyyy")}</p>
+          <p className="font-medium">{appointment.appointment_date.split('-').reverse().join('/')}</p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs">Horário</p>
           <p className="font-medium">
-            {format(aptDate, 'HH:mm')} – {format(new Date(aptDate.getTime() + duration * 60000), 'HH:mm')}
+            {appointment.appointment_time.substring(0, 5)} – {endH}:{endM}
           </p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs">Tipo</p>
-          <p className="font-medium">{appointment.appointment_type}</p>
+          <p className="font-medium">{appointment.type}</p>
         </div>
         <div>
           <p className="text-muted-foreground text-xs">Status</p>
@@ -643,6 +702,18 @@ function AppointmentDetail({ appointment }: { appointment: AppointmentRow }) {
             {config.label}
           </Badge>
         </div>
+        {appointment.branch && (
+          <div>
+            <p className="text-muted-foreground text-xs">Unidade</p>
+            <p className="font-medium">{appointment.branch}</p>
+          </div>
+        )}
+        {appointment.doctor_name && (
+          <div>
+            <p className="text-muted-foreground text-xs">Profissional</p>
+            <p className="font-medium">{appointment.doctor_name}</p>
+          </div>
+        )}
       </div>
 
       {appointment.notes && (
