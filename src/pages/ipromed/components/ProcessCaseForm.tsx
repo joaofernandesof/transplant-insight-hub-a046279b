@@ -191,7 +191,7 @@ export default function ProcessCaseForm({ initialData, onSubmit, onCancel, isPen
     onSubmit(form);
   };
 
-  const NATUREZA_OPTIONS = ['Cível', 'Trabalhista', 'Criminal', 'Administrativo', 'Tributário', 'Empresarial', 'Consumidor', 'Família e Sucessões', 'Previdenciário', 'Ambiental', 'Eleitoral', 'Constitucional', 'Juizados Especiais', 'Saúde/Médico-Hospitalar'];
+  const NATUREZA_OPTIONS = ['Cível', 'Trabalhista', 'Criminal', 'Administrativo', 'Tributário', 'Empresarial', 'Consumidor', 'Família e Sucessões', 'Previdenciário', 'Ambiental', 'Eleitoral', 'Constitucional', 'Juizados Especiais', 'Saúde/Médico-Hospitalar', 'PEP', 'Sindicância'];
   const TIPO_ACAO_OPTIONS = ['Cobrança', 'Indenizatória', 'Execução', 'Obrigação de Fazer', 'Obrigação de Não Fazer', 'Revisional', 'Declaratória', 'Anulatória', 'Mandado de Segurança', 'Reclamação Trabalhista', 'Ação Penal', 'Outro'];
   const POLO_OPTIONS = ['Autor', 'Réu', 'Requerente', 'Requerido', 'Exequente', 'Executado', 'Impetrante', 'Impetrado', 'Assistente', 'Terceiro Interessado'];
   const AREA_JURIDICA_OPTIONS = ['Consultivo', 'Contencioso Judicial', 'Contencioso Administrativo', 'Preventivo', 'Regulatório'];
