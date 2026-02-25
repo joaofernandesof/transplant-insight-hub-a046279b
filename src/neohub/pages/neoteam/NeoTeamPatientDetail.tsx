@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   User, Phone, Mail, MapPin, Calendar, FileText,
-  ClipboardList, ArrowLeft, Edit, MessageCircle,
-  AlertCircle, CheckCircle2, Clock, Stethoscope
+  ArrowLeft, Edit, MessageCircle, Clock,
+  AlertCircle, Stethoscope, ClipboardList,
+  RefreshCw, History
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -23,43 +22,97 @@ interface PatientData {
   email?: string;
   phone?: string;
   cpf?: string;
-  birth_date?: string;
-  address_city?: string;
-  address_state?: string;
-  address_street?: string;
-  address_number?: string;
-  address_neighborhood?: string;
-  address_cep?: string;
+  notes?: string;
   created_at?: string;
-  surgery_date?: string;
-  marital_status?: string;
+  medical_record?: string;
+  // Parsed from notes
+  branch?: string;
+  category?: string;
+  baldnessGrade?: string;
+  city?: string;
+  state?: string;
+  address?: string;
+  birthDate?: string;
   nationality?: string;
+  maritalStatus?: string;
+  consultant?: string;
+  seller?: string;
+  surgeryDate?: string;
+  leadSource?: string;
+  observations?: string;
 }
+
+const parseNotes = (notes: string | null): Record<string, string> => {
+  if (!notes) return {};
+  const result: Record<string, string> = {};
+  const pairs = notes.split('|');
+  for (const pair of pairs) {
+    const match = pair.match(/([^:]+):\s*(.+)/);
+    if (match) {
+      result[match[1].trim().toLowerCase()] = match[2].trim();
+    }
+  }
+  return result;
+};
+
+const getCategoryColor = (category: string) => {
+  if (!category) return 'bg-muted text-muted-foreground';
+  const upper = category.toUpperCase();
+  if (upper.includes('CATEGORIA A')) return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+  if (upper.includes('CATEGORIA B')) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+  if (upper.includes('CATEGORIA C')) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+  if (upper.includes('CATEGORIA D')) return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+  return 'bg-muted text-muted-foreground';
+};
 
 export default function NeoTeamPatientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [patient, setPatient] = useState<PatientData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    if (id) {
-      fetchPatient();
-    }
+    if (id) fetchPatient();
   }, [id]);
 
   const fetchPatient = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('neohub_users')
+        .from('clinic_patients')
         .select('*')
         .eq('id', id)
         .maybeSingle();
 
       if (error) throw error;
-      setPatient(data);
+
+      if (data) {
+        const parsed = parseNotes(data.notes);
+        setPatient({
+          id: data.id,
+          full_name: data.full_name,
+          email: data.email || undefined,
+          phone: data.phone || undefined,
+          cpf: data.cpf || undefined,
+          notes: data.notes || undefined,
+          created_at: data.created_at,
+          medical_record: data.medical_record || undefined,
+          branch: parsed['filial'] || undefined,
+          category: parsed['categoria'] || undefined,
+          baldnessGrade: parsed['grau'] || undefined,
+          city: parsed['cidade'] || undefined,
+          state: parsed['estado'] || parsed['uf'] || undefined,
+          address: parsed['endereço'] || parsed['endereco'] || undefined,
+          birthDate: parsed['nascimento'] || parsed['data nascimento'] || undefined,
+          nationality: parsed['nacionalidade'] || undefined,
+          maritalStatus: parsed['estado civil'] || undefined,
+          consultant: parsed['consultor'] || undefined,
+          seller: parsed['vendedor'] || undefined,
+          surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || undefined,
+          leadSource: parsed['fonte'] || parsed['lead source'] || undefined,
+          observations: parsed['observações'] || parsed['obs'] || undefined,
+        });
+      }
     } catch (error) {
       console.error('Error fetching patient:', error);
     } finally {
@@ -111,227 +164,268 @@ export default function NeoTeamPatientDetail() {
     <div className="p-4 lg:p-6 space-y-6">
       <NeoTeamBreadcrumb />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/neoteam/patients')}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="bg-primary/10 text-primary text-xl">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className="text-2xl font-bold">{patient.full_name}</h1>
-            <p className="text-muted-foreground">
-              #{id?.slice(0, 8).toUpperCase()} • Cadastrado em {patient.created_at 
-                ? format(new Date(patient.created_at), "dd/MM/yyyy", { locale: ptBR }) 
-                : 'N/A'}
-            </p>
+      {/* === CPG-Style Header === */}
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        {/* Top bar with gradient */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-6 py-5">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/neoteam/patients')} className="self-start -ml-2">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+
+            <Avatar className="h-16 w-16 border-2 border-primary/20">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xl font-bold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <h1 className="text-xl lg:text-2xl font-bold truncate">{patient.full_name}</h1>
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0">
+                  Ativo
+                </Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                {patient.email && (
+                  <span className="flex items-center gap-1">
+                    <Mail className="h-3.5 w-3.5" />
+                    {patient.email}
+                  </span>
+                )}
+                {patient.phone && (
+                  <span className="flex items-center gap-1">
+                    <Phone className="h-3.5 w-3.5" />
+                    {patient.phone}
+                  </span>
+                )}
+                {patient.cpf && (
+                  <span className="flex items-center gap-1">
+                    <User className="h-3.5 w-3.5" />
+                    {patient.cpf}
+                  </span>
+                )}
+              </div>
+              {/* Badges row */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {patient.category && (
+                  <Badge className={`${getCategoryColor(patient.category)} border-0 text-xs`}>
+                    {patient.category}
+                  </Badge>
+                )}
+                {patient.branch && (
+                  <Badge variant="outline" className="text-xs">
+                    {patient.branch}
+                  </Badge>
+                )}
+                {patient.baldnessGrade && (
+                  <Badge variant="outline" className="text-xs">
+                    Grau {patient.baldnessGrade}
+                  </Badge>
+                )}
+                {patient.surgeryDate && (
+                  <Badge variant="outline" className="text-xs border-blue-300 text-blue-700 dark:text-blue-400">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Cirurgia: {patient.surgeryDate}
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-2 self-start">
+              <Button variant="outline" size="sm">
+                <Edit className="h-4 w-4 mr-1.5" />
+                Editar
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Action bar */}
+        <div className="border-t px-6 py-3 flex flex-wrap gap-2">
           {patient.phone && (
-            <Button variant="outline" onClick={() => openWhatsApp(patient.phone!)}>
-              <MessageCircle className="h-4 w-4 mr-2" />
-              WhatsApp
+            <>
+              <Button variant="outline" size="sm" onClick={() => openWhatsApp(patient.phone!)}>
+                <MessageCircle className="h-4 w-4 mr-1.5" />
+                WhatsApp
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => window.open(`tel:${patient.phone}`)}>
+                <Phone className="h-4 w-4 mr-1.5" />
+                Ligar
+              </Button>
+            </>
+          )}
+          {patient.email && (
+            <Button variant="outline" size="sm" onClick={() => window.open(`mailto:${patient.email}`)}>
+              <Mail className="h-4 w-4 mr-1.5" />
+              Enviar Email
             </Button>
           )}
-          <Button>
-            <Edit className="h-4 w-4 mr-2" />
-            Editar
+          <Button variant="outline" size="sm">
+            <Calendar className="h-4 w-4 mr-1.5" />
+            Agendar Cirurgia
           </Button>
         </div>
       </div>
 
-      {/* Info Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-              <Phone className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Telefone</p>
-              <p className="font-medium">{patient.phone || 'Não informado'}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-              <Mail className="h-5 w-5 text-purple-600" />
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-xs text-muted-foreground">E-mail</p>
-              <p className="font-medium truncate">{patient.email || 'Não informado'}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-              <MapPin className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Cidade</p>
-              <p className="font-medium">
-                {patient.address_city && patient.address_state 
-                  ? `${patient.address_city}/${patient.address_state}` 
-                  : 'Não informado'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-              <Calendar className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Data Cirurgia</p>
-              <p className="font-medium">
-                {patient.surgery_date 
-                  ? format(new Date(patient.surgery_date), "dd/MM/yyyy", { locale: ptBR })
-                  : 'Não agendada'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* === Content: Two-column layout === */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left column - Main info */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Informações do Paciente */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
+                Informações do Paciente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                <InfoField label="Nome Completo" value={patient.full_name} />
+                <InfoField label="CPF" value={patient.cpf} />
+                <InfoField label="Telefone" value={patient.phone} />
+                <InfoField label="Email" value={patient.email} />
+                <InfoField label="Data de Nascimento" value={patient.birthDate} />
+                <InfoField label="Estado Civil" value={patient.maritalStatus} />
+                <InfoField label="Nacionalidade" value={patient.nationality || 'Brasileira'} />
+                <InfoField
+                  label="Cadastrado em"
+                  value={patient.created_at ? format(new Date(patient.created_at), "dd/MM/yyyy", { locale: ptBR }) : undefined}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Dados Comerciais */}
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                <InfoField label="Filial" value={patient.branch} />
+                <InfoField label="Categoria" value={patient.category} />
+                <InfoField label="Grau de Calvície" value={patient.baldnessGrade} />
+                <InfoField label="Data da Cirurgia" value={patient.surgeryDate} />
+                <InfoField label="Consultor" value={patient.consultant} />
+                <InfoField label="Vendedor" value={patient.seller} />
+                <InfoField label="Fonte do Lead" value={patient.leadSource} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Endereço */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                Endereço
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                <InfoField label="Logradouro" value={patient.address} span2 />
+                <InfoField label="Cidade" value={patient.city} />
+                <InfoField label="Estado/UF" value={patient.state} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Observações */}
+          {patient.observations && (
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Observações
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{patient.observations}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Right column - Sidebar */}
+        <div className="space-y-6">
+          {/* Prontuário */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Stethoscope className="h-4 w-4 text-primary" />
+                  Prontuário
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {patient.medical_record ? (
+                <p className="text-sm">{patient.medical_record}</p>
+              ) : (
+                <div className="text-center py-6">
+                  <ClipboardList className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhum prontuário registrado</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Linha do Tempo */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <History className="h-4 w-4 text-primary" />
+                  Linha do Tempo
+                </CardTitle>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={fetchPatient}>
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Histórico completo de atividades</p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Clock className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhuma atividade registrada</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  As atividades aparecerão aqui conforme você interagir com o paciente
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Documentos */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Documentos
+                </CardTitle>
+                <Button variant="outline" size="sm" className="h-7 text-xs">
+                  + Novo
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Exames, contratos e documentos</p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-6">
+                <FileText className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhum documento</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview" className="gap-2">
-            <User className="h-4 w-4" />
-            Visão Geral
-          </TabsTrigger>
-          <TabsTrigger value="records" className="gap-2">
-            <Stethoscope className="h-4 w-4" />
-            Prontuário
-          </TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Documentos
-          </TabsTrigger>
-          <TabsTrigger value="orientations" className="gap-2">
-            <ClipboardList className="h-4 w-4" />
-            Orientações
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Dados Pessoais */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Dados Pessoais</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Nome Completo</p>
-                    <p className="font-medium">{patient.full_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">CPF</p>
-                    <p className="font-medium">{patient.cpf || 'Não informado'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Data de Nascimento</p>
-                    <p className="font-medium">
-                      {patient.birth_date 
-                        ? format(new Date(patient.birth_date), "dd/MM/yyyy", { locale: ptBR })
-                        : 'Não informado'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Estado Civil</p>
-                    <p className="font-medium">{patient.marital_status || 'Não informado'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Nacionalidade</p>
-                    <p className="font-medium">{patient.nationality || 'Brasileira'}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Endereço */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Endereço</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <p className="text-sm text-muted-foreground">Logradouro</p>
-                    <p className="font-medium">
-                      {patient.address_street 
-                        ? `${patient.address_street}, ${patient.address_number || 'S/N'}`
-                        : 'Não informado'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Bairro</p>
-                    <p className="font-medium">{patient.address_neighborhood || 'Não informado'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">CEP</p>
-                    <p className="font-medium">{patient.address_cep || 'Não informado'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cidade</p>
-                    <p className="font-medium">{patient.address_city || 'Não informado'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Estado</p>
-                    <p className="font-medium">{patient.address_state || 'Não informado'}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="records">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Stethoscope className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Prontuário do Paciente</h3>
-              <p className="text-muted-foreground">
-                Histórico médico e registros clínicos do paciente.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="documents">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Documentos</h3>
-              <p className="text-muted-foreground">
-                Exames, contratos e outros documentos do paciente.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="orientations">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Orientações</h3>
-              <p className="text-muted-foreground">
-                Orientações pré e pós-operatórias do paciente.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+/* Reusable info field component */
+function InfoField({ label, value, span2 }: { label: string; value?: string; span2?: boolean }) {
+  return (
+    <div className={span2 ? 'col-span-2' : ''}>
+      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+      <p className="text-sm font-medium">{value || '—'}</p>
     </div>
   );
 }
