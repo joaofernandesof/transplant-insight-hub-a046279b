@@ -339,7 +339,6 @@ export default function Login() {
         <div className="relative z-10 flex flex-col items-center">
           {/* Logo and Title */}
           <div className="mb-8 text-center">
-            <img src={neohubLogo} alt="NeoHub Logo" className="w-24 h-24 mx-auto mb-4" />
             <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2">
               Neo<span className="bg-gradient-to-b from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">Hub</span>
             </h1>
