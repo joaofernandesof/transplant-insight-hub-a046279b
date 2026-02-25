@@ -46,10 +46,14 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
   const handleSubmit = async () => {
     if (!patient || !date) return;
 
+    if (!doctor) {
+      return;
+    }
+
     setWeekLockMessage(null);
 
-    // Validate week lock if doctor is specified
-    if (doctor) {
+    // Validate week lock
+    {
       try {
         const lockResult = await validate({
           date: format(date, 'yyyy-MM-dd'),
@@ -157,12 +161,17 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
 
           {/* Doctor */}
           <div className="space-y-2">
-            <Label>Médico plantonista</Label>
-            <Input
-              placeholder="Nome do médico (opcional)"
-              value={doctor}
-              onChange={(e) => setDoctor(e.target.value)}
-            />
+            <Label>Médico plantonista *</Label>
+            <Select value={doctor} onValueChange={setDoctor}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o médico" />
+              </SelectTrigger>
+              <SelectContent>
+                {['Hygor', 'Patrick', 'Márcia'].map((d) => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {weekLockMessage && (
@@ -177,7 +186,7 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={handleSubmit}
-            disabled={!date || createSurgery.isPending}
+            disabled={!date || !doctor || createSurgery.isPending}
           >
             {createSurgery.isPending ? 'Agendando...' : 'Confirmar Agendamento'}
           </Button>

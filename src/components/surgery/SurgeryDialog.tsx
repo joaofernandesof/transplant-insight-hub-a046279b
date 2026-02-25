@@ -375,30 +375,28 @@ export function SurgeryDialog({ open, onOpenChange, surgery, onSave, isLoading }
                         </FormItem>
                       )}
                     />
-                    {watchTipo === 'consulta' && (
-                      <FormField
-                        control={form.control}
-                        name="medico"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Médico</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {MEDICOS.map(m => (
-                                  <SelectItem key={m} value={m}>{m}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    <FormField
+                      control={form.control}
+                      name="medico"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Médico *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {MEDICOS.map(m => (
+                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     {(watchTipo === 'transplante' || watchTipo === 'retorno') && availableCategories.length > 0 && (
                       <FormField
                         control={form.control}

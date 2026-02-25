@@ -103,6 +103,11 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
       return;
     }
 
+    if (withDate && !doctorOnDuty) {
+      toast.error('Selecione o médico responsável.');
+      return;
+    }
+
     setIsSubmitting(true);
     setWeekLockMessage(null);
 
@@ -252,13 +257,17 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
 
           {/* Doctor */}
           <div className="space-y-1.5">
-            <Label htmlFor="doctor">Médico Responsável</Label>
-            <Input
-              id="doctor"
-              value={doctorOnDuty}
-              onChange={(e) => setDoctorOnDuty(e.target.value)}
-              placeholder="Nome do médico"
-            />
+            <Label>Médico Responsável {withDate ? '*' : ''}</Label>
+            <Select value={doctorOnDuty} onValueChange={setDoctorOnDuty}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o médico" />
+              </SelectTrigger>
+              <SelectContent>
+                {['Hygor', 'Patrick', 'Márcia'].map((d) => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Date toggle */}
