@@ -5,14 +5,16 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Loader2, ShieldCheck, Lock, Unlock, CalendarDays, LockOpen, LockKeyhole } from 'lucide-react';
-import { useScheduleWeekLocks, BRANCHES, DOCTORS, type ScheduleWeekLock } from '@/hooks/useScheduleWeekLocks';
+import { useScheduleWeekLocks, BRANCHES, DOCTORS, AGENDAS, type ScheduleWeekLock } from '@/hooks/useScheduleWeekLocks';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ScheduleWeekLocksAdmin() {
-  const { locks, weeks, isLoading, updateLock, bulkUpdateLocks } = useScheduleWeekLocks();
+  const [selectedAgenda, setSelectedAgenda] = useState<string>('Agenda Cirúrgica');
+  const { locks, weeks, isLoading, updateLock, bulkUpdateLocks } = useScheduleWeekLocks(selectedAgenda);
   const [selectedBranch, setSelectedBranch] = useState<string>('Fortaleza');
   const [searchWeek, setSearchWeek] = useState('');
 
@@ -67,7 +69,7 @@ export default function ScheduleWeekLocksAdmin() {
               Travas da Agenda
             </h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Controle absoluto de disponibilidade por semana, filial e médico.
+              Controle de disponibilidade por semana, filial, médico e agenda.
             </p>
           </div>
           <Select value={selectedBranch} onValueChange={setSelectedBranch}>
@@ -81,6 +83,15 @@ export default function ScheduleWeekLocksAdmin() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Agenda Tabs */}
+        <Tabs value={selectedAgenda} onValueChange={setSelectedAgenda}>
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            {AGENDAS.map(a => (
+              <TabsTrigger key={a} value={a}>{a}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -169,7 +180,7 @@ export default function ScheduleWeekLocksAdmin() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              Matriz de Disponibilidade — {selectedBranch}
+              Matriz de Disponibilidade — {selectedBranch} — {selectedAgenda}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">

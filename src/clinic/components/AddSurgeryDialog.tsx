@@ -118,6 +118,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
           date: format(surgeryDate, 'yyyy-MM-dd'),
           branch,
           doctor: doctorOnDuty.trim(),
+          agenda: 'Agenda Cirúrgica',
         });
         if (!lockResult.permitido) {
           setWeekLockMessage(lockResult.mensagem);
