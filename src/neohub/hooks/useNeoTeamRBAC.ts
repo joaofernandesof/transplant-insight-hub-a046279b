@@ -94,7 +94,7 @@ export const MODULE_GROUPS = [
 ];
 
 export function useNeoTeamRBAC() {
-  const { user } = useUnifiedAuth();
+  const { user, isAdmin: isNeoHubAdmin } = useUnifiedAuth();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [myRole, setMyRole] = useState<NeoTeamRole | null>(null);
@@ -390,8 +390,40 @@ export function useNeoTeamRBAC() {
     return (data || []).map((d: any) => ({ id: d.id, name: d.full_name }));
   }, []);
 
-  const isAdminOrAbove = myRole === 'MASTER' || myRole === 'ADMIN';
-  const isMaster = myRole === 'MASTER';
+  const isAdminOrAbove = myRole === 'MASTER' || myRole === 'ADMIN' || isNeoHubAdmin;
+  const isMaster = myRole === 'MASTER' || isNeoHubAdmin;
+  const hasNoMembers = !isLoading && members.length === 0;
+
+  // Bootstrap: auto-register the current user as MASTER if no members exist
+  const bootstrapMaster = useCallback(async () => {
+    if (!user || !hasNoMembers) return false;
+    try {
+      const { error } = await supabase
+        .from('neoteam_team_members')
+        .insert({
+          user_id: user.id,
+          role: 'MASTER' as NeoTeamRole,
+          created_by: user.id,
+        });
+      if (error) throw error;
+
+      await supabase.from('neoteam_audit_log').insert({
+        actor_user_id: user.id,
+        action: 'bootstrap_master',
+        target_user_id: user.id,
+        resource_type: 'neoteam_team_members',
+        new_values: { role: 'MASTER' },
+      });
+
+      await fetchMembers();
+      toast.success('Você foi cadastrado como MASTER da equipe');
+      return true;
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao inicializar equipe');
+      return false;
+    }
+  }, [user, hasNoMembers, fetchMembers]);
 
   return {
     members,
@@ -399,6 +431,7 @@ export function useNeoTeamRBAC() {
     myRole,
     isAdminOrAbove,
     isMaster,
+    hasNoMembers,
     addMember,
     updateMemberRole,
     toggleMemberActive,
@@ -406,6 +439,7 @@ export function useNeoTeamRBAC() {
     savePermissions,
     searchAvailableUsers,
     fetchAvailableDoctors,
+    bootstrapMaster,
     refetch: fetchMembers,
   };
 }

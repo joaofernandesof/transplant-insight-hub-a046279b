@@ -32,9 +32,9 @@ interface TeamManagementTabProps {
 
 export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
   const {
-    members, isLoading, myRole, isAdminOrAbove, isMaster,
+    members, isLoading, myRole, isAdminOrAbove, isMaster, hasNoMembers,
     addMember, updateMemberRole, toggleMemberActive,
-    searchAvailableUsers, fetchAvailableDoctors,
+    searchAvailableUsers, fetchAvailableDoctors, bootstrapMaster,
   } = useNeoTeamRBAC();
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -143,7 +143,17 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
           <div className="text-center py-12 text-muted-foreground">
             <Shield className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="font-medium">Nenhum membro encontrado</p>
-            <p className="text-sm mt-1">Adicione membros à equipe para gerenciar permissões</p>
+            <p className="text-sm mt-1">
+              {hasNoMembers
+                ? 'Inicialize a equipe para começar a gerenciar permissões'
+                : 'Adicione membros à equipe para gerenciar permissões'}
+            </p>
+            {hasNoMembers && (
+              <Button className="mt-4" onClick={bootstrapMaster}>
+                <UserCheck className="h-4 w-4 mr-2" />
+                Inicializar Equipe (você como Master)
+              </Button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
