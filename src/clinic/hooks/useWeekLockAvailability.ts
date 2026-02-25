@@ -15,6 +15,11 @@ export function useWeekLockAvailability(date: Date | undefined, branch: string) 
   const [locks, setLocks] = useState<LockAvailability[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Normalize branch name: "Filial Fortaleza" -> "Fortaleza", "Filial Juazeiro" -> "Juazeiro"
+  const normalizeBranch = (b: string): string => {
+    return b.replace(/^Filial\s+/i, '');
+  };
+
   useEffect(() => {
     if (!date || !branch) {
       setLocks([]);
@@ -22,12 +27,13 @@ export function useWeekLockAvailability(date: Date | undefined, branch: string) 
     }
 
     const dateStr = format(date, 'yyyy-MM-dd');
+    const normalizedBranch = normalizeBranch(branch);
     setIsLoading(true);
 
     supabase
       .from('schedule_week_locks')
       .select('doctor, permitido')
-      .eq('branch', branch)
+      .eq('branch', normalizedBranch)
       .eq('agenda', 'Agenda Cirúrgica')
       .lte('week_start', dateStr)
       .gte('week_end', dateStr)
