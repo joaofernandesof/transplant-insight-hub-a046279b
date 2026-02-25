@@ -50,6 +50,7 @@ import {
 } from "recharts";
 import { JourneyFunnelChart } from "./components/JourneyFunnelChart";
 import { OperationalMetrics } from "./components/OperationalInsightsWidget";
+import { LawyerLoginTimeWidget } from "./components/LawyerLoginTimeWidget";
 
 export default function IpromedDashboard() {
   const navigate = useNavigate();
@@ -418,7 +419,7 @@ export default function IpromedDashboard() {
         />
       </div>
 
-      {/* Bottom Section */}
+      {/* Lawyer Login Time + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Monthly Trend */}
         <Card className="border-none shadow-md lg:col-span-2">
@@ -506,6 +507,9 @@ export default function IpromedDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Lawyer Login Time Widget - Full width */}
+      <LawyerLoginTimeWidget />
 
       {/* Alerts Section */}
       {(dashboardData?.contracts.expiring || 0) > 0 && (
