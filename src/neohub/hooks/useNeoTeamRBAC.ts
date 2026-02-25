@@ -19,6 +19,7 @@ export interface TeamMember {
   role: NeoTeamRole;
   is_active: boolean;
   doctor_id: string | null;
+  branch_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -27,6 +28,7 @@ export interface TeamMember {
   user_email?: string;
   user_avatar?: string;
   doctor_name?: string;
+  branch_name?: string;
 }
 
 export interface ModulePermission {
@@ -136,12 +138,25 @@ export function useNeoTeamRBAC() {
         doctorsData = data || [];
       }
 
+      // Get branches
+      const branchIds = teamData.filter(m => m.branch_id).map(m => m.branch_id!);
+      let branchesData: any[] = [];
+      if (branchIds.length > 0) {
+        const { data } = await supabase
+          .from('neoteam_branches')
+          .select('id, name')
+          .in('id', branchIds);
+        branchesData = data || [];
+      }
+
       const usersMap = new Map((usersData || []).map(u => [u.user_id, u]));
       const doctorsMap = new Map(doctorsData.map((d: any) => [d.id, d]));
+      const branchesMap = new Map(branchesData.map((b: any) => [b.id, b]));
 
       const enriched: TeamMember[] = teamData.map(m => {
         const u = usersMap.get(m.user_id);
         const d = m.doctor_id ? doctorsMap.get(m.doctor_id) : null;
+        const b = m.branch_id ? branchesMap.get(m.branch_id) : null;
         return {
           ...m,
           role: m.role as NeoTeamRole,
@@ -149,6 +164,7 @@ export function useNeoTeamRBAC() {
           user_email: u?.email || '',
           user_avatar: u?.avatar_url || null,
           doctor_name: d?.full_name || null,
+          branch_name: b?.name || null,
         };
       });
 
@@ -169,7 +185,7 @@ export function useNeoTeamRBAC() {
     fetchMembers();
   }, [fetchMembers]);
 
-  const addMember = useCallback(async (userId: string, role: NeoTeamRole, doctorId?: string) => {
+  const addMember = useCallback(async (userId: string, role: NeoTeamRole, doctorId?: string, branchId?: string) => {
     if (!user) return false;
     try {
       const { error } = await supabase
@@ -178,6 +194,7 @@ export function useNeoTeamRBAC() {
           user_id: userId,
           role,
           doctor_id: doctorId || null,
+          branch_id: branchId || null,
           created_by: user.id,
         });
       if (error) throw error;
@@ -188,7 +205,7 @@ export function useNeoTeamRBAC() {
         action: 'member_added',
         target_user_id: userId,
         resource_type: 'neoteam_team_members',
-        new_values: { role, doctor_id: doctorId },
+        new_values: { role, doctor_id: doctorId, branch_id: branchId },
       });
 
       await fetchMembers();
@@ -390,6 +407,20 @@ export function useNeoTeamRBAC() {
     return (data || []).map((d: any) => ({ id: d.id, name: d.full_name }));
   }, []);
 
+  // Fetch available branches for linking
+  const fetchAvailableBranches = useCallback(async (): Promise<{ id: string; name: string }[]> => {
+    const { data, error } = await supabase
+      .from('neoteam_branches')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name');
+    if (error) {
+      console.error(error);
+      return [];
+    }
+    return (data || []).map((b: any) => ({ id: b.id, name: b.name }));
+  }, []);
+
   const isAdminOrAbove = myRole === 'MASTER' || myRole === 'ADMIN' || isNeoHubAdmin;
   const isMaster = myRole === 'MASTER' || isNeoHubAdmin;
   const hasNoMembers = !isLoading && members.length === 0;
@@ -439,6 +470,7 @@ export function useNeoTeamRBAC() {
     savePermissions,
     searchAvailableUsers,
     fetchAvailableDoctors,
+    fetchAvailableBranches,
     bootstrapMaster,
     refetch: fetchMembers,
   };

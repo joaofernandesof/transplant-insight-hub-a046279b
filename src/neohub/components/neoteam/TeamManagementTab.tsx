@@ -20,7 +20,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
-  Users, Plus, Shield, Search, Loader2, UserCheck, Stethoscope,
+  Users, Plus, Shield, Search, Loader2, UserCheck, Stethoscope, Building2,
 } from 'lucide-react';
 import {
   useNeoTeamRBAC, NeoTeamRole, ROLE_CONFIG, AvailableUser,
@@ -34,7 +34,7 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
   const {
     members, isLoading, myRole, isAdminOrAbove, isMaster, hasNoMembers,
     addMember, updateMemberRole, toggleMemberActive,
-    searchAvailableUsers, fetchAvailableDoctors, bootstrapMaster,
+    searchAvailableUsers, fetchAvailableDoctors, fetchAvailableBranches, bootstrapMaster,
   } = useNeoTeamRBAC();
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -46,14 +46,17 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
   const [selectedRole, setSelectedRole] = useState<NeoTeamRole>('OPERACIONAL');
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
   const [doctors, setDoctors] = useState<{ id: string; name: string }[]>([]);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('active');
 
   useEffect(() => {
     if (addDialogOpen) {
       fetchAvailableDoctors().then(setDoctors);
+      fetchAvailableBranches().then(setBranches);
     }
-  }, [addDialogOpen, fetchAvailableDoctors]);
+  }, [addDialogOpen, fetchAvailableDoctors, fetchAvailableBranches]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -75,7 +78,8 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
     const success = await addMember(
       selectedUser.user_id,
       selectedRole,
-      selectedDoctorId || undefined
+      selectedDoctorId || undefined,
+      selectedBranchId || undefined
     );
     setIsSaving(false);
     if (success) {
@@ -84,6 +88,7 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
       setSearchQuery('');
       setSelectedRole('OPERACIONAL');
       setSelectedDoctorId('');
+      setSelectedBranchId('');
     }
   };
 
@@ -160,10 +165,11 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Membro</TableHead>
-                  <TableHead>Papel</TableHead>
-                  <TableHead>Profissional</TableHead>
-                  <TableHead>Status</TableHead>
+                 <TableHead>Membro</TableHead>
+                   <TableHead>Papel</TableHead>
+                   <TableHead>Filial</TableHead>
+                   <TableHead>Profissional</TableHead>
+                   <TableHead>Status</TableHead>
                   {isAdminOrAbove && <TableHead className="text-right">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -216,6 +222,16 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
                         <Badge variant="outline" className={`${ROLE_CONFIG[member.role].color} border`}>
                           {ROLE_CONFIG[member.role].icon} {ROLE_CONFIG[member.role].label}
                         </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {member.branch_name ? (
+                        <div className="flex items-center gap-1.5 text-sm">
+                          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span>{member.branch_name}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -360,6 +376,24 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
                     <SelectItem value="none">Nenhum vínculo</SelectItem>
                     {doctors.map(d => (
                       <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Branch link */}
+            {branches.length > 0 && (
+              <div className="space-y-2">
+                <Label>Filial</Label>
+                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a filial" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem filial</SelectItem>
+                    {branches.map(b => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
