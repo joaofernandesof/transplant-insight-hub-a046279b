@@ -16,6 +16,7 @@ import {
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { PatientAutocomplete } from '@/neohub/components/PatientAutocomplete';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -681,6 +682,7 @@ function AddAppointmentDialog({
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [patientEmail, setPatientEmail] = useState('');
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('');
   const [duration, setDuration] = useState(30);
@@ -694,6 +696,7 @@ function AddAppointmentDialog({
     if (open) {
       setPatientName('');
       setPatientPhone('');
+      setSelectedPatientId(null);
       setPatientEmail('');
       setAppointmentDate(format(defaultDate, 'yyyy-MM-dd'));
       setAppointmentTime(defaultTime || '08:00');
@@ -749,8 +752,8 @@ function AddAppointmentDialog({
 
   const createAppointment = useMutation({
     mutationFn: async () => {
-      if (!doctorId || !patientName.trim() || !appointmentDate || !appointmentTime) {
-        throw new Error('Preencha todos os campos obrigatórios');
+      if (!doctorId || !patientName.trim() || !appointmentDate || !appointmentTime || !selectedPatientId) {
+        throw new Error(selectedPatientId ? 'Preencha todos os campos obrigatórios' : 'Selecione um paciente cadastrado');
       }
 
       // Final lock validation before creating
@@ -812,7 +815,20 @@ function AddAppointmentDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <Label>Nome do paciente *</Label>
-              <Input value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Nome completo" />
+              <PatientAutocomplete
+                value={patientName}
+                onChange={(value) => {
+                  setPatientName(value);
+                  setSelectedPatientId(null);
+                }}
+                onSelectPatient={(patient) => {
+                  setPatientName(patient.full_name);
+                  setPatientPhone(patient.phone || '');
+                  setPatientEmail(patient.email || '');
+                  setSelectedPatientId(patient.id);
+                }}
+                placeholder="Buscar paciente cadastrado..."
+              />
             </div>
             <div>
               <Label>Telefone</Label>
