@@ -55,10 +55,23 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
     // Validate week lock
     {
       try {
+        // Map form category + doctor to lock's doctor field
+        let lockDoctor = doctor.trim();
+        const cat = patient.category || '';
+        if (cat.startsWith('CATEGORIA A')) {
+          lockDoctor = `Categoria A - ${doctor.trim()}`;
+        } else if (cat.startsWith('CATEGORIA B')) {
+          lockDoctor = 'Categoria B';
+        } else if (cat.startsWith('CATEGORIA C')) {
+          lockDoctor = 'Categoria C';
+        } else if (cat.startsWith('CATEGORIA D')) {
+          lockDoctor = 'Categoria D';
+        }
+
         const lockResult = await validate({
           date: format(date, 'yyyy-MM-dd'),
           branch: patient.branch,
-          doctor: doctor.trim(),
+          doctor: lockDoctor,
           agenda: 'Agenda Cirúrgica',
         });
         if (!lockResult.permitido) {
