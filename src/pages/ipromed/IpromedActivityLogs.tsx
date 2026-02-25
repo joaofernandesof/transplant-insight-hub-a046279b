@@ -1,6 +1,8 @@
 /**
  * Página de Log de Ações do Portal CPG
- * Exibe todas as ações realizadas no sistema com filtros e pesquisa
+ * Exibe todas as ações realizadas no portal, combinando:
+ * - system_event_logs (page views, login, logout, actions)
+ * - ipromed_activity_logs (CRUD de entidades)
  */
 
 import { useState } from "react";
@@ -10,7 +12,6 @@ import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Search,
-  Filter,
   Calendar,
   User,
   FileText,
@@ -25,8 +26,13 @@ import {
   RefreshCw,
   Clock,
   Activity,
-  ChevronDown,
   X,
+  LogIn,
+  LogOut,
+  CalendarDays,
+  FileSignature,
+  MousePointerClick,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,29 +55,35 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-interface ActivityLog {
+interface UnifiedLog {
   id: string;
-  user_id: string | null;
   user_name: string | null;
   user_email: string | null;
   action_type: string;
   entity_type: string;
-  entity_id: string | null;
-  entity_name: string | null;
   description: string;
-  metadata: Record<string, any>;
+  entity_name: string | null;
   created_at: string;
+  source: 'activity' | 'event';
 }
 
 // Ícones por tipo de entidade
 const entityIcons: Record<string, React.ElementType> = {
   client: Users,
   contract: FileText,
-  meeting: Calendar,
+  meeting: CalendarDays,
   task: Briefcase,
   document: FileText,
   user: User,
   settings: Settings,
+  onboarding: MousePointerClick,
+  checklist: FileSignature,
+  proposal: FileSignature,
+  agenda: CalendarDays,
+  page_view: Globe,
+  login: LogIn,
+  logout: LogOut,
+  action: MousePointerClick,
   default: Activity,
 };
 
@@ -84,6 +96,8 @@ const actionColors: Record<string, string> = {
   login: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   logout: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   complete: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  page_view: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
+  action: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
   default: "bg-muted text-muted-foreground",
 };
 
@@ -96,6 +110,8 @@ const actionLabels: Record<string, string> = {
   login: "Login",
   logout: "Logout",
   complete: "Conclusão",
+  page_view: "Navegação",
+  action: "Ação",
 };
 
 const entityLabels: Record<string, string> = {
@@ -108,6 +124,12 @@ const entityLabels: Record<string, string> = {
   settings: "Configurações",
   onboarding: "Onboarding",
   checklist: "Checklist",
+  proposal: "Proposta",
+  agenda: "Agenda",
+  page_view: "Página",
+  login: "Autenticação",
+  logout: "Autenticação",
+  action: "Sistema",
 };
 
 export default function IpromedActivityLogs() {
@@ -118,47 +140,112 @@ export default function IpromedActivityLogs() {
   const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>();
   const [customDateTo, setCustomDateTo] = useState<Date | undefined>();
 
-  // Calcular datas do filtro
   const getDateRange = () => {
     if (selectedDateRange === "custom" && customDateFrom && customDateTo) {
       return { from: startOfDay(customDateFrom), to: endOfDay(customDateTo) };
     }
     const days = parseInt(selectedDateRange);
-    return { 
-      from: startOfDay(subDays(new Date(), days)), 
-      to: endOfDay(new Date()) 
-    };
+    return { from: startOfDay(subDays(new Date(), days)), to: endOfDay(new Date()) };
   };
 
-  // Query para buscar logs
+  // Query combinada: activity_logs + system_event_logs do CPG
   const { data: logs, isLoading, refetch } = useQuery({
-    queryKey: ["ipromed-activity-logs", searchTerm, selectedActionType, selectedEntityType, selectedDateRange, customDateFrom, customDateTo],
+    queryKey: ["cpg-unified-logs", searchTerm, selectedActionType, selectedEntityType, selectedDateRange, customDateFrom, customDateTo],
     queryFn: async () => {
       const { from, to } = getDateRange();
-      
-      let query = supabase
-        .from("ipromed_activity_logs" as any)
-        .select("*")
-        .gte("created_at", from.toISOString())
-        .lte("created_at", to.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(500);
+      const fromISO = from.toISOString();
+      const toISO = to.toISOString();
 
-      if (selectedActionType !== "all") {
-        query = query.eq("action_type", selectedActionType);
+      // Fetch both sources in parallel
+      const [activityResult, eventResult] = await Promise.all([
+        // 1) ipromed_activity_logs
+        (() => {
+          let q = supabase
+            .from("ipromed_activity_logs" as any)
+            .select("*")
+            .gte("created_at", fromISO)
+            .lte("created_at", toISO)
+            .order("created_at", { ascending: false })
+            .limit(300);
+
+          if (selectedActionType !== "all" && !['page_view', 'login', 'logout', 'action'].includes(selectedActionType)) {
+            q = q.eq("action_type", selectedActionType);
+          }
+          if (selectedEntityType !== "all" && !['page_view', 'login', 'logout', 'action'].includes(selectedEntityType)) {
+            q = q.eq("entity_type", selectedEntityType);
+          }
+          if (searchTerm) {
+            q = q.ilike("description", `%${searchTerm}%`);
+          }
+          return q;
+        })(),
+
+        // 2) system_event_logs filtered to CPG paths or login events
+        (() => {
+          let q = supabase
+            .from("system_event_logs")
+            .select("*")
+            .gte("created_at", fromISO)
+            .lte("created_at", toISO)
+            .order("created_at", { ascending: false })
+            .limit(300);
+
+          // Filter to CPG-related events
+          q = q.or("page_path.like./cpg%,event_type.eq.login,event_type.eq.logout");
+
+          if (selectedActionType !== "all" && ['page_view', 'login', 'logout', 'action'].includes(selectedActionType)) {
+            q = q.eq("event_type", selectedActionType);
+          }
+
+          if (searchTerm) {
+            q = q.or(`event_name.ilike.%${searchTerm}%,user_name.ilike.%${searchTerm}%`);
+          }
+          return q;
+        })(),
+      ]);
+
+      // Normalize activity logs
+      const activityLogs: UnifiedLog[] = (activityResult.data || []).map((log: any) => ({
+        id: log.id,
+        user_name: log.user_name,
+        user_email: log.user_email,
+        action_type: log.action_type,
+        entity_type: log.entity_type,
+        description: log.description,
+        entity_name: log.entity_name,
+        created_at: log.created_at,
+        source: 'activity' as const,
+      }));
+
+      // Normalize system event logs
+      const eventLogs: UnifiedLog[] = (eventResult.data || []).map((log: any) => ({
+        id: log.id,
+        user_name: log.user_name,
+        user_email: log.user_email,
+        action_type: log.event_type,
+        entity_type: log.event_type, // page_view, login, logout, action
+        description: log.event_name || `${log.event_type} - ${log.page_path || ''}`,
+        entity_name: log.page_path || null,
+        created_at: log.created_at,
+        source: 'event' as const,
+      }));
+
+      // Filter event logs if entity type filter is for activity-only types
+      let filteredEvents = eventLogs;
+      if (selectedEntityType !== "all" && !['page_view', 'login', 'logout', 'action'].includes(selectedEntityType)) {
+        filteredEvents = []; // Don't show event logs when filtering by entity type
       }
 
-      if (selectedEntityType !== "all") {
-        query = query.eq("entity_type", selectedEntityType);
+      // Filter activity logs if action type is event-only
+      let filteredActivities = activityLogs;
+      if (selectedActionType !== "all" && ['page_view', 'login', 'logout', 'action'].includes(selectedActionType)) {
+        filteredActivities = [];
       }
 
-      if (searchTerm) {
-        query = query.ilike("description", `%${searchTerm}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as unknown as ActivityLog[];
+      // Combine and sort
+      const combined = [...filteredActivities, ...filteredEvents];
+      combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return combined.slice(0, 500);
     },
   });
 
@@ -166,8 +253,9 @@ export default function IpromedActivityLogs() {
   const stats = {
     total: logs?.length || 0,
     creates: logs?.filter(l => l.action_type === "create").length || 0,
+    logins: logs?.filter(l => l.action_type === "login").length || 0,
+    pageViews: logs?.filter(l => l.action_type === "page_view").length || 0,
     updates: logs?.filter(l => l.action_type === "update").length || 0,
-    deletes: logs?.filter(l => l.action_type === "delete").length || 0,
   };
 
   // Agrupar logs por data
@@ -176,7 +264,7 @@ export default function IpromedActivityLogs() {
     if (!acc[date]) acc[date] = [];
     acc[date].push(log);
     return acc;
-  }, {} as Record<string, ActivityLog[]>) || {};
+  }, {} as Record<string, UnifiedLog[]>) || {};
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -199,17 +287,13 @@ export default function IpromedActivityLogs() {
             Log de Ações
           </h1>
           <p className="text-muted-foreground">
-            Histórico completo de todas as ações realizadas no portal
+            Histórico completo de todas as ações realizadas no portal CPG
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Atualizar
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
           </Button>
         </div>
       </div>
@@ -232,6 +316,32 @@ export default function IpromedActivityLogs() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <LogIn className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.logins}</p>
+                <p className="text-xs text-muted-foreground">Logins</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
+                <Globe className="h-5 w-5 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.pageViews}</p>
+                <p className="text-xs text-muted-foreground">Navegações</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
                 <Plus className="h-5 w-5 text-emerald-600" />
               </div>
@@ -242,50 +352,22 @@ export default function IpromedActivityLogs() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <Edit className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.updates}</p>
-                <p className="text-xs text-muted-foreground">Atualizações</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                <Trash2 className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.deletes}</p>
-                <p className="text-xs text-muted-foreground">Exclusões</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Filters */}
       <Card>
         <CardContent className="pt-4">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Pesquisar ações, clientes, contratos..."
+                placeholder="Pesquisar ações, usuários, páginas..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
 
-            {/* Action Type Filter */}
             <Select value={selectedActionType} onValueChange={setSelectedActionType}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Tipo de ação" />
@@ -295,12 +377,14 @@ export default function IpromedActivityLogs() {
                 <SelectItem value="create">Criações</SelectItem>
                 <SelectItem value="update">Atualizações</SelectItem>
                 <SelectItem value="delete">Exclusões</SelectItem>
-                <SelectItem value="view">Visualizações</SelectItem>
                 <SelectItem value="complete">Conclusões</SelectItem>
+                <SelectItem value="page_view">Navegações</SelectItem>
+                <SelectItem value="login">Logins</SelectItem>
+                <SelectItem value="logout">Logouts</SelectItem>
+                <SelectItem value="action">Ações do sistema</SelectItem>
               </SelectContent>
             </Select>
 
-            {/* Entity Type Filter */}
             <Select value={selectedEntityType} onValueChange={setSelectedEntityType}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Tipo de entidade" />
@@ -311,12 +395,14 @@ export default function IpromedActivityLogs() {
                 <SelectItem value="contract">Contratos</SelectItem>
                 <SelectItem value="meeting">Reuniões</SelectItem>
                 <SelectItem value="task">Tarefas</SelectItem>
-                <SelectItem value="document">Documentos</SelectItem>
+                <SelectItem value="proposal">Propostas</SelectItem>
+                <SelectItem value="agenda">Agenda</SelectItem>
                 <SelectItem value="onboarding">Onboarding</SelectItem>
+                <SelectItem value="page_view">Navegações</SelectItem>
+                <SelectItem value="login">Logins</SelectItem>
               </SelectContent>
             </Select>
 
-            {/* Date Range Filter */}
             <Select value={selectedDateRange} onValueChange={setSelectedDateRange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Período" />
@@ -339,7 +425,6 @@ export default function IpromedActivityLogs() {
             )}
           </div>
 
-          {/* Custom date range */}
           {selectedDateRange === "custom" && (
             <div className="flex items-center gap-4 mt-4">
               <Popover>
@@ -411,6 +496,7 @@ export default function IpromedActivityLogs() {
                       <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         {format(new Date(date), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        <Badge variant="secondary" className="text-xs">{dayLogs.length}</Badge>
                       </h3>
                     </div>
                     <div className="space-y-3 mt-2">
@@ -425,12 +511,10 @@ export default function IpromedActivityLogs() {
                             key={log.id}
                             className="flex items-start gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
                           >
-                            {/* Icon */}
-                            <div className={cn("p-2 rounded-lg", actionColor)}>
+                            <div className={cn("p-2 rounded-lg shrink-0", actionColor)}>
                               <EntityIcon className="h-4 w-4" />
                             </div>
 
-                            {/* Content */}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium">{log.description}</p>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -441,7 +525,7 @@ export default function IpromedActivityLogs() {
                                   {entityLabel}
                                 </Badge>
                                 {log.entity_name && (
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground truncate max-w-[200px]">
                                     • {log.entity_name}
                                   </span>
                                 )}
@@ -450,13 +534,20 @@ export default function IpromedActivityLogs() {
                                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                                   <User className="h-3 w-3" />
                                   {log.user_name}
+                                  {log.user_email && (
+                                    <span className="opacity-60">({log.user_email})</span>
+                                  )}
                                 </p>
                               )}
                             </div>
 
-                            {/* Time */}
-                            <div className="text-xs text-muted-foreground whitespace-nowrap">
-                              {format(new Date(log.created_at), "HH:mm")}
+                            <div className="text-xs text-muted-foreground whitespace-nowrap flex flex-col items-end gap-1">
+                              <span>{format(new Date(log.created_at), "HH:mm")}</span>
+                              {log.source === 'event' && (
+                                <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                  sistema
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         );
