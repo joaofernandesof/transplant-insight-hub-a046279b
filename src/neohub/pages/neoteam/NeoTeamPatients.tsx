@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { PatientRegistrationDialog } from '@/neohub/components/PatientRegistrationDialog';
 import { DocumentUploadDialog } from '@/neohub/components/DocumentUploadDialog';
@@ -142,6 +143,7 @@ const getGradeColor = (grade: string) => {
 const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100, 200];
 
 export default function NeoTeamPatients() {
+  const navigate = useNavigate();
   // Search state - single unified search
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -722,7 +724,7 @@ export default function NeoTeamPatients() {
                   </TableCell>
                 </TableRow>
               ) : paginatedPatients.map((patient) => (
-                <TableRow key={patient.id} className="hover:bg-muted/50">
+                <TableRow key={patient.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/neoteam/patients/${patient.id}`)}>
                   {/* ID */}
                   <TableCell className="text-center">
                     <span className="font-mono text-sm text-muted-foreground">
@@ -765,7 +767,7 @@ export default function NeoTeamPatients() {
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                          onClick={() => openWhatsApp(patient.phone)}
+                          onClick={(e) => { e.stopPropagation(); openWhatsApp(patient.phone); }}
                           title="Abrir WhatsApp"
                         >
                           <MessageCircle className="h-3.5 w-3.5" />
@@ -855,17 +857,17 @@ export default function NeoTeamPatients() {
                   {/* Ações */}
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-popover">
-                        <DropdownMenuItem className="gap-2">
+                        <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/neoteam/patients/${patient.id}`); }}>
                           <Eye className="h-4 w-4" />
                           Ver detalhes
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2">
+                        <DropdownMenuItem className="gap-2" onClick={(e) => e.stopPropagation()}>
                           <Edit className="h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
