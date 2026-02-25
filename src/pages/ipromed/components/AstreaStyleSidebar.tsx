@@ -34,6 +34,7 @@ import {
   CheckSquare,
   Target,
   FileSignature,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -69,6 +70,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/cpg/ai', tourId: 'sidebar-ai' },
   { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/cpg/reports' },
   { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/cpg/logs' },
+  { id: 'functions', label: 'Funções', icon: Briefcase, href: '/cpg/functions', isNew: true },
 ];
 
 // CPG Advocacia Médica - Educacional
