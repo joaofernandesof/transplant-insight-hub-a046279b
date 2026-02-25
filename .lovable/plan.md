@@ -1,37 +1,28 @@
 
+## Ajuste da Mensagem de Primeiro Contato HotLeads
 
-## Diagnóstico: Leads não aparecem para o administrador
+### O que muda
 
-### Causa Raiz
+1. **Atualizar a imagem** -- Substituir o arquivo `public/images/neofolic-licenca.jpeg` pela nova imagem enviada (logo "Licenca ByNeofolic - Transplante Capilar").
 
-Seu perfil de administrador ("Administrador ByNeofolic") está com **Estado e Cidade vazios** no banco de dados. Quando você usa o simulador "Visualizando como licenciado", o sistema trata você como um licenciado comum -- e a regra de segurança exige que licenciados tenham um estado definido para ver leads. Como seu estado está vazio, o filtro retorna **zero leads**.
+2. **Simplificar a mensagem** -- Remover as duas linhas extras que existem hoje:
+   - `"Se em algum momento você preferir não receber mais mensagens, é só me avisar 😊"`
+   - O link da imagem colado como texto no final
 
-**Fluxo do problema:**
-1. Simulador ativo com perfil "licenciado" faz `isAdmin = false`
-2. Código verifica `user.state` -- que é `null` para sua conta
-3. Regra de segurança: sem estado definido, nenhum lead é exibido (`return []`)
+   A mensagem ficara exatamente assim:
+   ```
+   Olá, {NOME DO PACIENTE}, tudo bem?
 
-O erro "500" na parte inferior da tela é um problema separado na função de liberação de leads (webhook_url nulo), que já foi corrigido na mensagem anterior.
+   Meu nome é {NOME DO LICENCIADO} e falo da clínica {NOME DA CLÍNICA}.
 
-### Solução
+   Recebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.
 
-Duas correções complementares:
+   Você prefere que eu te ligue ou continuamos por aqui?
+   ```
 
-1. **Permitir que admins simulando licenciado vejam todos os leads** -- Quando um admin está no modo simulação, ele não tem restrição de estado. Alterar a lógica para que admins reais (mesmo simulando) não sejam bloqueados por falta de estado.
+3. **Manter o link da imagem** no final da mensagem para que o WhatsApp gere o preview automaticamente (a API do `wa.me` nao suporta anexos diretamente, apenas texto; incluir a URL e o metodo mais proximo de enviar a imagem).
 
-2. **Preencher estado/cidade do admin** -- Atualizar o perfil do administrador com estado e cidade para que a simulação funcione de forma mais realista.
+### Detalhes Tecnicos
 
-### Alterações Técnicas
-
-**Arquivo: `src/pages/HotLeads.tsx`** (linhas 248-253)
-- Mudar o filtro `filteredAvailable` para usar `realIsAdmin` em vez de `isAdmin` no check de estado. Assim, mesmo simulando licenciado, o admin real não é bloqueado:
-
-```text
-Antes:  if (isAdmin) return base;
-Depois: if (realIsAdmin) return base;
-```
-
-Isso garante que o admin sempre veja todos os leads, independentemente do perfil simulado, sem comprometer a segurança para licenciados reais.
-
-**Banco de dados:** Atualizar o registro do admin "Administrador ByNeofolic" com estado "CE" e cidade "Fortaleza" (mesmos valores do outro perfil admin).
-
+- **Arquivo de imagem**: Copiar `user-uploads://WhatsApp_Image_2026-02-25_at_18.11.00.jpeg` para `public/images/neofolic-licenca.jpeg` (substituicao).
+- **Arquivo editado**: `src/hooks/useHotLeadsSettings.ts` -- linha 75, ajustar o template da mensagem removendo a frase sobre "nao receber mais mensagens" e o emoji, mantendo o link da imagem no final para preview.
