@@ -9338,6 +9338,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ipromed_lawyer_functions: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          lawyer_name: string
+          lawyer_user_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          lawyer_name: string
+          lawyer_user_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          lawyer_name?: string
+          lawyer_user_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ipromed_legal_cases: {
         Row: {
           access_type: string | null
