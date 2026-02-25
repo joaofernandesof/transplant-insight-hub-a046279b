@@ -249,6 +249,14 @@ export default function NeoTeamSchedule() {
   const weekStart = useMemo(() => startOfWeek(selectedDate, { weekStartsOn: 1 }), [selectedDate]);
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
 
+  // Filter week days to only show days with configured schedules
+  const activeWeekDays = useMemo(() => {
+    if (doctorSchedules.length === 0) return weekDays;
+    const activeDaysOfWeek = new Set(doctorSchedules.map(s => s.day_of_week));
+    const filtered = weekDays.filter(day => activeDaysOfWeek.has(day.getDay()));
+    return filtered.length > 0 ? filtered : weekDays;
+  }, [weekDays, doctorSchedules]);
+
   const rangeStart = view === 'day' ? selectedDate : weekStart;
   const rangeEnd = view === 'day' ? selectedDate : weekDays[6];
 
@@ -589,7 +597,7 @@ export default function NeoTeamSchedule() {
                     />
                   ) : (
                     <WeekGrid
-                      days={weekDays}
+                      days={activeWeekDays}
                       hours={hours}
                       appointments={appointments}
                       blocks={scheduleBlocks}
