@@ -32,8 +32,8 @@ export function NeoHubIcon({
     >
       {/* Rounded square base */}
       <rect x="3" y="3" width="18" height="18" rx="5" />
-      {/* Inner rounded square */}
-      <rect x="7" y="7" width="10" height="10" rx="3" fill={color} stroke="none" />
+      {/* Inner rounded square - filled with opacity for depth */}
+      <rect x="7" y="7" width="10" height="10" rx="3" fill={color} fillOpacity="0.35" stroke="none" />
     </svg>
   );
 }
