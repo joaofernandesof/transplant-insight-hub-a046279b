@@ -49,7 +49,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
   const [procedure, setProcedure] = useState('');
   const [branch, setBranch] = useState('');
   const [category, setCategory] = useState('');
-  const [doctorOnDuty, setDoctorOnDuty] = useState('');
+  
   const [surgeryDate, setSurgeryDate] = useState<Date | undefined>(undefined);
   const [surgeryTime, setSurgeryTime] = useState('');
   const [withDate, setWithDate] = useState(defaultWithDate);
@@ -86,7 +86,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
   // Clear category/doctor if they become blocked after date/branch change
   useEffect(() => {
     if (withDate && surgeryDate && branch && category) {
-      if (isCategoryBlocked(category, doctorOnDuty || undefined)) {
+      if (isCategoryBlocked(category)) {
         setCategory('');
         setWeekLockMessage(null);
       }
@@ -99,7 +99,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
     setProcedure('');
     setBranch('');
     setCategory('');
-    setDoctorOnDuty('');
+    
     setSurgeryDate(undefined);
     setSurgeryTime('');
     setWithDate(defaultWithDate);
@@ -117,13 +117,9 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
       return;
     }
 
-    if (withDate && !doctorOnDuty) {
-      toast.error('Selecione o médico responsável.');
-      return;
-    }
 
     // Final block check before submitting
-    if (withDate && surgeryDate && branch && category && isCategoryBlocked(category, doctorOnDuty || undefined)) {
+    if (withDate && surgeryDate && branch && category && isCategoryBlocked(category)) {
       const blocked = getBlockedCategories();
       setWeekLockMessage(`Categoria bloqueada para esta semana/filial. Bloqueados: ${blocked.join(', ')}`);
       return;
@@ -162,7 +158,7 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
         branch,
         procedure: procedure.trim(),
         category: category || undefined,
-        doctorOnDuty: doctorOnDuty.trim() || undefined,
+        doctorOnDuty: undefined,
         surgeryDate: withDate && surgeryDate ? format(surgeryDate, 'yyyy-MM-dd') : undefined,
         surgeryTime: withDate && surgeryTime ? surgeryTime : undefined,
       }, {
@@ -214,21 +210,6 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
               onChange={(e) => setPatientPhone(e.target.value)}
               placeholder="(00) 00000-0000"
             />
-          </div>
-
-          {/* Procedure */}
-          <div className="space-y-1.5">
-            <Label>Procedimento *</Label>
-            <Select value={procedure} onValueChange={setProcedure}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o procedimento" />
-              </SelectTrigger>
-              <SelectContent>
-                {procedures.map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Branch */}
@@ -348,34 +329,17 @@ export function AddSurgeryDialog({ open, onOpenChange, defaultWithDate = true }:
             </Select>
           </div>
 
-          {/* Doctor - show lock status per doctor when Cat A is selected */}
+          {/* Procedure */}
           <div className="space-y-1.5">
-            <Label>Médico Responsável {withDate ? '*' : ''}</Label>
-            <Select value={doctorOnDuty} onValueChange={(val) => { setDoctorOnDuty(val); setWeekLockMessage(null); }}>
+            <Label>Procedimento *</Label>
+            <Select value={procedure} onValueChange={setProcedure}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o médico" />
+                <SelectValue placeholder="Selecione o procedimento" />
               </SelectTrigger>
               <SelectContent>
-                {['Hygor', 'Patrick', 'Márcia'].map((d) => {
-                  let blocked = false;
-                  if (withDate && surgeryDate && branch && /^categoria a/i.test(category || '')) {
-                    blocked = isCategoryBlocked(category, d);
-                  }
-                  return (
-                    <SelectItem
-                      key={d}
-                      value={d}
-                      disabled={blocked}
-                      className={cn(blocked && 'opacity-50')}
-                    >
-                      <span className="flex items-center gap-2">
-                        {blocked && <Lock className="h-3 w-3 text-destructive" />}
-                        {d}
-                        {blocked && <span className="text-xs text-destructive">(bloqueado)</span>}
-                      </span>
-                    </SelectItem>
-                  );
-                })}
+                {procedures.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
