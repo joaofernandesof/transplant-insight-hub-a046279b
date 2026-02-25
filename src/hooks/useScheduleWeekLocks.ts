@@ -51,6 +51,21 @@ export function useScheduleWeekLocks() {
     onError: () => toast.error('Erro ao atualizar trava'),
   });
 
+  const bulkUpdateLocks = useMutation({
+    mutationFn: async ({ ids, permitido }: { ids: string[]; permitido: boolean }) => {
+      const { error } = await supabase
+        .from('schedule_week_locks')
+        .update({ permitido })
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['schedule-week-locks'] });
+      toast.success(variables.permitido ? 'Todas as semanas desbloqueadas!' : 'Todas as semanas bloqueadas!');
+    },
+    onError: () => toast.error('Erro ao atualizar travas em massa'),
+  });
+
   // Get unique week numbers with their dates
   const weeks = locks.reduce<Array<{ week_number: number; week_start: string; week_end: string; month: string }>>((acc, lock) => {
     if (!acc.find(w => w.week_number === lock.week_number)) {
@@ -64,7 +79,7 @@ export function useScheduleWeekLocks() {
     return acc;
   }, []);
 
-  return { locks, weeks, isLoading, updateLock };
+  return { locks, weeks, isLoading, updateLock, bulkUpdateLocks };
 }
 
 export function useValidateWeekLock() {
