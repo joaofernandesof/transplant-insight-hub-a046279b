@@ -322,28 +322,32 @@ export function useHotLeads() {
 
   const isBlocked = overdueLeads.length > 0;
 
-  const updateLeadOutcome = useCallback(async (leadId: string, outcome: LeadOutcome): Promise<boolean> => {
+  const updateLeadOutcome = useCallback(async (leadId: string, outcome: LeadOutcome | null): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('leads')
         .update({ 
           lead_outcome: outcome, 
-          outcome_at: new Date().toISOString(),
+          outcome_at: outcome ? new Date().toISOString() : null,
           status: outcome === 'vendido' ? 'converted' : outcome === 'descartado' ? 'lost' : 'contacted'
         } as any)
         .eq('id', leadId);
 
       if (error) throw error;
 
-      const labels: Record<LeadOutcome, string> = {
-        vendido: '✅ Lead marcado como Vendido!',
-        descartado: '❌ Lead marcado como Descartado',
-        em_atendimento: '🔄 Lead marcado como Em Atendimento',
-      };
-      toast.success(labels[outcome]);
+      if (outcome) {
+        const labels: Record<LeadOutcome, string> = {
+          vendido: '✅ Lead marcado como Vendido!',
+          descartado: '❌ Lead marcado como Descartado',
+          em_atendimento: '🔄 Lead marcado como Em Atendimento',
+        };
+        toast.success(labels[outcome]);
+      } else {
+        toast.success('Status do lead removido');
+      }
 
       setLeads(prev => prev.map(l =>
-        l.id === leadId ? { ...l, lead_outcome: outcome, outcome_at: new Date().toISOString() } : l
+        l.id === leadId ? { ...l, lead_outcome: outcome, outcome_at: outcome ? new Date().toISOString() : null } : l
       ));
       return true;
     } catch (error) {

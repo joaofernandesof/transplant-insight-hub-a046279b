@@ -15,7 +15,7 @@ interface AcquiredLeadCardProps {
   claimerName: string;
   isOwned?: boolean;
   onRelease?: (leadId: string) => void;
-  onUpdateOutcome?: (leadId: string, outcome: LeadOutcome) => Promise<boolean>;
+  onUpdateOutcome?: (leadId: string, outcome: LeadOutcome | null) => Promise<boolean>;
   selected?: boolean;
   onSelect?: (id: string) => void;
 }
@@ -158,8 +158,10 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
 
   const handleOutcome = async (outcome: LeadOutcome) => {
     if (!onUpdateOutcome) return;
+    // Toggle: if clicking the same outcome, clear it (set to null)
+    const newOutcome = lead.lead_outcome === outcome ? null : outcome;
     setIsUpdating(outcome);
-    await onUpdateOutcome(lead.id, outcome);
+    await onUpdateOutcome(lead.id, newOutcome as any);
     setIsUpdating(null);
   };
 
@@ -287,13 +289,17 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
             )}
           </div>
 
-          {/* Outcome action buttons */}
-          {isOwned && !lead.lead_outcome && onUpdateOutcome && (
+          {/* Outcome action buttons - always visible, toggleable */}
+          {isOwned && onUpdateOutcome && (
             <div className="mt-2 pt-2 border-t flex flex-wrap gap-1.5">
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 text-[11px] gap-1 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 flex-1"
+                className={`h-7 text-[11px] gap-1 flex-1 transition-all ${
+                  lead.lead_outcome === 'vendido'
+                    ? 'bg-green-100 text-green-700 border-green-400 dark:bg-green-950/50 dark:text-green-300 dark:border-green-600 ring-1 ring-green-300'
+                    : 'text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200'
+                }`}
                 onClick={() => handleOutcome('vendido')}
                 disabled={isUpdating !== null}
               >
@@ -303,7 +309,11 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 text-[11px] gap-1 text-blue-500 hover:text-blue-600 hover:bg-blue-50 border-blue-200 flex-1"
+                className={`h-7 text-[11px] gap-1 flex-1 transition-all ${
+                  lead.lead_outcome === 'em_atendimento'
+                    ? 'bg-blue-100 text-blue-700 border-blue-400 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-600 ring-1 ring-blue-300'
+                    : 'text-blue-500 hover:text-blue-600 hover:bg-blue-50 border-blue-200'
+                }`}
                 onClick={() => handleOutcome('em_atendimento')}
                 disabled={isUpdating !== null}
               >
@@ -313,7 +323,11 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 text-[11px] gap-1 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 flex-1"
+                className={`h-7 text-[11px] gap-1 flex-1 transition-all ${
+                  lead.lead_outcome === 'descartado'
+                    ? 'bg-red-100 text-red-700 border-red-400 dark:bg-red-950/50 dark:text-red-300 dark:border-red-600 ring-1 ring-red-300'
+                    : 'text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200'
+                }`}
                 onClick={() => handleOutcome('descartado')}
                 disabled={isUpdating !== null}
               >
