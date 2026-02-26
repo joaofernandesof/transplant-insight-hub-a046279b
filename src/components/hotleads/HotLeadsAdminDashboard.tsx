@@ -659,6 +659,13 @@ export function HotLeadsAdminDashboard() {
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   labelLine={true}
                   fontSize={11}
+                  cursor="pointer"
+                  onClick={(_: any, idx: number) => {
+                    const item = statePie[idx];
+                    if (item && item.name !== 'Outros') {
+                      fetchDrillDownLeads('state', item.name, `Leads de ${item.name}`);
+                    }
+                  }}
                 >
                   {statePie.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
