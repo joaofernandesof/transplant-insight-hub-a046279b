@@ -225,10 +225,25 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
             </Badge>
           )}
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          {isDistrato ? 'Novo Distrato' : 'Novo Chamado'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refetch();
+              setIsRefreshing(false);
+            }}
+            disabled={isRefreshing}
+            title="Atualizar lista"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            {isDistrato ? 'Novo Distrato' : 'Novo Chamado'}
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
