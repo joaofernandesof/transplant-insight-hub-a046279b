@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { useAllLeadStats } from '@/hooks/useAllLeadStats';
 import { supabase } from '@/integrations/supabase/client';
 import { BrazilMapChart } from '@/components/hotleads/BrazilMapChart';
 import { LicenseeDashboard } from '@/components/hotleads/LicenseeDashboard';
+import { ChartDetailDialog } from '@/components/hotleads/ChartDetailDialog';
 import type { HotLead } from '@/hooks/useHotLeads';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
