@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { VisionIcon } from "@/components/icons/VisionIcon";
 import { ModuleSwitcher } from "@/components/shared/ModuleSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,8 @@ export function VisionHeader() {
 
       {/* Right side */}
       <div className="flex items-center gap-1">
+        {/* Theme Toggle */}
+        <ThemeToggle />
         {/* Module Switcher */}
         <ModuleSwitcher variant="icon" theme="light" />
 
