@@ -645,6 +645,8 @@ export function HotLeadsAdminDashboard() {
           </div>
         </CardContent>
       </Card>
+      </>
+      )}
     </div>
   );
 }
