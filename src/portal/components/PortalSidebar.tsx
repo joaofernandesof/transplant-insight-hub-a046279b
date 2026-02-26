@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { usePortalAuth, PortalRole } from '../contexts/PortalAuthContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface MenuItem {
@@ -267,6 +268,9 @@ export function PortalSidebar({ children }: { children: React.ReactNode }) {
 
       {/* Footer */}
       <div className="p-4 border-t space-y-2">
+        <div className={cn("flex items-center", isCollapsed ? "justify-center" : "px-3")}>
+          <ThemeToggle />
+        </div>
         <Button
           variant="ghost"
           className="w-full justify-start gap-3"

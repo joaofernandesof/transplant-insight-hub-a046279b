@@ -51,6 +51,7 @@ import {
 
 import { ModuleSwitcher } from "@/components/shared/ModuleSwitcher";
 import { PortalSwitcherButton } from "@/components/shared/PortalSwitcherButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { 
   Collapsible,
@@ -511,8 +512,11 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           </nav>
         </ScrollArea>
 
-        {/* Fixed Footer - Logout */}
-        <div className="border-t border-border p-2 flex-shrink-0">
+        {/* Fixed Footer - Theme Toggle + Logout */}
+        <div className="border-t border-border p-2 flex-shrink-0 space-y-1">
+          <div className={cn("flex items-center", isCollapsed ? "justify-center" : "px-3")}>
+            <ThemeToggle />
+          </div>
           <Button
             variant="ghost"
             className={cn(
