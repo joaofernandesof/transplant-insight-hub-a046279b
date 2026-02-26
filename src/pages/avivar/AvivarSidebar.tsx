@@ -170,6 +170,12 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   const location = useLocation();
   const isInboxRoute = location.pathname.startsWith('/avivar/inbox');
   const { counts } = useAvivarSidebarCounts();
+  const { logout } = useUnifiedAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
 
   if (isMobile) {
     return (
