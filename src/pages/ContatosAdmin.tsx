@@ -215,9 +215,9 @@ export default function ContatosAdmin() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                      Carregando...
-                    </TableCell>
+                     <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                       Carregando...
+                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
