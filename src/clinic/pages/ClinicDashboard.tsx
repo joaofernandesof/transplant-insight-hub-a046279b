@@ -29,7 +29,7 @@ import {
   X,
   Plus,
 } from 'lucide-react';
-import { format, parseISO, differenceInDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, subDays, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
+import { format, parseISO, differenceInCalendarDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, subDays, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SurgeryWeekTable } from '../components/SurgeryWeekTable';
 import { SurgeryDetailDialog } from '../components/SurgeryDetailDialog';
@@ -168,7 +168,7 @@ export default function ClinicDashboard() {
     if (activeDFilters.size > 0) {
       items = items.filter(s => {
         if (!s.surgeryDate) return false;
-        const daysUntil = differenceInDays(parseISO(s.surgeryDate), today);
+        const daysUntil = differenceInCalendarDays(parseISO(s.surgeryDate), today);
         return Array.from(activeDFilters).some(filter => {
           const def = D_FILTERS.find(d => d.value === filter);
           if (!def) return false;
