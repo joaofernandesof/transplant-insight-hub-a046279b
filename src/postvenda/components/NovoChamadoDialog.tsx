@@ -36,6 +36,7 @@ type TriStateValue = 'sim' | 'nao' | 'nao_encontrado' | undefined;
 export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: NovoChamadoDialogProps) {
   const { createChamado } = usePostVenda();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customBranch, setCustomBranch] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<{ id: string; full_name: string } | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [termoSinalFile, setTermoSinalFile] = useState<File | null>(null);
@@ -113,6 +114,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
       // Convert tri-state to boolean for saving
       const submitData = {
         ...formData,
+        branch: formData.branch === 'outra' ? customBranch : formData.branch,
         distrato_termo_sinal_assinado: triStateFields.termo_sinal_assinado === 'sim',
         distrato_termo_sinal_anexo: !!termoSinalFile,
         distrato_contrato_assinado: triStateFields.contrato_assinado === 'sim',
@@ -320,7 +322,10 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                         <Label>Filial *</Label>
                         <Select 
                           value={formData.branch || ''} 
-                          onValueChange={(v) => setFormData(prev => ({ ...prev, branch: v }))}
+                          onValueChange={(v) => {
+                            setFormData(prev => ({ ...prev, branch: v }));
+                            if (v !== 'outra') setCustomBranch('');
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione a filial" />
@@ -329,9 +334,17 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                             {BRANCH_OPTIONS.map(opt => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
-                            <SelectItem value="nao_encontrado">Não Encontrado</SelectItem>
+                            <SelectItem value="outra">Outra (cadastrar nova)</SelectItem>
                           </SelectContent>
                         </Select>
+                        {formData.branch === 'outra' && (
+                          <Input
+                            placeholder="Digite o nome da filial..."
+                            value={customBranch}
+                            onChange={(e) => setCustomBranch(e.target.value)}
+                            className="mt-2"
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label>Valor Pago (R$) *</Label>

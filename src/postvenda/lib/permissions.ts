@@ -148,11 +148,9 @@ export const CANAL_ORIGEM_OPTIONS = [
 
 export const BRANCH_OPTIONS = [
   { value: 'fortaleza', label: 'Fortaleza' },
+  { value: 'juazeiro', label: 'Juazeiro' },
   { value: 'sao_paulo', label: 'São Paulo' },
-  { value: 'belo_horizonte', label: 'Belo Horizonte' },
-  { value: 'rio_de_janeiro', label: 'Rio de Janeiro' },
+  { value: 'itajai', label: 'Itajaí' },
   { value: 'brasilia', label: 'Brasília' },
-  { value: 'curitiba', label: 'Curitiba' },
-  { value: 'recife', label: 'Recife' },
-  { value: 'salvador', label: 'Salvador' },
+  { value: 'caxias_do_sul', label: 'Caxias do Sul' },
 ];
