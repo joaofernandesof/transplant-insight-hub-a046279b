@@ -221,9 +221,9 @@ export default function ContatosAdmin() {
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                      Nenhum contato encontrado
-                    </TableCell>
+                     <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                       Nenhum contato encontrado
+                     </TableCell>
                   </TableRow>
                 ) : (
                   filtered.map((c) => (
