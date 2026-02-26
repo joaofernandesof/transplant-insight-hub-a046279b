@@ -160,8 +160,98 @@ export function HotLeadsAdminDashboard() {
     );
   }
 
+  const selectedLicensee = stats.topLicensees.find(l => l.user_id === selectedUserId);
+
   return (
     <div className="space-y-6 pb-8">
+      {/* View Mode Toggle */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'admin' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('admin')}
+            className="gap-1.5"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Visão Admin
+          </Button>
+          <Button
+            variant={viewMode === 'licensee' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('licensee')}
+            className="gap-1.5"
+          >
+            <Eye className="h-4 w-4" />
+            Visão do Licenciado
+          </Button>
+        </div>
+
+        {viewMode === 'licensee' && (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+              <SelectTrigger className="w-full max-w-xs">
+                <SelectValue placeholder="Selecione um licenciado..." />
+              </SelectTrigger>
+              <SelectContent>
+                {stats.topLicensees.map(lic => (
+                  <SelectItem key={lic.user_id} value={lic.user_id}>
+                    <div className="flex items-center gap-2">
+                      <span className="truncate">{lic.full_name}</span>
+                      <Badge variant="outline" className="text-[10px] shrink-0">{lic.total_claimed} leads</Badge>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedLicensee && (
+              <Badge variant="secondary" className="text-xs shrink-0">
+                {selectedLicensee.city || selectedLicensee.state || 'Sem localização'}
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Licensee Dashboard View */}
+      {viewMode === 'licensee' ? (
+        !selectedUserId ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <User className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
+              <p className="text-muted-foreground text-sm">Selecione um licenciado acima para visualizar o dashboard dele</p>
+            </CardContent>
+          </Card>
+        ) : licenseeLeadsLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={selectedLicensee?.avatar_url || ''} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  {selectedLicensee?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="font-semibold text-sm truncate">{selectedLicensee?.full_name}</p>
+                <p className="text-xs text-muted-foreground truncate">{selectedLicensee?.email}</p>
+              </div>
+              <Badge variant="outline" className="ml-auto text-xs shrink-0">
+                Visualizando como este usuário
+              </Badge>
+            </div>
+            <LicenseeDashboard
+              myLeads={licenseeLeads}
+              allLeads={allLeadsForLicensee}
+              userId={selectedUserId}
+            />
+          </div>
+        )
+      ) : (
+      <>
       {/* KPI Cards with embedded insights */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
