@@ -658,6 +658,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
           <div className="mt-2">
             <HotLeadsAdminDashboard />
           </div>
+        ) : isAdmin && initialView === 'settings' ? (
+          <div className="mt-2">
+            <h2 className="text-lg font-bold mb-4">Configurações do HotLeads</h2>
+            <HotLeadsAdminRadiusSettings />
+          </div>
         ) : (
           <>
             {/* Admin User Simulation Selector */}
