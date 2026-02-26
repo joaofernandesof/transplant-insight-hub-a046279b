@@ -14,6 +14,8 @@ import { useHotLeads } from '@/hooks/useHotLeads';
 import { useLeadNotificationSound } from '@/hooks/useLeadNotificationSound';
 import { useGamification } from '@/hooks/useGamification';
 import { useHotLeadsSettings } from '@/hooks/useHotLeadsSettings';
+import { useHotLeadsRadiusSetting } from '@/hooks/useHotLeadsRadiusSetting';
+import { haversineKm } from '@/utils/haversine';
 import {
   AvailableLeadCard,
   AcquiredLeadCard,
