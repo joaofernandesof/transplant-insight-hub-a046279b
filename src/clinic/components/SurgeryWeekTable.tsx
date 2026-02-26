@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, CheckCircle2 } from 'lucide-react';
+import { Calendar, CheckCircle2, Flag } from 'lucide-react';
 import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
@@ -15,9 +15,10 @@ interface SurgeryWeekTableProps {
   surgeries: ClinicSurgery[];
   onUpdate?: (id: string, updates: Partial<ClinicSurgery>) => void;
   title?: string;
+  violatedIds?: Set<string>;
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, title, violatedIds }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
@@ -132,18 +133,37 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {items.map(surgery => (
-                            <TableRow key={surgery.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedSurgery(surgery)}>
+                          {items.map(surgery => {
+                            const isViolated = violatedIds?.has(surgery.id);
+                            return (
+                            <TableRow key={surgery.id} className={`cursor-pointer hover:bg-muted/50 ${isViolated ? 'bg-red-50 dark:bg-red-950/20 border-l-4 border-l-red-500' : ''}`} onClick={() => setSelectedSurgery(surgery)}>
                               <TableCell className="text-xs font-mono">
                                 {surgery.surgeryTime ? surgery.surgeryTime.substring(0, 5) : '—'}
                               </TableCell>
                               <TableCell>
-                                <span className="font-medium text-primary hover:underline cursor-pointer text-sm">
-                                  {surgery.patientName}
-                                </span>
-                                {surgery.category && (
-                                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">{surgery.category}</p>
-                                )}
+                                <div className="flex items-center gap-1.5">
+                                  {isViolated && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Flag className="h-4 w-4 text-red-500 shrink-0 fill-red-500" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p className="text-xs font-medium">⚠️ Categoria bloqueada nesta semana/filial</p>
+                                          <p className="text-xs text-muted-foreground">Trava de agenda violada — necessita ajuste</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                  <div>
+                                    <span className={`font-medium hover:underline cursor-pointer text-sm ${isViolated ? 'text-red-600 dark:text-red-400' : 'text-primary'}`}>
+                                      {surgery.patientName}
+                                    </span>
+                                    {surgery.category && (
+                                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">{surgery.category}</p>
+                                    )}
+                                  </div>
+                                </div>
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-sm">
                                 {surgery.procedure || '—'}
@@ -173,7 +193,8 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title }: SurgeryWeekTabl
                                 )}
                               </TableCell>
                             </TableRow>
-                          ))}
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>

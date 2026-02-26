@@ -4,6 +4,7 @@ import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useClinicSurgeries, ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useNoDatePatients } from '../hooks/useNoDatePatients';
 import { useBranches } from '../hooks/useBranches';
+import { useLockViolations } from '../hooks/useLockViolations';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,7 @@ type DFilter = typeof D_FILTERS[number]['value'];
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
   const { scheduledSurgeries, noDateSurgeries, updateSurgery } = useClinicSurgeries();
+  const { violatedIds } = useLockViolations(scheduledSurgeries);
   const { allPatients: noDatePatients } = useNoDatePatients();
   const { branches: allowedBranches } = useBranches();
   const location = useLocation();
@@ -605,6 +607,7 @@ export default function ClinicDashboard() {
               surgeries={filteredSurgeries}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
               title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
+              violatedIds={violatedIds}
             />
             <SurgeryDetailDialog
               surgery={selectedPendingSurgery}
