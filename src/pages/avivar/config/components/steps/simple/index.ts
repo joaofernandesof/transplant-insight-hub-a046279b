@@ -4,7 +4,6 @@
 
 export { StepSelectBusiness } from './StepSelectBusiness';
 export { StepBusinessInfo } from './StepBusinessInfo';
-export { StepPaymentsSimple } from './StepPaymentsSimple';
 export { StepConsultationSimple } from './StepConsultationSimple';
 export { StepObjectivesSimple } from './StepObjectivesSimple';
 export { StepFluxoSimple } from './StepFluxoSimple';
