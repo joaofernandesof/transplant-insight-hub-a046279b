@@ -323,6 +323,10 @@ export default function ContatosAdmin() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label>Responsável</Label>
+              <Input value={form.responsavel} onChange={e => setForm(p => ({ ...p, responsavel: e.target.value }))} placeholder="Nome do responsável (opcional)" />
+            </div>
+            <div className="space-y-2">
               <Label>WhatsApp</Label>
               <Input value={form.whatsapp} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))} placeholder="5585999999999" />
             </div>
