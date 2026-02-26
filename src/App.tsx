@@ -711,6 +711,9 @@ function AppRoutes() {
         {/* Landing Page Avivar CRM Capilar - Página de Vendas */}
         <Route path="/avivar-capilar" element={<LazyRoute><AvivarCapilarLanding /></LazyRoute>} />
 
+        {/* Contatos Oficiais - Neo Group */}
+        <Route path="/contatos" element={<LazyRoute><ContatosOficiais /></LazyRoute>} />
+
         {/* Google Calendar OAuth Callback - fora do ProtectedRoute para não perder sessão no redirect */}
         <Route path="/avivar/google-callback" element={<LazyRoute><GoogleCalendarCallback /></LazyRoute>} />
 
