@@ -231,6 +231,7 @@ export default function ContatosAdmin() {
                       <TableCell className="font-medium">{c.empresa}</TableCell>
                       <TableCell>{c.area}</TableCell>
                       <TableCell>{c.unidade}</TableCell>
+                      <TableCell>{c.responsavel || <span className="text-muted-foreground text-xs">—</span>}</TableCell>
                       <TableCell>
                         {c.whatsapp ? (
                           <span className="flex items-center gap-1 text-green-600 text-sm">
