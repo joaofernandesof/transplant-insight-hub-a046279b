@@ -302,25 +302,25 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     return base.filter(l => !l.state || l.state === userState);
   }, [filteredLeads, realIsAdmin, user?.state, simulatedUserId, effectiveUserState]);
   
-  // Adquiridos: claimed by effective user, NO outcome yet
+  // Adquiridos: admin sees ALL claimed with no outcome; user sees only their own
   const filteredAcquired = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === effectiveUserId && !l.lead_outcome), [filteredLeads, effectiveUserId]);
+    filteredLeads.filter(l => l.claimed_by && !l.lead_outcome && (isAdminDirectView || l.claimed_by === effectiveUserId)), [filteredLeads, effectiveUserId, isAdminDirectView]);
   
-  // Em Atendimento: claimed by effective user, outcome = em_atendimento
+  // Em Atendimento
   const filteredInProgress = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'em_atendimento'), [filteredLeads, effectiveUserId]);
+    filteredLeads.filter(l => l.claimed_by && l.lead_outcome === 'em_atendimento' && (isAdminDirectView || l.claimed_by === effectiveUserId)), [filteredLeads, effectiveUserId, isAdminDirectView]);
   
-  // Vendido: claimed by effective user, outcome = vendido
+  // Vendido
   const filteredSold = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'vendido'), [filteredLeads, effectiveUserId]);
+    filteredLeads.filter(l => l.claimed_by && l.lead_outcome === 'vendido' && (isAdminDirectView || l.claimed_by === effectiveUserId)), [filteredLeads, effectiveUserId, isAdminDirectView]);
   
-  // Descartado: claimed by effective user, outcome = descartado
+  // Descartado
   const filteredDiscarded = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'descartado'), [filteredLeads, effectiveUserId]);
+    filteredLeads.filter(l => l.claimed_by && l.lead_outcome === 'descartado' && (isAdminDirectView || l.claimed_by === effectiveUserId)), [filteredLeads, effectiveUserId, isAdminDirectView]);
   
-  // Indisponível: claimed by OTHER users (not effective user)
+  // Indisponível: only for non-admin or simulated view — claimed by OTHER users
   const filteredUnavailable = useMemo(() => 
-    filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== effectiveUserId), [filteredLeads, effectiveUserId]);
+    isAdminDirectView ? [] : filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== effectiveUserId), [filteredLeads, effectiveUserId, isAdminDirectView]);
 
   // Tab definitions
   const TAB_CONFIG: { key: LeadTab; label: string; color: string; alert?: boolean }[] = [
