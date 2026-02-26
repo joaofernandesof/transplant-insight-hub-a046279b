@@ -203,7 +203,7 @@ function getBrtDate(): { dateStr: string; brtHour: number; brtMinutes: number } 
 }
 
 // Probabilistic release: decides randomly whether to release NOW
-// With 50 leads/day and ~900 active minutes (6h-21h), probability adjusts dynamically
+// With 80 leads/day and ~900 active minutes (6h-21h), probability adjusts dynamically
 // Night pause: no releases between 21:00 and 06:00 BRT
 async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reason: string }> {
   const { dateStr, brtHour, brtMinutes } = getBrtDate();
@@ -220,7 +220,7 @@ async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reas
     .single();
 
   const released = daily?.released_count || 0;
-  const target = daily?.target_count || 50;
+  const target = daily?.target_count || 80;
   const remaining = Math.max(0, target - released);
 
   if (remaining <= 0) {
@@ -271,7 +271,7 @@ async function calculateNextRelease(supabase: any) {
     .single();
 
   const released = daily?.released_count || 0;
-  const target = daily?.target_count || 50;
+  const target = daily?.target_count || 80;
   const remaining = Math.max(0, target - released);
 
   if (remaining <= 0) {
