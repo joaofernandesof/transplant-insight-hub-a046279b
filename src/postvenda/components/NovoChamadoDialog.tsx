@@ -33,7 +33,7 @@ interface NovoChamadoDialogProps {
 // Status options for required fields with "Não Encontrado" option
 type TriStateValue = 'sim' | 'nao' | 'nao_encontrado' | undefined;
 
-export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: NovoChamadoDialogProps) {
+export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda, onSuccess }: NovoChamadoDialogProps) {
   const { createChamado } = usePostVenda();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customBranch, setCustomBranch] = useState('');
