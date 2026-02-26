@@ -57,16 +57,21 @@ export function HotLeadsAdminDashboard() {
     fetchLeads();
   }, [viewMode, selectedUserId]);
 
-  // Fetch lead outcome stats
+  // Fetch lead outcome stats with lead details
   const [outcomeStats, setOutcomeStats] = useState({ vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0 });
+  const [outcomeLeads, setOutcomeLeads] = useState<any[]>([]);
+  const [selectedOutcome, setSelectedOutcome] = useState<string | null>(null);
+  const [outcomeUserFilter, setOutcomeUserFilter] = useState<string>('all');
+
   useEffect(() => {
     async function fetchOutcomes() {
       const { data } = await supabase
         .from('leads')
-        .select('lead_outcome')
+        .select('id, name, phone, email, city, state, lead_outcome, claimed_by, claimed_at, source, created_at')
         .not('claimed_by', 'is', null)
         .in('source', ['planilha', 'n8n']);
       if (!data) return;
+      setOutcomeLeads(data);
       const vendido = data.filter((l: any) => l.lead_outcome === 'vendido').length;
       const em_atendimento = data.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
       const descartado = data.filter((l: any) => l.lead_outcome === 'descartado').length;
@@ -75,6 +80,48 @@ export function HotLeadsAdminDashboard() {
     }
     fetchOutcomes();
   }, []);
+
+  // Filtered outcome leads
+  const filteredOutcomeLeads = useMemo(() => {
+    let filtered = outcomeLeads;
+    if (selectedOutcome === 'sem_desfecho') {
+      filtered = filtered.filter(l => !l.lead_outcome);
+    } else if (selectedOutcome) {
+      filtered = filtered.filter(l => l.lead_outcome === selectedOutcome);
+    }
+    if (outcomeUserFilter !== 'all') {
+      filtered = filtered.filter(l => l.claimed_by === outcomeUserFilter);
+    }
+    return filtered;
+  }, [outcomeLeads, selectedOutcome, outcomeUserFilter]);
+
+  // Per-user outcome counts (for user filter)
+  const outcomeUserCounts = useMemo(() => {
+    const map = new Map<string, { vendido: number; em_atendimento: number; descartado: number; sem_desfecho: number; total: number }>();
+    outcomeLeads.forEach(l => {
+      if (!l.claimed_by) return;
+      if (!map.has(l.claimed_by)) map.set(l.claimed_by, { vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0, total: 0 });
+      const entry = map.get(l.claimed_by)!;
+      entry.total++;
+      if (l.lead_outcome === 'vendido') entry.vendido++;
+      else if (l.lead_outcome === 'em_atendimento') entry.em_atendimento++;
+      else if (l.lead_outcome === 'descartado') entry.descartado++;
+      else entry.sem_desfecho++;
+    });
+    return map;
+  }, [outcomeLeads]);
+
+  // Unique users from outcome leads
+  const outcomeUsers = useMemo(() => {
+    const userMap = new Map<string, { user_id: string; full_name: string }>();
+    outcomeLeads.forEach(l => {
+      if (l.claimed_by && !userMap.has(l.claimed_by)) {
+        const lic = stats.topLicensees.find(u => u.user_id === l.claimed_by);
+        userMap.set(l.claimed_by, { user_id: l.claimed_by, full_name: lic?.full_name || l.claimed_by.slice(0, 8) });
+      }
+    });
+    return Array.from(userMap.values()).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  }, [outcomeLeads, stats.topLicensees]);
 
   // Per-KPI insights
   const kpiInsights = useMemo(() => {
