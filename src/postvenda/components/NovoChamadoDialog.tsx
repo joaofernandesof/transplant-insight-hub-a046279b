@@ -349,14 +349,19 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                       <div className="space-y-2">
                         <Label>Valor Pago (R$) *</Label>
                         <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={formData.distrato_valor_pago || ''}
-                          onChange={(e) => setFormData(prev => ({ 
-                            ...prev, 
-                            distrato_valor_pago: e.target.value ? parseFloat(e.target.value) : undefined 
-                          }))}
+                          type="text"
+                          inputMode="numeric"
+                          value={formData.distrato_valor_pago !== undefined
+                            ? formData.distrato_valor_pago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                            : ''}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
+                            const num = parseFloat(raw);
+                            setFormData(prev => ({
+                              ...prev,
+                              distrato_valor_pago: isNaN(num) ? undefined : num,
+                            }));
+                          }}
                           placeholder="0,00"
                           required
                         />
