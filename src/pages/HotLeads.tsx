@@ -373,20 +373,29 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   }, [leads, searchTerm, stateFilter, cityFilter, periodFilter, sortBy, userFilter]);
 
   // ── Tab subsets ──
-  // Disponíveis: unclaimed, available — non-admins only see leads from their state
-  // When admin is simulating a user, filter by that user's state
+  // Disponíveis: filter by radius (Haversine) when coordinates are available, fallback to state
   const filteredAvailable = useMemo(() => {
     const base = filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available');
-    if (simulatedUserId) {
-      // Simulating: filter by simulated user's state
-      if (!effectiveUserState) return [];
-      return base.filter(l => !l.state || l.state === effectiveUserState);
-    }
-    if (realIsAdmin) return base; // Admin real sempre vê todos
-    const userState = user?.state;
-    if (!userState) return [];
-    return base.filter(l => !l.state || l.state === userState);
-  }, [filteredLeads, realIsAdmin, user?.state, simulatedUserId, effectiveUserState]);
+    if (realIsAdmin && !simulatedUserId) return base; // Admin real sempre vê todos
+
+    const coords = effectiveCoords;
+    const state = effectiveUserState;
+
+    if (!coords && !state) return [];
+
+    return base.filter(l => {
+      // If both have coordinates, use Haversine radius
+      if (coords && l.latitude && l.longitude) {
+        const dist = haversineKm(coords.lat, coords.lng, l.latitude, l.longitude);
+        return dist <= radiusKm;
+      }
+      // Fallback: same state
+      if (state) {
+        return !l.state || l.state === state;
+      }
+      return false;
+    });
+  }, [filteredLeads, realIsAdmin, simulatedUserId, effectiveCoords, effectiveUserState, radiusKm]);
   
   // Adquiridos: admin sees ALL claimed with no outcome; user sees only their own
   const filteredAcquired = useMemo(() => 
