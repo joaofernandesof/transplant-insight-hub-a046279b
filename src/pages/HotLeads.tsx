@@ -325,11 +325,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   // Tab definitions
   const TAB_CONFIG: { key: LeadTab; label: string; color: string; alert?: boolean }[] = [
     { key: 'available', label: 'Disponíveis', color: 'bg-green-500' },
-    { key: 'acquired', label: 'Adquiridos', color: 'bg-blue-500', alert: overdueLeads.some(l => !l.lead_outcome) },
+    { key: 'acquired', label: isAdminDirectView ? 'Sem Desfecho' : 'Adquiridos', color: 'bg-blue-500', alert: overdueLeads.some(l => !l.lead_outcome) },
     { key: 'in_progress', label: 'Em Atendimento', color: 'bg-amber-500', alert: overdueLeads.some(l => l.lead_outcome === 'em_atendimento') },
     { key: 'sold', label: 'Vendido', color: 'bg-emerald-500' },
     { key: 'discarded', label: 'Descartado', color: 'bg-red-500' },
-    { key: 'unavailable', label: 'Indisponível', color: 'bg-slate-400' },
+    ...(!isAdminDirectView ? [{ key: 'unavailable' as LeadTab, label: 'Indisponível', color: 'bg-slate-400' }] : []),
   ];
 
   const getTabCount = (key: LeadTab) => {
