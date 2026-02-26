@@ -57,16 +57,21 @@ export function HotLeadsAdminDashboard() {
     fetchLeads();
   }, [viewMode, selectedUserId]);
 
-  // Fetch lead outcome stats
+  // Fetch lead outcome stats with lead details
   const [outcomeStats, setOutcomeStats] = useState({ vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0 });
+  const [outcomeLeads, setOutcomeLeads] = useState<any[]>([]);
+  const [selectedOutcome, setSelectedOutcome] = useState<string | null>(null);
+  const [outcomeUserFilter, setOutcomeUserFilter] = useState<string>('all');
+
   useEffect(() => {
     async function fetchOutcomes() {
       const { data } = await supabase
         .from('leads')
-        .select('lead_outcome')
+        .select('id, name, phone, email, city, state, lead_outcome, claimed_by, claimed_at, source, created_at')
         .not('claimed_by', 'is', null)
         .in('source', ['planilha', 'n8n']);
       if (!data) return;
+      setOutcomeLeads(data);
       const vendido = data.filter((l: any) => l.lead_outcome === 'vendido').length;
       const em_atendimento = data.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
       const descartado = data.filter((l: any) => l.lead_outcome === 'descartado').length;
@@ -75,6 +80,48 @@ export function HotLeadsAdminDashboard() {
     }
     fetchOutcomes();
   }, []);
+
+  // Filtered outcome leads
+  const filteredOutcomeLeads = useMemo(() => {
+    let filtered = outcomeLeads;
+    if (selectedOutcome === 'sem_desfecho') {
+      filtered = filtered.filter(l => !l.lead_outcome);
+    } else if (selectedOutcome) {
+      filtered = filtered.filter(l => l.lead_outcome === selectedOutcome);
+    }
+    if (outcomeUserFilter !== 'all') {
+      filtered = filtered.filter(l => l.claimed_by === outcomeUserFilter);
+    }
+    return filtered;
+  }, [outcomeLeads, selectedOutcome, outcomeUserFilter]);
+
+  // Per-user outcome counts (for user filter)
+  const outcomeUserCounts = useMemo(() => {
+    const map = new Map<string, { vendido: number; em_atendimento: number; descartado: number; sem_desfecho: number; total: number }>();
+    outcomeLeads.forEach(l => {
+      if (!l.claimed_by) return;
+      if (!map.has(l.claimed_by)) map.set(l.claimed_by, { vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0, total: 0 });
+      const entry = map.get(l.claimed_by)!;
+      entry.total++;
+      if (l.lead_outcome === 'vendido') entry.vendido++;
+      else if (l.lead_outcome === 'em_atendimento') entry.em_atendimento++;
+      else if (l.lead_outcome === 'descartado') entry.descartado++;
+      else entry.sem_desfecho++;
+    });
+    return map;
+  }, [outcomeLeads]);
+
+  // Unique users from outcome leads
+  const outcomeUsers = useMemo(() => {
+    const userMap = new Map<string, { user_id: string; full_name: string }>();
+    outcomeLeads.forEach(l => {
+      if (l.claimed_by && !userMap.has(l.claimed_by)) {
+        const lic = stats.topLicensees.find(u => u.user_id === l.claimed_by);
+        userMap.set(l.claimed_by, { user_id: l.claimed_by, full_name: lic?.full_name || l.claimed_by.slice(0, 8) });
+      }
+    });
+    return Array.from(userMap.values()).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  }, [outcomeLeads, stats.topLicensees]);
 
   // Per-KPI insights
   const kpiInsights = useMemo(() => {
@@ -283,26 +330,50 @@ export function HotLeadsAdminDashboard() {
 
       {/* Outcome Stats - Situação dos Leads Adquiridos */}
       {stats.claimed > 0 && (() => {
-        const totalOutcome = outcomeStats.vendido + outcomeStats.em_atendimento + outcomeStats.descartado + outcomeStats.sem_desfecho;
-        const items = [
-          { label: 'Vendido', value: outcomeStats.vendido, color: 'bg-green-500', textColor: 'text-green-600', icon: ShoppingCart },
-          { label: 'Em Atendimento', value: outcomeStats.em_atendimento, color: 'bg-amber-500', textColor: 'text-amber-600', icon: Stethoscope },
-          { label: 'Descartado', value: outcomeStats.descartado, color: 'bg-red-500', textColor: 'text-red-600', icon: XCircle },
-          { label: 'Sem Desfecho', value: outcomeStats.sem_desfecho, color: 'bg-slate-400', textColor: 'text-slate-500', icon: Clock },
+        const effectiveStats = outcomeUserFilter === 'all' ? outcomeStats : (() => {
+          const uc = outcomeUserCounts.get(outcomeUserFilter);
+          return uc || { vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0 };
+        })();
+        const totalOutcome = effectiveStats.vendido + effectiveStats.em_atendimento + effectiveStats.descartado + effectiveStats.sem_desfecho;
+        const OUTCOME_KEYS = [
+          { key: 'vendido', label: 'Vendido', value: effectiveStats.vendido, color: 'bg-green-500', textColor: 'text-green-600', icon: ShoppingCart, pieColor: '#22c55e' },
+          { key: 'em_atendimento', label: 'Em Atendimento', value: effectiveStats.em_atendimento, color: 'bg-amber-500', textColor: 'text-amber-600', icon: Stethoscope, pieColor: '#f59e0b' },
+          { key: 'descartado', label: 'Descartado', value: effectiveStats.descartado, color: 'bg-red-500', textColor: 'text-red-600', icon: XCircle, pieColor: '#ef4444' },
+          { key: 'sem_desfecho', label: 'Sem Desfecho', value: effectiveStats.sem_desfecho, color: 'bg-slate-400', textColor: 'text-slate-500', icon: Clock, pieColor: '#94a3b8' },
         ];
-        const outcomePie = items.filter(i => i.value > 0).map(i => ({
-          name: i.label,
-          value: i.value,
-          color: i.label === 'Vendido' ? '#22c55e' : i.label === 'Em Atendimento' ? '#f59e0b' : i.label === 'Descartado' ? '#ef4444' : '#94a3b8',
+        const outcomePie = OUTCOME_KEYS.filter(i => i.value > 0).map(i => ({
+          name: i.label, value: i.value, color: i.pieColor,
         }));
         return (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                Situação dos Leads Adquiridos
-                <Badge variant="outline" className="font-normal text-[10px]">{totalOutcome} leads</Badge>
-              </CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  Situação dos Leads Adquiridos
+                  <Badge variant="outline" className="font-normal text-[10px]">{totalOutcome} leads</Badge>
+                </CardTitle>
+                <div className="sm:ml-auto flex items-center gap-2">
+                  <Select value={outcomeUserFilter} onValueChange={(v) => { setOutcomeUserFilter(v); setSelectedOutcome(null); }}>
+                    <SelectTrigger className="h-8 text-xs w-full max-w-[220px]">
+                      <SelectValue placeholder="Todos os usuários" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os usuários</SelectItem>
+                      {outcomeUsers.map(u => (
+                        <SelectItem key={u.user_id} value={u.user_id}>
+                          <div className="flex items-center gap-2">
+                            <span className="truncate">{u.full_name}</span>
+                            <Badge variant="outline" className="text-[9px] shrink-0">
+                              {outcomeUserCounts.get(u.user_id)?.total || 0}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -312,8 +383,13 @@ export function HotLeadsAdminDashboard() {
                       <PieChart>
                         <Pie data={outcomePie} cx="50%" cy="50%" outerRadius={90} innerRadius={45} paddingAngle={3} dataKey="value"
                           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} fontSize={11}
+                          cursor="pointer"
+                          onClick={(_: any, idx: number) => {
+                            const key = OUTCOME_KEYS.find(k => k.label === outcomePie[idx]?.name)?.key;
+                            if (key) setSelectedOutcome(prev => prev === key ? null : key);
+                          }}
                         >
-                          {outcomePie.map((e, i) => <Cell key={i} fill={e.color} />)}
+                          {outcomePie.map((e, i) => <Cell key={i} fill={e.color} stroke={OUTCOME_KEYS.find(k => k.label === e.name)?.key === selectedOutcome ? '#000' : 'transparent'} strokeWidth={2} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} />
                       </PieChart>
@@ -323,10 +399,15 @@ export function HotLeadsAdminDashboard() {
                   )}
                 </div>
                 <div className="space-y-4 flex flex-col justify-center">
-                  {items.map(item => {
+                  {OUTCOME_KEYS.map(item => {
                     const pct = totalOutcome > 0 ? (item.value / totalOutcome) * 100 : 0;
+                    const isActive = selectedOutcome === item.key;
                     return (
-                      <div key={item.label} className="flex items-center gap-3">
+                      <div
+                        key={item.key}
+                        className={`flex items-center gap-3 cursor-pointer rounded-lg px-2 py-1.5 transition-all ${isActive ? 'bg-muted ring-1 ring-border' : 'hover:bg-muted/50'}`}
+                        onClick={() => setSelectedOutcome(prev => prev === item.key ? null : item.key)}
+                      >
                         <item.icon className={`h-5 w-5 shrink-0 ${item.textColor}`} />
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-center mb-1.5">
@@ -345,6 +426,68 @@ export function HotLeadsAdminDashboard() {
                   })}
                 </div>
               </div>
+
+              {/* Detail Table - shown when an outcome is selected */}
+              {selectedOutcome && (
+                <div className="mt-6 border-t pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      {(() => {
+                        const item = OUTCOME_KEYS.find(k => k.key === selectedOutcome);
+                        if (!item) return null;
+                        return <><item.icon className={`h-4 w-4 ${item.textColor}`} />{item.label}<Badge variant="outline" className="text-[10px]">{filteredOutcomeLeads.length} leads</Badge></>;
+                      })()}
+                    </h4>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedOutcome(null)} className="text-xs gap-1">
+                      <ArrowLeft className="h-3 w-3" /> Fechar
+                    </Button>
+                  </div>
+                  <div className="overflow-auto max-h-[400px] rounded-lg border">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
+                        <tr>
+                          <th className="text-left py-2 px-3 font-medium text-xs text-muted-foreground">Nome</th>
+                          <th className="text-left py-2 px-3 font-medium text-xs text-muted-foreground">Telefone</th>
+                          <th className="text-left py-2 px-3 font-medium text-xs text-muted-foreground hidden md:table-cell">Cidade/UF</th>
+                          <th className="text-left py-2 px-3 font-medium text-xs text-muted-foreground">Licenciado</th>
+                          <th className="text-left py-2 px-3 font-medium text-xs text-muted-foreground hidden sm:table-cell">Adquirido em</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredOutcomeLeads.length === 0 ? (
+                          <tr><td colSpan={5} className="text-center py-6 text-muted-foreground text-xs">Nenhum lead encontrado</td></tr>
+                        ) : filteredOutcomeLeads.slice(0, 100).map(lead => {
+                          const lic = stats.topLicensees.find(u => u.user_id === lead.claimed_by);
+                          return (
+                            <tr key={lead.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                              <td className="py-2 px-3 font-medium truncate max-w-[180px]">{lead.name}</td>
+                              <td className="py-2 px-3 text-muted-foreground text-xs">{lead.phone}</td>
+                              <td className="py-2 px-3 text-muted-foreground text-xs hidden md:table-cell">
+                                {[lead.city, lead.state].filter(Boolean).join('/') || '—'}
+                              </td>
+                              <td className="py-2 px-3">
+                                <div className="flex items-center gap-1.5">
+                                  <Avatar className="h-5 w-5">
+                                    <AvatarImage src={lic?.avatar_url || ''} />
+                                    <AvatarFallback className="text-[8px] bg-muted">{lic?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || '?'}</AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-xs truncate max-w-[120px]">{lic?.full_name || '—'}</span>
+                                </div>
+                              </td>
+                              <td className="py-2 px-3 text-xs text-muted-foreground hidden sm:table-cell">
+                                {lead.claimed_at ? format(new Date(lead.claimed_at), 'dd/MM/yy', { locale: ptBR }) : '—'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    {filteredOutcomeLeads.length > 100 && (
+                      <p className="text-center text-xs text-muted-foreground py-2">Mostrando 100 de {filteredOutcomeLeads.length} leads</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         );
