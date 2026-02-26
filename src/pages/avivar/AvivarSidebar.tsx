@@ -200,7 +200,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-72 border-[hsl(var(--avivar-border))] bg-transparent">
-                <SidebarContent collapsed={false} onCollapse={() => setMobileOpen(false)} counts={counts} />
+                <SidebarContent collapsed={false} onCollapse={() => setMobileOpen(false)} counts={counts} onLogout={handleLogout} />
               </SheetContent>
             </Sheet>
           </div>
