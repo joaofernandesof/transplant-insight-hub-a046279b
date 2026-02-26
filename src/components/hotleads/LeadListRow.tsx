@@ -35,7 +35,7 @@ interface LeadListRowProps {
   formatCooldown?: (seconds: number) => string;
   claimerName?: string;
   onRelease?: (leadId: string) => void;
-  onUpdateOutcome?: (leadId: string, outcome: LeadOutcome) => Promise<boolean>;
+  onUpdateOutcome?: (leadId: string, outcome: LeadOutcome | null) => Promise<boolean>;
 }
 
 export function LeadListRow({
@@ -81,8 +81,9 @@ export function LeadListRow({
 
   const handleOutcome = async (outcome: LeadOutcome) => {
     if (!onUpdateOutcome) return;
+    const newOutcome = lead.lead_outcome === outcome ? null : outcome;
     setIsUpdating(outcome);
-    await onUpdateOutcome(lead.id, outcome);
+    await onUpdateOutcome(lead.id, newOutcome);
     setIsUpdating(null);
   };
 
@@ -158,15 +159,15 @@ export function LeadListRow({
                 {isSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
                 Reenviar
               </Button>
-              {!lead.lead_outcome && onUpdateOutcome && (
+              {onUpdateOutcome && (
                 <>
-                  <Button size="sm" variant="outline" className="h-7 text-[11px] gap-0.5 text-green-600 border-green-200" onClick={() => handleOutcome('vendido')} disabled={isUpdating !== null}>
+                  <Button size="sm" variant="outline" className={`h-7 text-[11px] gap-0.5 text-green-600 border-green-200 ${lead.lead_outcome === 'vendido' ? 'bg-green-100 dark:bg-green-900/30 ring-1 ring-green-400' : ''}`} onClick={() => handleOutcome('vendido')} disabled={isUpdating !== null}>
                     {isUpdating === 'vendido' ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
                   </Button>
-                  <Button size="sm" variant="outline" className="h-7 text-[11px] gap-0.5 text-blue-500 border-blue-200" onClick={() => handleOutcome('em_atendimento')} disabled={isUpdating !== null}>
+                  <Button size="sm" variant="outline" className={`h-7 text-[11px] gap-0.5 text-blue-500 border-blue-200 ${lead.lead_outcome === 'em_atendimento' ? 'bg-blue-100 dark:bg-blue-900/30 ring-1 ring-blue-400' : ''}`} onClick={() => handleOutcome('em_atendimento')} disabled={isUpdating !== null}>
                     {isUpdating === 'em_atendimento' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Clock className="h-3 w-3" />}
                   </Button>
-                  <Button size="sm" variant="outline" className="h-7 text-[11px] gap-0.5 text-red-500 border-red-200" onClick={() => handleOutcome('descartado')} disabled={isUpdating !== null}>
+                  <Button size="sm" variant="outline" className={`h-7 text-[11px] gap-0.5 text-red-500 border-red-200 ${lead.lead_outcome === 'descartado' ? 'bg-red-100 dark:bg-red-900/30 ring-1 ring-red-400' : ''}`} onClick={() => handleOutcome('descartado')} disabled={isUpdating !== null}>
                     {isUpdating === 'descartado' ? <Loader2 className="h-3 w-3 animate-spin" /> : <XCircle className="h-3 w-3" />}
                   </Button>
                 </>
@@ -238,15 +239,15 @@ export function LeadListRow({
                 <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1" onClick={handleResendEmail} disabled={isSending}>
                   {isSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
                 </Button>
-                {!lead.lead_outcome && onUpdateOutcome && (
+                {onUpdateOutcome && (
                   <>
-                    <Button size="sm" variant="outline" className="h-7 text-[11px] gap-0.5 text-green-600 border-green-200" onClick={() => handleOutcome('vendido')} disabled={isUpdating !== null}>
+                    <Button size="sm" variant="outline" className={`h-7 text-[11px] gap-0.5 text-green-600 border-green-200 ${lead.lead_outcome === 'vendido' ? 'bg-green-100 dark:bg-green-900/30 ring-1 ring-green-400' : ''}`} onClick={() => handleOutcome('vendido')} disabled={isUpdating !== null}>
                       {isUpdating === 'vendido' ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
                     </Button>
-                    <Button size="sm" variant="outline" className="h-7 text-[11px] gap-0.5 text-blue-500 border-blue-200" onClick={() => handleOutcome('em_atendimento')} disabled={isUpdating !== null}>
+                    <Button size="sm" variant="outline" className={`h-7 text-[11px] gap-0.5 text-blue-500 border-blue-200 ${lead.lead_outcome === 'em_atendimento' ? 'bg-blue-100 dark:bg-blue-900/30 ring-1 ring-blue-400' : ''}`} onClick={() => handleOutcome('em_atendimento')} disabled={isUpdating !== null}>
                       {isUpdating === 'em_atendimento' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Clock className="h-3 w-3" />}
                     </Button>
-                    <Button size="sm" variant="outline" className="h-7 text-[11px] gap-0.5 text-red-500 border-red-200" onClick={() => handleOutcome('descartado')} disabled={isUpdating !== null}>
+                    <Button size="sm" variant="outline" className={`h-7 text-[11px] gap-0.5 text-red-500 border-red-200 ${lead.lead_outcome === 'descartado' ? 'bg-red-100 dark:bg-red-900/30 ring-1 ring-red-400' : ''}`} onClick={() => handleOutcome('descartado')} disabled={isUpdating !== null}>
                       {isUpdating === 'descartado' ? <Loader2 className="h-3 w-3 animate-spin" /> : <XCircle className="h-3 w-3" />}
                     </Button>
                   </>
