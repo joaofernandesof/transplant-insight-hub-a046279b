@@ -592,7 +592,7 @@ export default function AvivarSimpleWizard() {
           {/* Logic for FAQ step (currentStep === 6):
               - If no FAQ generated: show normal Próximo button
               - If FAQ generated but not added to knowledge: hide button completely */}
-          {currentStep === 6 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
+          {currentStep === 5 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
             // Hide button completely when FAQ generated but not added to knowledge
             null
           ) : (
