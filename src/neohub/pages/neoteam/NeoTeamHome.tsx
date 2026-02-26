@@ -29,35 +29,44 @@ export default function NeoTeamHome() {
   const { user } = useUnifiedAuth();
   const navigate = useNavigate();
   const today = new Date();
-  const { tasks } = useNeoTeamTasks();
+  const { tasks: allTasks } = useNeoTeamTasks();
 
-  // Task stats
-  const todoTasks = tasks.filter(t => t.status === 'todo').length;
-  const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length;
-  const doneTasks = tasks.filter(t => t.status === 'done').length;
-  const cancelledTasks = tasks.filter(t => t.status === 'cancelled').length;
-  const totalTasks = tasks.length;
+  // Filter tasks for the current user (by assignee_name matching user's name, or assignee_id matching user's id)
+  const userName = user?.fullName || '';
+  const myTasks = allTasks.filter(t => {
+    if (t.assignee_id && user?.id && t.assignee_id === user.id) return true;
+    if (t.assignee_name && userName && t.assignee_name.toLowerCase() === userName.toLowerCase()) return true;
+    // If task has no assignee, don't count as mine
+    return false;
+  });
+
+  // Task stats based on MY tasks
+  const todoTasks = myTasks.filter(t => t.status === 'todo').length;
+  const inProgressTasks = myTasks.filter(t => t.status === 'in_progress').length;
+  const doneTasks = myTasks.filter(t => t.status === 'done').length;
+  const cancelledTasks = myTasks.filter(t => t.status === 'cancelled').length;
+  const totalTasks = myTasks.length;
   
-  const pendingTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'cancelled').length;
-  const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done').length;
-  const highPriorityTasks = tasks.filter(t => t.priority === 'high' && t.status !== 'done').length;
-  const normalTasks = tasks.filter(t => (t.priority === 'medium' || t.priority === undefined) && t.status !== 'done').length;
-  const lowTasks = tasks.filter(t => t.priority === 'low' && t.status !== 'done').length;
+  const pendingTasks = myTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled').length;
+  const urgentTasks = myTasks.filter(t => t.priority === 'urgent' && t.status !== 'done').length;
+  const highPriorityTasks = myTasks.filter(t => t.priority === 'high' && t.status !== 'done').length;
+  const normalTasks = myTasks.filter(t => (t.priority === 'medium' || t.priority === undefined) && t.status !== 'done').length;
+  const lowTasks = myTasks.filter(t => t.priority === 'low' && t.status !== 'done').length;
   
-  const dueTodayTasks = tasks.filter(t => {
+  const dueTodayTasks = myTasks.filter(t => {
     if (t.status === 'done' || !t.due_date) return false;
     const dueDate = new Date(t.due_date);
     const todayDate = new Date();
     return dueDate.toDateString() === todayDate.toDateString();
   }).length;
 
-  const overdueTasks = tasks.filter(t => {
+  const overdueTasks = myTasks.filter(t => {
     if (t.status === 'done' || !t.due_date) return false;
     return new Date(t.due_date) < new Date();
   }).length;
 
-  // Get overdue tasks for deadline list
-  const overdueTasksList = tasks
+  // Get overdue tasks for deadline list (show ALL overdue for visibility)
+  const overdueTasksList = allTasks
     .filter(t => {
       if (t.status === 'done' || !t.due_date) return false;
       return new Date(t.due_date) < new Date();
@@ -65,17 +74,17 @@ export default function NeoTeamHome() {
     .slice(0, 5)
     .map(t => ({
       id: t.id,
-      title: t.title,
+      title: `${t.assignee_name ? t.assignee_name + ': ' : ''}${t.title}`,
       status: 'overdue' as const,
       dueDate: t.due_date,
       onClick: () => navigate('/neoteam/tasks'),
     }));
 
-  // Performance by assignee
+  // Performance by assignee (uses ALL tasks for team overview)
   const performanceByAssignee = React.useMemo(() => {
     const assigneeMap: Record<string, { done: number; total: number; overdue: number }> = {};
     
-    tasks.forEach(t => {
+    allTasks.forEach(t => {
       const assignee = t.assignee_name || 'Não atribuído';
       if (!assigneeMap[assignee]) {
         assigneeMap[assignee] = { done: 0, total: 0, overdue: 0 };
@@ -96,7 +105,7 @@ export default function NeoTeamHome() {
       total: stats.total,
       overdueCount: stats.overdue,
     }));
-  }, [tasks]);
+  }, [allTasks]);
 
   // Main modules for quick access
   const mainModules = [
