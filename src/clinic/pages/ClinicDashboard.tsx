@@ -591,6 +591,16 @@ export default function ClinicDashboard() {
                 </span>
               </div>
             )}
+
+            {/* Lock violation alert banner */}
+            {violatedIds.size > 0 && (
+              <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs">
+                <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />
+                <span className="text-red-800 dark:text-red-300 font-medium">
+                  ⚠️ {violatedIds.size} cirurgia{violatedIds.size > 1 ? 's' : ''} com trava de agenda violada — tarefas criadas para BRENNA ajustar
+                </span>
+              </div>
+            )}
           </>
         )}
       </div>
