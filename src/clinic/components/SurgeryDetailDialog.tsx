@@ -123,6 +123,32 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
 
             <Separator />
 
+            {/* Upsells & Upgrades */}
+            {(surgery.upgradeValue > 0 || surgery.upsellValue > 0) && (
+              <>
+                <div>
+                  <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                    🚀 Upsells & Upgrades
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className={`rounded-lg p-4 border ${surgery.upgradeValue > 0 ? 'bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800' : 'bg-muted/30 border-transparent'}`}>
+                      <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">Upgrade</p>
+                      <p className={`text-lg font-bold ${surgery.upgradeValue > 0 ? 'text-purple-700 dark:text-purple-300' : 'text-muted-foreground'}`}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(surgery.upgradeValue)}
+                      </p>
+                    </div>
+                    <div className={`rounded-lg p-4 border ${surgery.upsellValue > 0 ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800' : 'bg-muted/30 border-transparent'}`}>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Upsell</p>
+                      <p className={`text-lg font-bold ${surgery.upsellValue > 0 ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'}`}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(surgery.upsellValue)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+              </>
+            )}
+
             {/* Checklist Pré-Operatório */}
             <div>
               <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
