@@ -31,6 +31,7 @@ import {
   PhoneCall,
   Kanban,
   FileBarChart,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,6 +41,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PortalSwitcherButton } from '@/components/shared/PortalSwitcherButton';
 import { useAvivarSidebarCounts } from '@/hooks/useAvivarSidebarCounts';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 const InternalChatFab = lazy(() => import('./components/internal-chat/InternalChatFab').then(m => ({ default: m.InternalChatFab })));
 
 const getMenuItems = (counts: { unreadChats: number; overdueTasks: number }) => [
@@ -64,7 +66,7 @@ interface AvivarSidebarProps {
   children: React.ReactNode;
 }
 
-function SidebarContent({ collapsed, onCollapse, counts }: { collapsed: boolean; onCollapse?: () => void; counts: { unreadChats: number; overdueTasks: number } }) {
+function SidebarContent({ collapsed, onCollapse, counts, onLogout }: { collapsed: boolean; onCollapse?: () => void; counts: { unreadChats: number; overdueTasks: number }; onLogout: () => void }) {
   const location = useLocation();
   const menuItems = getMenuItems(counts);
 
@@ -144,6 +146,19 @@ function SidebarContent({ collapsed, onCollapse, counts }: { collapsed: boolean;
         </nav>
       </ScrollArea>
 
+      {/* Logout Button */}
+      <div className="px-3 pb-4 relative z-10">
+        <button
+          onClick={() => { onCollapse?.(); onLogout(); }}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 text-red-400 hover:bg-red-500/10 hover:text-red-300',
+            collapsed && 'justify-center'
+          )}
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="text-sm font-medium">Sair</span>}
+        </button>
+      </div>
     </div>
   );
 }
@@ -155,6 +170,12 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   const location = useLocation();
   const isInboxRoute = location.pathname.startsWith('/avivar/inbox');
   const { counts } = useAvivarSidebarCounts();
+  const { logout } = useUnifiedAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
 
   if (isMobile) {
     return (
@@ -179,7 +200,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-72 border-[hsl(var(--avivar-border))] bg-transparent">
-                <SidebarContent collapsed={false} onCollapse={() => setMobileOpen(false)} counts={counts} />
+                <SidebarContent collapsed={false} onCollapse={() => setMobileOpen(false)} counts={counts} onLogout={handleLogout} />
               </SheetContent>
             </Sheet>
           </div>
@@ -211,7 +232,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
         'fixed left-0 top-0 h-screen transition-all duration-300 z-40',
         collapsed ? 'w-16' : 'w-64'
       )}>
-        <SidebarContent collapsed={collapsed} counts={counts} />
+        <SidebarContent collapsed={collapsed} counts={counts} onLogout={handleLogout} />
         <Button
           variant="ghost"
           size="icon"

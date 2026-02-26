@@ -1,50 +1,28 @@
 
+## Ajuste da Mensagem de Primeiro Contato HotLeads
 
-## Plano: Criar acesso Avivar CRM para karinnemendessg@gmail.com
+### O que muda
 
-### O que será feito
+1. **Atualizar a imagem** -- Substituir o arquivo `public/images/neofolic-licenca.jpeg` pela nova imagem enviada (logo "Licenca ByNeofolic - Transplante Capilar").
 
-Este processo envolve múltiplas etapas no banco de dados para criar um usuário totalmente isolado no CRM Avivar, sem acesso a outros portais.
+2. **Simplificar a mensagem** -- Remover as duas linhas extras que existem hoje:
+   - `"Se em algum momento você preferir não receber mais mensagens, é só me avisar 😊"`
+   - O link da imagem colado como texto no final
 
-### Etapas de implementação
+   A mensagem ficara exatamente assim:
+   ```
+   Olá, {NOME DO PACIENTE}, tudo bem?
 
-1. **Criar usuário no Auth** via Edge Function `create-admin-user` (ou SQL direto)
-   - Email: `karinnemendessg@gmail.com`
-   - Senha gerada: `Karine@Avivar2026!`
-   - Nome: Karine Mendes
+   Meu nome é {NOME DO LICENCIADO} e falo da clínica {NOME DA CLÍNICA}.
 
-2. **Criar registro em `neohub_users`**
-   - `allowed_portals`: apenas `['avivar']` (sem acesso a outros portais)
-   - `is_active: true`
+   Recebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.
 
-3. **Criar perfil em `neohub_user_profiles`**
-   - Perfil: `cliente_avivar` (perfil padrão Avivar)
+   Você prefere que eu te ligue ou continuamos por aqui?
+   ```
 
-4. **Criar conta Avivar isolada em `avivar_accounts`**
-   - Nome: "Karine Mendes"
-   - Slug: `karine-mendes`
-   - `owner_user_id`: o auth ID do novo usuário
+3. **Manter o link da imagem** no final da mensagem para que o WhatsApp gere o preview automaticamente (a API do `wa.me` nao suporta anexos diretamente, apenas texto; incluir a URL e o metodo mais proximo de enviar a imagem).
 
-5. **Criar membro em `avivar_account_members`**
-   - Role: `owner` (liberdade total dentro da conta, inclusive cadastrar novos usuários)
-   - Vinculado à nova conta criada
+### Detalhes Tecnicos
 
-6. **Criar API Token/Webhook único em `avivar_api_tokens`**
-   - Webhook slug único gerado automaticamente
-   - Vinculado ao `account_id` da nova conta
-
-### Isolamento garantido pela arquitetura
-
-- Todas as tabelas Avivar usam `account_id` com RLS, garantindo que a Karine **não verá leads, conversas ou dados de outras contas**
-- O webhook slug será exclusivo desta conta
-- `allowed_portals: ['avivar']` bloqueia acesso a qualquer outro portal
-
-### Credenciais que serão fornecidas
-
-| Campo | Valor |
-|-------|-------|
-| Email | karinnemendessg@gmail.com |
-| Senha | Karine@Avivar2026! |
-| Portal | CRM Avivar (exclusivo) |
-| Role | Owner (admin total da conta) |
-
+- **Arquivo de imagem**: Copiar `user-uploads://WhatsApp_Image_2026-02-25_at_18.11.00.jpeg` para `public/images/neofolic-licenca.jpeg` (substituicao).
+- **Arquivo editado**: `src/hooks/useHotLeadsSettings.ts` -- linha 75, ajustar o template da mensagem removendo a frase sobre "nao receber mais mensagens" e o emoji, mantendo o link da imagem no final para preview.
