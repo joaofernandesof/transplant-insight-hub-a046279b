@@ -162,28 +162,26 @@ export default function AvivarSimpleWizard() {
         return !!config.subnicho;
       case 1: // Info da empresa
         return !!config.companyName && !!config.city && !!config.state && !!config.professionalName && !!config.attendantName;
-      case 2: // Serviços
-        return config.services.some(s => s.enabled);
-      case 3: // Pagamentos (opcional - sempre pode prosseguir)
+      case 2: // Pagamentos (opcional - sempre pode prosseguir)
         return true;
-      case 4: // Objetivos - precisa de objetivo principal E confirmação de secundários
+      case 3: // Objetivos - precisa de objetivo principal E confirmação de secundários
         return !!config.agentObjectives?.primary && !!config.agentObjectives?.secondaryConfirmed;
-      case 5: // Fluxo de atendimento - sempre pode prosseguir (template já carregado)
+      case 4: // Fluxo de atendimento - sempre pode prosseguir (template já carregado)
         return true;
-      case 6: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
+      case 5: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
         if (generatedFAQ.length > 0 && !faqAddedToKnowledge) {
           return false;
         }
         return true;
-      case 7: // Knowledge (opcional - sempre pode prosseguir)
+      case 6: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 8: {
+      case 7: {
         // Imagens - se tiver imagens, todas precisam ter legenda
         const allImages = Object.values(config.imageGallery || {}).flat();
-        if (allImages.length === 0) return true; // Sem imagens, pode prosseguir
-        return allImages.every(img => img?.caption?.trim()); // Todas precisam ter legenda
+        if (allImages.length === 0) return true;
+        return allImages.every(img => img?.caption?.trim());
       }
-      case 9: // Review
+      case 8: // Review
         return true;
       default:
         return true;
