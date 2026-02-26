@@ -27,6 +27,7 @@ const routeLabels: Record<string, string> = {
   '/neoteam/staff-roles': 'Cargos & Funções',
   '/neoteam/settings': 'Configurações',
   '/neoteam/postvenda': 'Pós-Venda',
+  '/neoteam/processos': 'Fluxos de Processo',
   '/neoteam/postvenda/chamados': 'Chamados',
   '/neoteam/postvenda/sla': 'Configuração SLA',
   '/neoteam/postvenda/nps': 'Relatórios NPS',
