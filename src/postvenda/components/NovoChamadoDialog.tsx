@@ -321,7 +321,10 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                         <Label>Filial *</Label>
                         <Select 
                           value={formData.branch || ''} 
-                          onValueChange={(v) => setFormData(prev => ({ ...prev, branch: v }))}
+                          onValueChange={(v) => {
+                            setFormData(prev => ({ ...prev, branch: v }));
+                            if (v !== 'outra') setCustomBranch('');
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione a filial" />
@@ -330,9 +333,17 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                             {BRANCH_OPTIONS.map(opt => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
-                            <SelectItem value="nao_encontrado">Não Encontrado</SelectItem>
+                            <SelectItem value="outra">Outra (cadastrar nova)</SelectItem>
                           </SelectContent>
                         </Select>
+                        {formData.branch === 'outra' && (
+                          <Input
+                            placeholder="Digite o nome da filial..."
+                            value={customBranch}
+                            onChange={(e) => setCustomBranch(e.target.value)}
+                            className="mt-2"
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label>Valor Pago (R$) *</Label>
