@@ -27,6 +27,7 @@ interface NovoChamadoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialTipoDemanda?: string;
+  onSuccess?: () => void;
 }
 
 // Status options for required fields with "Não Encontrado" option
