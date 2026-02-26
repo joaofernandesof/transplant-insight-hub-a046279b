@@ -36,6 +36,7 @@ import { ShieldAlert } from 'lucide-react';
 import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
 import { PatientAutocomplete } from '@/neohub/components/PatientAutocomplete';
 import { useNavigate } from 'react-router-dom';
+import { ProcedureCheckboxField } from './ProcedureCheckboxField';
 
 interface AddSurgeryDialogProps {
   open: boolean;
@@ -75,20 +76,6 @@ export function AddSurgeryDialog({
     withDate ? surgeryDate : undefined,
     branch
   );
-
-  const procedures = [
-    'CABELO',
-    'BARBA',
-    'SOBRANCELHA',
-    'BODY HAIR BARBA',
-    'BODY HAIR PEITO',
-  ];
-
-  const toggleProcedure = useCallback((p: string) => {
-    setSelectedProcedures(prev => 
-      prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]
-    );
-  }, []);
 
   const procedure = selectedProcedures.join(' + ');
 
@@ -415,25 +402,10 @@ export function AddSurgeryDialog({
           </div>
 
           {/* Procedure - Multi-select */}
-          <div className="space-y-1.5">
-            <Label>Procedimento *</Label>
-            <div className="border rounded-md p-3 space-y-2">
-              {procedures.map((p) => (
-                <label key={p} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-2 py-1.5 -mx-2">
-                  <Checkbox
-                    checked={selectedProcedures.includes(p)}
-                    onCheckedChange={() => toggleProcedure(p)}
-                  />
-                  <span className="text-sm">{p}</span>
-                </label>
-              ))}
-            </div>
-            {selectedProcedures.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Selecionado: {procedure}
-              </p>
-            )}
-          </div>
+          <ProcedureCheckboxField
+            value={procedure}
+            onChange={(val) => setSelectedProcedures(val ? val.split(' + ') : [])}
+          />
 
           {weekLockMessage && (
             <Alert variant="destructive">
