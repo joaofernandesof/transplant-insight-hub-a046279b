@@ -95,8 +95,8 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
     e.preventDefault();
     
     if (isDistrato) {
-      if (!selectedPatient) {
-        toast.error('Selecione um paciente da lista');
+      if (!formData.paciente_nome.trim()) {
+        toast.error('Informe o nome do paciente');
         return;
       }
       if (!pdfFile) {
