@@ -210,23 +210,6 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
 
         <ScrollArea className={isDistrato ? "max-h-[70vh] pr-4" : ""}>
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Canal de Origem - Primeiro para Distrato */}
-            <div className="space-y-2">
-              <Label>Canal de Origem *</Label>
-              <Select 
-                value={formData.canal_origem} 
-                onValueChange={(v) => setFormData(prev => ({ ...prev, canal_origem: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="z-[110]">
-                  {CANAL_ORIGEM_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             {/* ========== CAMPOS ESPECÍFICOS DE DISTRATO ========== */}
             {isDistrato && (
