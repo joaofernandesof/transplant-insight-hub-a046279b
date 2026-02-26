@@ -171,7 +171,7 @@ export function StepSelectBusiness({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
         {NICHOS_CATEGORIES_UI.map((nicho) => {
-          const isBlocked = BLOCKED_NICHOS.includes(nicho.id);
+          const isBlocked = isNichoBlocked(nicho.id);
           const isSelected = selectedNicho === nicho.id || 
             (selectedNicho === 'saude' && nicho.id === 'saude') ||
             (selectedNicho === 'estetica' && nicho.id === 'saude'); // 'saude' na UI representa ambos
