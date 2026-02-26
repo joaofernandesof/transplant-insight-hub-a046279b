@@ -355,11 +355,16 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                             ? formData.distrato_valor_pago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                             : ''}
                           onChange={(e) => {
-                            const raw = e.target.value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
-                            const num = parseFloat(raw);
+                            // ATM-style: strip everything non-digit, treat as cents
+                            const digits = e.target.value.replace(/\D/g, '');
+                            if (digits === '') {
+                              setFormData(prev => ({ ...prev, distrato_valor_pago: undefined }));
+                              return;
+                            }
+                            const cents = parseInt(digits, 10);
                             setFormData(prev => ({
                               ...prev,
-                              distrato_valor_pago: isNaN(num) ? undefined : num,
+                              distrato_valor_pago: cents / 100,
                             }));
                           }}
                           placeholder="0,00"
