@@ -129,10 +129,12 @@ export function ConversationList({
     // Filtro por busca
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
+      const lastMsg = lastMessages[conv.id]?.toLowerCase() || '';
       return (
         conv.lead?.name?.toLowerCase().includes(search) ||
         conv.lead?.phone?.includes(search) ||
-        conv.lead?.email?.toLowerCase().includes(search)
+        conv.lead?.email?.toLowerCase().includes(search) ||
+        lastMsg.includes(search)
       );
     }
     
