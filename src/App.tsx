@@ -46,6 +46,7 @@ const ExportUsersCSV = lazy(() => import("./pages/ExportUsersCSV"));
  const AvivarCapilarLanding = lazy(() => import("./pages/AvivarCapilarLanding"));
  const ConsultaCapilarLanding = lazy(() => import("./pages/ConsultaCapilarLanding"));
  const ContatosOficiais = lazy(() => import("./pages/ContatosOficiais"));
+ const ContatosAdmin = lazy(() => import("./pages/ContatosAdmin"));
 
 // ====================================
 // Pages - Flow.do (Gestão Operacional)
