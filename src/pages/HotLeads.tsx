@@ -134,6 +134,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   // Effective user id/state for filtering (simulated or real)
   const effectiveUserId = simulatedUserId || user?.id;
   const effectiveUserState = simulatedUserId ? (simulatedUser?.address_state || null) : (user?.state || null);
+  // Admin is viewing as admin (not simulating a specific user)
+  const isAdminDirectView = realIsAdmin && !simulatedUserId;
 
   // Sound + browser notification for new leads - DON'T auto-fetch, just flag
   useLeadNotificationSound({
@@ -300,34 +302,34 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     return base.filter(l => !l.state || l.state === userState);
   }, [filteredLeads, realIsAdmin, user?.state, simulatedUserId, effectiveUserState]);
   
-  // Adquiridos: claimed by effective user, NO outcome yet
+  // Adquiridos: admin sees ALL claimed with no outcome; user sees only their own
   const filteredAcquired = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === effectiveUserId && !l.lead_outcome), [filteredLeads, effectiveUserId]);
+    filteredLeads.filter(l => l.claimed_by && !l.lead_outcome && (isAdminDirectView || l.claimed_by === effectiveUserId)), [filteredLeads, effectiveUserId, isAdminDirectView]);
   
-  // Em Atendimento: claimed by effective user, outcome = em_atendimento
+  // Em Atendimento
   const filteredInProgress = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'em_atendimento'), [filteredLeads, effectiveUserId]);
+    filteredLeads.filter(l => l.claimed_by && l.lead_outcome === 'em_atendimento' && (isAdminDirectView || l.claimed_by === effectiveUserId)), [filteredLeads, effectiveUserId, isAdminDirectView]);
   
-  // Vendido: claimed by effective user, outcome = vendido
+  // Vendido
   const filteredSold = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'vendido'), [filteredLeads, effectiveUserId]);
+    filteredLeads.filter(l => l.claimed_by && l.lead_outcome === 'vendido' && (isAdminDirectView || l.claimed_by === effectiveUserId)), [filteredLeads, effectiveUserId, isAdminDirectView]);
   
-  // Descartado: claimed by effective user, outcome = descartado
+  // Descartado
   const filteredDiscarded = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'descartado'), [filteredLeads, effectiveUserId]);
+    filteredLeads.filter(l => l.claimed_by && l.lead_outcome === 'descartado' && (isAdminDirectView || l.claimed_by === effectiveUserId)), [filteredLeads, effectiveUserId, isAdminDirectView]);
   
-  // Indisponível: claimed by OTHER users (not effective user)
+  // Indisponível: only for non-admin or simulated view — claimed by OTHER users
   const filteredUnavailable = useMemo(() => 
-    filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== effectiveUserId), [filteredLeads, effectiveUserId]);
+    isAdminDirectView ? [] : filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== effectiveUserId), [filteredLeads, effectiveUserId, isAdminDirectView]);
 
   // Tab definitions
   const TAB_CONFIG: { key: LeadTab; label: string; color: string; alert?: boolean }[] = [
     { key: 'available', label: 'Disponíveis', color: 'bg-green-500' },
-    { key: 'acquired', label: 'Adquiridos', color: 'bg-blue-500', alert: overdueLeads.some(l => !l.lead_outcome) },
+    { key: 'acquired', label: isAdminDirectView ? 'Sem Desfecho' : 'Adquiridos', color: 'bg-blue-500', alert: overdueLeads.some(l => !l.lead_outcome) },
     { key: 'in_progress', label: 'Em Atendimento', color: 'bg-amber-500', alert: overdueLeads.some(l => l.lead_outcome === 'em_atendimento') },
     { key: 'sold', label: 'Vendido', color: 'bg-emerald-500' },
     { key: 'discarded', label: 'Descartado', color: 'bg-red-500' },
-    { key: 'unavailable', label: 'Indisponível', color: 'bg-slate-400' },
+    ...(!isAdminDirectView ? [{ key: 'unavailable' as LeadTab, label: 'Indisponível', color: 'bg-slate-400' }] : []),
   ];
 
   const getTabCount = (key: LeadTab) => {
@@ -614,9 +616,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             <HotLeadsStats
               leads={filteredLeads}
               availableCount={filteredAvailable.length}
-              myLeadsCount={filteredAcquired.length + filteredInProgress.length}
-              acquiredCount={filteredUnavailable.length}
+              myLeadsCount={isAdminDirectView ? (filteredAcquired.length + filteredInProgress.length + filteredSold.length + filteredDiscarded.length) : (filteredAcquired.length + filteredInProgress.length)}
+              acquiredCount={isAdminDirectView ? 0 : filteredUnavailable.length}
               queuedCount={queuedCount}
+              isAdminView={isAdminDirectView}
             />
             {/* Motivational phrase */}
             <div className="relative text-center py-3 px-4 sm:py-4 sm:px-6 my-2 rounded-xl bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 border border-orange-200/60 dark:border-orange-800/40 overflow-hidden">
@@ -819,7 +822,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                         key={lead.id}
                         lead={lead}
                         claimerName={getClaimerName(lead.claimed_by)}
-                        isOwned
+                        isOwned={!isAdminDirectView || lead.claimed_by === effectiveUserId}
                         onRelease={releaseLead}
                         onUpdateOutcome={showOutcomeActions ? handleUpdateOutcome : undefined}
                         selected={selectedLeads.has(lead.id)}
@@ -845,7 +848,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                     onAcquire={activeTab === 'available' ? handleAcquireClick : undefined}
                     cooldownRemaining={activeTab === 'available' ? cooldownRemaining : undefined}
                     formatCooldown={activeTab === 'available' ? formatCooldown : undefined}
-                    claimerName={activeTab === 'unavailable' ? getClaimerName(lead.claimed_by) : undefined}
+                    claimerName={(activeTab === 'unavailable' || isAdminDirectView) ? getClaimerName(lead.claimed_by) : undefined}
                     onRelease={releaseLead}
                     onUpdateOutcome={showOutcomeActions ? handleUpdateOutcome : undefined}
                   />
