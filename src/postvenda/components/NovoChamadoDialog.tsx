@@ -17,10 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Gavel, AlertCircle, Upload, FileText, X, AlertTriangle } from 'lucide-react';
+import { Loader2, Gavel, AlertCircle, Upload, FileText, X } from 'lucide-react';
 import { usePostVenda, NovoChamado, ChamadoPrioridade } from '../hooks/usePostVenda';
 import { TIPO_DEMANDA_OPTIONS, CANAL_ORIGEM_OPTIONS, PRIORIDADE_LABELS, BRANCH_OPTIONS } from '../lib/permissions';
-import { PatientAutocomplete } from '@/neohub/components/PatientAutocomplete';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
