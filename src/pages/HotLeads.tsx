@@ -134,6 +134,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   // Effective user id/state for filtering (simulated or real)
   const effectiveUserId = simulatedUserId || user?.id;
   const effectiveUserState = simulatedUserId ? (simulatedUser?.address_state || null) : (user?.state || null);
+  // Admin is viewing as admin (not simulating a specific user)
+  const isAdminDirectView = realIsAdmin && !simulatedUserId;
 
   // Sound + browser notification for new leads - DON'T auto-fetch, just flag
   useLeadNotificationSound({
