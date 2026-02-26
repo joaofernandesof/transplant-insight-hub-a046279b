@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { useProcessTemplates, useProcessSteps, ProcessStep } from '@/hooks/useProcessTemplates';
+import { useStaffRoles } from '@/neohub/hooks/useStaffRoles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -25,16 +26,6 @@ const STEP_TYPE_CONFIG: Record<string, { label: string; icon: React.ReactNode; c
   approval: { label: 'Aprovação', icon: <ShieldCheck className="h-3.5 w-3.5" />, color: 'bg-amber-100 text-amber-700 border-amber-200' },
 };
 
-const ROLE_OPTIONS = [
-  { value: 'coordenador', label: 'Coordenador' },
-  { value: 'enfermeiro', label: 'Enfermeiro(a)' },
-  { value: 'tecnico', label: 'Técnico(a)' },
-  { value: 'recepcionista', label: 'Recepcionista' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'medico', label: 'Médico(a)' },
-  { value: 'administrativo', label: 'Administrativo' },
-];
-
 const RELATIVE_DAY_OPTIONS = [
   { value: -30, label: 'D-30' }, { value: -20, label: 'D-20' }, { value: -15, label: 'D-15' },
   { value: -10, label: 'D-10' }, { value: -7, label: 'D-7' }, { value: -5, label: 'D-5' },
@@ -56,6 +47,7 @@ export default function ProcessEditorPage() {
   const navigate = useNavigate();
   const { templates, updateTemplate } = useProcessTemplates();
   const { steps, isLoading, createStep, updateStep, deleteStep, reorderSteps } = useProcessSteps(id);
+  const { roles: staffRoles, rolesByDepartment, departmentLabels } = useStaffRoles();
   
   const template = useMemo(() => templates.find(t => t.id === id), [templates, id]);
   
@@ -221,7 +213,7 @@ export default function ProcessEditorPage() {
                 {steps.map((step, index) => {
                   const typeCfg = STEP_TYPE_CONFIG[step.step_type] || STEP_TYPE_CONFIG.manual;
                   const isExpanded = expandedStep === step.id;
-                  const roleLabel = ROLE_OPTIONS.find(r => r.value === step.responsible_role)?.label || step.responsible_role;
+                  const roleLabel = staffRoles.find(r => r.code === step.responsible_role)?.name || step.responsible_role;
                   const hasDeps = step.dependencies && step.dependencies.length > 0;
                   const meta = (step.metadata || {}) as Record<string, unknown>;
                   const phaseColor = (meta.phase_color as string) || template.color;
@@ -383,10 +375,17 @@ export default function ProcessEditorPage() {
               <div className="space-y-2">
                 <Label>Responsável</Label>
                 <Select value={stepForm.responsible_role} onValueChange={v => setStepForm(p => ({ ...p, responsible_role: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecionar cargo..." /></SelectTrigger>
                   <SelectContent>
-                    {ROLE_OPTIONS.map(r => (
-                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    {Object.entries(rolesByDepartment).map(([dept, deptRoles]) => (
+                      <React.Fragment key={dept}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                          {departmentLabels[dept] || dept}
+                        </div>
+                        {deptRoles.map(r => (
+                          <SelectItem key={r.code} value={r.code}>{r.name}</SelectItem>
+                        ))}
+                      </React.Fragment>
                     ))}
                   </SelectContent>
                 </Select>
