@@ -66,7 +66,8 @@ const SLA_COLORS = {
 };
 
 export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProps) {
-  const { chamados, isLoading } = usePostVenda();
+  const { chamados, isLoading, refetch } = usePostVenda();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
