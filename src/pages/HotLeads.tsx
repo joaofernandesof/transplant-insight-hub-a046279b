@@ -821,7 +821,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                         key={lead.id}
                         lead={lead}
                         claimerName={getClaimerName(lead.claimed_by)}
-                        isOwned
+                        isOwned={!isAdminDirectView || lead.claimed_by === effectiveUserId}
                         onRelease={releaseLead}
                         onUpdateOutcome={showOutcomeActions ? handleUpdateOutcome : undefined}
                         selected={selectedLeads.has(lead.id)}
