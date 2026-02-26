@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { useProcessTemplates, useProcessSteps, ProcessStep } from '@/hooks/useProcessTemplates';
 import { useStaffRoles } from '@/neohub/hooks/useStaffRoles';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -55,8 +57,22 @@ export default function ProcessEditorPage() {
   const [editingStep, setEditingStep] = useState<ProcessStep | null>(null);
   const [stepForm, setStepForm] = useState({
     name: '', description: '', step_type: 'manual' as string,
-    responsible_role: '', relative_day: '' as string, duration_hours: '24',
+    responsible_role: '', responsible_user_id: '', relative_day: '' as string, duration_hours: '24',
     is_required: true, dependencies: [] as string[],
+  });
+
+  // Fetch system users (collaborators)
+  const { data: systemUsers = [] } = useQuery({
+    queryKey: ['neoteam-system-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('neohub_users')
+        .select('id, full_name, email')
+        .eq('is_active', true)
+        .order('full_name');
+      if (error) throw error;
+      return data || [];
+    },
   });
   const [expandedStep, setExpandedStep] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -77,7 +93,7 @@ export default function ProcessEditorPage() {
     setEditingStep(null);
     setStepForm({
       name: '', description: '', step_type: 'manual',
-      responsible_role: '', relative_day: '', duration_hours: '24',
+      responsible_role: '', responsible_user_id: '', relative_day: '', duration_hours: '24',
       is_required: true, dependencies: [],
     });
     setShowStepDialog(true);
@@ -90,6 +106,7 @@ export default function ProcessEditorPage() {
       description: step.description || '',
       step_type: step.step_type,
       responsible_role: step.responsible_role || '',
+      responsible_user_id: step.responsible_user_id || '',
       relative_day: step.relative_day?.toString() || '',
       duration_hours: step.duration_hours.toString(),
       is_required: step.is_required,
@@ -105,6 +122,7 @@ export default function ProcessEditorPage() {
       description: stepForm.description || null,
       step_type: stepForm.step_type,
       responsible_role: stepForm.responsible_role || null,
+      responsible_user_id: stepForm.responsible_user_id || null,
       relative_day: stepForm.relative_day ? parseInt(stepForm.relative_day) : null,
       duration_hours: parseInt(stepForm.duration_hours) || 24,
       is_required: stepForm.is_required,
@@ -214,11 +232,12 @@ export default function ProcessEditorPage() {
                   const typeCfg = STEP_TYPE_CONFIG[step.step_type] || STEP_TYPE_CONFIG.manual;
                   const isExpanded = expandedStep === step.id;
                   const roleLabel = staffRoles.find(r => r.code === step.responsible_role)?.name || step.responsible_role;
+                  const userName = systemUsers.find(u => u.id === step.responsible_user_id)?.full_name;
                   const hasDeps = step.dependencies && step.dependencies.length > 0;
                   const meta = (step.metadata || {}) as Record<string, unknown>;
                   const phaseColor = (meta.phase_color as string) || template.color;
                   const phaseLabel = meta.phase_label as string | undefined;
-                  const responsibleName = meta.responsible_name as string | undefined;
+                  const responsibleName = userName || (meta.responsible_name as string | undefined);
 
                   return (
                     <div
@@ -373,7 +392,7 @@ export default function ProcessEditorPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Responsável</Label>
+                <Label>Cargo / Setor</Label>
                 <Select value={stepForm.responsible_role} onValueChange={v => setStepForm(p => ({ ...p, responsible_role: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecionar cargo..." /></SelectTrigger>
                   <SelectContent>
@@ -390,6 +409,18 @@ export default function ProcessEditorPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Responsável (Usuário)</Label>
+              <Select value={stepForm.responsible_user_id} onValueChange={v => setStepForm(p => ({ ...p, responsible_user_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecionar usuário responsável..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum (apenas cargo)</SelectItem>
+                  {systemUsers.map(u => (
+                    <SelectItem key={u.id} value={u.id}>{u.full_name}{u.email ? ` (${u.email})` : ''}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
