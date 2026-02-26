@@ -1,0 +1,1 @@
+ALTER TABLE public.group_contacts ADD COLUMN responsavel text;
