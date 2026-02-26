@@ -24,6 +24,8 @@ export interface HotLead {
   available_at: string | null;
   lead_outcome: LeadOutcome | null;
   outcome_at: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 const OVERDUE_DAYS = 7;
