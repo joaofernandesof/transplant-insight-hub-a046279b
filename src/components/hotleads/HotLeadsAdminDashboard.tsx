@@ -604,6 +604,7 @@ export function HotLeadsAdminDashboard() {
             <TrendingUp className="h-4 w-4 text-orange-500" />
             Linha do Tempo — Leads por Dia
             <Badge variant="outline" className="font-normal text-[10px]">30 dias</Badge>
+            <span className="text-[10px] text-muted-foreground font-normal ml-auto">Clique em um ponto para ver detalhes</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
