@@ -81,11 +81,13 @@ export function HotLeadsAdminDashboard() {
         if (data.length < pageSize) break;
         from += pageSize;
       }
-      setOutcomeLeads(allData);
-      const vendido = allData.filter((l: any) => l.lead_outcome === 'vendido').length;
-      const em_atendimento = allData.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
-      const descartado = allData.filter((l: any) => l.lead_outcome === 'descartado').length;
-      const sem_desfecho = allData.filter((l: any) => !l.lead_outcome).length;
+      // Filter out test leads
+      const filtered = allData.filter((l: any) => !l.name?.toLowerCase().includes('teste'));
+      setOutcomeLeads(filtered);
+      const vendido = filtered.filter((l: any) => l.lead_outcome === 'vendido').length;
+      const em_atendimento = filtered.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
+      const descartado = filtered.filter((l: any) => l.lead_outcome === 'descartado').length;
+      const sem_desfecho = filtered.filter((l: any) => !l.lead_outcome).length;
       setOutcomeStats({ vendido, em_atendimento, descartado, sem_desfecho });
     }
     fetchOutcomes();
