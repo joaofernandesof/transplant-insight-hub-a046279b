@@ -101,7 +101,7 @@ export default function NeoTeamTasks() {
   const allTasks = useMemo(() => {
     const mappedSurgeryTasks: Task[] = surgeryTasks.map((st: any) => ({
       id: `surgery_${st.id}`,
-      title: st.title,
+      title: st.patient_name ? `${st.patient_name}: ${st.title}` : st.title,
       description: `${st.patient_name || ''} • ${st.responsible_name || ''}`,
       status: (st.status === 'overdue' ? 'todo' : st.status === 'active' || st.status === 'pending' ? 'todo' : st.status === 'completed' ? 'done' : 'todo') as TaskStatus,
       priority: (st.status === 'overdue' ? 'urgent' : 'high') as TaskPriority,
