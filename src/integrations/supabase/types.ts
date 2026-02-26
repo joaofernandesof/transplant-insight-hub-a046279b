@@ -10883,8 +10883,10 @@ export type Database = {
           id: string
           interest_level: string | null
           language: string | null
+          latitude: number | null
           lead_code: string
           lead_outcome: string | null
+          longitude: number | null
           name: string
           notes: string | null
           outcome_at: string | null
@@ -10919,8 +10921,10 @@ export type Database = {
           id?: string
           interest_level?: string | null
           language?: string | null
+          latitude?: number | null
           lead_code: string
           lead_outcome?: string | null
+          longitude?: number | null
           name: string
           notes?: string | null
           outcome_at?: string | null
@@ -10955,8 +10959,10 @@ export type Database = {
           id?: string
           interest_level?: string | null
           language?: string | null
+          latitude?: number | null
           lead_code?: string
           lead_outcome?: string | null
+          longitude?: number | null
           name?: string
           notes?: string | null
           outcome_at?: string | null
@@ -12265,6 +12271,8 @@ export type Database = {
           instagram_personal: string | null
           is_active: boolean | null
           last_seen_at: string | null
+          latitude: number | null
+          longitude: number | null
           marital_status: string | null
           nationality: string | null
           onboarding_completed: boolean | null
@@ -12306,6 +12314,8 @@ export type Database = {
           instagram_personal?: string | null
           is_active?: boolean | null
           last_seen_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
           marital_status?: string | null
           nationality?: string | null
           onboarding_completed?: boolean | null
@@ -12347,6 +12357,8 @@ export type Database = {
           instagram_personal?: string | null
           is_active?: boolean | null
           last_seen_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
           marital_status?: string | null
           nationality?: string | null
           onboarding_completed?: boolean | null

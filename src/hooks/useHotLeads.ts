@@ -24,6 +24,8 @@ export interface HotLead {
   available_at: string | null;
   lead_outcome: LeadOutcome | null;
   outcome_at: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 const OVERDUE_DAYS = 7;
@@ -44,7 +46,7 @@ export function useHotLeads() {
 
       const { data: activeData, error: activeError } = await supabase
         .from('leads')
-        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags, available_at, lead_outcome, outcome_at')
+        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags, available_at, lead_outcome, outcome_at, latitude, longitude')
         .in('source', ['planilha', 'n8n'])
         .neq('release_status', 'queued')
         .order('created_at', { ascending: false })

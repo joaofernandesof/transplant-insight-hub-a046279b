@@ -14,6 +14,8 @@ import { useHotLeads } from '@/hooks/useHotLeads';
 import { useLeadNotificationSound } from '@/hooks/useLeadNotificationSound';
 import { useGamification } from '@/hooks/useGamification';
 import { useHotLeadsSettings } from '@/hooks/useHotLeadsSettings';
+import { useHotLeadsRadiusSetting } from '@/hooks/useHotLeadsRadiusSetting';
+import { haversineKm } from '@/utils/haversine';
 import {
   AvailableLeadCard,
   AcquiredLeadCard,
@@ -34,6 +36,7 @@ import { AdminTestLeadDialog } from '@/components/hotleads/AdminTestLeadDialog';
 import { OverdueLeadsPopup } from '@/components/hotleads/OverdueLeadsPopup';
 import { SaleFormDialog } from '@/components/hotleads/SaleFormDialog';
 import { SaleCelebrationPopup } from '@/components/hotleads/SaleCelebrationPopup';
+import { HotLeadsAdminRadiusSettings } from '@/components/hotleads/HotLeadsAdminRadiusSettings';
 
 import type { HotLead, LeadTab } from '@/hooks/useHotLeads';
 import { CompleteProfileGate } from '@/components/hotleads/CompleteProfileGate';
@@ -74,6 +77,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     hotleadsProfiles,
   } = useHotLeads();
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
+  const { radiusKm } = useHotLeadsRadiusSetting();
   const { awardPoints } = useGamification();
 
   // Wrapper to clear "new leads" flag when manually refreshing
@@ -95,10 +99,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [isSettingsOpen, setIsSettingsOpen] = useState(initialView === 'settings');
 
   useEffect(() => {
-    if (initialView === 'settings') {
+    if (initialView === 'settings' && !isAdmin) {
       setIsSettingsOpen(true);
     }
-  }, [initialView]);
+  }, [initialView, isAdmin]);
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
@@ -109,14 +113,14 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
   // Admin user simulation
   const [simulatedUserId, setSimulatedUserId] = useState<string>('');
-  const [simulatedUserList, setSimulatedUserList] = useState<{ user_id: string; full_name: string; email: string; avatar_url: string | null; address_state: string | null }[]>([]);
+  const [simulatedUserList, setSimulatedUserList] = useState<{ user_id: string; full_name: string; email: string; avatar_url: string | null; address_state: string | null; latitude: number | null; longitude: number | null }[]>([]);
 
   useEffect(() => {
     if (!isAdmin) return;
     async function fetchLicensees() {
       const { data } = await supabase
         .from('neohub_users')
-        .select('user_id, full_name, email, avatar_url, address_state, neohub_user_profiles!inner(profile, is_active)')
+        .select('user_id, full_name, email, avatar_url, address_state, latitude, longitude, neohub_user_profiles!inner(profile, is_active)')
         .eq('neohub_user_profiles.profile', 'licenciado')
         .eq('neohub_user_profiles.is_active', true)
         .eq('is_active', true)
@@ -127,6 +131,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         email: u.email,
         avatar_url: u.avatar_url,
         address_state: u.address_state,
+        latitude: u.latitude,
+        longitude: u.longitude,
       })));
     }
     fetchLicensees();
@@ -138,6 +144,33 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const effectiveUserState = simulatedUserId ? (simulatedUser?.address_state || null) : (user?.state || null);
   // Admin is viewing as admin (not simulating a specific user)
   const isAdminDirectView = realIsAdmin && !simulatedUserId;
+
+  // Fetch current user's coordinates for radius filtering
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    if (!user?.id) return;
+    async function fetchCoords() {
+      const { data } = await supabase
+        .from('neohub_users')
+        .select('latitude, longitude')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      if (data?.latitude && data?.longitude) {
+        setUserCoords({ lat: data.latitude as number, lng: data.longitude as number });
+      }
+    }
+    fetchCoords();
+  }, [user?.id]);
+
+  // Effective coordinates for filtering (simulated user or real user)
+  const effectiveCoords = useMemo(() => {
+    if (simulatedUserId && simulatedUser) {
+      return simulatedUser.latitude && simulatedUser.longitude
+        ? { lat: simulatedUser.latitude, lng: simulatedUser.longitude }
+        : null;
+    }
+    return userCoords;
+  }, [simulatedUserId, simulatedUser, userCoords]);
 
   // Sound + browser notification for new leads - DON'T auto-fetch, just flag
   useLeadNotificationSound({
@@ -341,20 +374,29 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   }, [leads, searchTerm, stateFilter, cityFilter, periodFilter, sortBy, userFilter]);
 
   // ── Tab subsets ──
-  // Disponíveis: unclaimed, available — non-admins only see leads from their state
-  // When admin is simulating a user, filter by that user's state
+  // Disponíveis: filter by radius (Haversine) when coordinates are available, fallback to state
   const filteredAvailable = useMemo(() => {
     const base = filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available');
-    if (simulatedUserId) {
-      // Simulating: filter by simulated user's state
-      if (!effectiveUserState) return [];
-      return base.filter(l => !l.state || l.state === effectiveUserState);
-    }
-    if (realIsAdmin) return base; // Admin real sempre vê todos
-    const userState = user?.state;
-    if (!userState) return [];
-    return base.filter(l => !l.state || l.state === userState);
-  }, [filteredLeads, realIsAdmin, user?.state, simulatedUserId, effectiveUserState]);
+    if (realIsAdmin && !simulatedUserId) return base; // Admin real sempre vê todos
+
+    const coords = effectiveCoords;
+    const state = effectiveUserState;
+
+    if (!coords && !state) return [];
+
+    return base.filter(l => {
+      // If both have coordinates, use Haversine radius
+      if (coords && l.latitude && l.longitude) {
+        const dist = haversineKm(coords.lat, coords.lng, l.latitude, l.longitude);
+        return dist <= radiusKm;
+      }
+      // Fallback: same state
+      if (state) {
+        return !l.state || l.state === state;
+      }
+      return false;
+    });
+  }, [filteredLeads, realIsAdmin, simulatedUserId, effectiveCoords, effectiveUserState, radiusKm]);
   
   // Adquiridos: admin sees ALL claimed with no outcome; user sees only their own
   const filteredAcquired = useMemo(() => 
@@ -616,6 +658,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
           <div className="mt-2">
             <HotLeadsAdminDashboard />
           </div>
+        ) : isAdmin && initialView === 'settings' ? (
+          <div className="mt-2">
+            <h2 className="text-lg font-bold mb-4">Configurações do HotLeads</h2>
+            <HotLeadsAdminRadiusSettings />
+          </div>
         ) : (
           <>
             {/* Admin User Simulation Selector */}
@@ -732,14 +779,17 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             </div>
           )}
 
-          {/* State restriction banner for non-admin users */}
-          {!isAdmin && user?.state && (
+          {/* Radius restriction banner for non-admin users */}
+          {!isAdmin && (user?.state || userCoords) && (
             <div className="mb-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 flex items-center gap-3">
               <div className="shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
                 <span className="text-sm">📍</span>
               </div>
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Exibindo apenas leads do estado <strong>{user.state}</strong>. Leads de outros estados estão restritos à sua região.
+                {userCoords
+                  ? <>Exibindo leads num raio de <strong>{radiusKm} km</strong> da sua localização.</>
+                  : <>Exibindo apenas leads do estado <strong>{user?.state}</strong>. Para filtro por raio, atualize suas coordenadas.</>
+                }
               </p>
             </div>
           )}
