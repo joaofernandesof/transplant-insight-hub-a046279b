@@ -58,7 +58,7 @@ export function StepSelectBusiness({
 
   const handleNichoClick = (nichoId: NichoType) => {
     // Se está bloqueado, não faz nada
-    if (BLOCKED_NICHOS.includes(nichoId)) return;
+    if (isNichoBlocked(nichoId)) return;
     setViewingNicho(nichoId);
   };
 
