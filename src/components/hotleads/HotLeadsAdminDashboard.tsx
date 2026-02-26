@@ -81,8 +81,16 @@ export function HotLeadsAdminDashboard() {
         if (data.length < pageSize) break;
         from += pageSize;
       }
-      // Filter out test leads
-      const filtered = allData.filter((l: any) => !l.name?.toLowerCase().includes('teste'));
+      // Filter out test leads and admin/internal users
+      const EXCLUDED_USERS = [
+        '00294ac4-0194-47bc-95ef-6efb83c316f7', // Administrador ByNeofolic
+        '1b58da47-d988-4f96-9847-ed2d8939505e', // TI Neo Folic
+        '9003cecf-7be7-45c7-8c53-1f4923c974f6', // Nicholas Barreto
+        '860ae553-aa79-4e54-af98-a90dd8317c15', // Lucas Araujo
+      ];
+      const filtered = allData.filter((l: any) => 
+        !l.name?.toLowerCase().includes('teste') && !EXCLUDED_USERS.includes(l.claimed_by)
+      );
       setOutcomeLeads(filtered);
       const vendido = filtered.filter((l: any) => l.lead_outcome === 'vendido').length;
       const em_atendimento = filtered.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
