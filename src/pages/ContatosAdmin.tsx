@@ -103,6 +103,7 @@ export default function ContatosAdmin() {
       whatsapp: c.whatsapp || '',
       email: c.email || '',
       observacao: c.observacao || '',
+      responsavel: c.responsavel || '',
     });
     setDialogOpen(true);
   };
