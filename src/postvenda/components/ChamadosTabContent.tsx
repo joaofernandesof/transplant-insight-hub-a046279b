@@ -531,6 +531,7 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
         initialTipoDemanda={isDistrato ? 'distrato' : undefined}
+        onSuccess={refetch}
       />
     </div>
   );
