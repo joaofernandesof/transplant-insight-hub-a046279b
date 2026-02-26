@@ -76,19 +76,29 @@ export function useAllLeadStats(): AllLeadStats {
         });
       }
 
+      // Exclude admin/internal users from licensee list
+      const EXCLUDED_USERS = [
+        '00294ac4-0194-47bc-95ef-6efb83c316f7', // Administrador ByNeofolic
+        '1b58da47-d988-4f96-9847-ed2d8939505e', // TI Neo Folic
+        '9003cecf-7be7-45c7-8c53-1f4923c974f6', // Nicholas Barreto
+        '860ae553-aa79-4e54-af98-a90dd8317c15', // Lucas Araujo
+      ];
+
       // Merge with licensee names - include all licensees even with 0 claims
-      const allLicensees: TopLicensee[] = licensees.map((lic: any) => ({
-        user_id: lic.user_id,
-        full_name: lic.full_name || lic.email,
-        email: lic.email,
-        avatar_url: lic.avatar_url,
-        total_claimed: claimStats[lic.user_id]?.total_claimed || 0,
-        first_claim: claimStats[lic.user_id]?.first_claim || '',
-        last_claim: claimStats[lic.user_id]?.last_claim || '',
-        total_online_seconds: onlineMap[lic.user_id] || 0,
-        city: lic.address_city || null,
-        state: lic.address_state || null,
-      }));
+      const allLicensees: TopLicensee[] = licensees
+        .filter((lic: any) => !EXCLUDED_USERS.includes(lic.user_id))
+        .map((lic: any) => ({
+          user_id: lic.user_id,
+          full_name: lic.full_name || lic.email,
+          email: lic.email,
+          avatar_url: lic.avatar_url,
+          total_claimed: claimStats[lic.user_id]?.total_claimed || 0,
+          first_claim: claimStats[lic.user_id]?.first_claim || '',
+          last_claim: claimStats[lic.user_id]?.last_claim || '',
+          total_online_seconds: onlineMap[lic.user_id] || 0,
+          city: lic.address_city || null,
+          state: lic.address_state || null,
+        }));
 
       allLicensees.sort((a, b) => b.total_claimed - a.total_claimed);
       setTopLicensees(allLicensees);
