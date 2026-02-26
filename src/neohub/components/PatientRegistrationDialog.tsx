@@ -32,7 +32,7 @@ interface PatientRegistrationDialogProps {
   onSuccess?: () => void;
 }
 
-const BRANCHES = ['FORTALEZA', 'SOBRAL', 'JUAZEIRO', 'TERESINA', 'SÃO LUÍS'];
+const BRANCHES = ['FORTALEZA', 'JUAZEIRO', 'SÃO PAULO'];
 const CATEGORIES = [
   'Categoria A - Hygor',
   'Categoria A - Patrick',
