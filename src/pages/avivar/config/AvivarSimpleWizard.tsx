@@ -21,7 +21,6 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   StepSelectBusiness,
   StepBusinessInfo,
-  StepPaymentsSimple,
   StepObjectivesSimple,
   StepFluxoSimple,
   StepFAQGenerator,
