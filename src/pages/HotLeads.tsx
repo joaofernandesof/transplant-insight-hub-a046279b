@@ -99,10 +99,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [isSettingsOpen, setIsSettingsOpen] = useState(initialView === 'settings');
 
   useEffect(() => {
-    if (initialView === 'settings') {
+    if (initialView === 'settings' && !isAdmin) {
       setIsSettingsOpen(true);
     }
-  }, [initialView]);
+  }, [initialView, isAdmin]);
   const [showSettingsRequired, setShowSettingsRequired] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isManualReleaseOpen, setIsManualReleaseOpen] = useState(false);
