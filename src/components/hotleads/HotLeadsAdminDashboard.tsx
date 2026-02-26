@@ -608,7 +608,13 @@ export function HotLeadsAdminDashboard() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={stats.byDay}>
+            <AreaChart data={stats.byDay} onClick={(e: any) => {
+                if (e?.activePayload?.[0]?.payload?.rawDate) {
+                  const raw = e.activePayload[0].payload.rawDate;
+                  const label = e.activePayload[0].payload.date;
+                  fetchDrillDownLeads('day', raw, `Leads do dia ${label}`);
+                }
+              }} style={{ cursor: 'pointer' }}>
               <defs>
                 <linearGradient id="gradTotal" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#f97316" stopOpacity={0.4} />
