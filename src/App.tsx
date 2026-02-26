@@ -441,6 +441,8 @@ function NeoTeamRoutes() {
   const CleaningRoutinePage = lazy(() => import('@/neohub/pages/neoteam/cleaning/CleaningRoutinePage'));
   const ClinicDashboardPage = lazy(() => import('@/clinic/pages/ClinicDashboard'));
   const NoDateQueuePage = lazy(() => import('@/clinic/pages/NoDateQueue'));
+  const ProcessLibraryPage = lazy(() => import('@/pages/neoteam/processos/ProcessLibraryPage'));
+  const ProcessEditorPage = lazy(() => import('@/pages/neoteam/processos/ProcessEditorPage'));
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
@@ -458,6 +460,8 @@ function NeoTeamRoutes() {
           <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
           <Route path="documents" element={<NeoTeamDocuments />} />
           <Route path="tasks" element={<NeoTeamTasks />} />
+          <Route path="processos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProcessLibraryPage /></Suspense>} />
+          <Route path="processos/:id" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProcessEditorPage /></Suspense>} />
           <Route path="events" element={<NeoTeamEvents />} />
           <Route path="galleries" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamGalleries /></Suspense>} />
           <Route path="anamnesis" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamAnamnesis /></Suspense>} />
