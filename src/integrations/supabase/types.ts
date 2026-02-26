@@ -263,6 +263,7 @@ export type Database = {
       }
       avivar_accounts: {
         Row: {
+          allowed_nichos: string[]
           created_at: string | null
           id: string
           is_active: boolean | null
@@ -273,6 +274,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          allowed_nichos?: string[]
           created_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -283,6 +285,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          allowed_nichos?: string[]
           created_at?: string | null
           id?: string
           is_active?: boolean | null

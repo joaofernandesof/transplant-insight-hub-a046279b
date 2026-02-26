@@ -13,9 +13,9 @@ import {
   NichoType, 
   SubnichoType, 
   NICHOS_CATEGORIES_UI,
-  BLOCKED_NICHOS,
   SUBNICHO_TO_NICHO
 } from '../../../types';
+import { useAccountNichos } from '@/hooks/useAccountNichos';
 
 interface StepSelectBusinessProps {
   selectedNicho: NichoType | null;
@@ -34,6 +34,7 @@ export function StepSelectBusiness({
   onViewingSubnichos,
   forceShowNichos = false
 }: StepSelectBusinessProps) {
+  const { isNichoBlocked } = useAccountNichos();
   const [viewingNicho, setViewingNicho] = useState<NichoType | null>(
     // Se já tem seleção e não está forçando nichos, mostrar os subnichos
     (!forceShowNichos && selectedNicho) ? 'saude' : null
@@ -57,7 +58,7 @@ export function StepSelectBusiness({
 
   const handleNichoClick = (nichoId: NichoType) => {
     // Se está bloqueado, não faz nada
-    if (BLOCKED_NICHOS.includes(nichoId)) return;
+    if (isNichoBlocked(nichoId)) return;
     setViewingNicho(nichoId);
   };
 
@@ -170,7 +171,7 @@ export function StepSelectBusiness({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
         {NICHOS_CATEGORIES_UI.map((nicho) => {
-          const isBlocked = BLOCKED_NICHOS.includes(nicho.id);
+          const isBlocked = isNichoBlocked(nicho.id);
           const isSelected = selectedNicho === nicho.id || 
             (selectedNicho === 'saude' && nicho.id === 'saude') ||
             (selectedNicho === 'estetica' && nicho.id === 'saude'); // 'saude' na UI representa ambos
