@@ -34,7 +34,7 @@ import {
   AgentConfig, 
   INITIAL_CONFIG, 
   EMPTY_IMAGE_GALLERY,
-  PAYMENT_METHODS,
+  DEFAULT_WEEK_SCHEDULE,
   DEFAULT_WEEK_SCHEDULE,
   NichoType,
   SubnichoType,
