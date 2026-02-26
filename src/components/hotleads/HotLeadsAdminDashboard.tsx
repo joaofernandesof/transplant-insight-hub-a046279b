@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, Legend, LineChart, Line,
@@ -8,13 +10,15 @@ import {
 import {
   Flame, MapPin, Building2, TrendingUp, Clock, UserCheck, Target,
   BarChart3, Lightbulb, Zap, AlertTriangle, CheckCircle2, Trophy, Crown, Medal, User,
-  XCircle, ShoppingCart, Stethoscope,
+  XCircle, ShoppingCart, Stethoscope, Eye, ArrowLeft,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAllLeadStats } from '@/hooks/useAllLeadStats';
 import { supabase } from '@/integrations/supabase/client';
 import { BrazilMapChart } from '@/components/hotleads/BrazilMapChart';
+import { LicenseeDashboard } from '@/components/hotleads/LicenseeDashboard';
+import type { HotLead } from '@/hooks/useHotLeads';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
