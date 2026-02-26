@@ -127,6 +127,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda, onSu
       // TODO: Upload PDF file to storage if needed
       onOpenChange(false);
       resetForm();
+      onSuccess?.();
     } finally {
       setIsSubmitting(false);
     }
