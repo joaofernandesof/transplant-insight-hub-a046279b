@@ -77,7 +77,6 @@ export default function AvivarSimpleWizard() {
   const [forceNichosView, setForceNichosView] = useState(false); // Para forçar volta aos nichos
   const [config, setConfig] = useState<AgentConfig>(() => ({
     ...INITIAL_CONFIG,
-    paymentMethods: [...PAYMENT_METHODS],
     schedule: DEFAULT_WEEK_SCHEDULE,
     createdAt: new Date().toISOString(),
   }));
