@@ -13,9 +13,9 @@ import {
   NichoType, 
   SubnichoType, 
   NICHOS_CATEGORIES_UI,
-  BLOCKED_NICHOS,
   SUBNICHO_TO_NICHO
 } from '../../../types';
+import { useAccountNichos } from '@/hooks/useAccountNichos';
 
 interface StepSelectBusinessProps {
   selectedNicho: NichoType | null;
