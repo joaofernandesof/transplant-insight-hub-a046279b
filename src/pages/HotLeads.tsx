@@ -286,33 +286,39 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
   // ── Tab subsets ──
   // Disponíveis: unclaimed, available — non-admins only see leads from their state
+  // When admin is simulating a user, filter by that user's state
   const filteredAvailable = useMemo(() => {
     const base = filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available');
-    if (realIsAdmin) return base; // Admin real sempre vê todos, mesmo simulando licenciado
+    if (simulatedUserId) {
+      // Simulating: filter by simulated user's state
+      if (!effectiveUserState) return [];
+      return base.filter(l => !l.state || l.state === effectiveUserState);
+    }
+    if (realIsAdmin) return base; // Admin real sempre vê todos
     const userState = user?.state;
-    if (!userState) return []; // Sem estado definido = não pode ver nenhum lead disponível
+    if (!userState) return [];
     return base.filter(l => !l.state || l.state === userState);
-  }, [filteredLeads, realIsAdmin, user?.state]);
+  }, [filteredLeads, realIsAdmin, user?.state, simulatedUserId, effectiveUserState]);
   
-  // Adquiridos: claimed by me, NO outcome yet
+  // Adquiridos: claimed by effective user, NO outcome yet
   const filteredAcquired = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id && !l.lead_outcome), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => l.claimed_by === effectiveUserId && !l.lead_outcome), [filteredLeads, effectiveUserId]);
   
-  // Em Atendimento: claimed by me, outcome = em_atendimento
+  // Em Atendimento: claimed by effective user, outcome = em_atendimento
   const filteredInProgress = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'em_atendimento'), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'em_atendimento'), [filteredLeads, effectiveUserId]);
   
-  // Vendido: claimed by me, outcome = vendido
+  // Vendido: claimed by effective user, outcome = vendido
   const filteredSold = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'vendido'), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'vendido'), [filteredLeads, effectiveUserId]);
   
-  // Descartado: claimed by me, outcome = descartado
+  // Descartado: claimed by effective user, outcome = descartado
   const filteredDiscarded = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'descartado'), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'descartado'), [filteredLeads, effectiveUserId]);
   
-  // Indisponível: claimed by OTHER users
+  // Indisponível: claimed by OTHER users (not effective user)
   const filteredUnavailable = useMemo(() => 
-    filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== user?.id), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== effectiveUserId), [filteredLeads, effectiveUserId]);
 
   // Tab definitions
   const TAB_CONFIG: { key: LeadTab; label: string; color: string; alert?: boolean }[] = [
