@@ -466,21 +466,12 @@ export default function AvivarSimpleWizard() {
         );
       case 2:
         return (
-          <StepServicesOnly
-            services={config.services}
-            nicho={config.nicho}
-            subnicho={config.subnicho}
-            onServicesChange={(services) => updateConfig({ services })}
-          />
-        );
-      case 3:
-        return (
           <StepPaymentsSimple
             paymentMethods={config.paymentMethods}
             onPaymentsChange={(paymentMethods) => updateConfig({ paymentMethods })}
           />
         );
-      case 4:
+      case 3:
         return (
           <StepObjectivesSimple
             objectives={config.agentObjectives}
@@ -489,7 +480,7 @@ export default function AvivarSimpleWizard() {
             subnicho={config.subnicho}
           />
         );
-      case 5:
+      case 4:
         return (
           <StepFluxoSimple
             fluxoAtendimento={config.fluxoAtendimento}
@@ -499,7 +490,7 @@ export default function AvivarSimpleWizard() {
             onChange={(fluxoAtendimento) => updateConfig({ fluxoAtendimento })}
           />
         );
-      case 6:
+      case 5:
         return (
           <StepFAQGenerator
             nicho={config.nicho}
@@ -521,7 +512,7 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 7:
+      case 6:
         return (
           <StepKnowledgeSimple
             knowledgeFiles={config.knowledgeFiles || []}
@@ -529,14 +520,14 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 8:
+      case 7:
         return (
           <StepImagesSimple
             gallery={config.imageGallery}
             onChange={(imageGallery) => updateConfig({ imageGallery })}
           />
         );
-      case 9:
+      case 8:
         return (
           <StepReviewSimple
             config={config}
