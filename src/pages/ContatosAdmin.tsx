@@ -41,6 +41,7 @@ interface GroupContact {
   whatsapp: string | null;
   email: string | null;
   observacao: string | null;
+  responsavel: string | null;
   is_active: boolean;
   order_index: number;
 }
@@ -54,6 +55,7 @@ const emptyForm = {
   whatsapp: '',
   email: '',
   observacao: '',
+  responsavel: '',
 };
 
 export default function ContatosAdmin() {
@@ -101,6 +103,7 @@ export default function ContatosAdmin() {
       whatsapp: c.whatsapp || '',
       email: c.email || '',
       observacao: c.observacao || '',
+      responsavel: c.responsavel || '',
     });
     setDialogOpen(true);
   };
@@ -120,6 +123,7 @@ export default function ContatosAdmin() {
       whatsapp: form.whatsapp || null,
       email: form.email || null,
       observacao: form.observacao || null,
+      responsavel: form.responsavel || null,
     };
 
     if (editingId) {
@@ -200,8 +204,9 @@ export default function ContatosAdmin() {
                 <TableRow>
                   <TableHead>Empresa</TableHead>
                   <TableHead>Área</TableHead>
-                  <TableHead>Unidade</TableHead>
-                  <TableHead>WhatsApp</TableHead>
+                   <TableHead>Unidade</TableHead>
+                   <TableHead>Responsável</TableHead>
+                   <TableHead>WhatsApp</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>E-mail</TableHead>
                   <TableHead className="w-[100px]">Ações</TableHead>
@@ -210,15 +215,15 @@ export default function ContatosAdmin() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                      Carregando...
-                    </TableCell>
+                     <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                       Carregando...
+                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                      Nenhum contato encontrado
-                    </TableCell>
+                     <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                       Nenhum contato encontrado
+                     </TableCell>
                   </TableRow>
                 ) : (
                   filtered.map((c) => (
@@ -226,6 +231,7 @@ export default function ContatosAdmin() {
                       <TableCell className="font-medium">{c.empresa}</TableCell>
                       <TableCell>{c.area}</TableCell>
                       <TableCell>{c.unidade}</TableCell>
+                      <TableCell>{c.responsavel || <span className="text-muted-foreground text-xs">—</span>}</TableCell>
                       <TableCell>
                         {c.whatsapp ? (
                           <span className="flex items-center gap-1 text-green-600 text-sm">
@@ -315,6 +321,10 @@ export default function ContatosAdmin() {
                 <Label>Setor</Label>
                 <Input value={form.setor} onChange={e => setForm(p => ({ ...p, setor: e.target.value }))} placeholder="Opcional" />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Responsável</Label>
+              <Input value={form.responsavel} onChange={e => setForm(p => ({ ...p, responsavel: e.target.value }))} placeholder="Nome do responsável (opcional)" />
             </div>
             <div className="space-y-2">
               <Label>WhatsApp</Label>

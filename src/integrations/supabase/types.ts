@@ -7155,6 +7155,7 @@ export type Database = {
           is_active: boolean
           observacao: string | null
           order_index: number | null
+          responsavel: string | null
           setor: string | null
           telefone: string | null
           unidade: string
@@ -7170,6 +7171,7 @@ export type Database = {
           is_active?: boolean
           observacao?: string | null
           order_index?: number | null
+          responsavel?: string | null
           setor?: string | null
           telefone?: string | null
           unidade?: string
@@ -7185,6 +7187,7 @@ export type Database = {
           is_active?: boolean
           observacao?: string | null
           order_index?: number | null
+          responsavel?: string | null
           setor?: string | null
           telefone?: string | null
           unidade?: string
