@@ -99,7 +99,7 @@ export function SurgeryDetailPanel({
             {/* Quick Info */}
             <div className="flex flex-wrap gap-2">
               <Badge className={cn(getCategoryColor(surgery.category))}>
-                {surgery.category?.split(' - ')[0] || 'Sem categoria'}
+                {surgery.category || 'Sem categoria'}
               </Badge>
               <Badge variant="outline">
                 <Stethoscope className="h-3 w-3 mr-1" />
@@ -169,6 +169,47 @@ export function SurgeryDetailPanel({
 
             <Separator />
 
+            {/* Upsells & Upgrades */}
+            {(surgery.upgrade_value > 0 || surgery.upsell_value > 0) && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  🚀 Upsells & Upgrades
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className={cn(
+                    "rounded-lg p-4 border",
+                    surgery.upgrade_value > 0 
+                      ? "bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800" 
+                      : "bg-muted/30 border-transparent"
+                  )}>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">Upgrade</p>
+                    <p className={cn(
+                      "text-lg font-bold",
+                      surgery.upgrade_value > 0 ? "text-purple-700 dark:text-purple-300" : "text-muted-foreground"
+                    )}>
+                      {formatCurrency(surgery.upgrade_value)}
+                    </p>
+                  </div>
+                  <div className={cn(
+                    "rounded-lg p-4 border",
+                    surgery.upsell_value > 0 
+                      ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" 
+                      : "bg-muted/30 border-transparent"
+                  )}>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Upsell</p>
+                    <p className={cn(
+                      "text-lg font-bold",
+                      surgery.upsell_value > 0 ? "text-blue-700 dark:text-blue-300" : "text-muted-foreground"
+                    )}>
+                      {formatCurrency(surgery.upsell_value)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <Separator />
+
             {/* Financial */}
             <div className="space-y-3">
               <h4 className="text-sm font-medium flex items-center gap-2">
@@ -184,14 +225,6 @@ export function SurgeryDetailPanel({
                   <div>
                     <p className="text-xs text-muted-foreground">Indicação</p>
                     <p className="font-medium">{formatCurrency(surgery.referral_bonus)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground text-purple-600">Upgrade</p>
-                    <p className="font-medium text-purple-600">{formatCurrency(surgery.upgrade_value)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground text-blue-600">Upsell</p>
-                    <p className="font-medium text-blue-600">{formatCurrency(surgery.upsell_value)}</p>
                   </div>
                 </div>
                 <Separator />
