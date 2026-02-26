@@ -1,36 +1,27 @@
 
-# Ajustar meta diaria de HotLeads para 80
 
-## Contexto
-O valor de 50 leads/dia esta hardcoded em 3 locais e precisa ser atualizado para 80. Alem disso, o registro de hoje ja foi criado com target_count=50 e precisa ser corrigido.
+## Plano: Remover Etapa "Pagamentos" do Wizard Avivar
 
-## Alteracoes
+Mesma abordagem da remoção anterior de Serviços. O wizard passa de 9 para 8 etapas.
 
-### 1. Migracao SQL -- Atualizar RPC e registro de hoje
-- Atualizar a funcao `release_random_queued_lead`: trocar `v_target int := 50` para `v_target int := 80`
-- Atualizar a funcao `get_lead_release_info`: trocar o COALESCE default de 50 para 80
-- Atualizar o registro de hoje em `lead_release_daily`: `SET target_count = 80 WHERE release_date = CURRENT_DATE`
+### Alterações
 
-### 2. Edge Function `hotleads-release/index.ts`
-- Linha 223: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
-- Linha 274: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
+**1. `src/pages/avivar/config/AvivarSimpleWizard.tsx`**
+- Remover `StepPaymentsSimple` do import
+- Remover `PAYMENT_METHODS` do import de types (se não usado em outro lugar)
+- Remover `{ id: 'payments', ... }` do `SIMPLE_STEPS` (9 → 8 etapas)
+- Remover `case 2` (StepPaymentsSimple) do `renderStep()` e reindexar: 3→2, 4→3, 5→4, 6→5, 7→6, 8→7
+- Remover `case 2` do `canProceed()` e reindexar
+- Ajustar referência ao step FAQ: `currentStep === 5` → `currentStep === 4`
+- Remover `paymentMethods: [...PAYMENT_METHODS]` da inicialização do config (manter default vazio)
 
-### 3. Comportamento
-- Nenhuma liberacao manual sera feita agora
-- O cron continuara rodando normalmente e vai distribuir os 80 leads ao longo do dia usando a logica probabilistica existente
-- Como ja estamos no meio do dia com 0 liberados, a probabilidade por minuto vai subir naturalmente para compensar
+**2. `src/pages/avivar/config/components/steps/simple/index.ts`**
+- Remover export do `StepPaymentsSimple`
 
-## Detalhes tecnicos
+**3. `src/pages/avivar/config/types.ts`**
+- Remover entrada "Pagamentos" do `WIZARD_STEPS` legado (se existir)
 
-```text
-Locais de alteracao:
-+-----------------------------------------+------------------+
-| Arquivo / Funcao                        | Valor 50 -> 80   |
-+-----------------------------------------+------------------+
-| release_random_queued_lead (SQL RPC)    | v_target := 80   |
-| get_lead_release_info (SQL RPC)         | COALESCE(..., 80) |
-| hotleads-release/index.ts L223          | fallback || 80   |
-| hotleads-release/index.ts L274          | fallback || 80   |
-| lead_release_daily (hoje)               | target_count = 80 |
-+-----------------------------------------+------------------+
-```
+**4. Dados existentes**
+- Coluna `avivar_agents.payment_methods` permanece no banco — sem exclusão de dados
+- Os dados de pagamento continuarão sendo passados ao FAQ Generator via `config.paymentMethods` (valores default) para que a IA possa usar se necessário
+
