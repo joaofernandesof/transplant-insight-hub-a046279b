@@ -36,6 +36,7 @@ import { AdminTestLeadDialog } from '@/components/hotleads/AdminTestLeadDialog';
 import { OverdueLeadsPopup } from '@/components/hotleads/OverdueLeadsPopup';
 import { SaleFormDialog } from '@/components/hotleads/SaleFormDialog';
 import { SaleCelebrationPopup } from '@/components/hotleads/SaleCelebrationPopup';
+import { HotLeadsAdminRadiusSettings } from '@/components/hotleads/HotLeadsAdminRadiusSettings';
 
 import type { HotLead, LeadTab } from '@/hooks/useHotLeads';
 import { CompleteProfileGate } from '@/components/hotleads/CompleteProfileGate';
