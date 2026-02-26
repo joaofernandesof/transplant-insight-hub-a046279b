@@ -50,7 +50,9 @@ export interface ClinicSurgery {
   contractStatus: string | null;
   daysSinceSale: number | null;
   upgradeValue: number;
+  upgradeCategory: string | null;
   upsellValue: number;
+  upsellCategory: string | null;
   depositPaid: number;
   remainingPaid: number;
   balanceDue: number;
@@ -140,7 +142,9 @@ export function useClinicSurgeries() {
           contractStatus: null,
           daysSinceSale: null,
           upgradeValue: Number(s.upgrade_value) || 0,
+          upgradeCategory: (s as any).upgrade_category || null,
           upsellValue: Number(s.upsell_value) || 0,
+          upsellCategory: (s as any).upsell_category || null,
           depositPaid: Number(s.deposit_paid) || 0,
           remainingPaid: Number(s.remaining_paid) || 0,
           balanceDue: Number(s.balance_due) || 0,
@@ -229,6 +233,10 @@ export function useClinicSurgeries() {
       if (updates.d7Contact !== undefined) dbUpdates.d7_contact = updates.d7Contact;
       if (updates.d2Contact !== undefined) dbUpdates.d2_contact = updates.d2Contact;
       if (updates.d1Contact !== undefined) dbUpdates.d1_contact = updates.d1Contact;
+      if (updates.upgradeValue !== undefined) dbUpdates.upgrade_value = updates.upgradeValue;
+      if (updates.upgradeCategory !== undefined) dbUpdates.upgrade_category = updates.upgradeCategory;
+      if (updates.upsellValue !== undefined) dbUpdates.upsell_value = updates.upsellValue;
+      if (updates.upsellCategory !== undefined) dbUpdates.upsell_category = updates.upsellCategory;
 
       const { data, error } = await supabase
         .from('clinic_surgeries')

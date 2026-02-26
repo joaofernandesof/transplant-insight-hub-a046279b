@@ -4147,7 +4147,9 @@ export type Database = {
           surgery_date: string | null
           surgery_time: string | null
           trichotomy_datetime: string | null
+          upgrade_category: string | null
           upgrade_value: number | null
+          upsell_category: string | null
           upsell_value: number | null
           vgv: number | null
         }
@@ -4193,7 +4195,9 @@ export type Database = {
           surgery_date?: string | null
           surgery_time?: string | null
           trichotomy_datetime?: string | null
+          upgrade_category?: string | null
           upgrade_value?: number | null
+          upsell_category?: string | null
           upsell_value?: number | null
           vgv?: number | null
         }
@@ -4239,7 +4243,9 @@ export type Database = {
           surgery_date?: string | null
           surgery_time?: string | null
           trichotomy_datetime?: string | null
+          upgrade_category?: string | null
           upgrade_value?: number | null
+          upsell_category?: string | null
           upsell_value?: number | null
           vgv?: number | null
         }
