@@ -41,6 +41,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PortalSwitcherButton } from '@/components/shared/PortalSwitcherButton';
 import { useAvivarSidebarCounts } from '@/hooks/useAvivarSidebarCounts';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 const InternalChatFab = lazy(() => import('./components/internal-chat/InternalChatFab').then(m => ({ default: m.InternalChatFab })));
 
 const getMenuItems = (counts: { unreadChats: number; overdueTasks: number }) => [
