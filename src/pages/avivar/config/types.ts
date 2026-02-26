@@ -723,7 +723,7 @@ export const WIZARD_STEPS = [
   { id: 'professional', title: 'Profissional', description: 'Dados do profissional' },
   { id: 'clinic', title: 'Empresa', description: 'Informações da empresa' },
   { id: 'attendant', title: 'Atendente', description: 'Nome do assistente virtual' },
-  { id: 'services', title: 'Serviços', description: 'Serviços oferecidos' },
+  
   { id: 'consultation', title: 'Atendimento', description: 'Tipos de atendimento' },
   { id: 'objectives', title: 'Objetivos', description: 'Objetivo principal da IA' },
   { id: 'payment', title: 'Pagamento', description: 'Formas de pagamento' },
