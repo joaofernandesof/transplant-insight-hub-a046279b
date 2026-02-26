@@ -123,6 +123,7 @@ export default function ContatosAdmin() {
       whatsapp: form.whatsapp || null,
       email: form.email || null,
       observacao: form.observacao || null,
+      responsavel: form.responsavel || null,
     };
 
     if (editingId) {
