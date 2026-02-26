@@ -56,7 +56,6 @@ const useFAQAddedToKnowledge = () => {
 const SIMPLE_STEPS = [
   { id: 'business', title: 'Tipo de Negócio', description: 'Qual é seu segmento?' },
   { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
-  { id: 'services', title: 'Serviços', description: 'O que você oferece?' },
   { id: 'payments', title: 'Pagamentos', description: 'Formas de pagamento' },
   { id: 'objectives', title: 'Objetivos', description: 'Foco do agente' },
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
