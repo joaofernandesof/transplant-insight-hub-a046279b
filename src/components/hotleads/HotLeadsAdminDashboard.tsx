@@ -399,9 +399,9 @@ export function HotLeadsAdminDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="flex items-center justify-center">
                   {outcomePie.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={220}>
-                      <PieChart>
-                        <Pie data={outcomePie} cx="50%" cy="50%" outerRadius={90} innerRadius={45} paddingAngle={3} dataKey="value"
+                    <ResponsiveContainer width="100%" height={280}>
+                      <PieChart margin={{ top: 20, right: 40, bottom: 20, left: 40 }}>
+                        <Pie data={outcomePie} cx="50%" cy="50%" outerRadius={80} innerRadius={40} paddingAngle={3} dataKey="value"
                           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} fontSize={11}
                           cursor="pointer"
                           onClick={(_: any, idx: number) => {
