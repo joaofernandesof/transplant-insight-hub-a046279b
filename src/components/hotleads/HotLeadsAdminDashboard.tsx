@@ -13,6 +13,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAllLeadStats } from '@/hooks/useAllLeadStats';
+import { supabase } from '@/integrations/supabase/client';
 import { BrazilMapChart } from '@/components/hotleads/BrazilMapChart';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
