@@ -847,7 +847,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                     onAcquire={activeTab === 'available' ? handleAcquireClick : undefined}
                     cooldownRemaining={activeTab === 'available' ? cooldownRemaining : undefined}
                     formatCooldown={activeTab === 'available' ? formatCooldown : undefined}
-                    claimerName={activeTab === 'unavailable' ? getClaimerName(lead.claimed_by) : undefined}
+                    claimerName={(activeTab === 'unavailable' || isAdminDirectView) ? getClaimerName(lead.claimed_by) : undefined}
                     onRelease={releaseLead}
                     onUpdateOutcome={showOutcomeActions ? handleUpdateOutcome : undefined}
                   />
