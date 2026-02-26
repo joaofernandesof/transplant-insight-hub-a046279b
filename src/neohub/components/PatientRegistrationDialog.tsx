@@ -24,6 +24,7 @@ import {
 import { Loader2, UserPlus, Mail, MessageSquare, Check, User, FileText, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ProcedureCheckboxField } from '@/clinic/components/ProcedureCheckboxField';
 
 interface PatientRegistrationDialogProps {
   open: boolean;
@@ -32,7 +33,15 @@ interface PatientRegistrationDialogProps {
 }
 
 const BRANCHES = ['FORTALEZA', 'SOBRAL', 'JUAZEIRO', 'TERESINA', 'SÃO LUÍS'];
-const CATEGORIES = ['CAPILAR', 'ESTÉTICA', 'BARBA', 'SOBRANCELHA'];
+const CATEGORIES = [
+  'Categoria A - Hygor',
+  'Categoria A - Patrick',
+  'Categoria B',
+  'Categoria C',
+  'Categoria D',
+  'A DEFINIR',
+  'RETOUCHING',
+];
 const LEAD_SOURCES = ['INDICAÇÃO', 'GOOGLE', 'INSTAGRAM', 'FACEBOOK', 'TIKTOK', 'YOUTUBE', 'SITE', 'EVENTO', 'OUTROS'];
 const CONTRACT_STATUS = ['PENDENTE', 'ASSINADO', 'CANCELADO', 'EM_ANALISE'];
 
@@ -317,13 +326,11 @@ export function PatientRegistrationDialog({
                       </Select>
                     </div>
 
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="service_type">Procedimento/Serviço</Label>
-                      <Input
-                        id="service_type"
+                    <div className="md:col-span-2">
+                      <ProcedureCheckboxField
                         value={formData.service_type}
-                        onChange={(e) => setFormData({ ...formData, service_type: e.target.value })}
-                        placeholder="Ex: Transplante Capilar FUE"
+                        onChange={(val) => setFormData({ ...formData, service_type: val })}
+                        label="Procedimento/Serviço"
                       />
                     </div>
 
