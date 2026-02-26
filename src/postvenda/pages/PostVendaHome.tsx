@@ -34,7 +34,7 @@ function calcNpsScore(scores: number[]) {
 export default function PostVendaHome() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get('tab') || 'dashboard';
+  const activeTab = searchParams.get('tab') || 'chamados';
   const tipoFilter = searchParams.get('tipo') || undefined;
   
   const { chamados, stats } = usePostVenda();
