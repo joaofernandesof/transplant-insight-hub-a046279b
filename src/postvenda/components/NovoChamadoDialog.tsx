@@ -79,9 +79,11 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
     if (!isDistrato) return true;
     
     return (
-      selectedPatient !== null &&
+      formData.paciente_nome.trim() !== '' &&
       formData.branch &&
+      formData.branch !== 'outra' ? true : customBranch.trim() !== '' &&
       formData.distrato_valor_pago !== undefined &&
+      formData.distrato_valor_pago > 0 &&
       formData.distrato_data_pagamento_sinal &&
       triStateFields.termo_sinal_assinado !== undefined &&
       triStateFields.contrato_assinado !== undefined &&
@@ -93,8 +95,8 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
     e.preventDefault();
     
     if (isDistrato) {
-      if (!selectedPatient) {
-        toast.error('Selecione um paciente da lista');
+      if (!formData.paciente_nome.trim()) {
+        toast.error('Informe o nome do paciente');
         return;
       }
       if (!pdfFile) {
