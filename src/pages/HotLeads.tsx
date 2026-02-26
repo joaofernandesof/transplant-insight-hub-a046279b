@@ -105,6 +105,36 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [hasNewLeads, setHasNewLeads] = useState(false);
   const adminView = initialView === 'dashboard' ? 'dashboard' : 'marketplace';
 
+  // Admin user simulation
+  const [simulatedUserId, setSimulatedUserId] = useState<string>('');
+  const [simulatedUserList, setSimulatedUserList] = useState<{ user_id: string; full_name: string; email: string; avatar_url: string | null; address_state: string | null }[]>([]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    async function fetchLicensees() {
+      const { data } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name, email, avatar_url, address_state, neohub_user_profiles!inner(profile, is_active)')
+        .eq('neohub_user_profiles.profile', 'licenciado')
+        .eq('neohub_user_profiles.is_active', true)
+        .eq('is_active', true)
+        .order('full_name');
+      setSimulatedUserList((data || []).map((u: any) => ({
+        user_id: u.user_id,
+        full_name: u.full_name || u.email,
+        email: u.email,
+        avatar_url: u.avatar_url,
+        address_state: u.address_state,
+      })));
+    }
+    fetchLicensees();
+  }, [isAdmin]);
+
+  const simulatedUser = simulatedUserList.find(u => u.user_id === simulatedUserId);
+  // Effective user id/state for filtering (simulated or real)
+  const effectiveUserId = simulatedUserId || user?.id;
+  const effectiveUserState = simulatedUserId ? (simulatedUser?.address_state || null) : (user?.state || null);
+
   // Sound + browser notification for new leads - DON'T auto-fetch, just flag
   useLeadNotificationSound({
     onNewLead: () => setHasNewLeads(true),
