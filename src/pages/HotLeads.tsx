@@ -76,6 +76,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     hotleadsProfiles,
   } = useHotLeads();
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
+  const { radiusKm } = useHotLeadsRadiusSetting();
   const { awardPoints } = useGamification();
 
   // Wrapper to clear "new leads" flag when manually refreshing
