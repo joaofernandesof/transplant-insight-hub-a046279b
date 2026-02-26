@@ -616,9 +616,10 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
             <HotLeadsStats
               leads={filteredLeads}
               availableCount={filteredAvailable.length}
-              myLeadsCount={filteredAcquired.length + filteredInProgress.length}
-              acquiredCount={filteredUnavailable.length}
+              myLeadsCount={isAdminDirectView ? (filteredAcquired.length + filteredInProgress.length + filteredSold.length + filteredDiscarded.length) : (filteredAcquired.length + filteredInProgress.length)}
+              acquiredCount={isAdminDirectView ? 0 : filteredUnavailable.length}
               queuedCount={queuedCount}
+              isAdminView={isAdminDirectView}
             />
             {/* Motivational phrase */}
             <div className="relative text-center py-3 px-4 sm:py-4 sm:px-6 my-2 rounded-xl bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 border border-orange-200/60 dark:border-orange-800/40 overflow-hidden">
