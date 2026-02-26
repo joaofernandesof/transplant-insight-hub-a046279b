@@ -141,14 +141,14 @@ export default function PostVendaHome() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="inline-flex">
-          <TabsTrigger value="dashboard" className="gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Dashboard
-          </TabsTrigger>
           <TabsTrigger value="chamados" className="gap-2">
             <Ticket className="h-4 w-4" />
             Chamados
             <Badge variant="secondary" className="ml-1 h-5 px-1.5">{stats.total}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="dashboard" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Dashboard
           </TabsTrigger>
         </TabsList>
 
