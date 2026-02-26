@@ -412,10 +412,10 @@ export default function ProcessEditorPage() {
             </div>
             <div className="space-y-2">
               <Label>Responsável (Usuário)</Label>
-              <Select value={stepForm.responsible_user_id} onValueChange={v => setStepForm(p => ({ ...p, responsible_user_id: v }))}>
+              <Select value={stepForm.responsible_user_id || '__none__'} onValueChange={v => setStepForm(p => ({ ...p, responsible_user_id: v === '__none__' ? '' : v }))}>
                 <SelectTrigger><SelectValue placeholder="Selecionar usuário responsável..." /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum (apenas cargo)</SelectItem>
+                  <SelectItem value="__none__">Nenhum (apenas cargo)</SelectItem>
                   {systemUsers.map(u => (
                     <SelectItem key={u.id} value={u.id}>{u.full_name}{u.email ? ` (${u.email})` : ''}</SelectItem>
                   ))}
