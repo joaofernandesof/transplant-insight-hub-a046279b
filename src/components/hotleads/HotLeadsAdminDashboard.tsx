@@ -914,6 +914,17 @@ export function HotLeadsAdminDashboard() {
       </Card>
       </>
       )}
+
+      {/* Chart Drill-Down Dialog */}
+      <ChartDetailDialog
+        open={!!drillDown}
+        onOpenChange={(open) => { if (!open) setDrillDown(null); }}
+        title={drillDown?.title || ''}
+        subtitle={`${drillDownLeads.length} leads`}
+        leads={drillDownLeads}
+        licensees={stats.topLicensees}
+        isLoading={drillDownLoading}
+      />
     </div>
   );
 }
