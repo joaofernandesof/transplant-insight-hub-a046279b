@@ -65,17 +65,27 @@ export function HotLeadsAdminDashboard() {
 
   useEffect(() => {
     async function fetchOutcomes() {
-      const { data } = await supabase
-        .from('leads')
-        .select('id, name, phone, email, city, state, lead_outcome, claimed_by, claimed_at, source, created_at')
-        .not('claimed_by', 'is', null)
-        .in('source', ['planilha', 'n8n']);
-      if (!data) return;
-      setOutcomeLeads(data);
-      const vendido = data.filter((l: any) => l.lead_outcome === 'vendido').length;
-      const em_atendimento = data.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
-      const descartado = data.filter((l: any) => l.lead_outcome === 'descartado').length;
-      const sem_desfecho = data.filter((l: any) => !l.lead_outcome).length;
+      // Fetch all claimed leads (paginate to avoid 1000 row limit)
+      let allData: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data } = await supabase
+          .from('leads')
+          .select('id, name, phone, email, city, state, lead_outcome, claimed_by, claimed_at, source, created_at')
+          .not('claimed_by', 'is', null)
+          .in('source', ['planilha', 'n8n'])
+          .range(from, from + pageSize - 1);
+        if (!data || data.length === 0) break;
+        allData = allData.concat(data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+      setOutcomeLeads(allData);
+      const vendido = allData.filter((l: any) => l.lead_outcome === 'vendido').length;
+      const em_atendimento = allData.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
+      const descartado = allData.filter((l: any) => l.lead_outcome === 'descartado').length;
+      const sem_desfecho = allData.filter((l: any) => !l.lead_outcome).length;
       setOutcomeStats({ vendido, em_atendimento, descartado, sem_desfecho });
     }
     fetchOutcomes();
