@@ -243,6 +243,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: true,
     items: [
       { id: 'neoteam_tasks', code: 'neoteam_tasks', title: 'Tarefas', icon: ListTodo, route: '/neoteam/tasks' },
+      { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Orquestra Cirúrgica', icon: GitCompare, route: '/neoteam/processos', adminOnly: true },
       { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
       { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/postvenda' },
       { id: 'neoteam_cleaning', code: 'neoteam_cleaning', title: 'Limpeza', icon: Sparkles, route: '/neoteam/limpeza' },

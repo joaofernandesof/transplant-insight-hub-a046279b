@@ -13602,6 +13602,257 @@ export type Database = {
           },
         ]
       }
+      neoteam_process_instance_steps: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          instance_id: string
+          notes: string | null
+          started_at: string | null
+          status: string
+          step_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          instance_id: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+          step_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          instance_id?: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+          step_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_process_instance_steps_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoteam_process_instance_steps_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_process_instances: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          patient_name: string | null
+          started_at: string
+          status: string
+          surgery_id: string | null
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          patient_name?: string | null
+          started_at?: string
+          status?: string
+          surgery_id?: string | null
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          patient_name?: string | null
+          started_at?: string
+          status?: string
+          surgery_id?: string | null
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_process_instances_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_surgeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoteam_process_instances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_process_step_deps: {
+        Row: {
+          created_at: string
+          depends_on_step_id: string
+          id: string
+          step_id: string
+        }
+        Insert: {
+          created_at?: string
+          depends_on_step_id: string
+          id?: string
+          step_id: string
+        }
+        Update: {
+          created_at?: string
+          depends_on_step_id?: string
+          id?: string
+          step_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_process_step_deps_depends_on_step_id_fkey"
+            columns: ["depends_on_step_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoteam_process_step_deps_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_process_steps: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_hours: number | null
+          id: string
+          is_required: boolean
+          metadata: Json | null
+          name: string
+          order_index: number
+          relative_day: number | null
+          responsible_role: string | null
+          responsible_user_id: string | null
+          step_type: string
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_hours?: number | null
+          id?: string
+          is_required?: boolean
+          metadata?: Json | null
+          name: string
+          order_index?: number
+          relative_day?: number | null
+          responsible_role?: string | null
+          responsible_user_id?: string | null
+          step_type?: string
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_hours?: number | null
+          id?: string
+          is_required?: boolean
+          metadata?: Json | null
+          name?: string
+          order_index?: number
+          relative_day?: number | null
+          responsible_role?: string | null
+          responsible_user_id?: string | null
+          step_type?: string
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_process_steps_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_process_templates: {
+        Row: {
+          category: string | null
+          color: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category?: string | null
+          color?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       neoteam_schedule_blocks: {
         Row: {
           created_at: string
