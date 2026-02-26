@@ -8,7 +8,9 @@ import {
 import {
   Flame, MapPin, Building2, TrendingUp, Clock, UserCheck, Target,
   BarChart3, Lightbulb, Zap, AlertTriangle, CheckCircle2, Trophy, Crown, Medal, User,
+  XCircle, ShoppingCart, Stethoscope,
 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAllLeadStats } from '@/hooks/useAllLeadStats';
 import { BrazilMapChart } from '@/components/hotleads/BrazilMapChart';
