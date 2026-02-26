@@ -21,7 +21,7 @@ export interface AllLeadStats {
   claimed: number;
   byState: { state: string; total: number; available: number; claimed: number; queued: number }[];
   byCity: { city: string; total: number; available: number; claimed: number }[];
-  byDay: { date: string; total: number; claimed: number }[];
+  byDay: { date: string; rawDate: string; total: number; claimed: number }[];
   topLicensees: TopLicensee[];
   isLoading: boolean;
   weekLeads?: number;
