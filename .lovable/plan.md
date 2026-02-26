@@ -1,28 +1,41 @@
 
-## Ajuste da Mensagem de Primeiro Contato HotLeads
 
-### O que muda
+## Plano: Controle de nichos por conta Avivar
 
-1. **Atualizar a imagem** -- Substituir o arquivo `public/images/neofolic-licenca.jpeg` pela nova imagem enviada (logo "Licenca ByNeofolic - Transplante Capilar").
+### Problema
+Hoje `BLOCKED_NICHOS` é uma constante hardcoded global — bloqueia as mesmas categorias para todos os usuários. Precisamos de controle por conta.
 
-2. **Simplificar a mensagem** -- Remover as duas linhas extras que existem hoje:
-   - `"Se em algum momento você preferir não receber mais mensagens, é só me avisar 😊"`
-   - O link da imagem colado como texto no final
+### Solução
 
-   A mensagem ficara exatamente assim:
-   ```
-   Olá, {NOME DO PACIENTE}, tudo bem?
+**1. Adicionar coluna `allowed_nichos` na tabela `avivar_accounts`**
+- Tipo: `text[]` (array de NichoType)
+- Default: `['saude']` (comportamento atual — apenas saúde liberado)
+- Para a conta da Karine (`karine-mendes`): setar `['imobiliario']`
 
-   Meu nome é {NOME DO LICENCIADO} e falo da clínica {NOME DA CLÍNICA}.
+**2. Criar hook `useAccountNichos`**
+- Busca `allowed_nichos` da conta do usuário logado via `useAvivarAccount`
+- Retorna lista de nichos permitidos e função `isNichoBlocked()`
 
-   Recebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.
+**3. Atualizar `StepSelectBusiness.tsx`**
+- Substituir referência ao `BLOCKED_NICHOS` hardcoded pelo hook `useAccountNichos`
+- Um nicho é bloqueado se NÃO está na lista `allowed_nichos` da conta
+- Manter visual atual (badge "EM BREVE" + opacidade) para bloqueados
 
-   Você prefere que eu te ligue ou continuamos por aqui?
-   ```
+**4. Atualizar `StepTemplate.tsx`** (se usado)
+- Mesma lógica de bloqueio dinâmico
 
-3. **Manter o link da imagem** no final da mensagem para que o WhatsApp gere o preview automaticamente (a API do `wa.me` nao suporta anexos diretamente, apenas texto; incluir a URL e o metodo mais proximo de enviar a imagem).
+### Dados a inserir
+```sql
+-- Conta Karine: liberar apenas imobiliário
+UPDATE avivar_accounts 
+SET allowed_nichos = ARRAY['imobiliario']
+WHERE slug = 'karine-mendes';
 
-### Detalhes Tecnicos
+-- Contas existentes: manter saúde liberado (default)
+```
 
-- **Arquivo de imagem**: Copiar `user-uploads://WhatsApp_Image_2026-02-25_at_18.11.00.jpeg` para `public/images/neofolic-licenca.jpeg` (substituicao).
-- **Arquivo editado**: `src/hooks/useHotLeadsSettings.ts` -- linha 75, ajustar o template da mensagem removendo a frase sobre "nao receber mais mensagens" e o emoji, mantendo o link da imagem no final para preview.
+### Impacto
+- Zero mudança para usuários existentes (default = `['saude']`)
+- Karine verá apenas "Imobiliário" desbloqueado
+- Futuro: admin pode controlar nichos por conta sem alterar código
+
