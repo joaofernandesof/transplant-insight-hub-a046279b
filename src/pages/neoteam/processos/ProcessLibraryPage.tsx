@@ -76,7 +76,7 @@ export default function ProcessLibraryPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
               <Workflow className="h-7 w-7 text-[#1E3A8A]" />
-              Orquestra Cirúrgica
+              Fluxos de Processo
             </h1>
             <p className="text-muted-foreground mt-1">
               Gerencie os fluxos de processos vinculados à agenda cirúrgica.
