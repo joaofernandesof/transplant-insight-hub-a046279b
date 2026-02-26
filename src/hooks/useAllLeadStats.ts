@@ -115,6 +115,7 @@ export function useAllLeadStats(): AllLeadStats {
     // Format byDay dates
     const byDay = (rpcData.byDay || []).map((d: any) => ({
       date: `${d.date.slice(8, 10)}/${d.date.slice(5, 7)}`,
+      rawDate: d.date,
       total: d.total,
       claimed: d.claimed,
     }));
