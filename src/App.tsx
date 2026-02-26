@@ -45,6 +45,7 @@ const ExportUsersCSV = lazy(() => import("./pages/ExportUsersCSV"));
  const TransplanteLanding = lazy(() => import("./pages/TransplanteLanding"));
  const AvivarCapilarLanding = lazy(() => import("./pages/AvivarCapilarLanding"));
  const ConsultaCapilarLanding = lazy(() => import("./pages/ConsultaCapilarLanding"));
+ const ContatosOficiais = lazy(() => import("./pages/ContatosOficiais"));
 
 // ====================================
 // Pages - Flow.do (Gestão Operacional)
@@ -710,6 +711,9 @@ function AppRoutes() {
         <Route path="/consulta-capilar" element={<LazyRoute><ConsultaCapilarLanding /></LazyRoute>} />
         {/* Landing Page Avivar CRM Capilar - Página de Vendas */}
         <Route path="/avivar-capilar" element={<LazyRoute><AvivarCapilarLanding /></LazyRoute>} />
+
+        {/* Contatos Oficiais - Neo Group */}
+        <Route path="/contatos" element={<LazyRoute><ContatosOficiais /></LazyRoute>} />
 
         {/* Google Calendar OAuth Callback - fora do ProtectedRoute para não perder sessão no redirect */}
         <Route path="/avivar/google-callback" element={<LazyRoute><GoogleCalendarCallback /></LazyRoute>} />
