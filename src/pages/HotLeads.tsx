@@ -562,6 +562,55 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
           </div>
         ) : (
           <>
+            {/* Admin User Simulation Selector */}
+            {isAdmin && adminView === 'marketplace' && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-2.5 rounded-lg border bg-muted/30">
+                <div className="flex items-center gap-2 shrink-0">
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">Visualizar como:</span>
+                </div>
+                <Select value={simulatedUserId || '__admin__'} onValueChange={(v) => setSimulatedUserId(v === '__admin__' ? '' : v)}>
+                  <SelectTrigger className="h-8 text-xs w-full max-w-xs">
+                    <SelectValue placeholder="Administrador (você)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__admin__">
+                      <span className="font-medium">Administrador (visão padrão)</span>
+                    </SelectItem>
+                    {simulatedUserList.map(u => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">{u.full_name}</span>
+                          {u.address_state && (
+                            <Badge variant="outline" className="text-[10px] shrink-0">{u.address_state}</Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {simulatedUserId && simulatedUser && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 border border-primary/20">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={simulatedUser.avatar_url || ''} />
+                        <AvatarFallback className="text-[9px] bg-primary/20 text-primary">
+                          {simulatedUser.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium text-primary">{simulatedUser.full_name.split(' ')[0]}</span>
+                      {simulatedUser.address_state && (
+                        <span className="text-[10px] text-muted-foreground">({simulatedUser.address_state})</span>
+                      )}
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setSimulatedUserId('')}>
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <HotLeadsStats
               leads={filteredLeads}
               availableCount={filteredAvailable.length}
