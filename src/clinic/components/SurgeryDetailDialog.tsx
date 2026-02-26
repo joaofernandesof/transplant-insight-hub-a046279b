@@ -17,6 +17,7 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useSurgeryTasks } from '../hooks/useSurgeryTasks';
+import { ProcedureCheckboxField } from './ProcedureCheckboxField';
 
 interface SurgeryDetailDialogProps {
   surgery: ClinicSurgery | null;
@@ -84,13 +85,12 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
                 type="time"
                 onSave={handleFieldSave}
               />
-              <EditableField
-                icon={Scissors}
-                label="Procedimento"
-                value={surgery.procedure || ''}
-                field="procedure"
-                onSave={handleFieldSave}
-              />
+              <div className="col-span-2">
+                <ProcedureCheckboxField
+                  value={surgery.procedure || ''}
+                  onChange={(val) => handleFieldSave('procedure', val)}
+                />
+              </div>
               <EditableField
                 icon={Stethoscope}
                 label="Grau"
