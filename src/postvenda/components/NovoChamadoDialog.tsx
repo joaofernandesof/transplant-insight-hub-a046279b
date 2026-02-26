@@ -487,11 +487,11 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                     {/* Paciente */}
                     <div className="space-y-2">
                       <Label>Nome do Paciente *</Label>
-                      <PatientAutocomplete
+                      <Input
                         value={formData.paciente_nome}
-                        onChange={(value) => setFormData(prev => ({ ...prev, paciente_nome: value }))}
-                        onSelectPatient={handlePatientSelect}
+                        onChange={(e) => setFormData(prev => ({ ...prev, paciente_nome: e.target.value }))}
                         placeholder="Nome completo do paciente"
+                        required
                       />
                     </div>
 
