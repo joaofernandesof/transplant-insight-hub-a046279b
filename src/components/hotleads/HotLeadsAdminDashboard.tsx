@@ -34,6 +34,29 @@ const tooltipStyle = {
 export function HotLeadsAdminDashboard() {
   const stats = useAllLeadStats();
 
+  // Licensee view mode
+  const [viewMode, setViewMode] = useState<'admin' | 'licensee'>('admin');
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [licenseeLeads, setLicenseeLeads] = useState<HotLead[]>([]);
+  const [allLeadsForLicensee, setAllLeadsForLicensee] = useState<HotLead[]>([]);
+  const [licenseeLeadsLoading, setLicenseeLeadsLoading] = useState(false);
+
+  // Fetch leads for selected licensee
+  useEffect(() => {
+    if (viewMode !== 'licensee' || !selectedUserId) return;
+    async function fetchLeads() {
+      setLicenseeLeadsLoading(true);
+      const [myRes, allRes] = await Promise.all([
+        supabase.from('leads').select('*').eq('claimed_by', selectedUserId).in('source', ['planilha', 'n8n']),
+        supabase.from('leads').select('*').in('source', ['planilha', 'n8n']).not('claimed_by', 'is', null),
+      ]);
+      setLicenseeLeads((myRes.data || []) as HotLead[]);
+      setAllLeadsForLicensee((allRes.data || []) as HotLead[]);
+      setLicenseeLeadsLoading(false);
+    }
+    fetchLeads();
+  }, [viewMode, selectedUserId]);
+
   // Fetch lead outcome stats
   const [outcomeStats, setOutcomeStats] = useState({ vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0 });
   useEffect(() => {
