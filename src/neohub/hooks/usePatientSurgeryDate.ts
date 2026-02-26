@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useNeoHubAuth } from '@/neohub/contexts/NeoHubAuthContext';
+import { useUnifiedAuth as useNeoHubAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 
 export function usePatientSurgeryDate() {
