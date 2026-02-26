@@ -990,6 +990,15 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         overdueLeads={overdueLeads}
         onGoToTab={(tab) => setActiveTab(tab)}
       />
+
+      <SaleFormDialog
+        open={saleFormOpen}
+        onClose={() => { setSaleFormOpen(false); setSaleFormLeadId(null); }}
+        onConfirm={handleSaleConfirm}
+        leadName={saleFormLead?.name || ''}
+      />
+
+      <SaleCelebrationPopup />
     </div>
     </CompleteProfileGate>
   );
