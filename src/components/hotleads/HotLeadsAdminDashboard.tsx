@@ -30,6 +30,25 @@ const tooltipStyle = {
 export function HotLeadsAdminDashboard() {
   const stats = useAllLeadStats();
 
+  // Fetch lead outcome stats
+  const [outcomeStats, setOutcomeStats] = useState({ vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0 });
+  useEffect(() => {
+    async function fetchOutcomes() {
+      const { data } = await supabase
+        .from('leads')
+        .select('lead_outcome')
+        .not('claimed_by', 'is', null)
+        .in('source', ['planilha', 'n8n']);
+      if (!data) return;
+      const vendido = data.filter((l: any) => l.lead_outcome === 'vendido').length;
+      const em_atendimento = data.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
+      const descartado = data.filter((l: any) => l.lead_outcome === 'descartado').length;
+      const sem_desfecho = data.filter((l: any) => !l.lead_outcome).length;
+      setOutcomeStats({ vendido, em_atendimento, descartado, sem_desfecho });
+    }
+    fetchOutcomes();
+  }, []);
+
   // Per-KPI insights
   const kpiInsights = useMemo(() => {
     if (stats.isLoading || stats.total === 0) return { total: null, queued: null, available: null, claimed: null };
