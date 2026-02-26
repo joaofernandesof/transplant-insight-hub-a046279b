@@ -725,6 +725,7 @@ export const WIZARD_STEPS = [
   { id: 'attendant', title: 'Atendente', description: 'Nome do assistente virtual' },
   
   { id: 'consultation', title: 'Atendimento', description: 'Tipos de atendimento' },
+  { id: 'objectives', title: 'Objetivos', description: 'Objetivo principal da IA' },
   { id: 'images', title: 'Imagens', description: 'Fotos e portfólio' },
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
   { id: 'personalization', title: 'Personalidade', description: 'Identidade e objetivo da IA' },
