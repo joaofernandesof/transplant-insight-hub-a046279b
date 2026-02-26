@@ -55,6 +55,7 @@ const emptyForm = {
   whatsapp: '',
   email: '',
   observacao: '',
+  responsavel: '',
 };
 
 export default function ContatosAdmin() {
