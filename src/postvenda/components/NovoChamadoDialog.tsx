@@ -36,6 +36,7 @@ type TriStateValue = 'sim' | 'nao' | 'nao_encontrado' | undefined;
 export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: NovoChamadoDialogProps) {
   const { createChamado } = usePostVenda();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customBranch, setCustomBranch] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<{ id: string; full_name: string } | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [termoSinalFile, setTermoSinalFile] = useState<File | null>(null);
