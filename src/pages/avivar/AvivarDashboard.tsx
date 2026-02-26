@@ -44,6 +44,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import { QueueHealthWidget } from '@/pages/avivar/components/QueueHealthWidget';
+import { UtmMetricsCard } from '@/pages/avivar/components/UtmMetricsCard';
 import { format, subDays, startOfMonth, endOfMonth, startOfDay, subMonths, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -487,6 +488,9 @@ export default function AvivarDashboard() {
 
       {/* Queue Health - Super Admin Only */}
       <QueueHealthWidget />
+
+      {/* UTM Metrics */}
+      <UtmMetricsCard />
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
