@@ -212,17 +212,69 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   }, [acquireLead, startCooldown, awardPoints, availableLeads]);
 
   // Wrap updateLeadOutcome to award gamification points
+  // Sale form dialog state
+  const [saleFormOpen, setSaleFormOpen] = useState(false);
+  const [saleFormLeadId, setSaleFormLeadId] = useState<string | null>(null);
+  const saleFormLead = useMemo(() => leads.find(l => l.id === saleFormLeadId), [leads, saleFormLeadId]);
+
   const handleUpdateOutcome = useCallback(async (leadId: string, outcome: any): Promise<boolean> => {
+    // If marking as "vendido", show sale form first
+    if (outcome === 'vendido') {
+      setSaleFormLeadId(leadId);
+      setSaleFormOpen(true);
+      return true; // optimistic — actual update happens in handleSaleConfirm
+    }
     const success = await updateLeadOutcome(leadId, outcome);
     if (success) {
-      if (outcome === 'vendido') {
-        awardPoints('lead_sold', leadId);
-      } else if (outcome === 'em_atendimento') {
+      if (outcome === 'em_atendimento') {
         awardPoints('lead_in_service', leadId);
       }
     }
     return success;
   }, [updateLeadOutcome, awardPoints]);
+
+  const handleSaleConfirm = useCallback(async (procedure: string, value: number) => {
+    if (!saleFormLeadId) return;
+    const lead = leads.find(l => l.id === saleFormLeadId);
+    
+    // Update outcome + sale details
+    const success = await updateLeadOutcome(saleFormLeadId, 'vendido');
+    if (success) {
+      // Save sale details
+      await supabase.from('leads').update({ sold_procedure: procedure, sold_value: value } as any).eq('id', saleFormLeadId);
+      awardPoints('lead_sold', saleFormLeadId);
+      
+      // Insert sale notification for admin celebration popup
+      const claimerName = lead?.claimed_by ? getClaimerName(lead.claimed_by) : null;
+      await supabase.from('hotlead_sale_notifications' as any).insert({
+        lead_id: saleFormLeadId,
+        lead_name: lead?.name || 'Lead',
+        licensee_name: claimerName,
+        procedure_name: procedure,
+        sale_value: value,
+      });
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('notify-hotlead-event', {
+          body: {
+            event_type: 'lead_sold',
+            lead_name: lead?.name || 'Lead',
+            lead_phone: lead?.phone || '',
+            lead_city: lead?.city,
+            lead_state: lead?.state,
+            licensee_name: claimerName,
+            converted_value: value,
+            procedures_sold: [procedure],
+          },
+        });
+      } catch (e) {
+        console.error('Failed to send sale notification email:', e);
+      }
+    }
+    setSaleFormOpen(false);
+    setSaleFormLeadId(null);
+  }, [saleFormLeadId, leads, updateLeadOutcome, awardPoints, getClaimerName]);
 
   // Global filters
   const [searchTerm, setSearchTerm] = useState('');
