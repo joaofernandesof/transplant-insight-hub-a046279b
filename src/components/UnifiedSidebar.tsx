@@ -160,6 +160,14 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
   // Detect current portal based on route
   const currentPortal = useMemo(() => detectPortal(location.pathname), [location.pathname]);
   const portalConfig = PORTAL_CONFIG[currentPortal];
+  const { setTheme } = useTheme();
+
+  // Force light theme for HotLeads portal
+  useEffect(() => {
+    if (currentPortal === 'hotleads') {
+      setTheme('light');
+    }
+  }, [currentPortal, setTheme]);
 
   // Build profile route based on current portal
   const profileRoute = useMemo(() => {
