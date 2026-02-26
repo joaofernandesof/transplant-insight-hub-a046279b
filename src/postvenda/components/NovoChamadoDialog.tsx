@@ -527,41 +527,38 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                   </>
                 )}
 
-            {/* Tipo de Demanda para Distrato (hidden but needed) */}
-            {isDistrato && (
-              <input type="hidden" value="distrato" />
+                {/* Motivo / Contexto Geral */}
+                <div className="space-y-2">
+                  <Label>{isDistrato ? 'Contexto Geral' : 'Descrição do Motivo'}</Label>
+                  <Textarea
+                    value={formData.motivo_abertura}
+                    onChange={(e) => setFormData(prev => ({ ...prev, motivo_abertura: e.target.value }))}
+                    placeholder={isDistrato 
+                      ? "Descreva o contexto geral da solicitação de distrato..." 
+                      : "Descreva o motivo da abertura do chamado..."
+                    }
+                    rows={3}
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end gap-2 pt-4 border-t">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={
+                      isSubmitting || 
+                      (isDistrato ? !isDistratoValid() : (!formData.paciente_nome || !formData.tipo_demanda))
+                    }
+                  >
+                    {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {isDistrato ? 'Criar Solicitação de Distrato' : 'Criar Chamado'}
+                  </Button>
+                </div>
+              </>
             )}
-
-            {/* Motivo / Contexto Geral */}
-            <div className="space-y-2">
-              <Label>{isDistrato ? 'Contexto Geral' : 'Descrição do Motivo'}</Label>
-              <Textarea
-                value={formData.motivo_abertura}
-                onChange={(e) => setFormData(prev => ({ ...prev, motivo_abertura: e.target.value }))}
-                placeholder={isDistrato 
-                  ? "Descreva o contexto geral da solicitação de distrato..." 
-                  : "Descreva o motivo da abertura do chamado..."
-                }
-                rows={3}
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={
-                  isSubmitting || 
-                  (isDistrato ? !isDistratoValid() : (!formData.paciente_nome || !formData.tipo_demanda))
-                }
-              >
-                {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isDistrato ? 'Criar Solicitação de Distrato' : 'Criar Chamado'}
-              </Button>
-            </div>
           </form>
         </ScrollArea>
       </DialogContent>
