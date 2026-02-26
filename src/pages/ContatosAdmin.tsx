@@ -204,8 +204,9 @@ export default function ContatosAdmin() {
                 <TableRow>
                   <TableHead>Empresa</TableHead>
                   <TableHead>Área</TableHead>
-                  <TableHead>Unidade</TableHead>
-                  <TableHead>WhatsApp</TableHead>
+                   <TableHead>Unidade</TableHead>
+                   <TableHead>Responsável</TableHead>
+                   <TableHead>WhatsApp</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>E-mail</TableHead>
                   <TableHead className="w-[100px]">Ações</TableHead>
