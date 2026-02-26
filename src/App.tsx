@@ -715,6 +715,7 @@ function AppRoutes() {
 
         {/* Contatos Oficiais - Neo Group */}
         <Route path="/contatos" element={<LazyRoute><ContatosOficiais /></LazyRoute>} />
+        <Route path="/contatos/admin" element={<LazyRoute><ContatosAdmin /></LazyRoute>} />
 
         {/* Google Calendar OAuth Callback - fora do ProtectedRoute para não perder sessão no redirect */}
         <Route path="/avivar/google-callback" element={<LazyRoute><GoogleCalendarCallback /></LazyRoute>} />
