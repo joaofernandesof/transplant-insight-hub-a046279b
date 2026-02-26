@@ -1022,7 +1022,31 @@ serve(async (req) => {
                     .maybeSingle();
 
                   if (firstColumn) {
-                    // Step 6d: Create the kanban lead
+                    // Step 6d: Try to find UTMs from existing kanban lead with similar phone
+                    let utmData: Record<string, string | null> = {};
+                    if (phone && phone.length >= 8) {
+                      const phoneSuffix = phone.slice(-8);
+                      const { data: utmLead } = await supabase
+                        .from("avivar_kanban_leads")
+                        .select("utm_source, utm_medium, utm_campaign, utm_term, utm_content")
+                        .eq("account_id", accountId)
+                        .like("phone", `%${phoneSuffix}`)
+                        .not("utm_source", "is", null)
+                        .order("created_at", { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+                      if (utmLead) {
+                        utmData = {
+                          utm_source: utmLead.utm_source,
+                          utm_medium: utmLead.utm_medium,
+                          utm_campaign: utmLead.utm_campaign,
+                          utm_term: utmLead.utm_term,
+                          utm_content: utmLead.utm_content,
+                        };
+                      }
+                    }
+
+                    // Create the kanban lead with UTMs if available
                     const { error: kanbanLeadError } = await supabase.from("avivar_kanban_leads").insert({
                       account_id: accountId,
                       user_id: userId,
@@ -1032,6 +1056,7 @@ serve(async (req) => {
                       name: contactName || `WhatsApp ${phone}`,
                       phone,
                       source: "whatsapp_auto",
+                      ...utmData,
                     });
 
                     if (kanbanLeadError) {

@@ -60,6 +60,35 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
       const customFields = kanbanLead.custom_fields as Record<string, unknown> | null;
       const tratamento = (customFields?.tratamento as string) || null;
 
+      let utmSource = (kanbanLead as any).utm_source || null;
+      let utmMedium = (kanbanLead as any).utm_medium || null;
+      let utmCampaign = (kanbanLead as any).utm_campaign || null;
+      let utmTerm = (kanbanLead as any).utm_term || null;
+      let utmContent = (kanbanLead as any).utm_content || null;
+
+      // Fallback: se não tem UTMs, buscar de outro kanban lead com telefone similar (últimos 8 dígitos)
+      if (!utmSource && phone.length >= 8) {
+        const phoneSuffix = phone.slice(-8);
+        const { data: utmFallback } = await supabase
+          .from('avivar_kanban_leads')
+          .select('utm_source, utm_medium, utm_campaign, utm_term, utm_content')
+          .eq('account_id', (kanbanLead as any).account_id || kanbanLead.kanban_id ? undefined : undefined)
+          .neq('id', kanbanLead.id)
+          .like('phone', `%${phoneSuffix}`)
+          .not('utm_source', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (utmFallback) {
+          utmSource = (utmFallback as any).utm_source || null;
+          utmMedium = (utmFallback as any).utm_medium || null;
+          utmCampaign = (utmFallback as any).utm_campaign || null;
+          utmTerm = (utmFallback as any).utm_term || null;
+          utmContent = (utmFallback as any).utm_content || null;
+        }
+      }
+
       return {
         kanbanLeadId: kanbanLead.id as string,
         kanbanName: kanban?.name || null,
@@ -68,11 +97,11 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
         columnId: column?.id || null,
         tags,
         tratamento,
-        utmSource: (kanbanLead as any).utm_source || null,
-        utmMedium: (kanbanLead as any).utm_medium || null,
-        utmCampaign: (kanbanLead as any).utm_campaign || null,
-        utmTerm: (kanbanLead as any).utm_term || null,
-        utmContent: (kanbanLead as any).utm_content || null,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        utmTerm,
+        utmContent,
       };
     },
     enabled: !!phone,
