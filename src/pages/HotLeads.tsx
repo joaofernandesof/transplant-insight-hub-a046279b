@@ -112,14 +112,14 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
   // Admin user simulation
   const [simulatedUserId, setSimulatedUserId] = useState<string>('');
-  const [simulatedUserList, setSimulatedUserList] = useState<{ user_id: string; full_name: string; email: string; avatar_url: string | null; address_state: string | null }[]>([]);
+  const [simulatedUserList, setSimulatedUserList] = useState<{ user_id: string; full_name: string; email: string; avatar_url: string | null; address_state: string | null; latitude: number | null; longitude: number | null }[]>([]);
 
   useEffect(() => {
     if (!isAdmin) return;
     async function fetchLicensees() {
       const { data } = await supabase
         .from('neohub_users')
-        .select('user_id, full_name, email, avatar_url, address_state, neohub_user_profiles!inner(profile, is_active)')
+        .select('user_id, full_name, email, avatar_url, address_state, latitude, longitude, neohub_user_profiles!inner(profile, is_active)')
         .eq('neohub_user_profiles.profile', 'licenciado')
         .eq('neohub_user_profiles.is_active', true)
         .eq('is_active', true)
@@ -130,6 +130,8 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         email: u.email,
         avatar_url: u.avatar_url,
         address_state: u.address_state,
+        latitude: u.latitude,
+        longitude: u.longitude,
       })));
     }
     fetchLicensees();
