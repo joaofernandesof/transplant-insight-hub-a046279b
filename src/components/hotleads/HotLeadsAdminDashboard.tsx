@@ -65,17 +65,27 @@ export function HotLeadsAdminDashboard() {
 
   useEffect(() => {
     async function fetchOutcomes() {
-      const { data } = await supabase
-        .from('leads')
-        .select('id, name, phone, email, city, state, lead_outcome, claimed_by, claimed_at, source, created_at')
-        .not('claimed_by', 'is', null)
-        .in('source', ['planilha', 'n8n']);
-      if (!data) return;
-      setOutcomeLeads(data);
-      const vendido = data.filter((l: any) => l.lead_outcome === 'vendido').length;
-      const em_atendimento = data.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
-      const descartado = data.filter((l: any) => l.lead_outcome === 'descartado').length;
-      const sem_desfecho = data.filter((l: any) => !l.lead_outcome).length;
+      // Fetch all claimed leads (paginate to avoid 1000 row limit)
+      let allData: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data } = await supabase
+          .from('leads')
+          .select('id, name, phone, email, city, state, lead_outcome, claimed_by, claimed_at, source, created_at')
+          .not('claimed_by', 'is', null)
+          .in('source', ['planilha', 'n8n'])
+          .range(from, from + pageSize - 1);
+        if (!data || data.length === 0) break;
+        allData = allData.concat(data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+      setOutcomeLeads(allData);
+      const vendido = allData.filter((l: any) => l.lead_outcome === 'vendido').length;
+      const em_atendimento = allData.filter((l: any) => l.lead_outcome === 'em_atendimento').length;
+      const descartado = allData.filter((l: any) => l.lead_outcome === 'descartado').length;
+      const sem_desfecho = allData.filter((l: any) => !l.lead_outcome).length;
       setOutcomeStats({ vendido, em_atendimento, descartado, sem_desfecho });
     }
     fetchOutcomes();
@@ -405,15 +415,26 @@ export function HotLeadsAdminDashboard() {
                     return (
                       <div
                         key={item.key}
-                        className={`flex items-center gap-3 cursor-pointer rounded-lg px-2 py-1.5 transition-all ${isActive ? 'bg-muted ring-1 ring-border' : 'hover:bg-muted/50'}`}
+                        className={`flex items-center gap-3 cursor-pointer rounded-xl px-3 py-2.5 transition-all border-2 ${
+                          isActive 
+                            ? 'bg-muted shadow-md border-foreground/20 scale-[1.02]' 
+                            : 'hover:bg-muted/60 hover:shadow-sm border-transparent hover:border-muted-foreground/10'
+                        }`}
                         onClick={() => setSelectedOutcome(prev => prev === item.key ? null : item.key)}
                       >
-                        <item.icon className={`h-5 w-5 shrink-0 ${item.textColor}`} />
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}>
+                          <item.icon className="h-4 w-4 text-white" />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-center mb-1.5">
-                            <span className="text-sm font-medium">{item.label}</span>
+                            <div>
+                              <span className="text-sm font-semibold">{item.label}</span>
+                              <span className="text-[10px] text-muted-foreground ml-1.5">
+                                {isActive ? '▼ clique para fechar' : '▶ clique para detalhar'}
+                              </span>
+                            </div>
                             <div className="flex items-center gap-2">
-                              <span className={`text-lg font-bold ${item.textColor}`}>{item.value}</span>
+                              <span className={`text-xl font-extrabold ${item.textColor}`}>{item.value}</span>
                               <span className="text-xs text-muted-foreground">({pct.toFixed(1)}%)</span>
                             </div>
                           </div>
