@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +54,7 @@ import { TaskKanban } from '@/neohub/components/TaskKanban';
 import { TasksDashboard } from '@/neohub/components/TasksDashboard';
 import { useNeoTeamTasks, Task, TaskStatus, TaskPriority, NewTask } from '@/neohub/hooks/useNeoTeamTasks';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 // Status: A Fazer, Em Andamento, Concluído, Cancelados
 const statusConfig: Record<TaskStatus, { label: string; color: string; bg: string; headerBg: string }> = {
@@ -76,7 +77,23 @@ type SortOption = 'priority' | 'due_date' | 'created_at' | 'title';
 
 export default function NeoTeamTasks() {
   const navigate = useNavigate();
-  const { isAdmin } = useUnifiedAuth();
+  const { isAdmin, user } = useUnifiedAuth();
+  const [isMaster, setIsMaster] = useState(false);
+
+  // Check if user is MASTER in NeoTeam
+  useEffect(() => {
+    if (!user) return;
+    const checkMaster = async () => {
+      const { data } = await supabase
+        .from('neoteam_team_members')
+        .select('role')
+        .eq('user_id', user.authUserId)
+        .eq('is_active', true)
+        .single();
+      setIsMaster(data?.role === 'MASTER' || data?.role === 'ADMIN' || isAdmin);
+    };
+    checkMaster();
+  }, [user, isAdmin]);
   const [view, setView] = useState<'kanban' | 'list' | 'dashboard'>('kanban');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -107,6 +124,7 @@ export default function NeoTeamTasks() {
       priority: (st.status === 'overdue' ? 'urgent' : 'high') as TaskPriority,
       due_date: st.scheduled_date || undefined,
       assignee_name: st.responsible_name,
+      assignee_email: st.responsible_email,
       category: 'cirúrgica',
       tags: [st.phase_label, 'Cirúrgica'],
       order_index: 0,
@@ -120,8 +138,30 @@ export default function NeoTeamTasks() {
       _isSurgeryTask: true,
       _surgeryTaskId: st.id,
     }));
-    return [...tasks, ...mappedSurgeryTasks];
-  }, [tasks, surgeryTasks]);
+
+    const merged = [...tasks, ...mappedSurgeryTasks];
+
+    // Filter by current user unless MASTER/ADMIN
+    if (isMaster) return merged;
+    
+    const userEmail = user?.email?.toLowerCase();
+    const userName = user?.fullName?.toLowerCase();
+    
+    return merged.filter(t => {
+      const taskEmail = (t as any).assignee_email?.toLowerCase();
+      const taskName = t.assignee_name?.toLowerCase();
+      const createdBy = t.created_by;
+      
+      // Show task if assigned to current user (by email or name) or created by them
+      return (
+        (taskEmail && userEmail && taskEmail === userEmail) ||
+        (taskName && userName && taskName === userName) ||
+        (createdBy && createdBy === user?.authUserId) ||
+        // Also show tasks with no assignee
+        (!t.assignee_name && !taskEmail)
+      );
+    });
+  }, [tasks, surgeryTasks, isMaster, user]);
 
   // Filter and sort tasks
   const filteredTasks = useMemo(() => {
