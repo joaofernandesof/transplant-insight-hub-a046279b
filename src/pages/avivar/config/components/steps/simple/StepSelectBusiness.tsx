@@ -34,6 +34,7 @@ export function StepSelectBusiness({
   onViewingSubnichos,
   forceShowNichos = false
 }: StepSelectBusinessProps) {
+  const { isNichoBlocked } = useAccountNichos();
   const [viewingNicho, setViewingNicho] = useState<NichoType | null>(
     // Se já tem seleção e não está forçando nichos, mostrar os subnichos
     (!forceShowNichos && selectedNicho) ? 'saude' : null
