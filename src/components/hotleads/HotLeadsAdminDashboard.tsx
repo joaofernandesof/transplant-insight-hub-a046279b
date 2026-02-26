@@ -164,6 +164,75 @@ export function HotLeadsAdminDashboard() {
         ))}
       </div>
 
+      {/* Outcome Stats - Situação dos Leads Adquiridos */}
+      {stats.claimed > 0 && (() => {
+        const totalOutcome = outcomeStats.vendido + outcomeStats.em_atendimento + outcomeStats.descartado + outcomeStats.sem_desfecho;
+        const items = [
+          { label: 'Vendido', value: outcomeStats.vendido, color: 'bg-green-500', textColor: 'text-green-600', icon: ShoppingCart },
+          { label: 'Em Atendimento', value: outcomeStats.em_atendimento, color: 'bg-amber-500', textColor: 'text-amber-600', icon: Stethoscope },
+          { label: 'Descartado', value: outcomeStats.descartado, color: 'bg-red-500', textColor: 'text-red-600', icon: XCircle },
+          { label: 'Sem Desfecho', value: outcomeStats.sem_desfecho, color: 'bg-slate-400', textColor: 'text-slate-500', icon: Clock },
+        ];
+        const outcomePie = items.filter(i => i.value > 0).map(i => ({
+          name: i.label,
+          value: i.value,
+          color: i.label === 'Vendido' ? '#22c55e' : i.label === 'Em Atendimento' ? '#f59e0b' : i.label === 'Descartado' ? '#ef4444' : '#94a3b8',
+        }));
+        return (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                Situação dos Leads Adquiridos
+                <Badge variant="outline" className="font-normal text-[10px]">{totalOutcome} leads</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="flex items-center justify-center">
+                  {outcomePie.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie data={outcomePie} cx="50%" cy="50%" outerRadius={90} innerRadius={45} paddingAngle={3} dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} fontSize={11}
+                        >
+                          {outcomePie.map((e, i) => <Cell key={i} fill={e.color} />)}
+                        </Pie>
+                        <Tooltip contentStyle={tooltipStyle} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-sm text-muted-foreground py-8">Nenhum desfecho registrado ainda</p>
+                  )}
+                </div>
+                <div className="space-y-4 flex flex-col justify-center">
+                  {items.map(item => {
+                    const pct = totalOutcome > 0 ? (item.value / totalOutcome) * 100 : 0;
+                    return (
+                      <div key={item.label} className="flex items-center gap-3">
+                        <item.icon className={`h-5 w-5 shrink-0 ${item.textColor}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="text-sm font-medium">{item.label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-lg font-bold ${item.textColor}`}>{item.value}</span>
+                              <span className="text-xs text-muted-foreground">({pct.toFixed(1)}%)</span>
+                            </div>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                            <div className={`h-full rounded-full ${item.color} transition-all duration-500`} style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       {/* Timeline - Full Width */}
       <Card>
         <CardHeader className="pb-2">
