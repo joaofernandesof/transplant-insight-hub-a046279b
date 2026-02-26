@@ -66,7 +66,7 @@ interface AvivarSidebarProps {
   children: React.ReactNode;
 }
 
-function SidebarContent({ collapsed, onCollapse, counts }: { collapsed: boolean; onCollapse?: () => void; counts: { unreadChats: number; overdueTasks: number } }) {
+function SidebarContent({ collapsed, onCollapse, counts, onLogout }: { collapsed: boolean; onCollapse?: () => void; counts: { unreadChats: number; overdueTasks: number }; onLogout: () => void }) {
   const location = useLocation();
   const menuItems = getMenuItems(counts);
 
