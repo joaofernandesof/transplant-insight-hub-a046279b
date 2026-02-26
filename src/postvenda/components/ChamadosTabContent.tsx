@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Gavel, ExternalLink } from 'lucide-react';
+import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Gavel, ExternalLink, RefreshCw } from 'lucide-react';
 import { NovoChamadoDialog } from './NovoChamadoDialog';
 import { Chamado, usePostVenda, getSlaStatus } from '../hooks/usePostVenda';
 import { ETAPA_LABELS, PRIORIDADE_LABELS, STATUS_LABELS, TIPO_DEMANDA_OPTIONS } from '../lib/permissions';
