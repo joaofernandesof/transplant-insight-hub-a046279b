@@ -646,6 +646,7 @@ export function HotLeadsAdminDashboard() {
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-purple-500" />
               Distribuição por Estado
+              <span className="text-[10px] text-muted-foreground font-normal ml-auto">Clique para detalhar</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
