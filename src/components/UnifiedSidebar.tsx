@@ -53,6 +53,7 @@ import { ModuleSwitcher } from "@/components/shared/ModuleSwitcher";
 import { PortalSwitcherButton } from "@/components/shared/PortalSwitcherButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import { 
   Collapsible,
   CollapsibleContent,
