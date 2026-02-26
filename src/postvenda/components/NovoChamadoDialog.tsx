@@ -249,31 +249,15 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                       <span className="text-sm font-medium">Campos obrigatórios para Distrato</span>
                     </div>
 
-                    {/* Paciente - Seleção da lista */}
-                    <div className="space-y-2 relative z-20">
-                      <Label>Paciente * <span className="text-xs text-muted-foreground">(busque pelo nome)</span></Label>
-                      <PatientAutocomplete
+                    {/* Paciente - Preenchimento manual */}
+                    <div className="space-y-2">
+                      <Label>Paciente *</Label>
+                      <Input
                         value={formData.paciente_nome}
-                        onChange={(value) => {
-                          setFormData(prev => ({ ...prev, paciente_nome: value }));
-                          if (selectedPatient && value !== selectedPatient.full_name) {
-                            setSelectedPatient(null);
-                          }
-                        }}
-                        onSelectPatient={handlePatientSelect}
-                        placeholder="Digite o nome para buscar..."
+                        onChange={(e) => setFormData(prev => ({ ...prev, paciente_nome: e.target.value }))}
+                        placeholder="Digite o nome do paciente..."
+                        required
                       />
-                      {formData.paciente_nome && !selectedPatient && (
-                        <div className="flex items-center gap-2 text-warning-foreground text-xs">
-                          <AlertTriangle className="h-3 w-3" />
-                          <span>Paciente não encontrado. Cadastre-o primeiro no sistema.</span>
-                        </div>
-                      )}
-                      {selectedPatient && (
-                        <div className="text-xs text-primary">
-                          ✓ Paciente selecionado: {selectedPatient.full_name}
-                        </div>
-                      )}
                     </div>
 
                     {/* PDF do Email - Obrigatório */}
