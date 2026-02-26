@@ -1,28 +1,36 @@
 
-## Ajuste da Mensagem de Primeiro Contato HotLeads
+# Ajustar meta diaria de HotLeads para 80
 
-### O que muda
+## Contexto
+O valor de 50 leads/dia esta hardcoded em 3 locais e precisa ser atualizado para 80. Alem disso, o registro de hoje ja foi criado com target_count=50 e precisa ser corrigido.
 
-1. **Atualizar a imagem** -- Substituir o arquivo `public/images/neofolic-licenca.jpeg` pela nova imagem enviada (logo "Licenca ByNeofolic - Transplante Capilar").
+## Alteracoes
 
-2. **Simplificar a mensagem** -- Remover as duas linhas extras que existem hoje:
-   - `"Se em algum momento você preferir não receber mais mensagens, é só me avisar 😊"`
-   - O link da imagem colado como texto no final
+### 1. Migracao SQL -- Atualizar RPC e registro de hoje
+- Atualizar a funcao `release_random_queued_lead`: trocar `v_target int := 50` para `v_target int := 80`
+- Atualizar a funcao `get_lead_release_info`: trocar o COALESCE default de 50 para 80
+- Atualizar o registro de hoje em `lead_release_daily`: `SET target_count = 80 WHERE release_date = CURRENT_DATE`
 
-   A mensagem ficara exatamente assim:
-   ```
-   Olá, {NOME DO PACIENTE}, tudo bem?
+### 2. Edge Function `hotleads-release/index.ts`
+- Linha 223: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
+- Linha 274: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
 
-   Meu nome é {NOME DO LICENCIADO} e falo da clínica {NOME DA CLÍNICA}.
+### 3. Comportamento
+- Nenhuma liberacao manual sera feita agora
+- O cron continuara rodando normalmente e vai distribuir os 80 leads ao longo do dia usando a logica probabilistica existente
+- Como ja estamos no meio do dia com 0 liberados, a probabilidade por minuto vai subir naturalmente para compensar
 
-   Recebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.
+## Detalhes tecnicos
 
-   Você prefere que eu te ligue ou continuamos por aqui?
-   ```
-
-3. **Manter o link da imagem** no final da mensagem para que o WhatsApp gere o preview automaticamente (a API do `wa.me` nao suporta anexos diretamente, apenas texto; incluir a URL e o metodo mais proximo de enviar a imagem).
-
-### Detalhes Tecnicos
-
-- **Arquivo de imagem**: Copiar `user-uploads://WhatsApp_Image_2026-02-25_at_18.11.00.jpeg` para `public/images/neofolic-licenca.jpeg` (substituicao).
-- **Arquivo editado**: `src/hooks/useHotLeadsSettings.ts` -- linha 75, ajustar o template da mensagem removendo a frase sobre "nao receber mais mensagens" e o emoji, mantendo o link da imagem no final para preview.
+```text
+Locais de alteracao:
++-----------------------------------------+------------------+
+| Arquivo / Funcao                        | Valor 50 -> 80   |
++-----------------------------------------+------------------+
+| release_random_queued_lead (SQL RPC)    | v_target := 80   |
+| get_lead_release_info (SQL RPC)         | COALESCE(..., 80) |
+| hotleads-release/index.ts L223          | fallback || 80   |
+| hotleads-release/index.ts L274          | fallback || 80   |
+| lead_release_daily (hoje)               | target_count = 80 |
++-----------------------------------------+------------------+
+```
