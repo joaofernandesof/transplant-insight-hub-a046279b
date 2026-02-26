@@ -114,6 +114,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
       // Convert tri-state to boolean for saving
       const submitData = {
         ...formData,
+        branch: formData.branch === 'outra' ? customBranch : formData.branch,
         distrato_termo_sinal_assinado: triStateFields.termo_sinal_assinado === 'sim',
         distrato_termo_sinal_anexo: !!termoSinalFile,
         distrato_contrato_assinado: triStateFields.contrato_assinado === 'sim',
