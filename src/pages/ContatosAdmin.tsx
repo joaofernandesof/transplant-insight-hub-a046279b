@@ -41,6 +41,7 @@ interface GroupContact {
   whatsapp: string | null;
   email: string | null;
   observacao: string | null;
+  responsavel: string | null;
   is_active: boolean;
   order_index: number;
 }
