@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Gavel, ExternalLink } from 'lucide-react';
+import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Gavel, ExternalLink, RefreshCw } from 'lucide-react';
 import { NovoChamadoDialog } from './NovoChamadoDialog';
 import { Chamado, usePostVenda, getSlaStatus } from '../hooks/usePostVenda';
 import { ETAPA_LABELS, PRIORIDADE_LABELS, STATUS_LABELS, TIPO_DEMANDA_OPTIONS } from '../lib/permissions';
@@ -66,7 +66,8 @@ const SLA_COLORS = {
 };
 
 export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProps) {
-  const { chamados, isLoading } = usePostVenda();
+  const { chamados, isLoading, refetch } = usePostVenda();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -224,10 +225,25 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
             </Badge>
           )}
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          {isDistrato ? 'Novo Distrato' : 'Novo Chamado'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refetch();
+              setIsRefreshing(false);
+            }}
+            disabled={isRefreshing}
+            title="Atualizar lista"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            {isDistrato ? 'Novo Distrato' : 'Novo Chamado'}
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -515,6 +531,7 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
         initialTipoDemanda={isDistrato ? 'distrato' : undefined}
+        onSuccess={refetch}
       />
     </div>
   );
