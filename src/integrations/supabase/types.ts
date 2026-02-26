@@ -7145,6 +7145,54 @@ export type Database = {
           },
         ]
       }
+      group_contacts: {
+        Row: {
+          area: string
+          created_at: string
+          email: string | null
+          empresa: string
+          id: string
+          is_active: boolean
+          observacao: string | null
+          order_index: number | null
+          setor: string | null
+          telefone: string | null
+          unidade: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          email?: string | null
+          empresa: string
+          id?: string
+          is_active?: boolean
+          observacao?: string | null
+          order_index?: number | null
+          setor?: string | null
+          telefone?: string | null
+          unidade?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          email?: string | null
+          empresa?: string
+          id?: string
+          is_active?: boolean
+          observacao?: string | null
+          order_index?: number | null
+          setor?: string | null
+          telefone?: string | null
+          unidade?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       hotlead_gamification_points: {
         Row: {
           action: string
