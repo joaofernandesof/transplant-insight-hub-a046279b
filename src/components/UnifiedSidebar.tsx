@@ -53,6 +53,7 @@ import { ModuleSwitcher } from "@/components/shared/ModuleSwitcher";
 import { PortalSwitcherButton } from "@/components/shared/PortalSwitcherButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import { 
   Collapsible,
   CollapsibleContent,
@@ -159,6 +160,14 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
   // Detect current portal based on route
   const currentPortal = useMemo(() => detectPortal(location.pathname), [location.pathname]);
   const portalConfig = PORTAL_CONFIG[currentPortal];
+  const { setTheme } = useTheme();
+
+  // Force light theme for HotLeads portal
+  useEffect(() => {
+    if (currentPortal === 'hotleads') {
+      setTheme('light');
+    }
+  }, [currentPortal, setTheme]);
 
   // Build profile route based on current portal
   const profileRoute = useMemo(() => {
@@ -514,9 +523,11 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
 
         {/* Fixed Footer - Theme Toggle + Logout */}
         <div className="border-t border-border p-2 flex-shrink-0 space-y-1">
-          <div className={cn("flex items-center", isCollapsed ? "justify-center" : "px-3")}>
-            <ThemeToggle />
-          </div>
+          {currentPortal !== 'hotleads' && (
+            <div className={cn("flex items-center", isCollapsed ? "justify-center" : "px-3")}>
+              <ThemeToggle />
+            </div>
+          )}
           <Button
             variant="ghost"
             className={cn(
