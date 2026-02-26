@@ -1,0 +1,1 @@
+UPDATE auth.users SET email = 'ftarruda@hcrp.usp.br', email_confirmed_at = now() WHERE id = '43329067-e0f1-461b-8139-5737d078b9b8';
