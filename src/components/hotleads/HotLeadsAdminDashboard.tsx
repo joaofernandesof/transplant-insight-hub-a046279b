@@ -58,6 +58,89 @@ export function HotLeadsAdminDashboard() {
     fetchLeads();
   }, [viewMode, selectedUserId]);
 
+  // Chart drill-down state
+  const [drillDown, setDrillDown] = useState<{ type: string; filter: string; title: string } | null>(null);
+  const [drillDownLeads, setDrillDownLeads] = useState<any[]>([]);
+  const [drillDownLoading, setDrillDownLoading] = useState(false);
+
+  // Region map for drill-down
+  const STATE_TO_REGION: Record<string, string> = {
+    AC: 'Norte', AP: 'Norte', AM: 'Norte', PA: 'Norte', RO: 'Norte', RR: 'Norte', TO: 'Norte',
+    AL: 'Nordeste', BA: 'Nordeste', CE: 'Nordeste', MA: 'Nordeste', PB: 'Nordeste', PE: 'Nordeste', PI: 'Nordeste', RN: 'Nordeste', SE: 'Nordeste',
+    DF: 'Centro-Oeste', GO: 'Centro-Oeste', MT: 'Centro-Oeste', MS: 'Centro-Oeste',
+    ES: 'Sudeste', MG: 'Sudeste', RJ: 'Sudeste', SP: 'Sudeste',
+    PR: 'Sul', RS: 'Sul', SC: 'Sul',
+  };
+
+  const REGION_COLORS: Record<string, string> = {
+    'Norte': '#06b6d4', 'Nordeste': '#f97316', 'Centro-Oeste': '#eab308',
+    'Sudeste': '#8b5cf6', 'Sul': '#22c55e',
+  };
+
+  // Fetch leads for drill-down
+  const fetchDrillDownLeads = useCallback(async (type: string, filter: string, title: string) => {
+    setDrillDown({ type, filter, title });
+    setDrillDownLoading(true);
+    try {
+      let allData: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+
+      if (type === 'state') {
+        while (true) {
+          const { data } = await supabase
+            .from('leads')
+            .select('id, name, phone, email, city, state, claimed_by, claimed_at, lead_outcome, created_at')
+            .eq('state', filter)
+            .in('source', ['planilha', 'n8n'])
+            .range(from, from + pageSize - 1);
+          if (!data || data.length === 0) break;
+          allData = allData.concat(data);
+          if (data.length < pageSize) break;
+          from += pageSize;
+        }
+      } else if (type === 'region') {
+        const regionStates = Object.entries(STATE_TO_REGION)
+          .filter(([_, r]) => r === filter)
+          .map(([s]) => s);
+        while (true) {
+          const { data } = await supabase
+            .from('leads')
+            .select('id, name, phone, email, city, state, claimed_by, claimed_at, lead_outcome, created_at')
+            .in('state', regionStates)
+            .in('source', ['planilha', 'n8n'])
+            .range(from, from + pageSize - 1);
+          if (!data || data.length === 0) break;
+          allData = allData.concat(data);
+          if (data.length < pageSize) break;
+          from += pageSize;
+        }
+      } else if (type === 'day') {
+        // filter is a date string like "15/02"
+        while (true) {
+          const { data } = await supabase
+            .from('leads')
+            .select('id, name, phone, email, city, state, claimed_by, claimed_at, lead_outcome, created_at')
+            .in('source', ['planilha', 'n8n'])
+            .gte('created_at', `${filter}T00:00:00`)
+            .lt('created_at', `${filter}T23:59:59`)
+            .range(from, from + pageSize - 1);
+          if (!data || data.length === 0) break;
+          allData = allData.concat(data);
+          if (data.length < pageSize) break;
+          from += pageSize;
+        }
+      }
+
+      setDrillDownLeads(allData);
+    } catch (e) {
+      console.error('Drill-down fetch error:', e);
+      setDrillDownLeads([]);
+    } finally {
+      setDrillDownLoading(false);
+    }
+  }, []);
+
   // Fetch lead outcome stats with lead details
   const [outcomeStats, setOutcomeStats] = useState({ vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0 });
   const [outcomeLeads, setOutcomeLeads] = useState<any[]>([]);
