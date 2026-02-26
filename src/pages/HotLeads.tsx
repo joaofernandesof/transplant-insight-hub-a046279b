@@ -4,7 +4,10 @@ import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
-import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, LayoutGrid, List, FlaskConical } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Settings, Unlock, BarChart3, Home, LayoutGrid, List, FlaskConical, Eye, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -101,6 +104,36 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [isOverduePopupOpen, setIsOverduePopupOpen] = useState(false);
   const [hasNewLeads, setHasNewLeads] = useState(false);
   const adminView = initialView === 'dashboard' ? 'dashboard' : 'marketplace';
+
+  // Admin user simulation
+  const [simulatedUserId, setSimulatedUserId] = useState<string>('');
+  const [simulatedUserList, setSimulatedUserList] = useState<{ user_id: string; full_name: string; email: string; avatar_url: string | null; address_state: string | null }[]>([]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    async function fetchLicensees() {
+      const { data } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name, email, avatar_url, address_state, neohub_user_profiles!inner(profile, is_active)')
+        .eq('neohub_user_profiles.profile', 'licenciado')
+        .eq('neohub_user_profiles.is_active', true)
+        .eq('is_active', true)
+        .order('full_name');
+      setSimulatedUserList((data || []).map((u: any) => ({
+        user_id: u.user_id,
+        full_name: u.full_name || u.email,
+        email: u.email,
+        avatar_url: u.avatar_url,
+        address_state: u.address_state,
+      })));
+    }
+    fetchLicensees();
+  }, [isAdmin]);
+
+  const simulatedUser = simulatedUserList.find(u => u.user_id === simulatedUserId);
+  // Effective user id/state for filtering (simulated or real)
+  const effectiveUserId = simulatedUserId || user?.id;
+  const effectiveUserState = simulatedUserId ? (simulatedUser?.address_state || null) : (user?.state || null);
 
   // Sound + browser notification for new leads - DON'T auto-fetch, just flag
   useLeadNotificationSound({
@@ -253,33 +286,39 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
   // ── Tab subsets ──
   // Disponíveis: unclaimed, available — non-admins only see leads from their state
+  // When admin is simulating a user, filter by that user's state
   const filteredAvailable = useMemo(() => {
     const base = filteredLeads.filter(l => !l.claimed_by && l.release_status === 'available');
-    if (realIsAdmin) return base; // Admin real sempre vê todos, mesmo simulando licenciado
+    if (simulatedUserId) {
+      // Simulating: filter by simulated user's state
+      if (!effectiveUserState) return [];
+      return base.filter(l => !l.state || l.state === effectiveUserState);
+    }
+    if (realIsAdmin) return base; // Admin real sempre vê todos
     const userState = user?.state;
-    if (!userState) return []; // Sem estado definido = não pode ver nenhum lead disponível
+    if (!userState) return [];
     return base.filter(l => !l.state || l.state === userState);
-  }, [filteredLeads, realIsAdmin, user?.state]);
+  }, [filteredLeads, realIsAdmin, user?.state, simulatedUserId, effectiveUserState]);
   
-  // Adquiridos: claimed by me, NO outcome yet
+  // Adquiridos: claimed by effective user, NO outcome yet
   const filteredAcquired = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id && !l.lead_outcome), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => l.claimed_by === effectiveUserId && !l.lead_outcome), [filteredLeads, effectiveUserId]);
   
-  // Em Atendimento: claimed by me, outcome = em_atendimento
+  // Em Atendimento: claimed by effective user, outcome = em_atendimento
   const filteredInProgress = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'em_atendimento'), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'em_atendimento'), [filteredLeads, effectiveUserId]);
   
-  // Vendido: claimed by me, outcome = vendido
+  // Vendido: claimed by effective user, outcome = vendido
   const filteredSold = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'vendido'), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'vendido'), [filteredLeads, effectiveUserId]);
   
-  // Descartado: claimed by me, outcome = descartado
+  // Descartado: claimed by effective user, outcome = descartado
   const filteredDiscarded = useMemo(() => 
-    filteredLeads.filter(l => l.claimed_by === user?.id && l.lead_outcome === 'descartado'), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => l.claimed_by === effectiveUserId && l.lead_outcome === 'descartado'), [filteredLeads, effectiveUserId]);
   
-  // Indisponível: claimed by OTHER users
+  // Indisponível: claimed by OTHER users (not effective user)
   const filteredUnavailable = useMemo(() => 
-    filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== user?.id), [filteredLeads, user?.id]);
+    filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== effectiveUserId), [filteredLeads, effectiveUserId]);
 
   // Tab definitions
   const TAB_CONFIG: { key: LeadTab; label: string; color: string; alert?: boolean }[] = [
@@ -523,6 +562,55 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
           </div>
         ) : (
           <>
+            {/* Admin User Simulation Selector */}
+            {isAdmin && adminView === 'marketplace' && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-2.5 rounded-lg border bg-muted/30">
+                <div className="flex items-center gap-2 shrink-0">
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">Visualizar como:</span>
+                </div>
+                <Select value={simulatedUserId || '__admin__'} onValueChange={(v) => setSimulatedUserId(v === '__admin__' ? '' : v)}>
+                  <SelectTrigger className="h-8 text-xs w-full max-w-xs">
+                    <SelectValue placeholder="Administrador (você)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__admin__">
+                      <span className="font-medium">Administrador (visão padrão)</span>
+                    </SelectItem>
+                    {simulatedUserList.map(u => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">{u.full_name}</span>
+                          {u.address_state && (
+                            <Badge variant="outline" className="text-[10px] shrink-0">{u.address_state}</Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {simulatedUserId && simulatedUser && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 border border-primary/20">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={simulatedUser.avatar_url || ''} />
+                        <AvatarFallback className="text-[9px] bg-primary/20 text-primary">
+                          {simulatedUser.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium text-primary">{simulatedUser.full_name.split(' ')[0]}</span>
+                      {simulatedUser.address_state && (
+                        <span className="text-[10px] text-muted-foreground">({simulatedUser.address_state})</span>
+                      )}
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setSimulatedUserId('')}>
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <HotLeadsStats
               leads={filteredLeads}
               availableCount={filteredAvailable.length}
