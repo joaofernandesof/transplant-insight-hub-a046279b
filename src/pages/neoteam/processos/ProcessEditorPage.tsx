@@ -8,42 +8,41 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  ArrowLeft, Plus, GripVertical, Pencil, Trash2, Clock, User,
-  Link2, CheckCircle2, Cog, ShieldCheck, Loader2, Save, Play,
-  ChevronDown, ChevronUp, AlertCircle, Circle, Diamond, Square,
-  ArrowDownCircle, Timer, Flag, Workflow,
+  ArrowLeft, Plus, Pencil, Trash2, User,
+  Link2, Cog, ShieldCheck, Loader2, Play,
+  Square, Timer, Flag, Workflow, ArrowRight, ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-/* ─── BPMN-inspired config ─── */
-const STEP_TYPE_CONFIG: Record<string, { label: string; icon: React.ReactNode; shape: string; color: string; bgGlow: string }> = {
+/* ─── BPMN config ─── */
+const STEP_TYPE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string; borderColor: string; bgGlow: string }> = {
   manual: {
     label: 'Tarefa Manual',
-    icon: <User className="h-4 w-4" />,
-    shape: 'rounded-xl',
-    color: 'border-blue-400 text-blue-400',
+    icon: <User className="h-3.5 w-3.5" />,
+    color: 'text-blue-400',
+    borderColor: 'border-blue-400/60',
     bgGlow: 'from-blue-500/10 to-blue-600/5',
   },
   automatic: {
     label: 'Tarefa Automática',
-    icon: <Cog className="h-4 w-4" />,
-    shape: 'rounded-xl',
-    color: 'border-violet-400 text-violet-400',
+    icon: <Cog className="h-3.5 w-3.5" />,
+    color: 'text-violet-400',
+    borderColor: 'border-violet-400/60',
     bgGlow: 'from-violet-500/10 to-violet-600/5',
   },
   approval: {
-    label: 'Gateway de Aprovação',
-    icon: <ShieldCheck className="h-4 w-4" />,
-    shape: 'rounded-xl',
-    color: 'border-amber-400 text-amber-400',
+    label: 'Aprovação',
+    icon: <ShieldCheck className="h-3.5 w-3.5" />,
+    color: 'text-amber-400',
+    borderColor: 'border-amber-400/60',
     bgGlow: 'from-amber-500/10 to-amber-600/5',
   },
 };
@@ -87,208 +86,122 @@ function getPhaseLabel(step: ProcessStep): string {
   return (meta.phase_label as string) || formatRelativeDay(step.relative_day);
 }
 
-/* ─── BPMN Node Component ─── */
-function BpmnNode({
-  step,
-  steps,
-  staffRoles,
-  systemUsers,
-  templateColor,
-  onEdit,
-  onDelete,
-  isLast,
+/* ─── Horizontal BPMN Node ─── */
+function HBpmnNode({
+  step, steps, staffRoles, systemUsers, onEdit, onDelete, isLast,
 }: {
   step: ProcessStep;
   steps: ProcessStep[];
   staffRoles: { code: string; name: string }[];
   systemUsers: { id: string; full_name: string; email: string | null }[];
-  templateColor: string;
   onEdit: (s: ProcessStep) => void;
   onDelete: (id: string) => void;
   isLast: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const typeCfg = STEP_TYPE_CONFIG[step.step_type] || STEP_TYPE_CONFIG.manual;
   const meta = (step.metadata || {}) as Record<string, unknown>;
   const userName = systemUsers.find(u => u.id === step.responsible_user_id)?.full_name;
-  const roleLabel = staffRoles.find(r => r.code === step.responsible_role)?.name || step.responsible_role;
+  const roleLabel = staffRoles.find(r => r.code === step.responsible_role)?.name;
   const responsibleName = userName || (meta.responsible_name as string | undefined);
-  const hasDeps = step.dependencies && step.dependencies.length > 0;
+  const displayResponsible = responsibleName || roleLabel;
 
   return (
-    <div className="flex flex-col items-center">
-      {/* BPMN Node */}
-      <div
-        className={cn(
-          'group relative w-full max-w-md transition-all duration-200',
-          step.step_type === 'approval' ? 'px-4' : '',
-        )}
-      >
-        {/* Approval: diamond wrapper */}
-        {step.step_type === 'approval' ? (
-          <div className="relative">
-            {/* Diamond background */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div
-                className="w-8 h-8 rotate-45 border-2 border-amber-400/30"
-                style={{ position: 'absolute', left: -16, top: '50%', marginTop: -16 }}
-              />
-            </div>
+    <div className="flex items-center flex-shrink-0">
+      {/* Node */}
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <div
               className={cn(
-                'relative border-2 border-amber-400/60 bg-gradient-to-br',
+                'group relative w-[160px] border-2 rounded-xl bg-gradient-to-br p-3 cursor-pointer backdrop-blur-sm transition-all hover:scale-105 hover:shadow-lg',
+                typeCfg.borderColor,
                 typeCfg.bgGlow,
-                typeCfg.shape,
-                'p-4 cursor-pointer backdrop-blur-sm',
+                step.step_type === 'automatic' && 'ring-2 ring-violet-400/20 ring-offset-1 ring-offset-transparent',
               )}
-              onClick={() => setExpanded(!expanded)}
+              onClick={() => onEdit(step)}
             >
-              <NodeContent
-                step={step} typeCfg={typeCfg} responsibleName={responsibleName}
-                roleLabel={roleLabel} expanded={expanded}
-                onEdit={onEdit} onDelete={onDelete} steps={steps} hasDeps={hasDeps}
-              />
-            </div>
-          </div>
-        ) : (
-          <div
-            className={cn(
-              'relative border-2 bg-gradient-to-br',
-              step.step_type === 'automatic' ? 'border-violet-400/60' : 'border-blue-400/60',
-              typeCfg.bgGlow,
-              typeCfg.shape,
-              'p-4 cursor-pointer backdrop-blur-sm',
-              // BPMN visual: automatic tasks have double border
-              step.step_type === 'automatic' && 'ring-2 ring-violet-400/20 ring-offset-1 ring-offset-transparent',
-            )}
-            onClick={() => setExpanded(!expanded)}
-          >
-            <NodeContent
-              step={step} typeCfg={typeCfg} responsibleName={responsibleName}
-              roleLabel={roleLabel} expanded={expanded}
-              onEdit={onEdit} onDelete={onDelete} steps={steps} hasDeps={hasDeps}
-            />
-          </div>
-        )}
-      </div>
+              {/* Type icon badge */}
+              <div className={cn('flex items-center gap-1.5 mb-2', typeCfg.color)}>
+                <div className={cn('p-1 rounded border bg-background/50', typeCfg.borderColor)}>
+                  {typeCfg.icon}
+                </div>
+                <span className="text-[10px] font-semibold uppercase tracking-wider">{typeCfg.label}</span>
+              </div>
 
-      {/* Connector arrow to next */}
+              {/* Name */}
+              <p className="font-semibold text-foreground text-xs leading-tight line-clamp-2 min-h-[2rem]">
+                {step.name}
+              </p>
+
+              {/* Responsible */}
+              {displayResponsible && (
+                <div className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded-full w-fit max-w-full">
+                  <User className="h-2.5 w-2.5 flex-shrink-0" />
+                  <span className="truncate">{displayResponsible}</span>
+                </div>
+              )}
+
+              {/* Optional badge */}
+              {!step.is_required && (
+                <Badge variant="outline" className="text-[9px] px-1 py-0 mt-1.5 text-muted-foreground">
+                  Opcional
+                </Badge>
+              )}
+
+              {/* Hover actions */}
+              <div className="absolute -top-2 -right-2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  className="p-1 rounded-full bg-background border shadow-sm hover:bg-muted"
+                  onClick={e => { e.stopPropagation(); onEdit(step); }}
+                >
+                  <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                </button>
+                <button
+                  className="p-1 rounded-full bg-background border shadow-sm hover:bg-destructive/10"
+                  onClick={e => { e.stopPropagation(); onDelete(step.id); }}
+                >
+                  <Trash2 className="h-2.5 w-2.5 text-destructive" />
+                </button>
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-xs">
+            <div className="space-y-1">
+              <p className="font-semibold text-sm">{step.name}</p>
+              {step.description && <p className="text-xs text-muted-foreground">{step.description}</p>}
+              <div className="flex gap-2 text-xs text-muted-foreground">
+                {step.duration_hours && (
+                  <span className="flex items-center gap-0.5"><Timer className="h-3 w-3" /> {step.duration_hours}h</span>
+                )}
+                {displayResponsible && (
+                  <span className="flex items-center gap-0.5"><User className="h-3 w-3" /> {displayResponsible}</span>
+                )}
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {/* Horizontal connector */}
       {!isLast && (
-        <div className="flex flex-col items-center py-1">
-          <div className="w-0.5 h-5 bg-muted-foreground/30" />
-          <ArrowDownCircle className="h-4 w-4 text-muted-foreground/40" />
+        <div className="flex items-center flex-shrink-0 mx-1">
+          <div className="w-6 h-0.5 bg-muted-foreground/30" />
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 -ml-1" />
         </div>
       )}
     </div>
   );
 }
 
-function NodeContent({
-  step, typeCfg, responsibleName, roleLabel, expanded,
-  onEdit, onDelete, steps, hasDeps,
-}: {
-  step: ProcessStep;
-  typeCfg: typeof STEP_TYPE_CONFIG['manual'];
-  responsibleName?: string;
-  roleLabel?: string;
-  expanded: boolean;
-  onEdit: (s: ProcessStep) => void;
-  onDelete: (id: string) => void;
-  steps: ProcessStep[];
-  hasDeps: boolean;
-}) {
-  return (
-    <>
-      <div className="flex items-start gap-3">
-        {/* Type icon */}
-        <div className={cn('flex-shrink-0 p-2 rounded-lg border bg-background/50', typeCfg.color)}>
-          {typeCfg.icon}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-foreground text-sm">{step.name}</span>
-            {!step.is_required && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground px-1.5 py-0">
-                Opcional
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-            <span className={cn('font-medium', typeCfg.color.split(' ')[1])}>{typeCfg.label}</span>
-            {step.duration_hours && (
-              <span className="flex items-center gap-0.5">
-                <Timer className="h-3 w-3" /> {step.duration_hours}h
-              </span>
-            )}
-          </div>
-          {step.description && !expanded && (
-            <p className="text-xs text-muted-foreground/70 mt-1 truncate max-w-[280px]">{step.description}</p>
-          )}
-        </div>
-
-        {/* Responsible */}
-        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-          {(responsibleName || roleLabel) && (
-            <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/40 px-2 py-0.5 rounded-full">
-              <User className="h-3 w-3" /> {responsibleName || roleLabel}
-            </span>
-          )}
-          {/* Actions */}
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => { e.stopPropagation(); onEdit(step); }}>
-              <Pencil className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={e => { e.stopPropagation(); onDelete(step.id); }}>
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Expanded details */}
-      {expanded && (
-        <div className="mt-3 pt-3 border-t border-muted-foreground/10 space-y-2">
-          {step.description && (
-            <p className="text-xs text-muted-foreground">{step.description}</p>
-          )}
-          <div className="flex gap-3 text-xs text-muted-foreground flex-wrap">
-            {responsibleName && roleLabel && (
-              <span className="flex items-center gap-1 bg-muted/30 px-2 py-0.5 rounded">
-                <User className="h-3 w-3" /> {responsibleName} · {roleLabel}
-              </span>
-            )}
-            {hasDeps && (
-              <span className="flex items-center gap-1 bg-muted/30 px-2 py-0.5 rounded">
-                <Link2 className="h-3 w-3" />
-                Depende de: {step.dependencies!.map(d => steps.find(s => s.id === d)?.name || '?').join(', ')}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-/* ─── Swim Lane (Phase Group) ─── */
-function SwimLane({
-  phaseKey,
-  stepsInPhase,
-  allSteps,
-  staffRoles,
-  systemUsers,
-  templateColor,
-  onEdit,
-  onDelete,
-  isLastLane,
+/* ─── Horizontal Swim Lane ─── */
+function HSwimLane({
+  phaseKey, stepsInPhase, allSteps, staffRoles, systemUsers, onEdit, onDelete, isLastLane,
 }: {
   phaseKey: string;
   stepsInPhase: ProcessStep[];
   allSteps: ProcessStep[];
   staffRoles: { code: string; name: string }[];
   systemUsers: { id: string; full_name: string; email: string | null }[];
-  templateColor: string;
   onEdit: (s: ProcessStep) => void;
   onDelete: (id: string) => void;
   isLastLane: boolean;
@@ -296,53 +209,48 @@ function SwimLane({
   const phaseConfig = getPhaseConfig(phaseKey);
 
   return (
-    <div className="relative">
-      {/* Swim Lane Container */}
-      <div className={cn('border rounded-2xl overflow-hidden', phaseConfig.border, phaseConfig.bg)}>
-        {/* Lane Header */}
-        <div className="flex items-center gap-3 px-5 py-3 border-b" style={{ borderColor: phaseConfig.accent + '30' }}>
-          <div className="w-1 h-8 rounded-full" style={{ backgroundColor: phaseConfig.accent }} />
-          <div className="flex items-center gap-2">
-            <Flag className="h-4 w-4" style={{ color: phaseConfig.accent }} />
-            <h3 className={cn('font-bold text-sm tracking-wide', phaseConfig.text)}>
-              {phaseKey}
-            </h3>
-          </div>
+    <div className="flex items-center flex-shrink-0">
+      {/* Lane */}
+      <div className={cn('border rounded-2xl overflow-hidden flex-shrink-0', phaseConfig.border, phaseConfig.bg)}>
+        {/* Lane Header - vertical label on top */}
+        <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: phaseConfig.accent + '30' }}>
+          <div className="w-1 h-5 rounded-full flex-shrink-0" style={{ backgroundColor: phaseConfig.accent }} />
+          <Flag className="h-3.5 w-3.5 flex-shrink-0" style={{ color: phaseConfig.accent }} />
+          <h3 className={cn('font-bold text-xs tracking-wide whitespace-nowrap', phaseConfig.text)}>
+            {phaseKey}
+          </h3>
           <Badge
             variant="outline"
-            className="text-[10px] ml-auto"
+            className="text-[9px] ml-1"
             style={{ borderColor: phaseConfig.accent + '50', color: phaseConfig.accent }}
           >
-            {stepsInPhase.length} {stepsInPhase.length === 1 ? 'etapa' : 'etapas'}
+            {stepsInPhase.length}
           </Badge>
         </div>
 
-        {/* Lane Body - Nodes */}
-        <div className="px-5 py-4">
-          <div className="flex flex-col items-center">
-            {stepsInPhase.map((step, idx) => (
-              <BpmnNode
-                key={step.id}
-                step={step}
-                steps={allSteps}
-                staffRoles={staffRoles}
-                systemUsers={systemUsers}
-                templateColor={templateColor}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                isLast={idx === stepsInPhase.length - 1}
-              />
-            ))}
-          </div>
+        {/* Lane Body - horizontal nodes */}
+        <div className="px-4 py-3 flex items-center">
+          {stepsInPhase.map((step, idx) => (
+            <HBpmnNode
+              key={step.id}
+              step={step}
+              steps={allSteps}
+              staffRoles={staffRoles}
+              systemUsers={systemUsers}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              isLast={idx === stepsInPhase.length - 1}
+            />
+          ))}
         </div>
       </div>
 
       {/* Lane-to-lane connector */}
       {!isLastLane && (
-        <div className="flex flex-col items-center py-2">
-          <div className="w-0.5 h-4 bg-muted-foreground/20" />
-          <div className="w-3 h-3 rounded-full border-2 border-muted-foreground/30 bg-background" />
-          <div className="w-0.5 h-4 bg-muted-foreground/20" />
+        <div className="flex items-center flex-shrink-0 mx-2">
+          <div className="w-4 h-0.5 bg-muted-foreground/20" />
+          <div className="w-3 h-3 rounded-full border-2 border-muted-foreground/30 bg-background flex-shrink-0" />
+          <div className="w-4 h-0.5 bg-muted-foreground/20" />
         </div>
       )}
     </div>
@@ -380,7 +288,6 @@ export default function ProcessEditorPage() {
     },
   });
 
-  // Group steps by phase (relative day)
   const sortedByDay = useMemo(() => [...steps].sort((a, b) => (a.relative_day ?? 99) - (b.relative_day ?? 99)), [steps]);
   const dayGroups = useMemo(() => {
     const groups: Record<string, ProcessStep[]> = {};
@@ -405,15 +312,10 @@ export default function ProcessEditorPage() {
   const openEditStep = (step: ProcessStep) => {
     setEditingStep(step);
     setStepForm({
-      name: step.name,
-      description: step.description || '',
-      step_type: step.step_type,
-      responsible_role: step.responsible_role || '',
-      responsible_user_id: step.responsible_user_id || '',
-      relative_day: step.relative_day?.toString() || '',
-      duration_hours: step.duration_hours.toString(),
-      is_required: step.is_required,
-      dependencies: step.dependencies || [],
+      name: step.name, description: step.description || '', step_type: step.step_type,
+      responsible_role: step.responsible_role || '', responsible_user_id: step.responsible_user_id || '',
+      relative_day: step.relative_day?.toString() || '', duration_hours: step.duration_hours.toString(),
+      is_required: step.is_required, dependencies: step.dependencies || [],
     });
     setShowStepDialog(true);
   };
@@ -421,16 +323,12 @@ export default function ProcessEditorPage() {
   const handleSaveStep = async () => {
     if (!stepForm.name.trim() || !id) return;
     const data = {
-      name: stepForm.name,
-      description: stepForm.description || null,
-      step_type: stepForm.step_type,
-      responsible_role: stepForm.responsible_role || null,
+      name: stepForm.name, description: stepForm.description || null,
+      step_type: stepForm.step_type, responsible_role: stepForm.responsible_role || null,
       responsible_user_id: stepForm.responsible_user_id || null,
       relative_day: stepForm.relative_day ? parseInt(stepForm.relative_day) : null,
-      duration_hours: parseInt(stepForm.duration_hours) || 24,
-      is_required: stepForm.is_required,
+      duration_hours: parseInt(stepForm.duration_hours) || 24, is_required: stepForm.is_required,
     };
-
     if (editingStep) {
       await updateStep.mutateAsync({ id: editingStep.id, ...data });
     } else {
@@ -440,9 +338,7 @@ export default function ProcessEditorPage() {
   };
 
   const handleActivate = () => {
-    if (id && steps.length > 0) {
-      updateTemplate.mutate({ id, status: 'active' });
-    }
+    if (id && steps.length > 0) updateTemplate.mutate({ id, status: 'active' });
   };
 
   if (!template) {
@@ -459,7 +355,7 @@ export default function ProcessEditorPage() {
 
   return (
     <ModuleLayout>
-      <div className="p-4 lg:p-6 space-y-6 max-w-4xl mx-auto">
+      <div className="p-4 lg:p-6 space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/neoteam/processos')}>
@@ -489,30 +385,30 @@ export default function ProcessEditorPage() {
           </div>
         </div>
 
-        {/* BPMN Legend */}
-        <div className="flex items-center gap-4 px-4 py-2.5 rounded-xl bg-muted/30 border border-muted-foreground/10 text-xs text-muted-foreground flex-wrap">
-          <span className="font-semibold text-foreground/70">Legenda BPMN:</span>
+        {/* Legend */}
+        <div className="flex items-center gap-4 px-4 py-2 rounded-xl bg-muted/30 border border-muted-foreground/10 text-xs text-muted-foreground flex-wrap">
+          <span className="font-semibold text-foreground/70">Legenda:</span>
           <span className="flex items-center gap-1.5">
             <div className="w-5 h-4 rounded border-2 border-blue-400/60 bg-blue-500/10" />
-            Tarefa Manual
+            Manual
           </span>
           <span className="flex items-center gap-1.5">
             <div className="w-5 h-4 rounded border-2 border-violet-400/60 bg-violet-500/10 ring-1 ring-violet-400/20" />
-            Tarefa Automática
+            Automática
           </span>
           <span className="flex items-center gap-1.5">
             <div className="w-5 h-4 rounded border-2 border-amber-400/60 bg-amber-500/10" />
-            Aprovação/Gateway
+            Aprovação
           </span>
           <span className="flex items-center gap-1.5">
-            <ArrowDownCircle className="h-3.5 w-3.5 text-muted-foreground/40" />
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
             Fluxo sequencial
           </span>
         </div>
 
         <Separator />
 
-        {/* BPMN Diagram */}
+        {/* Horizontal BPMN Diagram */}
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -522,56 +418,63 @@ export default function ProcessEditorPage() {
             <div className="w-20 h-20 rounded-2xl bg-muted/50 border-2 border-dashed border-muted-foreground/20 flex items-center justify-center">
               <Workflow className="h-10 w-10 text-muted-foreground/40" />
             </div>
-            <div>
-              <p className="text-lg font-medium text-foreground">Nenhuma etapa definida</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Comece adicionando as etapas do processo para montar o fluxo BPMN.
-              </p>
-            </div>
+            <p className="text-lg font-medium text-foreground">Nenhuma etapa definida</p>
+            <p className="text-sm text-muted-foreground">Comece adicionando as etapas do processo para montar o fluxo BPMN.</p>
             <Button onClick={openCreateStep} variant="outline" className="gap-2">
               <Plus className="h-4 w-4" /> Adicionar primeira etapa
             </Button>
           </div>
         ) : (
-          <div className="space-y-0">
-            {/* Start Event */}
-            <div className="flex flex-col items-center mb-3">
-              <div className="w-10 h-10 rounded-full border-[3px] border-emerald-400 bg-emerald-500/10 flex items-center justify-center">
-                <Play className="h-4 w-4 text-emerald-400 ml-0.5" />
+          <div className="overflow-x-auto pb-4 -mx-4 px-4" style={{ scrollbarWidth: 'thin' }}>
+            <div className="flex items-center min-w-max py-4">
+              {/* Start Event */}
+              <div className="flex flex-col items-center flex-shrink-0 mr-3">
+                <div className="w-10 h-10 rounded-full border-[3px] border-emerald-400 bg-emerald-500/10 flex items-center justify-center">
+                  <Play className="h-4 w-4 text-emerald-400 ml-0.5" />
+                </div>
+                <span className="text-[9px] text-emerald-400 font-semibold mt-1 tracking-wider uppercase">Início</span>
               </div>
-              <span className="text-[10px] text-emerald-400 font-semibold mt-1 tracking-wider uppercase">Início</span>
-              <div className="w-0.5 h-4 bg-muted-foreground/20 mt-1" />
-            </div>
 
-            {/* Swim Lanes */}
-            {phaseKeys.map((phaseKey, idx) => (
-              <SwimLane
-                key={phaseKey}
-                phaseKey={phaseKey}
-                stepsInPhase={dayGroups[phaseKey]}
-                allSteps={steps}
-                staffRoles={staffRoles}
-                systemUsers={systemUsers}
-                templateColor={template.color}
-                onEdit={openEditStep}
-                onDelete={id => deleteStep.mutate(id)}
-                isLastLane={idx === phaseKeys.length - 1}
-              />
-            ))}
-
-            {/* End Event */}
-            <div className="flex flex-col items-center mt-3">
-              <div className="w-0.5 h-4 bg-muted-foreground/20 mb-1" />
-              <div className="w-10 h-10 rounded-full border-[3px] border-red-400 bg-red-500/10 flex items-center justify-center">
-                <Square className="h-3.5 w-3.5 text-red-400" />
+              {/* Connector from start */}
+              <div className="flex items-center flex-shrink-0 mr-2">
+                <div className="w-6 h-0.5 bg-emerald-400/40" />
+                <ChevronRight className="h-3.5 w-3.5 text-emerald-400/40 -ml-1" />
               </div>
-              <span className="text-[10px] text-red-400 font-semibold mt-1 tracking-wider uppercase">Fim</span>
+
+              {/* Swim Lanes */}
+              {phaseKeys.map((phaseKey, idx) => (
+                <HSwimLane
+                  key={phaseKey}
+                  phaseKey={phaseKey}
+                  stepsInPhase={dayGroups[phaseKey]}
+                  allSteps={steps}
+                  staffRoles={staffRoles}
+                  systemUsers={systemUsers}
+                  onEdit={openEditStep}
+                  onDelete={stepId => deleteStep.mutate(stepId)}
+                  isLastLane={idx === phaseKeys.length - 1}
+                />
+              ))}
+
+              {/* Connector to end */}
+              <div className="flex items-center flex-shrink-0 ml-2">
+                <div className="w-6 h-0.5 bg-red-400/40" />
+                <ChevronRight className="h-3.5 w-3.5 text-red-400/40 -ml-1" />
+              </div>
+
+              {/* End Event */}
+              <div className="flex flex-col items-center flex-shrink-0 ml-3">
+                <div className="w-10 h-10 rounded-full border-[3px] border-red-400 bg-red-500/10 flex items-center justify-center">
+                  <Square className="h-3.5 w-3.5 text-red-400" />
+                </div>
+                <span className="text-[9px] text-red-400 font-semibold mt-1 tracking-wider uppercase">Fim</span>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Step Dialog */}
+      {/* Step Dialog - unchanged */}
       <Dialog open={showStepDialog} onOpenChange={setShowStepDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -580,20 +483,11 @@ export default function ProcessEditorPage() {
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Nome da Etapa *</Label>
-              <Input
-                placeholder="Ex: Solicitar exames pré-operatórios"
-                value={stepForm.name}
-                onChange={e => setStepForm(p => ({ ...p, name: e.target.value }))}
-              />
+              <Input placeholder="Ex: Solicitar exames pré-operatórios" value={stepForm.name} onChange={e => setStepForm(p => ({ ...p, name: e.target.value }))} />
             </div>
             <div className="space-y-2">
               <Label>Descrição</Label>
-              <Textarea
-                placeholder="Descreva o que deve ser feito nesta etapa..."
-                value={stepForm.description}
-                onChange={e => setStepForm(p => ({ ...p, description: e.target.value }))}
-                rows={2}
-              />
+              <Textarea placeholder="Descreva o que deve ser feito nesta etapa..." value={stepForm.description} onChange={e => setStepForm(p => ({ ...p, description: e.target.value }))} rows={2} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -614,9 +508,7 @@ export default function ProcessEditorPage() {
                   <SelectContent>
                     {Object.entries(rolesByDepartment).map(([dept, deptRoles]) => (
                       <React.Fragment key={dept}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                          {departmentLabels[dept] || dept}
-                        </div>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{departmentLabels[dept] || dept}</div>
                         {deptRoles.map(r => (
                           <SelectItem key={r.code} value={r.code}>{r.name}</SelectItem>
                         ))}
@@ -652,11 +544,7 @@ export default function ProcessEditorPage() {
               </div>
               <div className="space-y-2">
                 <Label>Duração (horas)</Label>
-                <Input
-                  type="number"
-                  value={stepForm.duration_hours}
-                  onChange={e => setStepForm(p => ({ ...p, duration_hours: e.target.value }))}
-                />
+                <Input type="number" value={stepForm.duration_hours} onChange={e => setStepForm(p => ({ ...p, duration_hours: e.target.value }))} />
               </div>
             </div>
             {steps.length > 0 && (
@@ -668,30 +556,20 @@ export default function ProcessEditorPage() {
                       key={s.id}
                       variant={stepForm.dependencies.includes(s.id) ? 'default' : 'outline'}
                       className="cursor-pointer transition-colors"
-                      onClick={() => {
-                        setStepForm(p => ({
-                          ...p,
-                          dependencies: p.dependencies.includes(s.id)
-                            ? p.dependencies.filter(d => d !== s.id)
-                            : [...p.dependencies, s.id],
-                        }));
-                      }}
+                      onClick={() => setStepForm(p => ({
+                        ...p,
+                        dependencies: p.dependencies.includes(s.id) ? p.dependencies.filter(d => d !== s.id) : [...p.dependencies, s.id],
+                      }))}
                     >
-                      <Link2 className="h-3 w-3 mr-1" />
-                      {s.name}
+                      <Link2 className="h-3 w-3 mr-1" />{s.name}
                     </Badge>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Essa etapa depende da conclusão anterior.
-                </p>
+                <p className="text-xs text-muted-foreground">Essa etapa depende da conclusão anterior.</p>
               </div>
             )}
             <div className="flex items-center gap-2">
-              <Switch
-                checked={stepForm.is_required}
-                onCheckedChange={v => setStepForm(p => ({ ...p, is_required: v }))}
-              />
+              <Switch checked={stepForm.is_required} onCheckedChange={v => setStepForm(p => ({ ...p, is_required: v }))} />
               <Label>Etapa obrigatória</Label>
             </div>
           </div>
@@ -702,11 +580,7 @@ export default function ProcessEditorPage() {
               disabled={!stepForm.name.trim() || createStep.isPending || updateStep.isPending}
               className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white"
             >
-              {(createStep.isPending || updateStep.isPending) ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>{editingStep ? 'Salvar' : 'Adicionar'}</>
-              )}
+              {(createStep.isPending || updateStep.isPending) ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{editingStep ? 'Salvar' : 'Adicionar'}</>}
             </Button>
           </DialogFooter>
         </DialogContent>
