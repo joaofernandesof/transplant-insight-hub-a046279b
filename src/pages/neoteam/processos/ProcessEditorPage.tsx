@@ -223,6 +223,10 @@ export default function ProcessEditorPage() {
                   const isExpanded = expandedStep === step.id;
                   const roleLabel = ROLE_OPTIONS.find(r => r.value === step.responsible_role)?.label || step.responsible_role;
                   const hasDeps = step.dependencies && step.dependencies.length > 0;
+                  const meta = (step.metadata || {}) as Record<string, unknown>;
+                  const phaseColor = (meta.phase_color as string) || template.color;
+                  const phaseLabel = meta.phase_label as string | undefined;
+                  const responsibleName = meta.responsible_name as string | undefined;
 
                   return (
                     <div
@@ -240,12 +244,12 @@ export default function ProcessEditorPage() {
                       <div className="relative z-10 mt-3.5 flex-shrink-0">
                         <div
                           className="w-[14px] h-[14px] rounded-full border-2 border-background"
-                          style={{ backgroundColor: template.color }}
+                          style={{ backgroundColor: phaseColor }}
                         />
                       </div>
 
                       {/* Step card */}
-                      <Card className="flex-1 border transition-shadow hover:shadow-sm">
+                      <Card className="flex-1 border transition-shadow hover:shadow-sm border-l-[3px]" style={{ borderLeftColor: phaseColor }}>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-3">
                             <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -256,7 +260,12 @@ export default function ProcessEditorPage() {
                                 <Badge variant="outline" className={cn('text-xs gap-1', typeCfg.color)}>
                                   {typeCfg.icon} {typeCfg.label}
                                 </Badge>
-                                {step.relative_day !== null && (
+                                {phaseLabel && (
+                                  <Badge className="text-xs text-white font-mono" style={{ backgroundColor: phaseColor }}>
+                                    {phaseLabel}
+                                  </Badge>
+                                )}
+                                {step.relative_day !== null && !phaseLabel && (
                                   <Badge variant="secondary" className="text-xs font-mono">
                                     {formatRelativeDay(step.relative_day)}
                                   </Badge>
@@ -271,9 +280,9 @@ export default function ProcessEditorPage() {
                             </div>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
-                              {roleLabel && (
+                              {(responsibleName || roleLabel) && (
                                 <span className="text-xs text-muted-foreground flex items-center gap-1 mr-2">
-                                  <User className="h-3 w-3" /> {roleLabel}
+                                  <User className="h-3 w-3" /> {responsibleName || roleLabel}
                                 </span>
                               )}
                               <Button
@@ -303,10 +312,15 @@ export default function ProcessEditorPage() {
                               {step.description && (
                                 <p className="text-muted-foreground">{step.description}</p>
                               )}
-                              <div className="flex gap-4 text-xs text-muted-foreground">
+                              <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
                                 <span className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" /> Duração: {step.duration_hours}h
                                 </span>
+                                {responsibleName && roleLabel && (
+                                  <span className="flex items-center gap-1">
+                                    <User className="h-3 w-3" /> {responsibleName} ({roleLabel})
+                                  </span>
+                                )}
                                 {hasDeps && (
                                   <span className="flex items-center gap-1">
                                     <Link2 className="h-3 w-3" />
