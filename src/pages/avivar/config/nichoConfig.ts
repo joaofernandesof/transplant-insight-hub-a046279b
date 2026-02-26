@@ -308,9 +308,9 @@ export const SUBNICHO_PROFESSIONAL_OVERRIDES: Partial<Record<SubnichoType, Parti
     showRegistration: true,
   },
   imobiliaria: {
-    nameLabel: 'Nome da Imobiliária',
-    namePlaceholder: 'Ex: Imobiliária Premium',
-    nameHint: 'Nome fantasia da empresa',
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: João Silva',
+    nameHint: 'Nome do responsável pela imobiliária',
     registrationLabel: 'CRECI-J',
     registrationPlaceholder: 'Ex: CRECI-J 12345',
     registrationHint: 'Registro da pessoa jurídica no CRECI',
