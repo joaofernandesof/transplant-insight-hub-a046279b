@@ -523,9 +523,11 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
 
         {/* Fixed Footer - Theme Toggle + Logout */}
         <div className="border-t border-border p-2 flex-shrink-0 space-y-1">
-          <div className={cn("flex items-center", isCollapsed ? "justify-center" : "px-3")}>
-            <ThemeToggle />
-          </div>
+          {currentPortal !== 'hotleads' && (
+            <div className={cn("flex items-center", isCollapsed ? "justify-center" : "px-3")}>
+              <ThemeToggle />
+            </div>
+          )}
           <Button
             variant="ghost"
             className={cn(
