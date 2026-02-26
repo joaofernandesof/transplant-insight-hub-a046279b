@@ -7273,6 +7273,47 @@ export type Database = {
         }
         Relationships: []
       }
+      hotlead_sale_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          lead_id: string | null
+          lead_name: string
+          licensee_name: string | null
+          procedure_name: string | null
+          sale_value: number | null
+          seen_by: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          lead_name: string
+          licensee_name?: string | null
+          procedure_name?: string | null
+          sale_value?: number | null
+          seen_by?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          lead_name?: string
+          licensee_name?: string | null
+          procedure_name?: string | null
+          sale_value?: number | null
+          seen_by?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotlead_sale_notifications_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotleads_captures: {
         Row: {
           assigned_at: string | null
@@ -10852,6 +10893,8 @@ export type Database = {
           procedures_sold: string[] | null
           release_status: string | null
           scheduled_at: string | null
+          sold_procedure: string | null
+          sold_value: number | null
           source: string | null
           state: string | null
           status: string | null
@@ -10886,6 +10929,8 @@ export type Database = {
           procedures_sold?: string[] | null
           release_status?: string | null
           scheduled_at?: string | null
+          sold_procedure?: string | null
+          sold_value?: number | null
           source?: string | null
           state?: string | null
           status?: string | null
@@ -10920,6 +10965,8 @@ export type Database = {
           procedures_sold?: string[] | null
           release_status?: string | null
           scheduled_at?: string | null
+          sold_procedure?: string | null
+          sold_value?: number | null
           source?: string | null
           state?: string | null
           status?: string | null

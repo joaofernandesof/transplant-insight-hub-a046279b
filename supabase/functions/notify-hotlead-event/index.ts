@@ -115,9 +115,15 @@ const handler = async (req: Request): Promise<Response> => {
         });
     }
 
+    // For sales, always include ti@neofolic.com.br
+    const recipients = [adminEmail];
+    if (data.event_type === 'lead_sold' && !recipients.includes('ti@neofolic.com.br')) {
+      recipients.push('ti@neofolic.com.br');
+    }
+
     const emailResponse = await resend.emails.send({
       from: "ByNeofolic <notificacoes@byneofolic.com>",
-      to: [adminEmail],
+      to: recipients,
       subject,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
