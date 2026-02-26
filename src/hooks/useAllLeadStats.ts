@@ -21,7 +21,7 @@ export interface AllLeadStats {
   claimed: number;
   byState: { state: string; total: number; available: number; claimed: number; queued: number }[];
   byCity: { city: string; total: number; available: number; claimed: number }[];
-  byDay: { date: string; total: number; claimed: number }[];
+  byDay: { date: string; rawDate: string; total: number; claimed: number }[];
   topLicensees: TopLicensee[];
   isLoading: boolean;
   weekLeads?: number;
@@ -115,6 +115,7 @@ export function useAllLeadStats(): AllLeadStats {
     // Format byDay dates
     const byDay = (rpcData.byDay || []).map((d: any) => ({
       date: `${d.date.slice(8, 10)}/${d.date.slice(5, 7)}`,
+      rawDate: d.date,
       total: d.total,
       claimed: d.claimed,
     }));

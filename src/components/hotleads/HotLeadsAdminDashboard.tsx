@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { useAllLeadStats } from '@/hooks/useAllLeadStats';
 import { supabase } from '@/integrations/supabase/client';
 import { BrazilMapChart } from '@/components/hotleads/BrazilMapChart';
 import { LicenseeDashboard } from '@/components/hotleads/LicenseeDashboard';
+import { ChartDetailDialog } from '@/components/hotleads/ChartDetailDialog';
 import type { HotLead } from '@/hooks/useHotLeads';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -56,6 +57,89 @@ export function HotLeadsAdminDashboard() {
     }
     fetchLeads();
   }, [viewMode, selectedUserId]);
+
+  // Chart drill-down state
+  const [drillDown, setDrillDown] = useState<{ type: string; filter: string; title: string } | null>(null);
+  const [drillDownLeads, setDrillDownLeads] = useState<any[]>([]);
+  const [drillDownLoading, setDrillDownLoading] = useState(false);
+
+  // Region map for drill-down
+  const STATE_TO_REGION: Record<string, string> = {
+    AC: 'Norte', AP: 'Norte', AM: 'Norte', PA: 'Norte', RO: 'Norte', RR: 'Norte', TO: 'Norte',
+    AL: 'Nordeste', BA: 'Nordeste', CE: 'Nordeste', MA: 'Nordeste', PB: 'Nordeste', PE: 'Nordeste', PI: 'Nordeste', RN: 'Nordeste', SE: 'Nordeste',
+    DF: 'Centro-Oeste', GO: 'Centro-Oeste', MT: 'Centro-Oeste', MS: 'Centro-Oeste',
+    ES: 'Sudeste', MG: 'Sudeste', RJ: 'Sudeste', SP: 'Sudeste',
+    PR: 'Sul', RS: 'Sul', SC: 'Sul',
+  };
+
+  const REGION_COLORS: Record<string, string> = {
+    'Norte': '#06b6d4', 'Nordeste': '#f97316', 'Centro-Oeste': '#eab308',
+    'Sudeste': '#8b5cf6', 'Sul': '#22c55e',
+  };
+
+  // Fetch leads for drill-down
+  const fetchDrillDownLeads = useCallback(async (type: string, filter: string, title: string) => {
+    setDrillDown({ type, filter, title });
+    setDrillDownLoading(true);
+    try {
+      let allData: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+
+      if (type === 'state') {
+        while (true) {
+          const { data } = await supabase
+            .from('leads')
+            .select('id, name, phone, email, city, state, claimed_by, claimed_at, lead_outcome, created_at')
+            .eq('state', filter)
+            .in('source', ['planilha', 'n8n'])
+            .range(from, from + pageSize - 1);
+          if (!data || data.length === 0) break;
+          allData = allData.concat(data);
+          if (data.length < pageSize) break;
+          from += pageSize;
+        }
+      } else if (type === 'region') {
+        const regionStates = Object.entries(STATE_TO_REGION)
+          .filter(([_, r]) => r === filter)
+          .map(([s]) => s);
+        while (true) {
+          const { data } = await supabase
+            .from('leads')
+            .select('id, name, phone, email, city, state, claimed_by, claimed_at, lead_outcome, created_at')
+            .in('state', regionStates)
+            .in('source', ['planilha', 'n8n'])
+            .range(from, from + pageSize - 1);
+          if (!data || data.length === 0) break;
+          allData = allData.concat(data);
+          if (data.length < pageSize) break;
+          from += pageSize;
+        }
+      } else if (type === 'day') {
+        // filter is a date string like "15/02"
+        while (true) {
+          const { data } = await supabase
+            .from('leads')
+            .select('id, name, phone, email, city, state, claimed_by, claimed_at, lead_outcome, created_at')
+            .in('source', ['planilha', 'n8n'])
+            .gte('created_at', `${filter}T00:00:00`)
+            .lt('created_at', `${filter}T23:59:59`)
+            .range(from, from + pageSize - 1);
+          if (!data || data.length === 0) break;
+          allData = allData.concat(data);
+          if (data.length < pageSize) break;
+          from += pageSize;
+        }
+      }
+
+      setDrillDownLeads(allData);
+    } catch (e) {
+      console.error('Drill-down fetch error:', e);
+      setDrillDownLeads([]);
+    } finally {
+      setDrillDownLoading(false);
+    }
+  }, []);
 
   // Fetch lead outcome stats with lead details
   const [outcomeStats, setOutcomeStats] = useState({ vendido: 0, em_atendimento: 0, descartado: 0, sem_desfecho: 0 });
@@ -196,18 +280,7 @@ export function HotLeadsAdminDashboard() {
     return result;
   }, [stats.byState]);
 
-  // Region data
-  const STATE_TO_REGION: Record<string, string> = {
-    AC: 'Norte', AP: 'Norte', AM: 'Norte', PA: 'Norte', RO: 'Norte', RR: 'Norte', TO: 'Norte',
-    AL: 'Nordeste', BA: 'Nordeste', CE: 'Nordeste', MA: 'Nordeste', PB: 'Nordeste', PE: 'Nordeste', PI: 'Nordeste', RN: 'Nordeste', SE: 'Nordeste',
-    DF: 'Centro-Oeste', GO: 'Centro-Oeste', MT: 'Centro-Oeste', MS: 'Centro-Oeste',
-    ES: 'Sudeste', MG: 'Sudeste', RJ: 'Sudeste', SP: 'Sudeste',
-    PR: 'Sul', RS: 'Sul', SC: 'Sul',
-  };
-  const REGION_COLORS: Record<string, string> = {
-    'Norte': '#06b6d4', 'Nordeste': '#f97316', 'Centro-Oeste': '#eab308',
-    'Sudeste': '#8b5cf6', 'Sul': '#22c55e',
-  };
+  // Region data (using STATE_TO_REGION and REGION_COLORS defined above)
   const regionPie = useMemo(() => {
     const regionMap: Record<string, number> = {};
     stats.byState.forEach(s => {
@@ -531,11 +604,18 @@ export function HotLeadsAdminDashboard() {
             <TrendingUp className="h-4 w-4 text-orange-500" />
             Linha do Tempo — Leads por Dia
             <Badge variant="outline" className="font-normal text-[10px]">30 dias</Badge>
+            <span className="text-[10px] text-muted-foreground font-normal ml-auto">Clique em um ponto para ver detalhes</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={stats.byDay}>
+            <AreaChart data={stats.byDay} onClick={(e: any) => {
+                if (e?.activePayload?.[0]?.payload?.rawDate) {
+                  const raw = e.activePayload[0].payload.rawDate;
+                  const label = e.activePayload[0].payload.date;
+                  fetchDrillDownLeads('day', raw, `Leads do dia ${label}`);
+                }
+              }} style={{ cursor: 'pointer' }}>
               <defs>
                 <linearGradient id="gradTotal" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#f97316" stopOpacity={0.4} />
@@ -566,6 +646,7 @@ export function HotLeadsAdminDashboard() {
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-purple-500" />
               Distribuição por Estado
+              <span className="text-[10px] text-muted-foreground font-normal ml-auto">Clique para detalhar</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
@@ -580,6 +661,13 @@ export function HotLeadsAdminDashboard() {
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   labelLine={true}
                   fontSize={11}
+                  cursor="pointer"
+                  onClick={(_: any, idx: number) => {
+                    const item = statePie[idx];
+                    if (item && item.name !== 'Outros') {
+                      fetchDrillDownLeads('state', item.name, `Leads de ${item.name}`);
+                    }
+                  }}
                 >
                   {statePie.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
@@ -595,6 +683,7 @@ export function HotLeadsAdminDashboard() {
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Building2 className="h-4 w-4 text-cyan-500" />
               Leads por Região
+              <span className="text-[10px] text-muted-foreground font-normal ml-auto">Clique para detalhar</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
@@ -611,6 +700,13 @@ export function HotLeadsAdminDashboard() {
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   labelLine={true}
                   fontSize={11}
+                  cursor="pointer"
+                  onClick={(_: any, idx: number) => {
+                    const item = regionPie[idx];
+                    if (item) {
+                      fetchDrillDownLeads('region', item.name, `Leads da região ${item.name}`);
+                    }
+                  }}
                 >
                   {regionPie.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
@@ -821,6 +917,17 @@ export function HotLeadsAdminDashboard() {
       </Card>
       </>
       )}
+
+      {/* Chart Drill-Down Dialog */}
+      <ChartDetailDialog
+        open={!!drillDown}
+        onOpenChange={(open) => { if (!open) setDrillDown(null); }}
+        title={drillDown?.title || ''}
+        subtitle={`${drillDownLeads.length} leads`}
+        leads={drillDownLeads}
+        licensees={stats.topLicensees}
+        isLoading={drillDownLoading}
+      />
     </div>
   );
 }
