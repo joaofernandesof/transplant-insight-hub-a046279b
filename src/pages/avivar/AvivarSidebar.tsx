@@ -232,7 +232,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
         'fixed left-0 top-0 h-screen transition-all duration-300 z-40',
         collapsed ? 'w-16' : 'w-64'
       )}>
-        <SidebarContent collapsed={collapsed} counts={counts} />
+        <SidebarContent collapsed={collapsed} counts={counts} onLogout={handleLogout} />
         <Button
           variant="ghost"
           size="icon"
