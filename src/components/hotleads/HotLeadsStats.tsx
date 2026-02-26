@@ -7,17 +7,21 @@ interface HotLeadsStatsProps {
   myLeadsCount: number;
   acquiredCount: number;
   queuedCount: number;
+  isAdminView?: boolean;
 }
 
-export function HotLeadsStats({ leads, availableCount, myLeadsCount, acquiredCount, queuedCount }: HotLeadsStatsProps) {
-  const othersClaimed = acquiredCount;
-  const myClaimed = myLeadsCount;
-
-  const stats = [
-    { label: 'Disponíveis', value: availableCount, icon: Target, gradient: 'from-green-400 to-emerald-600' },
-    { label: 'Meus Adquiridos', value: myClaimed, icon: UserCheck, gradient: 'from-blue-500 to-indigo-600' },
-    { label: 'Adquiridos (outros)', value: othersClaimed, icon: Flame, gradient: 'from-orange-500 to-red-500' },
-  ];
+export function HotLeadsStats({ leads, availableCount, myLeadsCount, acquiredCount, queuedCount, isAdminView }: HotLeadsStatsProps) {
+  const stats = isAdminView
+    ? [
+        { label: 'Disponíveis', value: availableCount, icon: Target, gradient: 'from-green-400 to-emerald-600' },
+        { label: 'Total Adquiridos', value: myLeadsCount, icon: UserCheck, gradient: 'from-blue-500 to-indigo-600' },
+        { label: 'Na Fila', value: queuedCount, icon: Clock, gradient: 'from-orange-500 to-red-500' },
+      ]
+    : [
+        { label: 'Disponíveis', value: availableCount, icon: Target, gradient: 'from-green-400 to-emerald-600' },
+        { label: 'Meus Adquiridos', value: myLeadsCount, icon: UserCheck, gradient: 'from-blue-500 to-indigo-600' },
+        { label: 'Adquiridos (outros)', value: acquiredCount, icon: Flame, gradient: 'from-orange-500 to-red-500' },
+      ];
 
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-3">
