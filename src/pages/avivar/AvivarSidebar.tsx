@@ -146,6 +146,19 @@ function SidebarContent({ collapsed, onCollapse, counts, onLogout }: { collapsed
         </nav>
       </ScrollArea>
 
+      {/* Logout Button */}
+      <div className="px-3 pb-4 relative z-10">
+        <button
+          onClick={() => { onCollapse?.(); onLogout(); }}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 text-red-400 hover:bg-red-500/10 hover:text-red-300',
+            collapsed && 'justify-center'
+          )}
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="text-sm font-medium">Sair</span>}
+        </button>
+      </div>
     </div>
   );
 }
