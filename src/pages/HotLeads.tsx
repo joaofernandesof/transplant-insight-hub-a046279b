@@ -144,6 +144,33 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   // Admin is viewing as admin (not simulating a specific user)
   const isAdminDirectView = realIsAdmin && !simulatedUserId;
 
+  // Fetch current user's coordinates for radius filtering
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    if (!user?.id) return;
+    async function fetchCoords() {
+      const { data } = await supabase
+        .from('neohub_users')
+        .select('latitude, longitude')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      if (data?.latitude && data?.longitude) {
+        setUserCoords({ lat: data.latitude as number, lng: data.longitude as number });
+      }
+    }
+    fetchCoords();
+  }, [user?.id]);
+
+  // Effective coordinates for filtering (simulated user or real user)
+  const effectiveCoords = useMemo(() => {
+    if (simulatedUserId && simulatedUser) {
+      return simulatedUser.latitude && simulatedUser.longitude
+        ? { lat: simulatedUser.latitude, lng: simulatedUser.longitude }
+        : null;
+    }
+    return userCoords;
+  }, [simulatedUserId, simulatedUser, userCoords]);
+
   // Sound + browser notification for new leads - DON'T auto-fetch, just flag
   useLeadNotificationSound({
     onNewLead: () => setHasNewLeads(true),
