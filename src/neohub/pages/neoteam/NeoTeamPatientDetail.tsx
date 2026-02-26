@@ -118,6 +118,7 @@ export default function NeoTeamPatientDetail() {
   const fetchPatient = async () => {
     try {
       setLoading(true);
+      // Try clinic_patients first
       const { data, error } = await supabase
         .from('clinic_patients')
         .select('*')
@@ -153,6 +154,30 @@ export default function NeoTeamPatientDetail() {
           surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || undefined,
           leadSource: parsed['fonte'] || parsed['lead source'] || undefined,
           observations: obs || undefined,
+        });
+        return;
+      }
+
+      // Fallback: try neohub_users (tasks may reference this table)
+      const { data: neoData, error: neoError } = await supabase
+        .from('neohub_users')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (neoError) throw neoError;
+
+      if (neoData) {
+        setPatient({
+          id: neoData.id,
+          full_name: neoData.full_name,
+          email: neoData.email || undefined,
+          phone: neoData.phone || undefined,
+          cpf: neoData.cpf || undefined,
+          notes: undefined,
+          created_at: neoData.created_at,
+          city: neoData.address_city || undefined,
+          state: neoData.address_state || undefined,
         });
       }
     } catch (error) {
