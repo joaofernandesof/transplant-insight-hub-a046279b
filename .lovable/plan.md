@@ -1,28 +1,47 @@
 
-## Ajuste da Mensagem de Primeiro Contato HotLeads
 
-### O que muda
+## Plano: Atualizar serviços padrão do nicho Imobiliário
 
-1. **Atualizar a imagem** -- Substituir o arquivo `public/images/neofolic-licenca.jpeg` pela nova imagem enviada (logo "Licenca ByNeofolic - Transplante Capilar").
+### O que será feito
+Atualizar os serviços pré-definidos dos 4 subnichos imobiliários em `nichoConfig.ts` para incluir tipos de imóveis mais detalhados e relevantes (terrenos, casas, galpões, apartamentos, etc.).
 
-2. **Simplificar a mensagem** -- Remover as duas linhas extras que existem hoje:
-   - `"Se em algum momento você preferir não receber mais mensagens, é só me avisar 😊"`
-   - O link da imagem colado como texto no final
+### Alterações em `src/pages/avivar/config/nichoConfig.ts`
 
-   A mensagem ficara exatamente assim:
-   ```
-   Olá, {NOME DO PACIENTE}, tudo bem?
+**`agente_imobiliario`** — de 5 para ~8 serviços:
+- Venda de Casas e Apartamentos
+- Venda de Terrenos e Lotes
+- Venda de Galpões e Comerciais
+- Aluguel Residencial
+- Aluguel Comercial
+- Compra (assessoria para compradores)
+- Avaliação de Imóveis
+- Financiamento Imobiliário
 
-   Meu nome é {NOME DO LICENCIADO} e falo da clínica {NOME DA CLÍNICA}.
+**`imobiliaria`** — atualizar para os mesmos tipos de propriedade:
+- Venda Residencial (casas, apartamentos)
+- Venda de Terrenos e Lotes
+- Venda Comercial (galpões, salas, lojas)
+- Aluguel Residencial
+- Aluguel Comercial
+- Lançamentos (imóveis na planta)
+- Administração de Locação
 
-   Recebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.
+**`construtora`** — adequar:
+- Casas Residenciais
+- Apartamentos
+- Galpões e Comerciais
+- Loteamentos
+- Reformas e Ampliações
+- Projetos Personalizados
 
-   Você prefere que eu te ligue ou continuamos por aqui?
-   ```
+**`administradora`** — manter similar, ajustar descrições:
+- Administração de Condomínio
+- Administração de Aluguéis
+- Cobrança de Inadimplentes
+- Manutenção Predial
 
-3. **Manter o link da imagem** no final da mensagem para que o WhatsApp gere o preview automaticamente (a API do `wa.me` nao suporta anexos diretamente, apenas texto; incluir a URL e o metodo mais proximo de enviar a imagem).
+### Impacto
+- Afeta TODOS os usuários do nicho imobiliário (novos agentes criados)
+- Agentes já criados NÃO são afetados (serviços são copiados na criação)
+- Arquivo alterado: apenas `nichoConfig.ts` (bloco `SERVICES_BY_SUBNICHO`)
 
-### Detalhes Tecnicos
-
-- **Arquivo de imagem**: Copiar `user-uploads://WhatsApp_Image_2026-02-25_at_18.11.00.jpeg` para `public/images/neofolic-licenca.jpeg` (substituicao).
-- **Arquivo editado**: `src/hooks/useHotLeadsSettings.ts` -- linha 75, ajustar o template da mensagem removendo a frase sobre "nao receber mais mensagens" e o emoji, mantendo o link da imagem no final para preview.
