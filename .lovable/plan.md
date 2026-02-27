@@ -33,3 +33,13 @@ Race condition: AI divide respostas em partes com delay. Lead responde entre par
 - Adicionado lookup por `account_id` via `avivar_account_members` na RPC
 - Adicionado fallback de slots padrão (08:00-18:00, seg-sáb) quando não há config
 - Fallback respeita appointments existentes para evitar conflitos
+
+## ✅ RESOLVIDO: Função RPC duplicada causando PGRST203
+
+### Causa Raiz
+Migração anterior criou nova versão de `get_available_slots_flexible` com parâmetros em ordem diferente sem dropar a antiga. PostgREST não conseguia escolher entre as duas → erro PGRST203 → zero slots.
+
+### Solução Implementada
+- Dropadas AMBAS overloads e recriada versão única com lookup por account_id + fallback padrão
+- `resolveAgenda` agora extrai nome base antes do lookup (ex: "Medic Clinica - Fortaleza (Lucas)" → "Medic Clinica")
+- `list_agendas` retorna formato separado por pipes para evitar confusão de nomes
