@@ -1,55 +1,110 @@
 
-## ✅ RESOLVIDO: Race condition entre propose_slot e create_appointment
 
-### Causa Raiz
-Race condition: `propose_slot` validou horário usando fallback padrão (sem config de agenda). Entre a proposta e a confirmação do lead, o dono da conta configurou a agenda (desabilitando sábado). `create_appointment` re-validou contra a nova config → rejeitou o horário já aceito pelo lead.
+# Preparação do NeoHub para Apple App Store + HotLeads no Mobile
 
-### Solução Implementada
-- Adicionado parâmetro `skipGridValidation` em `createAppointment`
-- Quando `pendingProposalDetected=true` (lead confirmou proposta anterior), `create_appointment` pula validação de grade e só verifica conflitos reais (appointments existentes)
-- Flag propagada via `processToolCall` → `createAppointment`
-- Garante que propostas validadas por `propose_slot` são honradas mesmo se a config da agenda mudar entre proposta e confirmação
+## Resumo
 
+Preparar o NeoHub para submissão na Apple App Store e adicionar o módulo HotLeads como terceiro portal disponível no mobile (ao lado de Academy e NeoLicense).
 
-## ✅ RESOLVIDO: Mensagem do lead perdida quando responde durante envio de mensagens split da IA
+---
 
-### Causa Raiz
-Race condition: AI divide respostas em partes com delay. Lead responde entre partes → mensagem fica com timestamp < lastOutboundTime → filtrada/perdida pelo debounce-processor.
+## 1. Liberar HotLeads no Mobile
 
-### Solução Implementada
+**Arquivo:** `src/hooks/useMobileEnvironment.ts`
 
-1. **Migração SQL**: Adicionadas colunas `ai_processing` (bool) e `last_ai_processed_at` (timestamptz) em `crm_conversations`
+- Remover `'hotleads'` e sub-módulos do array `BLOCKED_MOBILE_MODULES` (linhas ~68-70 referentes a hotleads, se existirem indiretamente via neolicense)
+- Remover `/hotleads` do array `BLOCKED_MOBILE_ROUTES` (atualmente não está listado explicitamente, mas confirmar que não há bloqueio indireto)
+- Nota: `/hotleads` atualmente NAO está em `BLOCKED_MOBILE_ROUTES`, então o módulo já passa pelo guard de rotas. Porém os módulos `neolicense_hotleads` relacionados podem precisar de ajuste.
 
-2. **`avivar-ai-agent/index.ts`**: 
-   - Seta `ai_processing = true` no início do processamento
-   - Seta `ai_processing = false` + `last_ai_processed_at = NOW()` no final (success e error)
+**Arquivo:** `src/components/MobileAppWrapper.tsx`
 
-3. **`avivar-debounce-processor/index.ts`**:
-   - Aguarda `ai_processing = false` antes de processar (max 60s com retry de 3s)
-   - Usa `last_ai_processed_at` como cutoff em vez de `lastOutboundTime` (com fallback)
-   - Garante que mensagens intercaladas nunca são perdidas
+- Garantir que `/hotleads` não é bloqueado pela lógica de `isRouteBlockedOnMobile`
 
-4. **`uazapi-webhook/index.ts`**:
-   - Verifica `ai_processing` ao checar debounce
-   - Sempre cria/estende batch de debounce quando AI está processando
+**Arquivo:** `src/components/guards/MobileGuard.tsx`
 
-## ✅ RESOLVIDO: IA não encontra horários disponíveis
+- Garantir que o `MobileGuard` permite o módulo `hotleads` em ambiente nativo
 
-### Causa Raiz
-1. RPC `get_available_slots_flexible` não fazia lookup por `account_id` (agente IA passa account_id como p_user_id)
-2. Sem fallback quando não há config de horários — retornava vazio em vez de gerar slots padrão
+---
 
-### Solução Implementada
-- Adicionado lookup por `account_id` via `avivar_account_members` na RPC
-- Adicionado fallback de slots padrão (08:00-18:00, seg-sáb) quando não há config
-- Fallback respeita appointments existentes para evitar conflitos
+## 2. Configuração iOS para Apple App Store
 
-## ✅ RESOLVIDO: Função RPC duplicada causando PGRST203
+**Arquivo:** `capacitor.config.ts`
 
-### Causa Raiz
-Migração anterior criou nova versão de `get_available_slots_flexible` com parâmetros em ordem diferente sem dropar a antiga. PostgREST não conseguia escolher entre as duas → erro PGRST203 → zero slots.
+- Aprimorar a seção `ios` com configurações específicas para App Store:
+  - `allowsLinkPreview: true`
+  - Garantir `scheme: 'NeoHub'`
+  - Adicionar comentários sobre Associated Domains e Push Notifications capabilities
 
-### Solução Implementada
-- Dropadas AMBAS overloads e recriada versão única com lookup por account_id + fallback padrão
-- `resolveAgenda` agora extrai nome base antes do lookup (ex: "Medic Clinica - Fortaleza (Lucas)" → "Medic Clinica")
-- `list_agendas` retorna formato separado por pipes para evitar confusão de nomes
+**Arquivo:** `public/.well-known/apple-app-site-association`
+
+- Já existe e está configurado. Necessário apenas lembrete para substituir `TEAM_ID` pelo ID real do time Apple Developer.
+
+---
+
+## 3. Atualizar Documentação
+
+**Arquivo:** `docs/MOBILE-SCOPE.md`
+
+- Adicionar HotLeads na tabela de "Modulos Liberados para Mobile" com perfil `licenciado`
+- Atualizar versão para 1.1.0
+
+**Arquivo:** `docs/MOBILE-PUBLISHING-GUIDE.md`
+
+- Adicionar HotLeads na lista de módulos disponíveis
+- Atualizar credenciais de teste para incluir perfil licenciado
+- Adicionar instruções específicas para revisores acessarem HotLeads
+- Atualizar descrição da loja para incluir funcionalidade de leads
+
+**Arquivo:** `docs/MOBILE-STORE-COMPLIANCE.md`
+
+- Adicionar HotLeads no escopo funcional
+- Atualizar públicos-alvo (agora inclui licenciados com acesso a leads)
+- Revisar Apple App Privacy Labels (sem novos dados coletados)
+- Atualizar versão para 1.1.0
+
+**Arquivo:** `docs/APP-STORE-PUBLISHING.md`
+
+- Atualizar descrição longa da loja para incluir HotLeads
+- Atualizar keywords com termos relevantes (leads, captação, clínica)
+
+---
+
+## 4. Usuário de Teste para Review das Stores
+
+**Arquivo:** `supabase/functions/setup-mobile-test-users/index.ts`
+
+- Adicionar um terceiro usuário de teste com perfil `licenciado` para que os revisores da Apple/Google possam testar o módulo HotLeads
+- Credenciais: `appstore.reviewer.licensee@neofolic.com.br` / `ReviewerLicensee2026!`
+- Atualizar `storeSubmissionInfo` com instruções para o fluxo de HotLeads
+
+---
+
+## 5. Profile Selector - Mostrar HotLeads no Mobile
+
+**Arquivo:** `src/neohub/pages/ProfileSelector.tsx`
+
+- Garantir que o card HotLeads aparece desbloqueado no mobile para perfis `licenciado`
+- A lógica de `canAccessModule` já verifica permissões, então com HotLeads liberado das listas de bloqueio, deve funcionar automaticamente
+
+---
+
+## Detalhes Técnicos
+
+### Alterações no `useMobileEnvironment.ts`:
+
+A rota `/hotleads` ja NAO está na lista `BLOCKED_MOBILE_ROUTES`. No entanto, a verificação no `MobileAppWrapper` usa `isRouteBlockedOnMobile()` que checa prefixos. Como `/hotleads` não tem prefixo em nenhuma rota bloqueada, ja esta liberada tecnicamente. A alteração principal é garantir que os módulos `hotleads`-related não estão nos `BLOCKED_MOBILE_MODULES`.
+
+### Alterações no Edge Function:
+
+Adicionar user de teste licenciado com:
+- Permissões de `neolicense_hotleads:read`
+- Perfil ativo `licenciado`
+- Enrollment em HotLeads
+
+### Sequência de implementação:
+
+1. Atualizar `useMobileEnvironment.ts` (garantir hotleads desbloqueado)
+2. Atualizar edge function de teste
+3. Atualizar todos os 4 docs
+4. Aprimorar `capacitor.config.ts` para iOS
+5. Deploy da edge function atualizada
