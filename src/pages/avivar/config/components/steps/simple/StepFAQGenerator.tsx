@@ -57,6 +57,8 @@ const ITEMS_PER_PAGE = 10;
 export function StepFAQGenerator({ 
   generatedFAQ,
   onFAQChange,
+  onCopyToKnowledge,
+  faqAddedToKnowledge = false,
 }: StepFAQGeneratorProps) {
   const [newPergunta, setNewPergunta] = useState('');
   const [newResposta, setNewResposta] = useState('');
