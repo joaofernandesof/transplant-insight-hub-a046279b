@@ -1,0 +1,1 @@
+ALTER TABLE public.crm_conversations ADD COLUMN IF NOT EXISTS ai_processing_started_at TIMESTAMPTZ;
