@@ -1319,7 +1319,8 @@ async function createAppointment(
   time: string,
   serviceType: string,
   notes?: string,
-  patientEmail?: string
+  patientEmail?: string,
+  skipGridValidation?: boolean
 ): Promise<string> {
   console.log(`[AI Agent] Tool: create_appointment(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
 
