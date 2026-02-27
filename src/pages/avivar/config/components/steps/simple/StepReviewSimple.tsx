@@ -186,8 +186,8 @@ export function StepReviewSimple({
               </div>
             </ReviewRow>
 
-            {/* Pagamentos - step 3 */}
-            <ReviewRow icon={CreditCard} stepIndex={3}>
+            {/* Pagamentos - step 1 (info) */}
+            <ReviewRow icon={CreditCard} stepIndex={1}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 {enabledPayments.length} forma{enabledPayments.length !== 1 ? 's' : ''} de pagamento
               </p>
