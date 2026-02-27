@@ -706,7 +706,15 @@ export default function AvivarSimpleWizard() {
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-[hsl(var(--avivar-muted-foreground))]">
           <span>Etapa {currentStep + 1} de {SIMPLE_STEPS.length}</span>
-          <span>{SIMPLE_STEPS[currentStep].title}</span>
+          <div className="flex items-center gap-2">
+            {autoSaving && (
+              <span className="text-xs text-[hsl(var(--avivar-primary))] flex items-center gap-1">
+                <span className="animate-spin h-3 w-3 border-2 border-[hsl(var(--avivar-primary))] border-t-transparent rounded-full" />
+                Salvando...
+              </span>
+            )}
+            <span>{SIMPLE_STEPS[currentStep].title}</span>
+          </div>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
