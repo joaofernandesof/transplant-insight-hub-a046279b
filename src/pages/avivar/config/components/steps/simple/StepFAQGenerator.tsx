@@ -49,6 +49,7 @@ interface StepFAQGeneratorProps {
   onFAQChange: (faq: FAQItem[]) => void;
   onCopyToKnowledge: (content: string) => void;
   onSkip: () => void;
+  faqAddedToKnowledge?: boolean;
 }
 
 const ITEMS_PER_PAGE = 10;
