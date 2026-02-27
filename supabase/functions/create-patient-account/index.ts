@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 interface CreatePatientRequest {
-  email: string;
+  email?: string;
   full_name: string;
   phone: string;
   cpf?: string;
@@ -30,93 +30,117 @@ Deno.serve(async (req) => {
 
     const data: CreatePatientRequest = await req.json();
     
-    if (!data.email || !data.full_name || !data.phone) {
+    if (!data.full_name || !data.phone) {
       return new Response(
-        JSON.stringify({ error: "Email, nome e telefone são obrigatórios" }),
+        JSON.stringify({ error: "Nome e telefone são obrigatórios" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Generate temporary password
-    const tempPassword = `Neo${Math.random().toString(36).slice(-6)}!${Math.floor(Math.random() * 100)}`;
+    let userId: string | null = null;
+    let tempPassword: string | null = null;
 
-    // Create auth user
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: data.email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: { full_name: data.full_name }
-    });
+    // Only create auth user if email is provided
+    if (data.email) {
+      tempPassword = `Neo${Math.random().toString(36).slice(-6)}!${Math.floor(Math.random() * 100)}`;
 
-    if (authError) {
-      if (authError.message.includes("already been registered")) {
-        return new Response(
-          JSON.stringify({ error: "Este email já está cadastrado no sistema" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: data.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { full_name: data.full_name }
+      });
+
+      if (authError) {
+        if (authError.message.includes("already been registered")) {
+          return new Response(
+            JSON.stringify({ error: "Este email já está cadastrado no sistema" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        throw authError;
       }
-      throw authError;
+
+      userId = authData.user.id;
     }
 
-    const userId = authData.user.id;
+    let neohubUserId: string | null = null;
+    let patientId: string | null = null;
 
-    // Create neohub_user
-    const { data: neohubUser, error: neohubUserError } = await supabaseAdmin
-      .from("neohub_users")
-      .insert({
-        user_id: userId,
-        email: data.email,
-        full_name: data.full_name,
-        phone: data.phone,
-        cpf: data.cpf,
-        birth_date: data.birth_date,
-      })
-      .select()
-      .single();
-
-    if (neohubUserError) throw neohubUserError;
-
-    // Assign patient profile
-    const { data: patientProfile } = await supabaseAdmin
-      .from("profile_definitions")
-      .select("id")
-      .eq("key", "paciente")
-      .single();
-
-    if (patientProfile) {
-      await supabaseAdmin
-        .from("user_profile_assignments")
+    // Create neohub_user only if we have a userId (email was provided)
+    if (userId) {
+      const { data: neohubUser, error: neohubUserError } = await supabaseAdmin
+        .from("neohub_users")
         .insert({
-          user_id: neohubUser.id,
-          profile_id: patientProfile.id,
-          is_active: true
+          user_id: userId,
+          email: data.email,
+          full_name: data.full_name,
+          phone: data.phone,
+          cpf: data.cpf,
+          birth_date: data.birth_date,
+        })
+        .select()
+        .single();
+
+      if (neohubUserError) throw neohubUserError;
+      neohubUserId = neohubUser.id;
+
+      // Assign patient profile
+      const { data: patientProfile } = await supabaseAdmin
+        .from("profile_definitions")
+        .select("id")
+        .eq("key", "paciente")
+        .single();
+
+      if (patientProfile) {
+        await supabaseAdmin
+          .from("user_profile_assignments")
+          .insert({
+            user_id: neohubUser.id,
+            profile_id: patientProfile.id,
+            is_active: true
+          });
+      }
+
+      // Also create portal_user and portal_patient for compatibility
+      const { data: portalUser, error: portalUserError } = await supabaseAdmin
+        .from("portal_users")
+        .insert({
+          user_id: userId,
+          email: data.email,
+          full_name: data.full_name,
+          phone: data.phone,
+          cpf: data.cpf,
+        })
+        .select()
+        .single();
+
+      if (portalUserError) throw portalUserError;
+
+      const { data: patient, error: patientError } = await supabaseAdmin
+        .from("portal_patients")
+        .insert({ portal_user_id: portalUser.id })
+        .select()
+        .single();
+
+      if (patientError) throw patientError;
+      patientId = patient.id;
+
+      // Create welcome notification
+      await supabaseAdmin
+        .from("patient_notifications")
+        .insert({
+          patient_id: patient.id,
+          type: 'welcome',
+          channel: 'email',
+          title: 'Bem-vindo ao NeoCare!',
+          message: 'Sua conta foi criada com sucesso. Explore o portal para agendar consultas e acessar seus documentos.',
+          status: 'sent',
+          sent_at: new Date().toISOString()
         });
     }
 
-    // Also create portal_user and portal_patient for compatibility
-    const { data: portalUser, error: portalUserError } = await supabaseAdmin
-      .from("portal_users")
-      .insert({
-        user_id: userId,
-        email: data.email,
-        full_name: data.full_name,
-        phone: data.phone,
-        cpf: data.cpf,
-      })
-      .select()
-      .single();
-
-    if (portalUserError) throw portalUserError;
-
-    const { data: patient, error: patientError } = await supabaseAdmin
-      .from("portal_patients")
-      .insert({ portal_user_id: portalUser.id })
-      .select()
-      .single();
-
-    if (patientError) throw patientError;
-
-    // Also create clinic_patients record for NeoTeam compatibility
+    // Always create clinic_patients record
     const requestData = data as any;
     const clinicNotes: string[] = [];
     if (requestData.branch) clinicNotes.push(`Filial: ${requestData.branch}`);
@@ -127,7 +151,8 @@ Deno.serve(async (req) => {
     if (requestData.lead_source) clinicNotes.push(`Fonte: ${requestData.lead_source}`);
     if (requestData.notes) clinicNotes.push(requestData.notes);
 
-    await supabaseAdmin
+    // Use a valid created_by - if no auth user, use a system placeholder via service role
+    const { data: clinicPatient, error: clinicError } = await supabaseAdmin
       .from("clinic_patients")
       .insert({
         full_name: data.full_name,
@@ -136,10 +161,14 @@ Deno.serve(async (req) => {
         cpf: data.cpf || null,
         notes: clinicNotes.length > 0 ? clinicNotes.join(' | ') : null,
         created_by: userId,
-      });
+      })
+      .select()
+      .single();
 
-    // Send credentials via email if configured
-    if (resendApiKey && (data.send_credentials_via === 'email' || data.send_credentials_via === 'both')) {
+    if (clinicError) throw clinicError;
+
+    // Send credentials via email if configured and email exists
+    if (data.email && tempPassword && resendApiKey && (data.send_credentials_via === 'email' || data.send_credentials_via === 'both')) {
       try {
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -189,26 +218,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create welcome notification
-    await supabaseAdmin
-      .from("patient_notifications")
-      .insert({
-        patient_id: patient.id,
-        type: 'welcome',
-        channel: 'email',
-        title: 'Bem-vindo ao NeoCare!',
-        message: 'Sua conta foi criada com sucesso. Explore o portal para agendar consultas e acessar seus documentos.',
-        status: 'sent',
-        sent_at: new Date().toISOString()
-      });
-
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: "Paciente cadastrado com sucesso!",
-        patient_id: patient.id,
-        neohub_user_id: neohubUser.id,
-        credentials_sent: data.send_credentials_via || 'none'
+        patient_id: patientId,
+        clinic_patient_id: clinicPatient.id,
+        neohub_user_id: neohubUserId,
+        credentials_sent: data.email ? (data.send_credentials_via || 'none') : 'none'
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
