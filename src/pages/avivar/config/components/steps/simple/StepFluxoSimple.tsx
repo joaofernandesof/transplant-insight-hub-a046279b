@@ -185,90 +185,70 @@ export function StepFluxoSimple({
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editValue, setEditValue] = useState('');
-  const templateLoadedRef = useRef(false);
-
-  // Carregar template baseado no objetivo APENAS quando não há fluxo salvo
-  // Isso evita sobrescrever mídias e edições feitas pelo usuário
+  // Efeito unificado: carrega template E aplica objetivos secundários em uma única chamada
+  // Isso elimina a race condition entre dois useEffects separados
   useEffect(() => {
-    templateLoadedRef.current = false;
-    if (objectives.primary) {
-      // Se já existe um fluxo com passos (salvo no banco), NÃO sobrescrever
-      const hasExistingFluxo = fluxoAtendimento?.passosCronologicos?.length > 0;
-      if (hasExistingFluxo) {
-        templateLoadedRef.current = true;
-        return;
-      }
+    if (!objectives.primary) return;
 
-      const template = getFluxoByObjective(objectives.primary);
-      
-      // Adicionar objetivos secundários como passos extras (se houver e não for "Nenhum")
+    const hasExistingFluxo = fluxoAtendimento?.passosCronologicos?.length > 0;
+
+    if (hasExistingFluxo) {
+      // Fluxo já existe (salvo no banco) — apenas atualizar passosExtras dos secundários
       const hasSecondaryObjectives = 
         (objectives.secondary && objectives.secondary.length > 0) ||
         (objectives.secondaryCustomIds && objectives.secondaryCustomIds.length > 0);
       
-      if (hasSecondaryObjectives) {
-        const secondarySteps = generateSecondarySteps(objectives, template.passosExtras || []);
-        template.passosExtras = [...(template.passosExtras || []), ...secondarySteps];
+      if (!hasSecondaryObjectives) return;
+      
+      const nonSecondaryExtras = (fluxoAtendimento.passosExtras || []).filter(
+        step => !step.id.startsWith('secondary_')
+      );
+      
+      const secondarySteps = generateSecondarySteps(objectives, []);
+      const updatedExtras = [...nonSecondaryExtras];
+      let ordem = nonSecondaryExtras.length + 1;
+      
+      for (const newStep of secondarySteps) {
+        const existingIndex = (fluxoAtendimento.passosExtras || []).findIndex(e => e.id === newStep.id);
+        if (existingIndex !== -1) {
+          updatedExtras.push({
+            ...fluxoAtendimento.passosExtras![existingIndex],
+            ordem: ordem++,
+          });
+        } else {
+          updatedExtras.push({
+            ...newStep,
+            ordem: ordem++,
+          });
+        }
       }
       
-      onChange(template);
-      templateLoadedRef.current = true;
+      const currentIds = (fluxoAtendimento.passosExtras || []).map(e => e.id).sort().join(',');
+      const newIds = updatedExtras.map(e => e.id).sort().join(',');
+      
+      if (currentIds !== newIds) {
+        onChange({
+          ...fluxoAtendimento,
+          passosExtras: updatedExtras,
+        });
+      }
+      return;
     }
-  }, [objectives.primary]);
 
-  // Atualizar passos extras quando objetivos secundários mudarem
-  useEffect(() => {
-    // Aguardar o template ser carregado pelo Effect 1 para evitar condição de corrida
-    if (!templateLoadedRef.current) return;
-
-    // Verificar se há objetivos secundários selecionados
+    // Sem fluxo existente — carregar template fresco e já incluir secundários
+    const template = getFluxoByObjective(objectives.primary);
+    
     const hasSecondaryObjectives = 
       (objectives.secondary && objectives.secondary.length > 0) ||
       (objectives.secondaryCustomIds && objectives.secondaryCustomIds.length > 0);
     
-    if (!hasSecondaryObjectives) return;
-    
-    // Filtrar passos extras que NÃO são de objetivos secundários (manter os originais do template)
-    const nonSecondaryExtras = (fluxoAtendimento.passosExtras || []).filter(
-      step => !step.id.startsWith('secondary_')
-    );
-    
-    // Gerar novos passos extras baseados nos objetivos secundários atuais
-    const secondarySteps = generateSecondarySteps(objectives, []);
-    
-    // Mesclar: passos originais + passos de objetivos secundários
-    const updatedExtras = [...nonSecondaryExtras];
-    let ordem = nonSecondaryExtras.length + 1;
-    
-    for (const newStep of secondarySteps) {
-      // Verificar se este objetivo secundário já tem um passo
-      const existingIndex = (fluxoAtendimento.passosExtras || []).findIndex(e => e.id === newStep.id);
-      if (existingIndex !== -1) {
-        // Manter o passo existente (pode ter sido editado pelo usuário)
-        updatedExtras.push({
-          ...fluxoAtendimento.passosExtras![existingIndex],
-          ordem: ordem++,
-        });
-      } else {
-        // Adicionar novo passo
-        updatedExtras.push({
-          ...newStep,
-          ordem: ordem++,
-        });
-      }
+    if (hasSecondaryObjectives) {
+      const secondarySteps = generateSecondarySteps(objectives, template.passosExtras || []);
+      template.passosExtras = [...(template.passosExtras || []), ...secondarySteps];
     }
     
-    // Só atualizar se houver diferença
-    const currentIds = (fluxoAtendimento.passosExtras || []).map(e => e.id).sort().join(',');
-    const newIds = updatedExtras.map(e => e.id).sort().join(',');
-    
-    if (currentIds !== newIds) {
-      onChange({
-        ...fluxoAtendimento,
-        passosExtras: updatedExtras,
-      });
-    }
-  }, [objectives.secondary, objectives.secondaryCustomIds]);
+    onChange(template);
+  }, [objectives.primary, objectives.secondary, objectives.secondaryCustomIds]);
 
   const toggleStep = (stepId: string) => {
     setExpandedSteps(prev => {

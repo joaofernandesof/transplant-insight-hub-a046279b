@@ -1,43 +1,36 @@
 
+# Ajustar meta diaria de HotLeads para 80
 
-## Bug Fix: Race condition between Effects 1 and 2 in StepFluxoSimple
+## Contexto
+O valor de 50 leads/dia esta hardcoded em 3 locais e precisa ser atualizado para 80. Alem disso, o registro de hoje ja foi criado com target_count=50 e precisa ser corrigido.
 
-### Root Cause (refined)
+## Alteracoes
 
-Both `useEffect` hooks run in the same render cycle on mount. Effect 1 sets `templateLoadedRef.current = true` **synchronously** before calling `onChange`. Effect 2 then checks the ref (passes), but reads the **stale** `fluxoAtendimento` prop (still empty). The `onChange({...fluxoAtendimento, passosExtras})` in Effect 2 overwrites `passosCronologicos` with `[]`.
+### 1. Migracao SQL -- Atualizar RPC e registro de hoje
+- Atualizar a funcao `release_random_queued_lead`: trocar `v_target int := 50` para `v_target int := 80`
+- Atualizar a funcao `get_lead_release_info`: trocar o COALESCE default de 50 para 80
+- Atualizar o registro de hoje em `lead_release_daily`: `SET target_count = 80 WHERE release_date = CURRENT_DATE`
 
-### Solution
+### 2. Edge Function `hotleads-release/index.ts`
+- Linha 223: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
+- Linha 274: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
 
-**Merge both effects into a single effect.** Instead of two separate effects with a ref-based synchronization that doesn't work across the same render cycle, combine the logic:
+### 3. Comportamento
+- Nenhuma liberacao manual sera feita agora
+- O cron continuara rodando normalmente e vai distribuir os 80 leads ao longo do dia usando a logica probabilistica existente
+- Como ja estamos no meio do dia com 0 liberados, a probabilidade por minuto vai subir naturalmente para compensar
 
-**File:** `src/pages/avivar/config/components/steps/simple/StepFluxoSimple.tsx`
+## Detalhes tecnicos
 
-1. **Remove** the `templateLoadedRef` ref (line 188)
-2. **Merge Effects 1 and 2** (lines 192-271) into a single `useEffect` with deps `[objectives.primary, objectives.secondary, objectives.secondaryCustomIds]`:
-   - If `fluxoAtendimento.passosCronologicos.length > 0` (existing data), only update `passosExtras` from secondary objectives (don't touch cronológicos)
-   - If no existing fluxo, load template from `getFluxoByObjective(objectives.primary)`, then append secondary objective steps to its `passosExtras`, and call `onChange` **once** with the complete result
-3. This eliminates the race condition entirely — one `onChange` call with both cronológicos and extras populated
-
-### Key Logic
-
-```typescript
-useEffect(() => {
-  if (!objectives.primary) return;
-
-  const hasExistingFluxo = fluxoAtendimento?.passosCronologicos?.length > 0;
-
-  if (hasExistingFluxo) {
-    // Only update extras from secondary objectives
-    // (same logic as old Effect 2, using fluxoAtendimento which is valid here)
-    ...
-    return;
-  }
-
-  // Load fresh template + append secondary steps in one go
-  const template = getFluxoByObjective(objectives.primary);
-  const secondarySteps = generateSecondarySteps(objectives, template.passosExtras || []);
-  template.passosExtras = [...(template.passosExtras || []), ...secondarySteps];
-  onChange(template); // Single call with complete data
-}, [objectives.primary, objectives.secondary, objectives.secondaryCustomIds]);
+```text
+Locais de alteracao:
++-----------------------------------------+------------------+
+| Arquivo / Funcao                        | Valor 50 -> 80   |
++-----------------------------------------+------------------+
+| release_random_queued_lead (SQL RPC)    | v_target := 80   |
+| get_lead_release_info (SQL RPC)         | COALESCE(..., 80) |
+| hotleads-release/index.ts L223          | fallback || 80   |
+| hotleads-release/index.ts L274          | fallback || 80   |
+| lead_release_daily (hoje)               | target_count = 80 |
++-----------------------------------------+------------------+
 ```
-
