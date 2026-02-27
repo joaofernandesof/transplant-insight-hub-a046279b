@@ -65,7 +65,8 @@ export function getPlatform(): 'ios' | 'android' | 'web' {
 }
 
 /**
- * Lista de módulos bloqueados no ambiente mobile (primeira versão)
+ * Lista de módulos bloqueados no ambiente mobile
+ * Academy, NeoLicense e HotLeads são LIBERADOS
  */
 export const BLOCKED_MOBILE_MODULES = [
   // NeoCare - dados sensíveis de pacientes
@@ -106,6 +107,7 @@ export const BLOCKED_MOBILE_MODULES = [
 
 /**
  * Lista de rotas bloqueadas no ambiente mobile
+ * /academy, /neolicense e /hotleads são LIBERADAS
  */
 export const BLOCKED_MOBILE_ROUTES = [
   '/neocare',

@@ -4,14 +4,16 @@ Este documento contém todas as informações necessárias para publicar o aplic
 
 ## 📱 Visão Geral
 
-O aplicativo mobile é uma versão restrita do sistema NeoHub, focada no módulo Academy para a primeira versão de lançamento nas lojas.
+O aplicativo mobile é uma versão restrita do sistema NeoHub, focada nos módulos Academy, NeoLicense e HotLeads.
 
 ### Módulos Disponíveis no Mobile
-- ✅ Academy (cursos, materiais, provas, certificados)
+- ✅ Academy (cursos, materiais, provas, certificados) — perfil `aluno`
+- ✅ NeoLicense (hub do licenciado, materiais, indicações) — perfil `licenciado`
+- ✅ HotLeads (dashboard de leads, captação, métricas) — perfil `licenciado`
 - ✅ Perfil do usuário
 - ✅ Notificações
 
-### Módulos Bloqueados no Mobile (Primeira Versão)
+### Módulos Bloqueados no Mobile
 - ❌ NeoCare (portal do paciente)
 - ❌ NeoTeam (portal do colaborador)
 - ❌ Clinic (operação clínica)
@@ -19,29 +21,49 @@ O aplicativo mobile é uma versão restrita do sistema NeoHub, focada no módulo
 - ❌ Anamnese
 - ❌ Marketplace
 - ❌ Pós-venda
+- ❌ Avivar (CRM)
+- ❌ IPROMED (jurídico)
+- ❌ Vision (diagnóstico IA)
 
 ---
 
 ## 🔐 Credenciais para Revisão das Lojas
 
-### App Store (Apple)
+### Perfil Aluno (Academy)
+
+#### App Store (Apple)
 ```
 Email: appstore.reviewer@neofolic.com.br
 Senha: ReviewerApp2026!
 ```
 
-### Google Play Store
+#### Google Play Store
 ```
 Email: playstore.reviewer@neofolic.com.br
 Senha: ReviewerPlay2026!
 ```
 
+### Perfil Licenciado (HotLeads)
+```
+Email: appstore.reviewer.licensee@neofolic.com.br
+Senha: ReviewerLicensee2026!
+```
+
 ### Instruções para Revisores
+
+#### Fluxo Academy (Aluno)
 1. Abra o aplicativo
-2. Faça login com as credenciais acima
+2. Faça login com as credenciais de aluno acima
 3. Navegue pelo módulo Academy
 4. Visualize cursos, materiais e cronogramas
 5. Acesse o perfil do usuário
+
+#### Fluxo HotLeads (Licenciado)
+1. Abra o aplicativo
+2. Faça login com as credenciais de licenciado acima
+3. Selecione o portal NeoLicense ou HotLeads
+4. Navegue pelo dashboard de leads
+5. Visualize métricas e indicações
 
 ---
 
@@ -55,13 +77,15 @@ O arquivo `capacitor.config.ts` está configurado para:
 ### Feature Flags
 Os módulos são controlados via tabela `feature_flags` no banco de dados:
 - `mobile_academy_enabled`: true
+- `mobile_neolicense_enabled`: true
+- `mobile_hotleads_enabled`: true
 - `mobile_profile_enabled`: true
 - `mobile_notifications_enabled`: true
 - Todos os outros módulos sensíveis: false
 
 ### Módulos Bloqueados
 Lista de módulos bloqueados armazenada em `mobile_blocked_modules`:
-- neocare, neoteam, clinic, prontuario, anamnese, marketplace, postvenda
+- neocare, neoteam, clinic, prontuario, anamnese, marketplace, postvenda, avivar, ipromed, vision
 
 ---
 
@@ -84,9 +108,10 @@ Lista de módulos bloqueados armazenada em `mobile_blocked_modules`:
 ### iOS (App Store)
 1. Abrir projeto no Xcode: `npx cap open ios`
 2. Configurar signing & capabilities
-3. Criar archive: Product → Archive
-4. Submeter via App Store Connect
-5. Aguardar revisão (1-3 dias úteis)
+3. Adicionar capabilities: Push Notifications, Associated Domains
+4. Criar archive: Product → Archive
+5. Submeter via App Store Connect
+6. Aguardar revisão (1-3 dias úteis)
 
 ### Android (Play Store)
 1. Abrir projeto no Android Studio: `npx cap open android`
@@ -116,7 +141,7 @@ Lista de módulos bloqueados armazenada em `mobile_blocked_modules`:
 Antes de publicar, certifique-se de que a Edge Function de teste está deployada:
 
 ```bash
-# Criar usuários de teste
+# Criar usuários de teste (aluno + licenciado)
 npx supabase functions invoke setup-mobile-test-users
 ```
 
@@ -135,6 +160,7 @@ Em caso de problemas durante a revisão:
 | Versão | Data | Alterações |
 |--------|------|------------|
 | 1.0.0 | 2026-01 | Primeira versão - apenas Academy |
+| 1.1.0 | 2026-02 | Adição de HotLeads e NeoLicense + usuário licenciado de teste |
 
 ---
 
