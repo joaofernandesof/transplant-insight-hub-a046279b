@@ -699,9 +699,12 @@ async function listAgendas(
     return "Não há agendas configuradas no momento.";
   }
 
-  const formatted = agendas.map((a: any, i: number) => 
-    `${i + 1}. ${a.name}${a.city ? ` - ${a.city}` : ""}${a.professional_name ? ` (${a.professional_name})` : ""}`
-  ).join("\n");
+  const formatted = agendas.map((a: any, i: number) => {
+    const parts = [a.name];
+    if (a.city) parts.push(`Cidade: ${a.city}`);
+    if (a.professional_name) parts.push(`Profissional: ${a.professional_name}`);
+    return `${i + 1}. ${parts.join(" | ")}`;
+  }).join("\n");
 
   return `Nossas unidades disponíveis:\n\n${formatted}\n\nEm qual unidade você gostaria de agendar?`;
 }
@@ -900,14 +903,29 @@ async function resolveAgenda(
   accountId: string,
   agendaName: string
 ): Promise<ResolvedAgendaInfo> {
+  // Extract base name: "Medic Clinica - Fortaleza (Lucas Araujo)" → "Medic Clinica"
+  const baseName = agendaName.split(' - ')[0].split(' | ')[0].trim();
+  console.log(`[AI Agent] resolveAgenda: raw="${agendaName}" baseName="${baseName}"`);
+
   const { data: agendas } = await supabase
     .from("avivar_agendas")
     .select("id, name, city, professional_name, address")
     .eq("account_id", accountId)
     .eq("is_active", true)
-    .ilike("name", `%${agendaName}%`);
+    .ilike("name", `%${baseName}%`);
 
   let agendaInfo = agendas?.[0] || null;
+
+  // Also try original name if baseName didn't match
+  if (!agendaInfo && baseName !== agendaName.trim()) {
+    const { data: byFull } = await supabase
+      .from("avivar_agendas")
+      .select("id, name, city, professional_name, address")
+      .eq("account_id", accountId)
+      .eq("is_active", true)
+      .ilike("name", `%${agendaName.trim()}%`);
+    agendaInfo = byFull?.[0] || null;
+  }
 
   if (!agendaInfo) {
     const { data: byCity } = await supabase
@@ -915,7 +933,7 @@ async function resolveAgenda(
       .select("id, name, city, professional_name, address")
       .eq("account_id", accountId)
       .eq("is_active", true)
-      .ilike("city", `%${agendaName}%`);
+      .ilike("city", `%${baseName}%`);
     agendaInfo = byCity?.[0] || null;
   }
 
