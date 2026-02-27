@@ -1,5 +1,6 @@
 
 
+
 ## ✅ RESOLVIDO: Mensagem do lead perdida quando responde durante envio de mensagens split da IA
 
 ### Causa Raiz
@@ -21,3 +22,14 @@ Race condition: AI divide respostas em partes com delay. Lead responde entre par
 4. **`uazapi-webhook/index.ts`**:
    - Verifica `ai_processing` ao checar debounce
    - Sempre cria/estende batch de debounce quando AI está processando
+
+## ✅ RESOLVIDO: IA não encontra horários disponíveis
+
+### Causa Raiz
+1. RPC `get_available_slots_flexible` não fazia lookup por `account_id` (agente IA passa account_id como p_user_id)
+2. Sem fallback quando não há config de horários — retornava vazio em vez de gerar slots padrão
+
+### Solução Implementada
+- Adicionado lookup por `account_id` via `avivar_account_members` na RPC
+- Adicionado fallback de slots padrão (08:00-18:00, seg-sáb) quando não há config
+- Fallback respeita appointments existentes para evitar conflitos
