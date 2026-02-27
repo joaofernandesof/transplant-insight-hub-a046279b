@@ -564,12 +564,12 @@ function AcademyRoutes() {
 // ====================================
 // NeoAcademy Routes (Portal SaaS Área de Membros)
 // ====================================
-const NeoAcademySidebarComponent = lazy(() => import('./neoacademy/components/NeoAcademySidebar').then(m => ({ default: m.NeoAcademySidebar as any })));
+import { NeoAcademySidebar } from './neoacademy/components/NeoAcademySidebar';
 
 function NeoAcademyRoutes() {
   return (
     <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0a0f]"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>}>
-      <NeoAcademySidebarWrapper>
+      <NeoAcademySidebar>
         <Routes>
           <Route index element={<NeoAcademyDashboard />} />
           <Route path="catalog" element={<NeoAcademyCatalog />} />
@@ -583,15 +583,7 @@ function NeoAcademyRoutes() {
           <Route path="admin/*" element={<NeoAcademyPlaceholder title="Painel do Produtor" description="Gestão de cursos, alunos e analytics." />} />
           <Route path="*" element={<Navigate to="/neoacademy" replace />} />
         </Routes>
-      </NeoAcademySidebarWrapper>
-    </Suspense>
-  );
-}
-
-function NeoAcademySidebarWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0a0f]"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>}>
-      <NeoAcademySidebarLazy>{children}</NeoAcademySidebarLazy>
+      </NeoAcademySidebar>
     </Suspense>
   );
 }
