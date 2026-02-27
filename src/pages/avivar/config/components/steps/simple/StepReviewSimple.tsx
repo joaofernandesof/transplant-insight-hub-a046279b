@@ -225,8 +225,8 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Documentos - step 7 */}
-            <ReviewRow icon={FileText} stepIndex={7}>
+            {/* Documentos - step 5 */}
+            <ReviewRow icon={FileText} stepIndex={5}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 Base de Conhecimento
               </p>
