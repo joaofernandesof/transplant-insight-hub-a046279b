@@ -19,15 +19,21 @@ import {
   ChevronLeft,
   ChevronRight,
   BookOpen,
-  CheckCircle2
+  CheckCircle2,
+  Image,
+  Mic,
+  Video,
+  FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { NichoType, SubnichoType, Service, PaymentMethod, AgentObjectives, BusinessUnit } from '../../../types';
+import { NichoType, SubnichoType, Service, PaymentMethod, AgentObjectives, BusinessUnit, FluxoStepMedia } from '../../../types';
+import { FluxoStepMediaPicker } from './FluxoStepMediaPicker';
 
 interface FAQItem {
   id: string;
   pergunta: string;
   resposta: string;
+  media?: FluxoStepMedia;
   isEditing?: boolean;
 }
 
