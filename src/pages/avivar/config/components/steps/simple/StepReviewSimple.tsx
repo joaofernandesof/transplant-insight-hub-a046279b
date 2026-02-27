@@ -23,7 +23,7 @@ import {
   Sparkles,
   Settings2,
   Loader2,
-  CreditCard,
+  
   Target,
   Route,
   HelpCircle,
