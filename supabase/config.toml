@@ -104,3 +104,6 @@ verify_jwt = false
 
 [functions.avivar-queue-processor]
 verify_jwt = false
+
+[functions.create-patient-account]
+verify_jwt = false
