@@ -584,13 +584,15 @@ function NeoAcademyRoutes() {
           <Route path="catalog" element={<NeoAcademyCatalog />} />
           <Route path="course/:courseId" element={<NeoAcademyCourseDetail />} />
           <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
-          <Route path="my-courses" element={<NeoAcademyPlaceholder title="Meus Cursos" />} />
-          <Route path="continue" element={<NeoAcademyPlaceholder title="Continuar Assistindo" />} />
-          <Route path="community" element={<NeoAcademyPlaceholder title="Comunidade" description="Feed de posts, curtidas, comentários e comunidades temáticas." />} />
-          <Route path="ranking" element={<NeoAcademyPlaceholder title="Ranking" description="Ranking geral de participação e pontuação dos alunos." />} />
-          <Route path="achievements" element={<NeoAcademyPlaceholder title="Conquistas" description="Badges, recompensas e cupons desbloqueáveis." />} />
-          <Route path="admin/*" element={<NeoAcademyPlaceholder title="Painel do Produtor" description="Gestão de cursos, alunos e analytics." />} />
-          <Route path="*" element={<Navigate to="/neoacademy" replace />} />
+          <Route path="my-courses" element={<NeoAcademyMyCourses />} />
+          <Route path="continue" element={<NeoAcademyContinue />} />
+          <Route path="community" element={<NeoAcademyCommunity />} />
+          <Route path="ranking" element={<NeoAcademyRanking />} />
+          <Route path="achievements" element={<NeoAcademyAchievements />} />
+          <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
+          <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
+          <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
+          <Route path="admin/settings" element={<NeoAcademyAdminSettings />} />
         </Routes>
       </NeoAcademySidebar>
     </Suspense>
