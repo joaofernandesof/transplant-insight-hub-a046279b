@@ -37,7 +37,7 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
     <div className="flex h-screen bg-[#0a0a0f]">
       {/* Sidebar */}
       <aside className={cn(
-        "flex flex-col border-r border-white/5 bg-[#0d0d14] transition-all duration-300",
+        "flex flex-col border-r border-white/5 bg-[#0d0d14] transition-all duration-300 sticky top-0 h-screen shrink-0",
         collapsed ? "w-16" : "w-64"
       )}>
         {/* Header */}
