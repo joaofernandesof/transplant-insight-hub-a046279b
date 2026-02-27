@@ -116,6 +116,28 @@ Deno.serve(async (req) => {
 
     if (patientError) throw patientError;
 
+    // Also create clinic_patients record for NeoTeam compatibility
+    const requestData = data as any;
+    const clinicNotes: string[] = [];
+    if (requestData.branch) clinicNotes.push(`Filial: ${requestData.branch}`);
+    if (requestData.category) clinicNotes.push(`Categoria: ${requestData.category}`);
+    if (requestData.service_type) clinicNotes.push(`Procedimento: ${requestData.service_type}`);
+    if (requestData.seller) clinicNotes.push(`Vendedor: ${requestData.seller}`);
+    if (requestData.consultant) clinicNotes.push(`Consultor: ${requestData.consultant}`);
+    if (requestData.lead_source) clinicNotes.push(`Fonte: ${requestData.lead_source}`);
+    if (requestData.notes) clinicNotes.push(requestData.notes);
+
+    await supabaseAdmin
+      .from("clinic_patients")
+      .insert({
+        full_name: data.full_name,
+        email: data.email || null,
+        phone: data.phone || null,
+        cpf: data.cpf || null,
+        notes: clinicNotes.length > 0 ? clinicNotes.join(' | ') : null,
+        created_by: userId,
+      });
+
     // Send credentials via email if configured
     if (resendApiKey && (data.send_credentials_via === 'email' || data.send_credentials_via === 'both')) {
       try {
