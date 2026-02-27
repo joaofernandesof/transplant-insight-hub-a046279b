@@ -669,6 +669,7 @@ export default function AvivarSimpleWizard() {
             onFAQChange={handleFAQChange}
             onCopyToKnowledge={handleCopyFAQToKnowledge}
             onSkip={handleNext}
+            faqAddedToKnowledge={faqAddedToKnowledge}
           />
         );
       case 5:

@@ -17,7 +17,9 @@ import {
   X,
   MessageCircleQuestion,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpen,
+  CheckCircle2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { NichoType, SubnichoType, Service, PaymentMethod, AgentObjectives, BusinessUnit } from '../../../types';
@@ -47,6 +49,7 @@ interface StepFAQGeneratorProps {
   onFAQChange: (faq: FAQItem[]) => void;
   onCopyToKnowledge: (content: string) => void;
   onSkip: () => void;
+  faqAddedToKnowledge?: boolean;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -54,6 +57,8 @@ const ITEMS_PER_PAGE = 10;
 export function StepFAQGenerator({ 
   generatedFAQ,
   onFAQChange,
+  onCopyToKnowledge,
+  faqAddedToKnowledge = false,
 }: StepFAQGeneratorProps) {
   const [newPergunta, setNewPergunta] = useState('');
   const [newResposta, setNewResposta] = useState('');
@@ -319,6 +324,33 @@ export function StepFAQGenerator({
               )}
             </CardContent>
           </Card>
+        )}
+
+        {/* Add to Knowledge Base Button */}
+        {generatedFAQ.length > 0 && (
+          <div className="pt-2">
+            {faqAddedToKnowledge ? (
+              <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-600">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="font-medium">FAQ adicionado à Base de Conhecimento!</span>
+              </div>
+            ) : (
+              <Button
+                onClick={() => {
+                  const content = generatedFAQ
+                    .map((item, i) => `**${i + 1}. ${item.pergunta}**\n${item.resposta}`)
+                    .join('\n\n');
+                  onCopyToKnowledge(content);
+                  toast.success('FAQ adicionado à Base de Conhecimento!');
+                }}
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                size="lg"
+              >
+                <BookOpen className="h-5 w-5 mr-2" />
+                Adicionar à Base de Conhecimento
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </div>
