@@ -11743,6 +11743,59 @@ export type Database = {
         }
         Relationships: []
       }
+      neoacademy_achievements: {
+        Row: {
+          account_id: string
+          category: string | null
+          code: string
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          points: number | null
+          requirement_type: string | null
+          requirement_value: number | null
+        }
+        Insert: {
+          account_id: string
+          category?: string | null
+          code: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          points?: number | null
+          requirement_type?: string | null
+          requirement_value?: number | null
+        }
+        Update: {
+          account_id?: string
+          category?: string | null
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          points?: number | null
+          requirement_type?: string | null
+          requirement_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_achievements_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoacademy_categories: {
         Row: {
           account_id: string
@@ -11777,6 +11830,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "neoacademy_categories_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_community_posts: {
+        Row: {
+          account_id: string
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          id: string
+          image_url: string | null
+          is_pinned: boolean | null
+          likes_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_community_posts_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "neoacademy_accounts"
@@ -12105,6 +12205,146 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "neoacademy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_post_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_user_points: {
+        Row: {
+          account_id: string
+          courses_completed: number | null
+          created_at: string | null
+          id: string
+          last_activity_at: string | null
+          lessons_completed: number | null
+          level: number | null
+          streak_days: number | null
+          total_points: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          courses_completed?: number | null
+          created_at?: string | null
+          id?: string
+          last_activity_at?: string | null
+          lessons_completed?: number | null
+          level?: number | null
+          streak_days?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          courses_completed?: number | null
+          created_at?: string | null
+          id?: string
+          last_activity_at?: string | null
+          lessons_completed?: number | null
+          level?: number | null
+          streak_days?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_user_points_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
             referencedColumns: ["id"]
           },
         ]

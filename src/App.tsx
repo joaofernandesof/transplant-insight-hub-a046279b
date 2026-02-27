@@ -565,6 +565,15 @@ function AcademyRoutes() {
 // NeoAcademy Routes (Portal SaaS Área de Membros)
 // ====================================
 import { NeoAcademySidebar } from './neoacademy/components/NeoAcademySidebar';
+const NeoAcademyMyCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyMyCourses'));
+const NeoAcademyContinue = React.lazy(() => import('./neoacademy/pages/NeoAcademyContinue'));
+const NeoAcademyCommunity = React.lazy(() => import('./neoacademy/pages/NeoAcademyCommunity'));
+const NeoAcademyRanking = React.lazy(() => import('./neoacademy/pages/NeoAcademyRanking'));
+const NeoAcademyAchievements = React.lazy(() => import('./neoacademy/pages/NeoAcademyAchievements'));
+const NeoAcademyAdminAnalytics = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminAnalytics'));
+const NeoAcademyAdminCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminCourses'));
+const NeoAcademyAdminStudents = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminStudents'));
+const NeoAcademyAdminSettings = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminSettings'));
 
 function NeoAcademyRoutes() {
   return (
@@ -575,12 +584,15 @@ function NeoAcademyRoutes() {
           <Route path="catalog" element={<NeoAcademyCatalog />} />
           <Route path="course/:courseId" element={<NeoAcademyCourseDetail />} />
           <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
-          <Route path="my-courses" element={<NeoAcademyPlaceholder title="Meus Cursos" />} />
-          <Route path="continue" element={<NeoAcademyPlaceholder title="Continuar Assistindo" />} />
-          <Route path="community" element={<NeoAcademyPlaceholder title="Comunidade" description="Feed de posts, curtidas, comentários e comunidades temáticas." />} />
-          <Route path="ranking" element={<NeoAcademyPlaceholder title="Ranking" description="Ranking geral de participação e pontuação dos alunos." />} />
-          <Route path="achievements" element={<NeoAcademyPlaceholder title="Conquistas" description="Badges, recompensas e cupons desbloqueáveis." />} />
-          <Route path="admin/*" element={<NeoAcademyPlaceholder title="Painel do Produtor" description="Gestão de cursos, alunos e analytics." />} />
+          <Route path="my-courses" element={<NeoAcademyMyCourses />} />
+          <Route path="continue" element={<NeoAcademyContinue />} />
+          <Route path="community" element={<NeoAcademyCommunity />} />
+          <Route path="ranking" element={<NeoAcademyRanking />} />
+          <Route path="achievements" element={<NeoAcademyAchievements />} />
+          <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
+          <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
+          <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
+          <Route path="admin/settings" element={<NeoAcademyAdminSettings />} />
           <Route path="*" element={<Navigate to="/neoacademy" replace />} />
         </Routes>
       </NeoAcademySidebar>
