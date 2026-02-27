@@ -154,9 +154,18 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
             </div>
           </div>
         )}
+        <button
+          onClick={handleLogout}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all mt-2',
+            'text-slate-400 hover:bg-red-500/10 hover:text-red-400'
+          )}
+          title="Sair"
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="text-sm font-medium">Sair</span>}
+        </button>
       </div>
-    </div>
-  );
 }
 
 export function AdminSidebar({ collapsed, onToggle, onMobileClose }: AdminSidebarProps) {
