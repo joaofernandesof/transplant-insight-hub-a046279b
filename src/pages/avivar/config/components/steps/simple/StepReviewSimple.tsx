@@ -205,8 +205,8 @@ export function StepReviewSimple({
               </div>
             </ReviewRow>
 
-            {/* Objetivos - step 4 */}
-            <ReviewRow icon={Target} stepIndex={4}>
+            {/* Objetivos - step 2 */}
+            <ReviewRow icon={Target} stepIndex={2}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 Objetivo do Agente
               </p>
