@@ -175,6 +175,16 @@ export function StepFAQGenerator({
                   className="mt-1 bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]"
                 />
               </div>
+              <div>
+                <label className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))]">
+                  Mídia (opcional)
+                </label>
+                <div className="mt-1">
+                  <FluxoStepMediaPicker
+                    media={newMedia}
+                    onChange={(m) => setNewMedia(m)}
+                  />
+                </div>
               <div className="flex justify-end gap-2">
                 <Button
                   variant="ghost"
