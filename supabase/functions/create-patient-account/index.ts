@@ -42,26 +42,27 @@ Deno.serve(async (req) => {
 
     // Only create auth user if email is provided
     if (data.email) {
-      tempPassword = `Neo${Math.random().toString(36).slice(-6)}!${Math.floor(Math.random() * 100)}`;
+      // Check if user already exists by email
+      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = existingUsers?.users?.find(u => u.email === data.email);
 
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: data.email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: { full_name: data.full_name }
-      });
+      if (existingUser) {
+        // Reuse existing auth user
+        userId = existingUser.id;
+        tempPassword = null; // Don't generate new password for existing users
+      } else {
+        tempPassword = `Neo${Math.random().toString(36).slice(-6)}!${Math.floor(Math.random() * 100)}`;
 
-      if (authError) {
-        if (authError.message.includes("already been registered")) {
-          return new Response(
-            JSON.stringify({ error: "Este email já está cadastrado no sistema" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        throw authError;
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: data.email,
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: { full_name: data.full_name }
+        });
+
+        if (authError) throw authError;
+        userId = authData.user.id;
       }
-
-      userId = authData.user.id;
     }
 
     let neohubUserId: string | null = null;
@@ -69,78 +70,105 @@ Deno.serve(async (req) => {
 
     // Create neohub_user only if we have a userId (email was provided)
     if (userId) {
-      const { data: neohubUser, error: neohubUserError } = await supabaseAdmin
+      // Check if neohub_user already exists
+      const { data: existingNeohubUser } = await supabaseAdmin
         .from("neohub_users")
-        .insert({
-          user_id: userId,
-          email: data.email,
-          full_name: data.full_name,
-          phone: data.phone,
-          cpf: data.cpf,
-          birth_date: data.birth_date,
-        })
-        .select()
-        .single();
-
-      if (neohubUserError) throw neohubUserError;
-      neohubUserId = neohubUser.id;
-
-      // Assign patient profile
-      const { data: patientProfile } = await supabaseAdmin
-        .from("profile_definitions")
         .select("id")
-        .eq("key", "paciente")
-        .single();
+        .eq("user_id", userId)
+        .maybeSingle();
 
-      if (patientProfile) {
-        await supabaseAdmin
-          .from("user_profile_assignments")
+      if (existingNeohubUser) {
+        neohubUserId = existingNeohubUser.id;
+      } else {
+        const { data: neohubUser, error: neohubUserError } = await supabaseAdmin
+          .from("neohub_users")
           .insert({
-            user_id: neohubUser.id,
-            profile_id: patientProfile.id,
-            is_active: true
-          });
+            user_id: userId,
+            email: data.email,
+            full_name: data.full_name,
+            phone: data.phone,
+            cpf: data.cpf,
+            birth_date: data.birth_date,
+          })
+          .select()
+          .single();
+
+        if (neohubUserError) throw neohubUserError;
+        neohubUserId = neohubUser.id;
+
+        // Assign patient profile
+        const { data: patientProfile } = await supabaseAdmin
+          .from("profile_definitions")
+          .select("id")
+          .eq("key", "paciente")
+          .single();
+
+        if (patientProfile) {
+          await supabaseAdmin
+            .from("user_profile_assignments")
+            .insert({
+              user_id: neohubUser.id,
+              profile_id: patientProfile.id,
+              is_active: true
+            });
+        }
       }
 
-      // Also create portal_user and portal_patient for compatibility
-      const { data: portalUser, error: portalUserError } = await supabaseAdmin
+      // Check if portal_user already exists
+      const { data: existingPortalUser } = await supabaseAdmin
         .from("portal_users")
-        .insert({
-          user_id: userId,
-          email: data.email,
-          full_name: data.full_name,
-          phone: data.phone,
-          cpf: data.cpf,
-        })
-        .select()
-        .single();
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-      if (portalUserError) throw portalUserError;
+      if (existingPortalUser) {
+        // Check if portal_patient exists
+        const { data: existingPatient } = await supabaseAdmin
+          .from("portal_patients")
+          .select("id")
+          .eq("portal_user_id", existingPortalUser.id)
+          .maybeSingle();
+        patientId = existingPatient?.id || null;
+      } else {
+        const { data: portalUser, error: portalUserError } = await supabaseAdmin
+          .from("portal_users")
+          .insert({
+            user_id: userId,
+            email: data.email,
+            full_name: data.full_name,
+            phone: data.phone,
+            cpf: data.cpf,
+          })
+          .select()
+          .single();
 
-      const { data: patient, error: patientError } = await supabaseAdmin
-        .from("portal_patients")
-        .insert({ portal_user_id: portalUser.id })
-        .select()
-        .single();
+        if (portalUserError) throw portalUserError;
 
-      if (patientError) throw patientError;
-      patientId = patient.id;
+        const { data: patient, error: patientError } = await supabaseAdmin
+          .from("portal_patients")
+          .insert({ portal_user_id: portalUser.id })
+          .select()
+          .single();
 
-      // Create welcome notification
-      await supabaseAdmin
-        .from("patient_notifications")
-        .insert({
-          patient_id: patient.id,
-          type: 'welcome',
-          channel: 'email',
-          title: 'Bem-vindo ao NeoCare!',
-          message: 'Sua conta foi criada com sucesso. Explore o portal para agendar consultas e acessar seus documentos.',
-          status: 'sent',
-          sent_at: new Date().toISOString()
-        });
+        if (patientError) throw patientError;
+        patientId = patient.id;
+
+        // Create welcome notification
+        await supabaseAdmin
+          .from("patient_notifications")
+          .insert({
+            patient_id: patient.id,
+            type: 'welcome',
+            channel: 'email',
+            title: 'Bem-vindo ao NeoCare!',
+            message: 'Sua conta foi criada com sucesso. Explore o portal para agendar consultas e acessar seus documentos.',
+            status: 'sent',
+            sent_at: new Date().toISOString()
+          });
+      }
     }
 
-    // Always create clinic_patients record
+    // Check if clinic_patients record already exists (by email or CPF)
     const requestData = data as any;
     const clinicNotes: string[] = [];
     if (requestData.branch) clinicNotes.push(`Filial: ${requestData.branch}`);
@@ -151,21 +179,43 @@ Deno.serve(async (req) => {
     if (requestData.lead_source) clinicNotes.push(`Fonte: ${requestData.lead_source}`);
     if (requestData.notes) clinicNotes.push(requestData.notes);
 
-    // Use a valid created_by - if no auth user, use a system placeholder via service role
-    const { data: clinicPatient, error: clinicError } = await supabaseAdmin
-      .from("clinic_patients")
-      .insert({
-        full_name: data.full_name,
-        email: data.email || null,
-        phone: data.phone || null,
-        cpf: data.cpf || null,
-        notes: clinicNotes.length > 0 ? clinicNotes.join(' | ') : null,
-        created_by: userId,
-      })
-      .select()
-      .single();
+    let clinicPatient: any = null;
 
-    if (clinicError) throw clinicError;
+    // Try to find existing clinic patient by email or CPF
+    if (data.email) {
+      const { data: existing } = await supabaseAdmin
+        .from("clinic_patients")
+        .select("*")
+        .eq("email", data.email)
+        .maybeSingle();
+      clinicPatient = existing;
+    }
+    if (!clinicPatient && data.cpf) {
+      const { data: existing } = await supabaseAdmin
+        .from("clinic_patients")
+        .select("*")
+        .eq("cpf", data.cpf)
+        .maybeSingle();
+      clinicPatient = existing;
+    }
+
+    if (!clinicPatient) {
+      const { data: newPatient, error: clinicError } = await supabaseAdmin
+        .from("clinic_patients")
+        .insert({
+          full_name: data.full_name,
+          email: data.email || null,
+          phone: data.phone || null,
+          cpf: data.cpf || null,
+          notes: clinicNotes.length > 0 ? clinicNotes.join(' | ') : null,
+          created_by: userId,
+        })
+        .select()
+        .single();
+
+      if (clinicError) throw clinicError;
+      clinicPatient = newPatient;
+    }
 
     // Send credentials via email if configured and email exists
     if (data.email && tempPassword && resendApiKey && (data.send_credentials_via === 'email' || data.send_credentials_via === 'both')) {
