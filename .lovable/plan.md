@@ -1,36 +1,25 @@
 
-# Ajustar meta diaria de HotLeads para 80
 
-## Contexto
-O valor de 50 leads/dia esta hardcoded em 3 locais e precisa ser atualizado para 80. Alem disso, o registro de hoje ja foi criado com target_count=50 e precisa ser corrigido.
+## Bug: Passos Cronológicos desaparecem ao avançar da etapa 3 para 4 com objetivo secundário
 
-## Alteracoes
+### Causa raiz
 
-### 1. Migracao SQL -- Atualizar RPC e registro de hoje
-- Atualizar a funcao `release_random_queued_lead`: trocar `v_target int := 50` para `v_target int := 80`
-- Atualizar a funcao `get_lead_release_info`: trocar o COALESCE default de 50 para 80
-- Atualizar o registro de hoje em `lead_release_daily`: `SET target_count = 80 WHERE release_date = CURRENT_DATE`
+Condição de corrida entre dois `useEffect` no `StepFluxoSimple.tsx`:
 
-### 2. Edge Function `hotleads-release/index.ts`
-- Linha 223: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
-- Linha 274: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
+1. **Effect 1** (linha 191, dep: `objectives.primary`): Carrega o template com `passosCronologicos` e chama `onChange(template)`.
+2. **Effect 2** (linha 214, dep: `objectives.secondary`): Lê `fluxoAtendimento` (ainda vazio, pois o `onChange` do Effect 1 não propagou ainda) e chama `onChange({...fluxoAtendimento, passosExtras: updatedExtras})` — sobrescrevendo `passosCronologicos` com `[]`.
 
-### 3. Comportamento
-- Nenhuma liberacao manual sera feita agora
-- O cron continuara rodando normalmente e vai distribuir os 80 leads ao longo do dia usando a logica probabilistica existente
-- Como ja estamos no meio do dia com 0 liberados, a probabilidade por minuto vai subir naturalmente para compensar
+Resultado: Effect 2 anula Effect 1. Quando o usuário volta e avança, Effect 1 roda novamente (pois `passosCronologicos` está vazio), mas Effect 2 não dispara (deps não mudaram), então funciona.
 
-## Detalhes tecnicos
+### Correção
 
-```text
-Locais de alteracao:
-+-----------------------------------------+------------------+
-| Arquivo / Funcao                        | Valor 50 -> 80   |
-+-----------------------------------------+------------------+
-| release_random_queued_lead (SQL RPC)    | v_target := 80   |
-| get_lead_release_info (SQL RPC)         | COALESCE(..., 80) |
-| hotleads-release/index.ts L223          | fallback || 80   |
-| hotleads-release/index.ts L274          | fallback || 80   |
-| lead_release_daily (hoje)               | target_count = 80 |
-+-----------------------------------------+------------------+
-```
+Unificar a lógica: o Effect 2 deve **não executar** na montagem inicial quando o template ainda não foi carregado. Usar um `ref` para rastrear se o template já foi aplicado.
+
+### Mudanças
+
+**Arquivo:** `src/pages/avivar/config/components/steps/simple/StepFluxoSimple.tsx`
+
+1. Adicionar `const templateLoadedRef = useRef(false)` para rastrear se o Effect 1 já executou.
+2. No **Effect 1** (linha 191-211): após `onChange(template)`, setar `templateLoadedRef.current = true`. Também resetar o ref no cleanup ou quando `objectives.primary` mudar.
+3. No **Effect 2** (linha 214-262): adicionar guarda `if (!templateLoadedRef.current) return;` no início — impedindo que execute antes do template ser carregado, eliminando a condição de corrida.
+
