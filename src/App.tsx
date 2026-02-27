@@ -568,6 +568,7 @@ import { NeoAcademySidebar } from './neoacademy/components/NeoAcademySidebar';
 const NeoAcademyMyCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyMyCourses'));
 const NeoAcademyContinue = React.lazy(() => import('./neoacademy/pages/NeoAcademyContinue'));
 const NeoAcademyCommunity = React.lazy(() => import('./neoacademy/pages/NeoAcademyCommunity'));
+const NeoAcademyCertificates = React.lazy(() => import('./neoacademy/pages/NeoAcademyCertificates'));
 const NeoAcademyAdminAnalytics = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminAnalytics'));
 const NeoAcademyAdminCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminCourses'));
 const NeoAcademyAdminStudents = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminStudents'));
@@ -585,6 +586,7 @@ function NeoAcademyRoutes() {
           <Route path="my-courses" element={<NeoAcademyMyCourses />} />
           <Route path="continue" element={<NeoAcademyContinue />} />
           <Route path="community" element={<NeoAcademyCommunity />} />
+          <Route path="certificates" element={<NeoAcademyCertificates />} />
           <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
           <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
           <Route path="admin/students" element={<NeoAcademyAdminStudents />} />

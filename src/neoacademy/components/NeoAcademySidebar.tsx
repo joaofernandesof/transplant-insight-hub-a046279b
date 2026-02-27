@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, BookOpen, Play, Users, 
+  LayoutDashboard, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
   GraduationCap
 } from 'lucide-react';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: 'Catálogo', icon: BookOpen, path: '/neoacademy/catalog' },
   { label: 'Meus Cursos', icon: GraduationCap, path: '/neoacademy/my-courses' },
   { label: 'Continuar', icon: Play, path: '/neoacademy/continue' },
+  { label: 'Certificados', icon: Award, path: '/neoacademy/certificates' },
   { label: 'Comunidade', icon: Users, path: '/neoacademy/community' },
 ];
 
