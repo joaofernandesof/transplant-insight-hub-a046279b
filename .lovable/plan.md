@@ -1,42 +1,44 @@
 
 
-## Plan: Add Media Support to FAQ Answers
+## Limpar leads de contas internas (ti@, adm@, nicholas.barreto@)
 
-### Current State
-- FAQ items have `{ id, pergunta, resposta }` — text only
-- `FluxoStepMediaPicker` already exists with full media upload support (audio ptt/file, image, video, document) with forwarded toggle, using `avivar-media` storage bucket
-- The `FluxoStepMedia` type from `types.ts` already defines `{ type, url, name, audio_type?, audio_forward? }`
+### Situação atual
+Existem 6 leads ainda vinculados a contas internas/administrativas que deveriam ter sido limpos ontem mas continuam aparecendo como adquiridos:
 
-### Changes
+| Lead | Conta | Cidade/UF |
+|------|-------|-----------|
+| [TESTE] Lucas Almeida | Nicholas Barreto | Juazeiro do Norte/CE |
+| Maristelio da cruz costa | TI | Natal/RN |
+| Leonardo | TI | Joinville/SC |
+| Marcos Andrade Fernandes | TI | Campo Grande/MS |
+| Isaías | TI | Porto Alegre/RS |
+| Bruno Araújo da Silva | TI | Campos/RJ |
 
-#### 1. Extend FAQ Item type to support media
-Update `FAQItem` interface in both `StepFAQGenerator.tsx` and `AvivarSimpleWizard.tsx` to add optional media fields:
-```typescript
-interface FAQItem {
-  id: string;
-  pergunta: string;
-  resposta: string;
-  media?: FluxoStepMedia;       // attached media (image/audio/video)
-  isEditing?: boolean;
-}
+### Ação
+Executar uma migration SQL que:
+1. Remove `claimed_by`, `claimed_at`, `lead_outcome`, `outcome_at` desses 6 leads
+2. Reseta `status` para `'new'`
+3. Coloca `release_status` de volta para `'queued'` (voltam para a fila de liberação)
+4. Limpa `available_at` para que sejam liberados novamente pelo motor de liberação
+
+### Detalhes técnicos
+
+**Migration SQL:**
+```sql
+UPDATE public.leads
+SET claimed_by = NULL,
+    claimed_at = NULL,
+    lead_outcome = NULL,
+    outcome_at = NULL,
+    status = 'new',
+    release_status = 'queued',
+    available_at = NULL
+WHERE claimed_by IN (
+  '1b58da47-d988-4f96-9847-ed2d8939505e',  -- TI Neo Folic
+  '00294ac4-0194-47bc-95ef-6efb83c316f7',  -- Administrador ByNeofolic
+  '9003cecf-7be7-45c7-8c53-1f4923c974f6',  -- Nicholas Barreto
+  '860ae553-aa79-4e54-af98-a90dd8317c15'   -- Lucas Araujo
+);
 ```
 
-#### 2. Update `StepFAQGenerator.tsx` — Add media picker to answer form
-- Import `FluxoStepMediaPicker` component
-- In the "add new FAQ" form: after the Resposta textarea, add the `FluxoStepMediaPicker` with state for `newMedia`
-- In the "edit FAQ" form: same media picker bound to `editingItem.media`
-- In the FAQ list display: show a media badge/preview below the answer text when media is attached
-- The media picker already handles: type selection (audio/image/video/document), file upload to `avivar-media` bucket, audio PTT vs file mode, and the "Encaminhada" (forwarded) toggle
-
-#### 3. Update knowledge base export format
-- When FAQ is copied to knowledge base via `onCopyToKnowledge`, include media URLs in the formatted content so the AI agent knows what media to send with each answer
-- Format: `**1. Pergunta**\nResposta\n[Mídia: tipo - url]`
-
-#### 4. Update auto-save in `AvivarSimpleWizard.tsx`
-- The FAQ data with media is already serializable (URLs are strings), so auto-save of knowledge files will naturally include it — no schema changes needed since media URLs are part of the FAQ content string saved to `knowledge_files`
-
-### Technical Details
-- No database migration needed — media is stored in existing `avivar-media` bucket, and FAQ content is serialized into `knowledge_files` JSON
-- Reuses existing `FluxoStepMediaPicker` component and `FluxoStepMedia` type — no new upload logic needed
-- The forwarded toggle is already built into the media picker's audio config panel
-
+Nenhuma alteração de código necessária -- apenas a limpeza dos dados no banco.

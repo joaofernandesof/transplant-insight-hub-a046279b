@@ -19,15 +19,21 @@ import {
   ChevronLeft,
   ChevronRight,
   BookOpen,
-  CheckCircle2
+  CheckCircle2,
+  Image,
+  Mic,
+  Video,
+  FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { NichoType, SubnichoType, Service, PaymentMethod, AgentObjectives, BusinessUnit } from '../../../types';
+import { NichoType, SubnichoType, Service, PaymentMethod, AgentObjectives, BusinessUnit, FluxoStepMedia } from '../../../types';
+import { FluxoStepMediaPicker } from './FluxoStepMediaPicker';
 
 interface FAQItem {
   id: string;
   pergunta: string;
   resposta: string;
+  media?: FluxoStepMedia;
   isEditing?: boolean;
 }
 
@@ -63,7 +69,8 @@ export function StepFAQGenerator({
   const [newPergunta, setNewPergunta] = useState('');
   const [newResposta, setNewResposta] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<{ id: string; pergunta: string; resposta: string } | null>(null);
+  const [newMedia, setNewMedia] = useState<FluxoStepMedia | undefined>(undefined);
+  const [editingItem, setEditingItem] = useState<{ id: string; pergunta: string; resposta: string; media?: FluxoStepMedia } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.max(1, Math.ceil(generatedFAQ.length / ITEMS_PER_PAGE));
@@ -86,11 +93,13 @@ export function StepFAQGenerator({
       id: `faq_${Date.now()}`,
       pergunta: newPergunta.trim(),
       resposta: newResposta.trim(),
+      media: newMedia,
     };
 
     onFAQChange([newItem, ...generatedFAQ]);
     setNewPergunta('');
     setNewResposta('');
+    setNewMedia(undefined);
     setShowAddForm(false);
     setCurrentPage(1);
     toast.success('Pergunta adicionada!');
@@ -102,7 +111,7 @@ export function StepFAQGenerator({
   };
 
   const handleStartEdit = (item: FAQItem) => {
-    setEditingItem({ id: item.id, pergunta: item.pergunta, resposta: item.resposta });
+    setEditingItem({ id: item.id, pergunta: item.pergunta, resposta: item.resposta, media: item.media });
   };
 
   const handleSaveEdit = () => {
@@ -110,7 +119,7 @@ export function StepFAQGenerator({
 
     onFAQChange(generatedFAQ.map(item => 
       item.id === editingItem.id 
-        ? { ...item, pergunta: editingItem.pergunta, resposta: editingItem.resposta }
+        ? { ...item, pergunta: editingItem.pergunta, resposta: editingItem.resposta, media: editingItem.media }
         : item
     ));
     setEditingItem(null);
@@ -166,6 +175,17 @@ export function StepFAQGenerator({
                   className="mt-1 bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]"
                 />
               </div>
+              <div>
+                <label className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))]">
+                  Mídia (opcional)
+                </label>
+                <div className="mt-1">
+                  <FluxoStepMediaPicker
+                    media={newMedia}
+                    onChange={(m) => setNewMedia(m)}
+                  />
+                </div>
+              </div>
               <div className="flex justify-end gap-2">
                 <Button
                   variant="ghost"
@@ -174,6 +194,7 @@ export function StepFAQGenerator({
                     setShowAddForm(false);
                     setNewPergunta('');
                     setNewResposta('');
+                    setNewMedia(undefined);
                   }}
                 >
                   Cancelar
@@ -243,6 +264,17 @@ export function StepFAQGenerator({
                             className="mt-1 bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]"
                           />
                         </div>
+                        <div>
+                          <label className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))]">
+                            Mídia (opcional)
+                          </label>
+                          <div className="mt-1">
+                            <FluxoStepMediaPicker
+                              media={editingItem.media}
+                              onChange={(m) => setEditingItem({ ...editingItem, media: m })}
+                            />
+                          </div>
+                        </div>
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
@@ -271,6 +303,18 @@ export function StepFAQGenerator({
                           <p className="text-sm text-[hsl(var(--avivar-foreground))] mt-1">
                             {item.resposta}
                           </p>
+                          {item.media?.url && (
+                            <div className="mt-2">
+                              <Badge variant="outline" className="text-xs gap-1 border-[hsl(var(--avivar-primary)/0.3)] text-[hsl(var(--avivar-primary))]">
+                                {item.media.type === 'audio' && <Mic className="h-3 w-3" />}
+                                {item.media.type === 'image' && <Image className="h-3 w-3" />}
+                                {item.media.type === 'video' && <Video className="h-3 w-3" />}
+                                {item.media.type === 'document' && <FileText className="h-3 w-3" />}
+                                {item.media.type === 'audio' ? 'Áudio' : item.media.type === 'image' ? 'Imagem' : item.media.type === 'video' ? 'Vídeo' : 'Documento'}
+                                {item.media.audio_forward && ' (encaminhado)'}
+                              </Badge>
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <Button
@@ -338,7 +382,14 @@ export function StepFAQGenerator({
               <Button
                 onClick={() => {
                   const content = generatedFAQ
-                    .map((item, i) => `**${i + 1}. ${item.pergunta}**\n${item.resposta}`)
+                    .map((item, i) => {
+                      let text = `**${i + 1}. ${item.pergunta}**\n${item.resposta}`;
+                      if (item.media?.url) {
+                        const typeLabel = item.media.type === 'audio' ? 'Áudio' : item.media.type === 'image' ? 'Imagem' : item.media.type === 'video' ? 'Vídeo' : 'Documento';
+                        text += `\n[Mídia: ${typeLabel} - ${item.media.url}${item.media.audio_forward ? ' (encaminhado)' : ''}]`;
+                      }
+                      return text;
+                    })
                     .join('\n\n');
                   onCopyToKnowledge(content);
                   toast.success('FAQ adicionado à Base de Conhecimento!');

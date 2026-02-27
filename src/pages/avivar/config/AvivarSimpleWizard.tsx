@@ -40,10 +40,13 @@ import {
   SubnichoType,
 } from './types';
 
+import type { FluxoStepMedia } from './types';
+
 interface FAQItem {
   id: string;
   pergunta: string;
   resposta: string;
+  media?: FluxoStepMedia;
 }
 
 // Tracks if FAQ was added to knowledge base
