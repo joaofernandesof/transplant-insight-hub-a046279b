@@ -3504,7 +3504,8 @@ function buildHybridSystemPrompt(
   dynamicMovementInstructions: string,
   fluxoInstructions: string,
   checklistInstructions: string = "",
-  leadLanguage: string = "pt-BR"
+  leadLanguage: string = "pt-BR",
+  hasGoogleCalendar: boolean = false
 ): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
