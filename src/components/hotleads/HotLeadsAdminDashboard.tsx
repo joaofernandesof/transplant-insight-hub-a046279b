@@ -12,6 +12,8 @@ import {
   BarChart3, Lightbulb, Zap, AlertTriangle, CheckCircle2, Trophy, Crown, Medal, User,
   XCircle, ShoppingCart, Stethoscope, Eye, ArrowLeft,
 } from 'lucide-react';
+import { SalesControlTable } from '@/components/hotleads/SalesControlTable';
+import { DiscardRankingTable } from '@/components/hotleads/DiscardRankingTable';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAllLeadStats } from '@/hooks/useAllLeadStats';
@@ -915,6 +917,9 @@ export function HotLeadsAdminDashboard() {
           </div>
         </CardContent>
       </Card>
+      {/* Sales Control & Discard Ranking (collapsible) */}
+      <SalesControlTable leads={outcomeLeads} licensees={stats.topLicensees} />
+      <DiscardRankingTable leads={outcomeLeads} licensees={stats.topLicensees} />
       </>
       )}
 
