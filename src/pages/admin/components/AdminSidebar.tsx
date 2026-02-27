@@ -56,10 +56,16 @@ interface AdminSidebarProps {
 function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onCollapse?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useUnifiedAuth();
 
   const handleNavigate = (href: string) => {
     navigate(href);
     onCollapse?.();
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
   };
 
   const isActive = (href: string) =>
