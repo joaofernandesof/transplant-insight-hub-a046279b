@@ -565,6 +565,15 @@ function AcademyRoutes() {
 // NeoAcademy Routes (Portal SaaS Área de Membros)
 // ====================================
 import { NeoAcademySidebar } from './neoacademy/components/NeoAcademySidebar';
+const NeoAcademyMyCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyMyCourses'));
+const NeoAcademyContinue = React.lazy(() => import('./neoacademy/pages/NeoAcademyContinue'));
+const NeoAcademyCommunity = React.lazy(() => import('./neoacademy/pages/NeoAcademyCommunity'));
+const NeoAcademyRanking = React.lazy(() => import('./neoacademy/pages/NeoAcademyRanking'));
+const NeoAcademyAchievements = React.lazy(() => import('./neoacademy/pages/NeoAcademyAchievements'));
+const NeoAcademyAdminAnalytics = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminAnalytics'));
+const NeoAcademyAdminCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminCourses'));
+const NeoAcademyAdminStudents = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminStudents'));
+const NeoAcademyAdminSettings = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminSettings'));
 
 function NeoAcademyRoutes() {
   return (
