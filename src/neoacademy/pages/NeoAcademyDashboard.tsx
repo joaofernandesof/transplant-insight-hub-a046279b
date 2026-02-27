@@ -57,20 +57,6 @@ export default function NeoAcademyDashboard() {
 
   return (
     <div className="min-h-screen pb-12">
-      {/* Header bar */}
-      <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-lg font-bold text-white">Início</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20">
-              <Trophy className="h-4 w-4 text-yellow-400" />
-              <span className="text-sm font-semibold text-violet-300">0 pts</span>
-            </div>
-          </div>
-        </div>
-      </header>
 
       <div className="px-6 pt-6 space-y-10">
         {/* Hero */}
