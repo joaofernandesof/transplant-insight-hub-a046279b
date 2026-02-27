@@ -20,6 +20,7 @@
   - App Name: `NeoHub`
   - Push Notifications
   - Splash Screen config
+  - iOS: Associated Domains, allowsLinkPreview
 
 ### Push Notifications
 - [x] **@capacitor/push-notifications** instalado
@@ -30,6 +31,11 @@
 - [x] **useDeepLinks hook** criado em `src/hooks/useDeepLinks.ts`
 - [x] **apple-app-site-association** em `public/.well-known/`
 - [x] **assetlinks.json** em `public/.well-known/`
+
+### Módulos Mobile
+- [x] **Academy** — perfil aluno
+- [x] **NeoLicense** — perfil licenciado
+- [x] **HotLeads** — perfil licenciado
 
 ---
 
@@ -44,7 +50,7 @@
 
 # Gerar certificados no Xcode:
 # - Distribution Certificate
-# - Push Notification Certificate
+# - Push Notification Certificate (APNs)
 # - App ID com Push capability
 
 # Atualizar apple-app-site-association com seu TEAM_ID
@@ -89,10 +95,6 @@ npx cap sync
 ### 3. Configuração de Ícones e Splash
 
 ```bash
-# Copie os assets gerados:
-# iOS: ios/App/App/Assets.xcassets/AppIcon.appiconset/
-# Android: android/app/src/main/res/mipmap-*/
-
 # Use @capacitor/assets para gerar todos os tamanhos:
 npx @capacitor/assets generate --iconBackgroundColor '#0d9488'
 ```
@@ -114,7 +116,8 @@ npx cap open android
 2. Adicione capability "Push Notifications"
 3. Adicione capability "Associated Domains" com:
    - `applinks:transplant-insight-hub.lovable.app`
-4. Configure Background Modes se necessário
+4. Configure Background Modes: Remote notifications
+5. Gerar certificado APNs para Push
 
 #### Android (Android Studio)
 1. Configure keystore em `android/app/build.gradle`
@@ -130,6 +133,7 @@ npx cap open android
    - Screenshots (6.5", 5.5", iPad)
    - Descrição, Keywords, Categorias
    - URL de suporte e privacidade
+   - **Conta de teste** (ver seção abaixo)
 4. Submit para Review
 
 #### Play Store (Android)
@@ -144,51 +148,69 @@ npx cap open android
 
 ---
 
+## 🔐 Contas de Teste para Revisores
+
+### Perfil Aluno (Academy)
+```
+Email: appstore.reviewer@neofolic.com.br
+Senha: ReviewerApp2026!
+Portal: Academy (/academy)
+```
+
+### Perfil Licenciado (HotLeads)
+```
+Email: appstore.reviewer.licensee@neofolic.com.br
+Senha: ReviewerLicensee2026!
+Portal: NeoLicense (/neolicense) + HotLeads (/hotleads)
+```
+
+---
+
 ## 📝 Metadados Sugeridos
 
 ### Título
-**NeoHub - Gestão em Saúde**
+**NeoHub - Educação e Gestão**
 
 ### Descrição Curta (80 chars)
-Plataforma completa para clínicas, pacientes e profissionais de saúde.
+Plataforma de cursos, certificações e gestão de leads para profissionais.
 
 ### Descrição Longa
 ```
-O NeoHub é a plataforma definitiva para gestão em saúde, conectando clínicas, 
-pacientes e profissionais de forma integrada e segura.
+O NeoHub é a plataforma integrada para profissionais de saúde e licenciados, 
+conectando educação, certificação e captação de forma segura.
 
-✓ Portal do Paciente (NeoCare)
-- Agende consultas e procedimentos
-- Acompanhe seus tratamentos
-- Acesse orientações personalizadas
-- Gerencie seus documentos médicos
-
-✓ Portal do Colaborador (NeoTeam)
-- Gestão de agendamentos
-- Prontuário eletrônico
-- Sala de espera digital
-- Comunicação integrada
-
-✓ Academia (IBRAMEC)
+✓ Academy — Plataforma Educacional
 - Cursos para profissionais de saúde
 - Certificações reconhecidas
-- Comunidade de networking
+- Provas e avaliações online
 - Material didático exclusivo
+- Galeria de conteúdos
+
+✓ NeoLicense — Portal do Licenciado
+- Hub de recursos e materiais
+- Gestão de indicações
+- Materiais de marketing
+
+✓ HotLeads — Captação de Leads
+- Dashboard de leads em tempo real
+- Métricas e indicadores
+- Acompanhamento de captação
+- Gestão de contatos
 
 ✓ Segurança e Privacidade
 - Criptografia de ponta a ponta
 - Conformidade com LGPD
-- Controle de acesso granular
+- Controle de acesso por perfil
 
-Baixe agora e transforme sua experiência em saúde!
+Baixe agora e potencialize sua atuação profissional!
 ```
 
 ### Keywords
-saúde, clínica, agendamento, paciente, médico, prontuário, LGPD, gestão, consulta
+educação, saúde, cursos, certificação, leads, captação, clínica, profissional, gestão, licenciado
 
 ### Categorias
-- **iOS**: Medical / Health & Fitness
-- **Android**: Medical / Health & Fitness
+- **iOS**: Education / Business
+- **Android**: Education / Business
 
 ---
 
@@ -198,7 +220,7 @@ saúde, clínica, agendamento, paciente, médico, prontuário, LGPD, gestão, co
 |---------|-----|
 | Política de Privacidade | https://transplant-insight-hub.lovable.app/privacy-policy |
 | Termos de Uso | https://transplant-insight-hub.lovable.app/terms |
-| Suporte | mailto:contato@neohub.com.br |
+| Suporte | mailto:contato@neofolic.com.br |
 | Marketing | https://transplant-insight-hub.lovable.app |
 
 ---
@@ -207,11 +229,14 @@ saúde, clínica, agendamento, paciente, médico, prontuário, LGPD, gestão, co
 
 - [ ] TEAM_ID atualizado em `apple-app-site-association`
 - [ ] SHA256 atualizado em `assetlinks.json`
-- [ ] Certificado de push configurado (APNs + Firebase)
+- [ ] Certificado APNs configurado para Push (iOS)
+- [ ] google-services.json adicionado (Android)
 - [ ] Screenshots em todos os tamanhos necessários
 - [ ] Conta de desenvolvedor ativa
-- [ ] Testado em dispositivos físicos
+- [ ] Testado em dispositivos físicos (iOS + Android)
 - [ ] Build de release sem erros
+- [ ] Edge function `setup-mobile-test-users` deployada
+- [ ] Contas de teste criadas e funcionando
 
 ---
 

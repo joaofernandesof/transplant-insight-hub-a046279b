@@ -1,7 +1,7 @@
 # 📱 NeoHub Mobile - Compliance para Lojas
 
-**Versão:** 1.0.0  
-**Data:** 2026-01-28  
+**Versão:** 1.1.0  
+**Data:** 2026-02-27  
 **App:** NeoHub (Capacitor)
 
 ---
@@ -13,7 +13,7 @@
 | Nome | NeoHub |
 | Bundle ID (iOS) | app.lovable.d75807d51df7446daac336166617be60 |
 | Package Name (Android) | app.lovable.d75807d51df7446daac336166617be60 |
-| Versão | 1.0.0 |
+| Versão | 1.1.0 |
 | Categoria | Educação / Negócios |
 
 ---
@@ -25,6 +25,7 @@
 |--------|-----------|---------|
 | **Academy** | Plataforma educacional com cursos, provas e certificados | Alunos matriculados |
 | **NeoLicense** | Hub de recursos para licenciados da marca | Licenciados parceiros |
+| **HotLeads** | Dashboard de leads e captação para licenciados | Licenciados parceiros |
 
 ### Módulos Não Disponíveis no Mobile
 - Gestão clínica/médica
@@ -32,6 +33,8 @@
 - Marketplace
 - Administração do sistema
 - Módulos jurídicos internos
+- CRM Avivar
+- Diagnóstico IA (Vision)
 
 ---
 
@@ -45,10 +48,18 @@
 - ✅ Perfil deve ser `aluno` ou `licenciado`
 - ❌ Não há cadastro aberto ao público
 
-### Conta de Teste para Review
+### Contas de Teste para Review
+
+**Perfil Aluno (Academy):**
 ```
-Email: teste@neofolic.com.br
-Senha: [Fornecida no App Store Connect/Google Play Console]
+Email: appstore.reviewer@neofolic.com.br
+Senha: ReviewerApp2026!
+```
+
+**Perfil Licenciado (HotLeads):**
+```
+Email: appstore.reviewer.licensee@neofolic.com.br
+Senha: ReviewerLicensee2026!
 ```
 
 ---
@@ -140,6 +151,7 @@ Os módulos que lidam com dados de saúde estão **BLOQUEADOS** e não são aces
 | Versão | Data | Alteração |
 |--------|------|-----------|
 | 1.0.0 | 2026-01-28 | Versão inicial para publicação |
+| 1.1.0 | 2026-02-27 | Adição do módulo HotLeads para licenciados |
 
 ---
 

@@ -1,7 +1,7 @@
 # 📱 NeoHub Mobile - Escopo de Publicação
 
-**Versão:** 1.0.0  
-**Data:** 2026-01-28  
+**Versão:** 1.1.0  
+**Data:** 2026-02-27  
 **Status:** Store-Safe ✅
 
 ---
@@ -18,6 +18,7 @@ Definir o escopo de módulos disponíveis na versão mobile (iOS/Android via Cap
 |--------|--------|--------|------------|
 | **Academy** | `aluno` | ✅ Liberado | Cursos, provas, certificados, galerias |
 | **NeoLicense** | `licenciado` | ✅ Liberado | Hub do licenciado, materiais, indicações |
+| **HotLeads** | `licenciado` | ✅ Liberado | Dashboard de leads, captação, métricas |
 
 ---
 
@@ -73,9 +74,10 @@ const BLOCKED_MOBILE_ROUTES = [
   '/portal',
   '/ipromed',
   '/avivar',
-  '/neohairscan',
+  '/vision',
   '/admin',
 ];
+// /academy, /neolicense e /hotleads estão LIBERADAS
 ```
 
 ---
@@ -107,7 +109,7 @@ O escopo mobile foi reduzido estrategicamente para:
 
 ### Apple App Store
 - App fechado com acesso restrito
-- Usuários: alunos e licenciados autenticados
+- Usuários: alunos, licenciados autenticados
 - Sem dados clínicos nesta versão
 - Privacidade conforme App Privacy Labels
 
@@ -124,6 +126,7 @@ O escopo mobile foi reduzido estrategicamente para:
 | Versão | Data | Alteração |
 |--------|------|-----------|
 | 1.0.0 | 2026-01-28 | Definição inicial do escopo mobile |
+| 1.1.0 | 2026-02-27 | Adição do módulo HotLeads para licenciados |
 
 ---
 

@@ -49,8 +49,12 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'automatic',
     scheme: 'NeoHub',
-    // Configuração para App Store
-    preferredContentMode: 'mobile'
+    preferredContentMode: 'mobile',
+    // Capabilities necessárias no Xcode:
+    // - Push Notifications (APNs certificate)
+    // - Associated Domains: applinks:transplant-insight-hub.lovable.app
+    // - Background Modes: Remote notifications
+    allowsLinkPreview: true,
   },
   
   android: {
