@@ -193,6 +193,7 @@ export function StepFAQGenerator({
                     setShowAddForm(false);
                     setNewPergunta('');
                     setNewResposta('');
+                    setNewMedia(undefined);
                   }}
                 >
                   Cancelar
