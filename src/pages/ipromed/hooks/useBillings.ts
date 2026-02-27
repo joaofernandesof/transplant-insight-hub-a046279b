@@ -97,7 +97,7 @@ export function useBillings() {
           billing_type: billing.billing_type,
           status: billing.status || 'pendente',
           notes: billing.notes,
-          user_id: user!.id,
+          user_id: user!.authUserId,
           pix_code,
           boleto_code,
           payment_link,

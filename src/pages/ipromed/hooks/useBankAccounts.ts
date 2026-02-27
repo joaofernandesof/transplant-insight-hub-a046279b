@@ -212,7 +212,7 @@ export function useBankTransactions(accountId?: string) {
         .insert(
           transactionsToImport.map(t => ({
             ...t,
-            user_id: user!.id,
+            user_id: user!.authUserId,
             reconciliation_status: 'pending',
           }))
         )
