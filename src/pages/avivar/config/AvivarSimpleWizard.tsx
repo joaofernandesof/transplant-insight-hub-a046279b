@@ -341,8 +341,17 @@ export default function AvivarSimpleWizard() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < SIMPLE_STEPS.length - 1 && canProceed()) {
+      // Step 0: criar rascunho se ainda não existe
+      if (currentStep === 0 && !draftAgentId && !isEditMode) {
+        const id = await createDraftAgent();
+        if (!id) return;
+        setDraftAgentId(id);
+        await autoSaveStep(0, id);
+      } else if (draftAgentId && !isEditMode) {
+        await autoSaveStep(currentStep, draftAgentId);
+      }
       setCurrentStep(prev => prev + 1);
     }
   };
