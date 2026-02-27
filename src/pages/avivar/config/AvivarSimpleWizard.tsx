@@ -590,7 +590,10 @@ export default function AvivarSimpleWizard() {
       size: content.length,
       type: 'text/markdown',
     };
-    updateConfig({ knowledgeFiles: [...(config.knowledgeFiles || []), faqFile] });
+    const existingFiles = (config.knowledgeFiles || []).filter(
+      (f: any) => f.name !== 'FAQ_Gerado_IA.md'
+    );
+    updateConfig({ knowledgeFiles: [...existingFiles, faqFile] });
     setFaqAddedToKnowledge(true); // Mark as added
   };
 
