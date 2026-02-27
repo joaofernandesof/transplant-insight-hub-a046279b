@@ -14,8 +14,7 @@ interface MobileAppWrapperProps {
   children: React.ReactNode;
 }
 
-/** Rota padrão permitida no mobile após login */
-const MOBILE_DEFAULT_ROUTE = '/academy';
+/**
 
 /**
  * Tela de Loading simples para transições
@@ -58,22 +57,17 @@ export function MobileAppWrapper({ children }: MobileAppWrapperProps) {
     return <>{children}</>;
   }
 
-  // Usuário autenticado: redirecionar rotas bloqueadas para rota permitida
+  // Usuário autenticado: redirecionar rotas bloqueadas para o seletor de portais
   if (shouldBlockSensitiveModules && isRouteBlockedOnMobile(location.pathname)) {
-    const publicRoutes = ['/login', '/reset-password', '/privacy-policy', '/terms'];
-    const isPublicRoute = publicRoutes.some(r => location.pathname.startsWith(r));
+    const allowedRoutes = ['/login', '/reset-password', '/privacy-policy', '/terms', '/select-profile'];
+    const isAllowed = allowedRoutes.some(r => location.pathname.startsWith(r));
     
-    if (!isPublicRoute) {
-      return <Navigate to={MOBILE_DEFAULT_ROUTE} replace />;
+    if (!isAllowed) {
+      return <Navigate to="/select-profile" replace />;
     }
   }
 
-  // Rota raiz "/" no mobile redireciona para rota permitida
-  if (location.pathname === '/' || location.pathname === '/home') {
-    return <Navigate to={MOBILE_DEFAULT_ROUTE} replace />;
-  }
-
-  // Renderizar normalmente
+  // Renderizar normalmente — HomeRouter cuida do roteamento em "/" e "/home"
   return <>{children}</>;
 }
 
