@@ -301,6 +301,18 @@ export function StepFAQGenerator({
                           <p className="text-sm text-[hsl(var(--avivar-foreground))] mt-1">
                             {item.resposta}
                           </p>
+                          {item.media?.url && (
+                            <div className="mt-2">
+                              <Badge variant="outline" className="text-xs gap-1 border-[hsl(var(--avivar-primary)/0.3)] text-[hsl(var(--avivar-primary))]">
+                                {item.media.type === 'audio' && <Mic className="h-3 w-3" />}
+                                {item.media.type === 'image' && <Image className="h-3 w-3" />}
+                                {item.media.type === 'video' && <Video className="h-3 w-3" />}
+                                {item.media.type === 'document' && <FileText className="h-3 w-3" />}
+                                {item.media.type === 'audio' ? 'Áudio' : item.media.type === 'image' ? 'Imagem' : item.media.type === 'video' ? 'Vídeo' : 'Documento'}
+                                {item.media.audio_forward && ' (encaminhado)'}
+                              </Badge>
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <Button
