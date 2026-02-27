@@ -903,14 +903,29 @@ async function resolveAgenda(
   accountId: string,
   agendaName: string
 ): Promise<ResolvedAgendaInfo> {
+  // Extract base name: "Medic Clinica - Fortaleza (Lucas Araujo)" → "Medic Clinica"
+  const baseName = agendaName.split(' - ')[0].split(' | ')[0].trim();
+  console.log(`[AI Agent] resolveAgenda: raw="${agendaName}" baseName="${baseName}"`);
+
   const { data: agendas } = await supabase
     .from("avivar_agendas")
     .select("id, name, city, professional_name, address")
     .eq("account_id", accountId)
     .eq("is_active", true)
-    .ilike("name", `%${agendaName}%`);
+    .ilike("name", `%${baseName}%`);
 
   let agendaInfo = agendas?.[0] || null;
+
+  // Also try original name if baseName didn't match
+  if (!agendaInfo && baseName !== agendaName.trim()) {
+    const { data: byFull } = await supabase
+      .from("avivar_agendas")
+      .select("id, name, city, professional_name, address")
+      .eq("account_id", accountId)
+      .eq("is_active", true)
+      .ilike("name", `%${agendaName.trim()}%`);
+    agendaInfo = byFull?.[0] || null;
+  }
 
   if (!agendaInfo) {
     const { data: byCity } = await supabase
@@ -918,7 +933,7 @@ async function resolveAgenda(
       .select("id, name, city, professional_name, address")
       .eq("account_id", accountId)
       .eq("is_active", true)
-      .ilike("city", `%${agendaName}%`);
+      .ilike("city", `%${baseName}%`);
     agendaInfo = byCity?.[0] || null;
   }
 
