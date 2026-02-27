@@ -10770,6 +10770,33 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_release_daily_state: {
+        Row: {
+          id: string
+          last_released_at: string | null
+          release_date: string
+          released_count: number
+          state: string
+          target_count: number
+        }
+        Insert: {
+          id?: string
+          last_released_at?: string | null
+          release_date: string
+          released_count?: number
+          state: string
+          target_count?: number
+        }
+        Update: {
+          id?: string
+          last_released_at?: string | null
+          release_date?: string
+          released_count?: number
+          state?: string
+          target_count?: number
+        }
+        Relationships: []
+      }
       lead_tasks: {
         Row: {
           assigned_to: string | null
