@@ -4855,6 +4855,47 @@ serve(async (req) => {
       console.log(`[AI Agent] ⚠️ Response truncated from ${finalResponse.length} chars to safety limit`);
     }
 
+    // 8.5 DETERMINISTIC FALLBACK: Auto-send fluxo media if AI didn't call send_fluxo_media
+    if (routedAgent.fluxo_atendimento && !executedTools.has("send_fluxo_media") && !executedTools.has("send_knowledge_media")) {
+      try {
+        const fluxo = routedAgent.fluxo_atendimento as Record<string, unknown>;
+        const passosCronologicos = (fluxo.passosCronologicos || []) as Array<{
+          id?: string;
+          ordem: number;
+          media?: { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean } | null;
+          mediaVariations?: Array<{ type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean }>;
+        }>;
+
+        if (passosCronologicos.length > 0) {
+          // Count outbound (assistant) messages in conversation history to determine current step
+          // The current response being built counts as the next outbound, so outbound count = step index
+          const outboundCount = conversationHistory.filter(m => m.role === "assistant").length;
+          // Current step index = outboundCount (0-based: first AI response = step 0)
+          const currentStepIndex = outboundCount;
+
+          if (currentStepIndex < passosCronologicos.length) {
+            const currentStep = passosCronologicos[currentStepIndex];
+            const hasMedia = currentStep.media || (currentStep.mediaVariations && currentStep.mediaVariations.length > 0);
+
+            if (hasMedia && currentStep.id) {
+              console.log(`[AI Agent] FALLBACK: Auto-sending fluxo media for step ${currentStepIndex} (id="${currentStep.id}") — AI didn't call send_fluxo_media`);
+              const mediaResult = await sendFluxoMedia(
+                supabase,
+                accountId || userId,
+                routedAgent.agent_id,
+                conversationId,
+                leadPhone,
+                currentStep.id
+              );
+              console.log(`[AI Agent] FALLBACK media result: ${JSON.stringify(mediaResult)}`);
+            }
+          }
+        }
+      } catch (fallbackError) {
+        console.error("[AI Agent] Fluxo media fallback error (non-blocking):", fallbackError);
+      }
+    }
+
     // 9. Send response via WhatsApp
     const sent = await sendWhatsAppMessage(supabaseUrl, supabaseServiceKey, conversationId, finalResponse);
 
