@@ -168,6 +168,7 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       </div>
     </div>
   );
+}
 
 export function AdminSidebar({ collapsed, onToggle, onMobileClose }: AdminSidebarProps) {
   return (
