@@ -393,6 +393,7 @@ export type Database = {
           image_gallery: Json | null
           instagram: string | null
           is_active: boolean | null
+          is_draft: boolean | null
           knowledge_files: Json | null
           name: string
           nicho: string | null
@@ -410,6 +411,7 @@ export type Database = {
           updated_at: string
           user_id: string
           video_gallery: Json | null
+          wizard_step: number | null
         }
         Insert: {
           account_id: string
@@ -432,8 +434,9 @@ export type Database = {
           image_gallery?: Json | null
           instagram?: string | null
           is_active?: boolean | null
+          is_draft?: boolean | null
           knowledge_files?: Json | null
-          name: string
+          name?: string
           nicho?: string | null
           openai_api_key_hash?: string | null
           payment_methods?: Json | null
@@ -449,6 +452,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           video_gallery?: Json | null
+          wizard_step?: number | null
         }
         Update: {
           account_id?: string
@@ -471,6 +475,7 @@ export type Database = {
           image_gallery?: Json | null
           instagram?: string | null
           is_active?: boolean | null
+          is_draft?: boolean | null
           knowledge_files?: Json | null
           name?: string
           nicho?: string | null
@@ -488,6 +493,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_gallery?: Json | null
+          wizard_step?: number | null
         }
         Relationships: [
           {

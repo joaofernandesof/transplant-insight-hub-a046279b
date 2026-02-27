@@ -70,7 +70,9 @@ export default function AvivarSimpleWizard() {
 
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [draftAgentId, setDraftAgentId] = useState<string | null>(agentId || null);
   const [generatedFAQ, setGeneratedFAQ] = useState<FAQItem[]>([]);
   const [faqAddedToKnowledge, setFaqAddedToKnowledge] = useState(false);
   const [isViewingSubnichos, setIsViewingSubnichos] = useState(false); // Para controlar navegação do step 0
@@ -81,70 +83,226 @@ export default function AvivarSimpleWizard() {
     createdAt: new Date().toISOString(),
   }));
 
-  // Carregar agente existente se em modo de edição
-  useEffect(() => {
-    if (!agentId) return;
+  // Helper: get user and account
+  const getUserAndAccount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data: memberData } = await supabase
+      .from('avivar_account_members')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single();
+    if (!memberData) return null;
+    return { userId: user.id, accountId: memberData.account_id };
+  };
 
-    async function loadAgent() {
-      setLoading(true);
+  // Criar rascunho do agente no banco
+  const createDraftAgent = async (): Promise<string | null> => {
+    try {
+      const ctx = await getUserAndAccount();
+      if (!ctx) { toast.error('Você precisa estar logado'); return null; }
+
+      const { data, error } = await supabase
+        .from('avivar_agents')
+        .insert({
+          user_id: ctx.userId,
+          account_id: ctx.accountId,
+          name: config.attendantName || 'Novo Agente',
+          nicho: config.nicho,
+          subnicho: config.subnicho,
+          is_draft: true,
+          wizard_step: 0,
+          is_active: false,
+        } as any)
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      console.log('[AutoSave] Draft created:', data.id);
+      return data.id;
+    } catch (err) {
+      console.error('[AutoSave] Error creating draft:', err);
+      toast.error('Erro ao salvar rascunho');
+      return null;
+    }
+  };
+
+  // Auto-save dados da etapa atual no banco
+  const autoSaveStep = async (step: number, agentIdToSave: string) => {
+    setAutoSaving(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let payload: any = { wizard_step: step, updated_at: new Date().toISOString() };
+
+      switch (step) {
+        case 0:
+          payload = { ...payload, nicho: config.nicho, subnicho: config.subnicho };
+          break;
+        case 1:
+          payload = {
+            ...payload,
+            name: config.attendantName || 'Novo Agente',
+            company_name: config.companyName,
+            professional_name: config.professionalName,
+            crm: config.crm || null,
+            address: config.address || null,
+            city: config.city,
+            state: config.state,
+            business_units: config.businessUnits || [],
+          };
+          break;
+        case 2:
+          // agentObjectives não tem coluna dedicada, salvar como parte do fluxo genérico
+          // Salvamos no campo agent_objectives (campo JSON genérico via knowledge_files ou similar)
+          // Na verdade, o objectives é usado para gerar o autoConfig no final, então vamos guardar em um campo JSON
+          break;
+        case 3:
+          payload = {
+            ...payload,
+            fluxo_atendimento: config.fluxoAtendimento,
+          };
+          break;
+        case 4:
+        case 5:
+          payload = {
+            ...payload,
+            knowledge_files: config.knowledgeFiles || [],
+          };
+          break;
+        case 6:
+          payload = {
+            ...payload,
+            image_gallery: config.imageGallery || EMPTY_IMAGE_GALLERY,
+            before_after_images: (config.imageGallery?.before_after?.length
+              ? config.imageGallery.before_after.map((img) => img.url)
+              : (config.beforeAfterImages || []))
+              .filter(Boolean),
+          };
+          break;
+      }
+
+      const { error } = await supabase
+        .from('avivar_agents')
+        .update(payload)
+        .eq('id', agentIdToSave);
+
+      if (error) throw error;
+      console.log(`[AutoSave] Step ${step} saved for agent ${agentIdToSave}`);
+    } catch (err) {
+      console.error('[AutoSave] Error:', err);
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
+  // Carregar rascunho existente ou agente em modo edição
+  useEffect(() => {
+    async function loadAgentOrDraft() {
+      // Se em modo edição, carrega o agente
+      if (agentId) {
+        setLoading(true);
+        try {
+          const { data: agent, error } = await supabase
+            .from('avivar_agents')
+            .select('*')
+            .eq('id', agentId)
+            .single();
+
+          if (error) throw error;
+
+          if (agent) {
+            setConfig(prev => ({
+              ...prev,
+              nicho: agent.nicho as NichoType || null,
+              subnicho: agent.subnicho as SubnichoType || null,
+              template: agent.subnicho as SubnichoType || null,
+              companyName: agent.company_name || '',
+              address: agent.address || '',
+              city: agent.city || '',
+              state: agent.state || '',
+              businessUnits: (agent.business_units as unknown as AgentConfig['businessUnits']) || [],
+              professionalName: agent.professional_name || '',
+              crm: agent.crm || '',
+              attendantName: agent.name || '',
+              services: (agent.services as unknown as AgentConfig['services']) || [],
+              paymentMethods: (agent.payment_methods as unknown as AgentConfig['paymentMethods']) || [...PAYMENT_METHODS],
+              schedule: (agent.schedule as unknown as AgentConfig['schedule']) || DEFAULT_WEEK_SCHEDULE,
+              toneOfVoice: (agent.tone_of_voice as 'formal' | 'cordial' | 'casual') || 'cordial',
+              aiIdentity: agent.ai_identity || '',
+              aiObjective: agent.ai_objective || '',
+              aiInstructions: agent.ai_instructions || '',
+              aiRestrictions: agent.ai_restrictions || '',
+              consultationType: (agent.consultation_type as unknown as AgentConfig['consultationType']) || { presencial: true, online: false, domicilio: false },
+              consultationDuration: agent.consultation_duration || 60,
+              beforeAfterImages: (agent.before_after_images as unknown as string[]) || [],
+              imageGallery: (agent.image_gallery as unknown as AgentConfig['imageGallery']) || {
+                ...EMPTY_IMAGE_GALLERY,
+                before_after: (((agent.before_after_images as unknown as string[]) || [])).map((url, i) => ({
+                  id: `legacy_${i}`,
+                  url,
+                  caption: '',
+                  category: 'before_after' as const,
+                })),
+              },
+              knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
+              fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+            }));
+            setCurrentStep(SIMPLE_STEPS.length - 1);
+          }
+        } catch (error) {
+          console.error('Error loading agent:', error);
+          toast.error('Erro ao carregar agente');
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // Se não é edição, verificar se existe rascunho
       try {
-        const { data: agent, error } = await supabase
+        const ctx = await getUserAndAccount();
+        if (!ctx) return;
+
+        const { data: draft } = await supabase
           .from('avivar_agents')
           .select('*')
-          .eq('id', agentId)
+          .eq('user_id', ctx.userId)
+          .eq('is_draft', true)
+          .order('updated_at', { ascending: false })
+          .limit(1)
           .single();
 
-        if (error) throw error;
-
-        if (agent) {
+        if (draft) {
+          console.log('[AutoSave] Resuming draft:', draft.id, 'at step', draft.wizard_step);
+          setDraftAgentId(draft.id);
+          setCurrentStep((draft.wizard_step as number) || 0);
           setConfig(prev => ({
             ...prev,
-            nicho: agent.nicho as NichoType || null,
-            subnicho: agent.subnicho as SubnichoType || null,
-            template: agent.subnicho as SubnichoType || null,
-            companyName: agent.company_name || '',
-            address: agent.address || '',
-            city: agent.city || '',
-            state: agent.state || '',
-            businessUnits: (agent.business_units as unknown as AgentConfig['businessUnits']) || [],
-            professionalName: agent.professional_name || '',
-            crm: agent.crm || '',
-            attendantName: agent.name || '',
-            services: (agent.services as unknown as AgentConfig['services']) || [],
-            paymentMethods: (agent.payment_methods as unknown as AgentConfig['paymentMethods']) || [...PAYMENT_METHODS],
-            schedule: (agent.schedule as unknown as AgentConfig['schedule']) || DEFAULT_WEEK_SCHEDULE,
-            toneOfVoice: (agent.tone_of_voice as 'formal' | 'cordial' | 'casual') || 'cordial',
-            aiIdentity: agent.ai_identity || '',
-            aiObjective: agent.ai_objective || '',
-            aiInstructions: agent.ai_instructions || '',
-            aiRestrictions: agent.ai_restrictions || '',
-            consultationType: (agent.consultation_type as unknown as AgentConfig['consultationType']) || { presencial: true, online: false, domicilio: false },
-            consultationDuration: agent.consultation_duration || 60,
-            // agentObjectives não existe na tabela, será preenchido na próxima etapa
-            beforeAfterImages: (agent.before_after_images as unknown as string[]) || [],
-            imageGallery: (agent.image_gallery as unknown as AgentConfig['imageGallery']) || {
-              ...EMPTY_IMAGE_GALLERY,
-              before_after: (((agent.before_after_images as unknown as string[]) || [])).map((url, i) => ({
-                id: `legacy_${i}`,
-                url,
-                caption: '',
-                category: 'before_after' as const,
-              })),
-            },
-            knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
-            fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+            nicho: draft.nicho as NichoType || null,
+            subnicho: draft.subnicho as SubnichoType || null,
+            template: draft.subnicho as SubnichoType || null,
+            companyName: draft.company_name || '',
+            address: draft.address || '',
+            city: draft.city || '',
+            state: draft.state || '',
+            businessUnits: (draft.business_units as unknown as AgentConfig['businessUnits']) || [],
+            professionalName: draft.professional_name || '',
+            crm: draft.crm || '',
+            attendantName: draft.name || '',
+            knowledgeFiles: (draft.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
+            fluxoAtendimento: (draft.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+            imageGallery: (draft.image_gallery as unknown as AgentConfig['imageGallery']) || EMPTY_IMAGE_GALLERY,
+            beforeAfterImages: (draft.before_after_images as unknown as string[]) || [],
           }));
+          toast.info('Rascunho encontrado! Continuando de onde parou.');
         }
-      } catch (error) {
-        console.error('Error loading agent:', error);
-        toast.error('Erro ao carregar agente');
-      } finally {
-        setLoading(false);
-        setCurrentStep(SIMPLE_STEPS.length - 1); // Abrir direto na revisão
+      } catch {
+        // No draft found, start fresh
       }
     }
 
-    loadAgent();
+    loadAgentOrDraft();
   }, [agentId]);
 
   const updateConfig = (updates: Partial<AgentConfig>) => {
@@ -183,8 +341,17 @@ export default function AvivarSimpleWizard() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < SIMPLE_STEPS.length - 1 && canProceed()) {
+      // Step 0: criar rascunho se ainda não existe
+      if (currentStep === 0 && !draftAgentId && !isEditMode) {
+        const id = await createDraftAgent();
+        if (!id) return;
+        setDraftAgentId(id);
+        await autoSaveStep(0, id);
+      } else if (draftAgentId && !isEditMode) {
+        await autoSaveStep(currentStep, draftAgentId);
+      }
       setCurrentStep(prev => prev + 1);
     }
   };
@@ -288,6 +455,8 @@ export default function AvivarSimpleWizard() {
         personality: autoConfig.aiIdentity,
         knowledge_files: config.knowledgeFiles || [],
         is_active: true,
+        is_draft: false,
+        wizard_step: SIMPLE_STEPS.length - 1,
         updated_at: new Date().toISOString(),
       };
 
@@ -300,12 +469,14 @@ export default function AvivarSimpleWizard() {
         name: agentPayload.name 
       });
 
-      if (isEditMode && agentId) {
-        // Atualizar agente existente
+      // Se tem rascunho ou está em modo edição, atualizar
+      const idToUpdate = isEditMode ? agentId : draftAgentId;
+      
+      if (idToUpdate) {
         const { error } = await supabase
           .from('avivar_agents')
           .update(agentPayload)
-          .eq('id', agentId);
+          .eq('id', idToUpdate);
 
         if (error) {
           console.error('[AgentSave] Update error:', error);
@@ -314,12 +485,12 @@ export default function AvivarSimpleWizard() {
           }
           throw error;
         }
-        savedAgentId = agentId;
+        savedAgentId = idToUpdate;
       } else {
-        // Criar novo agente
+        // Criar novo agente (fallback caso não tenha rascunho)
         const { data: newAgent, error } = await supabase
           .from('avivar_agents')
-          .insert(agentPayload)
+          .insert({ ...agentPayload, is_draft: false })
           .select('id')
           .single();
 
@@ -535,7 +706,15 @@ export default function AvivarSimpleWizard() {
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-[hsl(var(--avivar-muted-foreground))]">
           <span>Etapa {currentStep + 1} de {SIMPLE_STEPS.length}</span>
-          <span>{SIMPLE_STEPS[currentStep].title}</span>
+          <div className="flex items-center gap-2">
+            {autoSaving && (
+              <span className="text-xs text-[hsl(var(--avivar-primary))] flex items-center gap-1">
+                <span className="animate-spin h-3 w-3 border-2 border-[hsl(var(--avivar-primary))] border-t-transparent rounded-full" />
+                Salvando...
+              </span>
+            )}
+            <span>{SIMPLE_STEPS[currentStep].title}</span>
+          </div>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
