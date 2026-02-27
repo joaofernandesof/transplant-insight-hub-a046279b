@@ -70,7 +70,9 @@ export default function AvivarSimpleWizard() {
 
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [draftAgentId, setDraftAgentId] = useState<string | null>(agentId || null);
   const [generatedFAQ, setGeneratedFAQ] = useState<FAQItem[]>([]);
   const [faqAddedToKnowledge, setFaqAddedToKnowledge] = useState(false);
   const [isViewingSubnichos, setIsViewingSubnichos] = useState(false); // Para controlar navegação do step 0

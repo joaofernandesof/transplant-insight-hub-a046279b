@@ -63,11 +63,12 @@ export default function AvivarAgentsPage() {
       
       setKanbans(kanbanData || []);
 
-      // Carregar agentes
+      // Carregar agentes (excluir rascunhos)
       const { data, error } = await supabase
         .from('avivar_agents')
         .select('*')
         .eq('user_id', user.id)
+        .or('is_draft.is.null,is_draft.eq.false')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
