@@ -1,44 +1,45 @@
 
 
-## Envio determinístico de mídia do fluxo (fallback automático)
 
-### Problema
-A IA é instruída via prompt a chamar `send_fluxo_media` quando um passo tem mídia anexada, mas o modelo nem sempre faz a tool call. Isso faz com que PDFs, vídeos e áudios configurados no fluxo de atendimento não sejam enviados ao lead.
+## ✅ RESOLVIDO: Mensagem do lead perdida quando responde durante envio de mensagens split da IA
 
 ### Causa Raiz
-Dependência 100% do modelo de IA para lembrar de chamar a ferramenta. Em conversas longas ou com múltiplas mensagens do lead, o modelo foca no texto e ignora a tool call de mídia.
+Race condition: AI divide respostas em partes com delay. Lead responde entre partes → mensagem fica com timestamp < lastOutboundTime → filtrada/perdida pelo debounce-processor.
 
-### Solução: Fallback determinístico pós-processamento
+### Solução Implementada
 
-**Arquivo: `supabase/functions/avivar-ai-agent/index.ts`**
+1. **Migração SQL**: Adicionadas colunas `ai_processing` (bool) e `last_ai_processed_at` (timestamptz) em `crm_conversations`
 
-Após o loop de tool calls (seção 7) e antes de enviar a resposta via WhatsApp (seção 9), adicionar lógica determinística:
+2. **`avivar-ai-agent/index.ts`**: 
+   - Seta `ai_processing = true` no início do processamento
+   - Seta `ai_processing = false` + `last_ai_processed_at = NOW()` no final (success e error)
 
-1. **Detectar o passo atual**: Analisar o `finalResponse` e o histórico da conversa para inferir em qual passo do fluxo a IA está respondendo. Usar heurística: contar quantas respostas outbound já existem para mapear ao passo correspondente na ordem cronológica.
+3. **`avivar-debounce-processor/index.ts`**:
+   - Aguarda `ai_processing = false` antes de processar (max 60s com retry de 3s)
+   - Usa `last_ai_processed_at` como cutoff em vez de `lastOutboundTime` (com fallback)
+   - Garante que mensagens intercaladas nunca são perdidas
 
-2. **Verificar se o passo tem mídia**: Consultar `fluxo_atendimento` do agente e verificar se o passo atual tem `media` ou `mediaVariations`.
+4. **`uazapi-webhook/index.ts`**:
+   - Verifica `ai_processing` ao checar debounce
+   - Sempre cria/estende batch de debounce quando AI está processando
 
-3. **Verificar se `send_fluxo_media` já foi chamado**: Checar se `executedTools` contém `"send_fluxo_media"`. Se não, enviar a mídia automaticamente usando a mesma função `sendFluxoMedia()` já existente.
+## ✅ RESOLVIDO: IA não encontra horários disponíveis
 
-```text
-Fluxo:
-IA processa → tool calls (pode ou não chamar send_fluxo_media) → cleanup
-                                                                    ↓
-                                              [NOVO] Se passo atual tem mídia
-                                              E send_fluxo_media NÃO foi chamado
-                                              → sendFluxoMedia() automático
-                                                                    ↓
-                                              Envia texto via WhatsApp
-```
+### Causa Raiz
+1. RPC `get_available_slots_flexible` não fazia lookup por `account_id` (agente IA passa account_id como p_user_id)
+2. Sem fallback quando não há config de horários — retornava vazio em vez de gerar slots padrão
 
-### Detalhes da implementação
+### Solução Implementada
+- Adicionado lookup por `account_id` via `avivar_account_members` na RPC
+- Adicionado fallback de slots padrão (08:00-18:00, seg-sáb) quando não há config
+- Fallback respeita appointments existentes para evitar conflitos
 
-- Inferir passo atual contando mensagens outbound no histórico (ex: 4 outbound cycles = passo 5)
-- Alternativa mais robusta: comparar `passosCronologicos[i].descricao/titulo` com o conteúdo do `finalResponse` usando keywords
-- Abordagem escolhida: **contar ciclos de interação** (pares inbound→outbound) no histórico para determinar o passo. É simples e funciona com o modelo "um passo por vez"
-- Usar `executedTools.has("send_fluxo_media")` como guard — se a IA já chamou, não duplicar
-- Adicionar log: `[AI Agent] FALLBACK: Auto-sending fluxo media for step X (AI didn't call tool)`
+## ✅ RESOLVIDO: Função RPC duplicada causando PGRST203
 
-### Arquivos alterados
-- `supabase/functions/avivar-ai-agent/index.ts` — adicionar bloco de fallback entre seção 8 (cleanup) e seção 9 (envio WhatsApp)
+### Causa Raiz
+Migração anterior criou nova versão de `get_available_slots_flexible` com parâmetros em ordem diferente sem dropar a antiga. PostgREST não conseguia escolher entre as duas → erro PGRST203 → zero slots.
 
+### Solução Implementada
+- Dropadas AMBAS overloads e recriada versão única com lookup por account_id + fallback padrão
+- `resolveAgenda` agora extrai nome base antes do lookup (ex: "Medic Clinica - Fortaleza (Lucas)" → "Medic Clinica")
+- `list_agendas` retorna formato separado por pipes para evitar confusão de nomes
