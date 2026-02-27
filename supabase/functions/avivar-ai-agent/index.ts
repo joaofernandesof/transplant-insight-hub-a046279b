@@ -3698,13 +3698,13 @@ Se o lead sugerir apenas UMA DATA (sem horário), use get_available_slots com es
   - SEMPRE use cancel_appointment antes de se despedir — nunca apenas diga que vai cancelar sem executar a ferramenta!
   - Após cancelar, mova o lead para a etapa apropriada (ex: desqualificado, perdido, etc.)
 
-### EMAIL PARA CONVITE DO GOOGLE CALENDAR (REGRA OBRIGATÓRIA):
+${hasGoogleCalendar ? `### EMAIL PARA CONVITE DO GOOGLE CALENDAR (REGRA OBRIGATÓRIA):
 - ANTES de chamar create_appointment, pergunte ao lead:
   "Para que voce receba o convite com o link da reuniao no seu email, pode me informar seu email?"
 - Se o lead fornecer o email, inclua no campo patient_email do create_appointment E do propose_slot
 - Se o lead nao quiser informar, prossiga sem o email (nao insista)
 - Se o lead ja informou o email anteriormente na conversa, use-o sem perguntar novamente
-- O email é usado para enviar automaticamente o convite do Google Calendar com link do Google Meet
+- O email é usado para enviar automaticamente o convite do Google Calendar com link do Google Meet` : ''}
 </fluxo_agendamento>
 
 <movimentacao_funil>
