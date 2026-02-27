@@ -4224,8 +4224,18 @@ serve(async (req) => {
     }
     console.log(`[AI Agent] Lead language: ${leadLanguage}`);
 
+    // 4. Check if account has Google Calendar configured
+    const { data: agendasWithCalendar } = await supabase
+      .from("avivar_agendas")
+      .select("google_calendar_id")
+      .eq("account_id", accountId)
+      .not("google_calendar_id", "is", null)
+      .limit(1);
+    const hasGoogleCalendar = agendasWithCalendar && agendasWithCalendar.length > 0;
+    console.log(`[AI Agent] hasGoogleCalendar: ${hasGoogleCalendar} for account ${accountId}`);
+
     // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist + language)
-    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage);
+    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage, hasGoogleCalendar);
 
     // 4.7 Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);
