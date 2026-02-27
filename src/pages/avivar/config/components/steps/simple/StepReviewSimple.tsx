@@ -235,8 +235,8 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Imagens - step 8 */}
-            <ReviewRow icon={ImageIcon} stepIndex={8}>
+            {/* Imagens - step 6 */}
+            <ReviewRow icon={ImageIcon} stepIndex={6}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 Galeria de Imagens
               </p>
