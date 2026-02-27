@@ -18,7 +18,9 @@ import {
   Home,
   UserPlus,
   Lock,
+  LogOut,
 } from 'lucide-react';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PortalSwitcherButton } from '@/components/shared/PortalSwitcherButton';
@@ -54,10 +56,16 @@ interface AdminSidebarProps {
 function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onCollapse?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useUnifiedAuth();
 
   const handleNavigate = (href: string) => {
     navigate(href);
     onCollapse?.();
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
   };
 
   const isActive = (href: string) =>
@@ -146,6 +154,17 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
             </div>
           </div>
         )}
+        <button
+          onClick={handleLogout}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all mt-2',
+            'text-slate-400 hover:bg-red-500/10 hover:text-red-400'
+          )}
+          title="Sair"
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="text-sm font-medium">Sair</span>}
+        </button>
       </div>
     </div>
   );
