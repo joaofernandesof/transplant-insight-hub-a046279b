@@ -1,36 +1,44 @@
 
-# Ajustar meta diaria de HotLeads para 80
 
-## Contexto
-O valor de 50 leads/dia esta hardcoded em 3 locais e precisa ser atualizado para 80. Alem disso, o registro de hoje ja foi criado com target_count=50 e precisa ser corrigido.
+## Limpar leads de contas internas (ti@, adm@, nicholas.barreto@)
 
-## Alteracoes
+### Situação atual
+Existem 6 leads ainda vinculados a contas internas/administrativas que deveriam ter sido limpos ontem mas continuam aparecendo como adquiridos:
 
-### 1. Migracao SQL -- Atualizar RPC e registro de hoje
-- Atualizar a funcao `release_random_queued_lead`: trocar `v_target int := 50` para `v_target int := 80`
-- Atualizar a funcao `get_lead_release_info`: trocar o COALESCE default de 50 para 80
-- Atualizar o registro de hoje em `lead_release_daily`: `SET target_count = 80 WHERE release_date = CURRENT_DATE`
+| Lead | Conta | Cidade/UF |
+|------|-------|-----------|
+| [TESTE] Lucas Almeida | Nicholas Barreto | Juazeiro do Norte/CE |
+| Maristelio da cruz costa | TI | Natal/RN |
+| Leonardo | TI | Joinville/SC |
+| Marcos Andrade Fernandes | TI | Campo Grande/MS |
+| Isaías | TI | Porto Alegre/RS |
+| Bruno Araújo da Silva | TI | Campos/RJ |
 
-### 2. Edge Function `hotleads-release/index.ts`
-- Linha 223: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
-- Linha 274: trocar `daily?.target_count || 50` para `daily?.target_count || 80`
+### Ação
+Executar uma migration SQL que:
+1. Remove `claimed_by`, `claimed_at`, `lead_outcome`, `outcome_at` desses 6 leads
+2. Reseta `status` para `'new'`
+3. Coloca `release_status` de volta para `'queued'` (voltam para a fila de liberação)
+4. Limpa `available_at` para que sejam liberados novamente pelo motor de liberação
 
-### 3. Comportamento
-- Nenhuma liberacao manual sera feita agora
-- O cron continuara rodando normalmente e vai distribuir os 80 leads ao longo do dia usando a logica probabilistica existente
-- Como ja estamos no meio do dia com 0 liberados, a probabilidade por minuto vai subir naturalmente para compensar
+### Detalhes técnicos
 
-## Detalhes tecnicos
-
-```text
-Locais de alteracao:
-+-----------------------------------------+------------------+
-| Arquivo / Funcao                        | Valor 50 -> 80   |
-+-----------------------------------------+------------------+
-| release_random_queued_lead (SQL RPC)    | v_target := 80   |
-| get_lead_release_info (SQL RPC)         | COALESCE(..., 80) |
-| hotleads-release/index.ts L223          | fallback || 80   |
-| hotleads-release/index.ts L274          | fallback || 80   |
-| lead_release_daily (hoje)               | target_count = 80 |
-+-----------------------------------------+------------------+
+**Migration SQL:**
+```sql
+UPDATE public.leads
+SET claimed_by = NULL,
+    claimed_at = NULL,
+    lead_outcome = NULL,
+    outcome_at = NULL,
+    status = 'new',
+    release_status = 'queued',
+    available_at = NULL
+WHERE claimed_by IN (
+  '1b58da47-d988-4f96-9847-ed2d8939505e',  -- TI Neo Folic
+  '00294ac4-0194-47bc-95ef-6efb83c316f7',  -- Administrador ByNeofolic
+  '9003cecf-7be7-45c7-8c53-1f4923c974f6',  -- Nicholas Barreto
+  '860ae553-aa79-4e54-af98-a90dd8317c15'   -- Lucas Araujo
+);
 ```
+
+Nenhuma alteração de código necessária -- apenas a limpeza dos dados no banco.
