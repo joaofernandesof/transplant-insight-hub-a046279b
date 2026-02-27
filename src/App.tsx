@@ -585,8 +585,6 @@ function NeoAcademyRoutes() {
           <Route path="my-courses" element={<NeoAcademyMyCourses />} />
           <Route path="continue" element={<NeoAcademyContinue />} />
           <Route path="community" element={<NeoAcademyCommunity />} />
-          <Route path="ranking" element={<NeoAcademyRanking />} />
-          <Route path="achievements" element={<NeoAcademyAchievements />} />
           <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
           <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
           <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
