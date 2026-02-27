@@ -562,6 +562,35 @@ function AcademyRoutes() {
 }
 
 // ====================================
+// NeoAcademy Routes (Portal SaaS Área de Membros)
+// ====================================
+function NeoAcademyRoutes() {
+  const { NeoAcademySidebar } = React.useMemo(() => ({
+    NeoAcademySidebar: require('./neoacademy/components/NeoAcademySidebar').NeoAcademySidebar,
+  }), []);
+
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0a0f]"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>}>
+      <NeoAcademySidebar>
+        <Routes>
+          <Route index element={<NeoAcademyDashboard />} />
+          <Route path="catalog" element={<NeoAcademyCatalog />} />
+          <Route path="course/:courseId" element={<NeoAcademyCourseDetail />} />
+          <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
+          <Route path="my-courses" element={<NeoAcademyPlaceholder title="Meus Cursos" />} />
+          <Route path="continue" element={<NeoAcademyPlaceholder title="Continuar Assistindo" />} />
+          <Route path="community" element={<NeoAcademyPlaceholder title="Comunidade" description="Feed de posts, curtidas, comentários e comunidades temáticas." />} />
+          <Route path="ranking" element={<NeoAcademyPlaceholder title="Ranking" description="Ranking geral de participação e pontuação dos alunos." />} />
+          <Route path="achievements" element={<NeoAcademyPlaceholder title="Conquistas" description="Badges, recompensas e cupons desbloqueáveis." />} />
+          <Route path="admin/*" element={<NeoAcademyPlaceholder title="Painel do Produtor" description="Gestão de cursos, alunos e analytics." />} />
+          <Route path="*" element={<Navigate to="/neoacademy" replace />} />
+        </Routes>
+      </NeoAcademySidebar>
+    </Suspense>
+  );
+}
+
+// ====================================
 // NeoLicense Routes (Portal do Licenciado)
 // ====================================
 function NeoLicenseRoutes() {
