@@ -1,40 +1,45 @@
 
 
-## Tornar instrução de email condicional por conta
 
-### Problema
-A seção `EMAIL PARA CONVITE DO GOOGLE CALENDAR (REGRA OBRIGATÓRIA)` está hardcoded no prompt de TODOS os agentes. Deve aparecer apenas para contas que têm Google Calendar configurado (como `ti@neofolic.com.br`).
+## ✅ RESOLVIDO: Mensagem do lead perdida quando responde durante envio de mensagens split da IA
 
-### Solução
+### Causa Raiz
+Race condition: AI divide respostas em partes com delay. Lead responde entre partes → mensagem fica com timestamp < lastOutboundTime → filtrada/perdida pelo debounce-processor.
 
-**Arquivo: `supabase/functions/avivar-ai-agent/index.ts`**
+### Solução Implementada
 
-1. Antes de montar o prompt, consultar se a conta tem alguma agenda com `google_calendar_id` configurado:
-```typescript
-const { data: agendasWithCalendar } = await supabaseAdmin
-  .from('avivar_agendas')
-  .select('google_calendar_id')
-  .eq('account_id', accountId)
-  .not('google_calendar_id', 'is', null)
-  .limit(1);
-const hasGoogleCalendar = agendasWithCalendar && agendasWithCalendar.length > 0;
-```
+1. **Migração SQL**: Adicionadas colunas `ai_processing` (bool) e `last_ai_processed_at` (timestamptz) em `crm_conversations`
 
-2. Envolver as linhas 3700-3706 com condicional:
-```typescript
-${hasGoogleCalendar ? `
-### EMAIL PARA CONVITE DO GOOGLE CALENDAR (REGRA OBRIGATÓRIA):
-- ANTES de chamar create_appointment, pergunte ao lead:
-  "Para que voce receba o convite com o link da reuniao no seu email, pode me informar seu email?"
-- Se o lead fornecer o email, inclua no campo patient_email do create_appointment E do propose_slot
-- Se o lead nao quiser informar, prossiga sem o email (nao insista)
-- Se o lead ja informou o email anteriormente na conversa, use-o sem perguntar novamente
-- O email é usado para enviar automaticamente o convite do Google Calendar com link do Google Meet
-` : ''}
-```
+2. **`avivar-ai-agent/index.ts`**: 
+   - Seta `ai_processing = true` no início do processamento
+   - Seta `ai_processing = false` + `last_ai_processed_at = NOW()` no final (success e error)
 
-### Resultado
-- `ti@neofolic.com.br` (tem Google Calendar) → continua pedindo email
-- `lucasaraujo.neofolic@gmail.com` e futuras contas (sem Google Calendar) → não pede email, a menos que o usuário adicione no fluxo de atendimento
-- Nenhuma alteração na conta `ti@neofolic.com.br` nem `Karinnemendessg@gmail.com`
+3. **`avivar-debounce-processor/index.ts`**:
+   - Aguarda `ai_processing = false` antes de processar (max 60s com retry de 3s)
+   - Usa `last_ai_processed_at` como cutoff em vez de `lastOutboundTime` (com fallback)
+   - Garante que mensagens intercaladas nunca são perdidas
 
+4. **`uazapi-webhook/index.ts`**:
+   - Verifica `ai_processing` ao checar debounce
+   - Sempre cria/estende batch de debounce quando AI está processando
+
+## ✅ RESOLVIDO: IA não encontra horários disponíveis
+
+### Causa Raiz
+1. RPC `get_available_slots_flexible` não fazia lookup por `account_id` (agente IA passa account_id como p_user_id)
+2. Sem fallback quando não há config de horários — retornava vazio em vez de gerar slots padrão
+
+### Solução Implementada
+- Adicionado lookup por `account_id` via `avivar_account_members` na RPC
+- Adicionado fallback de slots padrão (08:00-18:00, seg-sáb) quando não há config
+- Fallback respeita appointments existentes para evitar conflitos
+
+## ✅ RESOLVIDO: Função RPC duplicada causando PGRST203
+
+### Causa Raiz
+Migração anterior criou nova versão de `get_available_slots_flexible` com parâmetros em ordem diferente sem dropar a antiga. PostgREST não conseguia escolher entre as duas → erro PGRST203 → zero slots.
+
+### Solução Implementada
+- Dropadas AMBAS overloads e recriada versão única com lookup por account_id + fallback padrão
+- `resolveAgenda` agora extrai nome base antes do lookup (ex: "Medic Clinica - Fortaleza (Lucas)" → "Medic Clinica")
+- `list_agendas` retorna formato separado por pipes para evitar confusão de nomes

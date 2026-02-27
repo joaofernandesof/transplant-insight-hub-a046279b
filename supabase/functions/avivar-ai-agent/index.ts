@@ -3504,7 +3504,8 @@ function buildHybridSystemPrompt(
   dynamicMovementInstructions: string,
   fluxoInstructions: string,
   checklistInstructions: string = "",
-  leadLanguage: string = "pt-BR"
+  leadLanguage: string = "pt-BR",
+  hasGoogleCalendar: boolean = false
 ): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
@@ -3697,13 +3698,13 @@ Se o lead sugerir apenas UMA DATA (sem horário), use get_available_slots com es
   - SEMPRE use cancel_appointment antes de se despedir — nunca apenas diga que vai cancelar sem executar a ferramenta!
   - Após cancelar, mova o lead para a etapa apropriada (ex: desqualificado, perdido, etc.)
 
-### EMAIL PARA CONVITE DO GOOGLE CALENDAR (REGRA OBRIGATÓRIA):
+${hasGoogleCalendar ? `### EMAIL PARA CONVITE DO GOOGLE CALENDAR (REGRA OBRIGATÓRIA):
 - ANTES de chamar create_appointment, pergunte ao lead:
   "Para que voce receba o convite com o link da reuniao no seu email, pode me informar seu email?"
 - Se o lead fornecer o email, inclua no campo patient_email do create_appointment E do propose_slot
 - Se o lead nao quiser informar, prossiga sem o email (nao insista)
 - Se o lead ja informou o email anteriormente na conversa, use-o sem perguntar novamente
-- O email é usado para enviar automaticamente o convite do Google Calendar com link do Google Meet
+- O email é usado para enviar automaticamente o convite do Google Calendar com link do Google Meet` : ''}
 </fluxo_agendamento>
 
 <movimentacao_funil>
@@ -4223,8 +4224,18 @@ serve(async (req) => {
     }
     console.log(`[AI Agent] Lead language: ${leadLanguage}`);
 
+    // 4. Check if account has Google Calendar configured
+    const { data: agendasWithCalendar } = await supabase
+      .from("avivar_agendas")
+      .select("google_calendar_id")
+      .eq("account_id", accountId)
+      .not("google_calendar_id", "is", null)
+      .limit(1);
+    const hasGoogleCalendar = agendasWithCalendar && agendasWithCalendar.length > 0;
+    console.log(`[AI Agent] hasGoogleCalendar: ${hasGoogleCalendar} for account ${accountId}`);
+
     // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist + language)
-    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage);
+    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage, hasGoogleCalendar);
 
     // 4.7 Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);
