@@ -69,7 +69,8 @@ export function StepFAQGenerator({
   const [newPergunta, setNewPergunta] = useState('');
   const [newResposta, setNewResposta] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<{ id: string; pergunta: string; resposta: string } | null>(null);
+  const [newMedia, setNewMedia] = useState<FluxoStepMedia | undefined>(undefined);
+  const [editingItem, setEditingItem] = useState<{ id: string; pergunta: string; resposta: string; media?: FluxoStepMedia } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.max(1, Math.ceil(generatedFAQ.length / ITEMS_PER_PAGE));
