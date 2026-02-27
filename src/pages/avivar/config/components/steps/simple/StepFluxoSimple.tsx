@@ -185,14 +185,19 @@ export function StepFluxoSimple({
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editValue, setEditValue] = useState('');
+  const templateLoadedRef = useRef(false);
 
   // Carregar template baseado no objetivo APENAS quando não há fluxo salvo
   // Isso evita sobrescrever mídias e edições feitas pelo usuário
   useEffect(() => {
+    templateLoadedRef.current = false;
     if (objectives.primary) {
       // Se já existe um fluxo com passos (salvo no banco), NÃO sobrescrever
       const hasExistingFluxo = fluxoAtendimento?.passosCronologicos?.length > 0;
-      if (hasExistingFluxo) return;
+      if (hasExistingFluxo) {
+        templateLoadedRef.current = true;
+        return;
+      }
 
       const template = getFluxoByObjective(objectives.primary);
       
@@ -207,11 +212,15 @@ export function StepFluxoSimple({
       }
       
       onChange(template);
+      templateLoadedRef.current = true;
     }
   }, [objectives.primary]);
 
   // Atualizar passos extras quando objetivos secundários mudarem
   useEffect(() => {
+    // Aguardar o template ser carregado pelo Effect 1 para evitar condição de corrida
+    if (!templateLoadedRef.current) return;
+
     // Verificar se há objetivos secundários selecionados
     const hasSecondaryObjectives = 
       (objectives.secondary && objectives.secondary.length > 0) ||
