@@ -131,6 +131,21 @@ export default function NeoTeamPatientDetail() {
         const parsed = parseNotes(data.notes);
         const obs = parsed['observações'] || parsed['obs'] || '';
         setObservationsText(obs);
+
+        // Enrich with clinic_surgeries data (has branch, category, procedure, grade, etc.)
+        let surgeryData: any = null;
+        if (data.full_name) {
+          const { data: surgeries } = await supabase
+            .from('clinic_surgeries')
+            .select('branch, category, procedure, grade, surgery_date, companion_name, companion_phone, medical_record')
+            .eq('patient_name', data.full_name)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (surgeries && surgeries.length > 0) {
+            surgeryData = surgeries[0];
+          }
+        }
+
         setPatient({
           id: data.id,
           full_name: data.full_name,
@@ -139,10 +154,10 @@ export default function NeoTeamPatientDetail() {
           cpf: data.cpf || undefined,
           notes: data.notes || undefined,
           created_at: data.created_at,
-          medical_record: data.medical_record || undefined,
-          branch: parsed['filial'] || undefined,
-          category: parsed['categoria'] || undefined,
-          baldnessGrade: parsed['grau'] || undefined,
+          medical_record: data.medical_record || surgeryData?.medical_record || undefined,
+          branch: parsed['filial'] || surgeryData?.branch || undefined,
+          category: parsed['categoria'] || surgeryData?.category || undefined,
+          baldnessGrade: parsed['grau'] || surgeryData?.grade || undefined,
           city: parsed['cidade'] || undefined,
           state: parsed['estado'] || parsed['uf'] || undefined,
           address: parsed['endereço'] || parsed['endereco'] || undefined,
@@ -151,7 +166,7 @@ export default function NeoTeamPatientDetail() {
           maritalStatus: parsed['estado civil'] || undefined,
           consultant: parsed['consultor'] || undefined,
           seller: parsed['vendedor'] || undefined,
-          surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || undefined,
+          surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || (surgeryData?.surgery_date ? format(new Date(surgeryData.surgery_date + 'T12:00:00'), 'dd/MM/yyyy', { locale: ptBR }) : undefined),
           leadSource: parsed['fonte'] || parsed['lead source'] || undefined,
           observations: obs || undefined,
         });
