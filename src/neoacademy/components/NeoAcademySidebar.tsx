@@ -34,10 +34,10 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen bg-[#0a0a0f]">
+    <div className="flex min-h-screen bg-[#0a0a0f]">
       {/* Sidebar */}
       <aside className={cn(
-        "flex flex-col border-r border-white/5 bg-[#0d0d14] transition-all duration-300 sticky top-0 h-screen shrink-0",
+        "fixed top-0 left-0 flex flex-col border-r border-white/5 bg-[#0d0d14] transition-all duration-300 h-screen z-40",
         collapsed ? "w-16" : "w-64"
       )}>
         {/* Header */}
@@ -103,8 +103,11 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
         </nav>
       </aside>
 
+      {/* Spacer for fixed sidebar */}
+      <div className={cn("shrink-0 transition-all duration-300", collapsed ? "w-16" : "w-64")} />
+
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-[#0a0a0f]">
+      <main className="flex-1 overflow-y-auto min-h-screen bg-[#0a0a0f]">
         {children}
       </main>
     </div>
