@@ -198,6 +198,15 @@ const AvivarAgentRoutingConfig = lazy(() => import("./pages/avivar/config/Avivar
 const AvivarContacts = lazy(() => import("./pages/avivar/AvivarContacts"));
 const AvivarTeamPage = lazy(() => import("./pages/avivar/AvivarTeamPage"));
 const PermissionsMatrix = lazy(() => import("./pages/avivar/PermissionsMatrix"));
+
+// ====================================
+// Pages - NeoAcademy (SaaS Área de Membros)
+// ====================================
+const NeoAcademyDashboard = lazy(() => import("./neoacademy/pages/NeoAcademyDashboard"));
+const NeoAcademyCourseDetail = lazy(() => import("./neoacademy/pages/NeoAcademyCourseDetail"));
+const NeoAcademyLesson = lazy(() => import("./neoacademy/pages/NeoAcademyLesson"));
+const NeoAcademyCatalog = lazy(() => import("./neoacademy/pages/NeoAcademyCatalog"));
+const NeoAcademyPlaceholder = lazy(() => import("./neoacademy/pages/NeoAcademyPlaceholder"));
 const AvivarLeadPage = lazy(() => import("./pages/avivar/AvivarLeadPage"));
 
 // ====================================
