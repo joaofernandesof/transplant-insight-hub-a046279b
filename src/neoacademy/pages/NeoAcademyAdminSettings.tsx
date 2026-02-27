@@ -59,7 +59,7 @@ export default function NeoAcademyAdminSettings() {
         .select('*')
         .eq('key', 'neoacademy_settings')
         .maybeSingle();
-      return data?.value as NeoAcademySettings | null;
+      return data?.value as unknown as NeoAcademySettings | null;
     },
   });
 
