@@ -111,7 +111,7 @@ export function StepFAQGenerator({
   };
 
   const handleStartEdit = (item: FAQItem) => {
-    setEditingItem({ id: item.id, pergunta: item.pergunta, resposta: item.resposta });
+    setEditingItem({ id: item.id, pergunta: item.pergunta, resposta: item.resposta, media: item.media });
   };
 
   const handleSaveEdit = () => {
