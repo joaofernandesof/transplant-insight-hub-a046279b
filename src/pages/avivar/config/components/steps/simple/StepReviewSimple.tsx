@@ -51,7 +51,6 @@ export function StepReviewSimple({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const enabledServices = config.services.filter(s => s.enabled);
-  const enabledPayments = config.paymentMethods.filter(p => p.enabled);
 
   const imagesCount =
     (config.imageGallery?.before_after?.length || 0) +
