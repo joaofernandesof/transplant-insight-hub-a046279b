@@ -3137,7 +3137,8 @@ async function processToolCall(
         toolArgs.time as string,
         toolArgs.service_type as string,
         toolArgs.notes as string | undefined,
-        toolArgs.patient_email as string | undefined
+        toolArgs.patient_email as string | undefined,
+        skipGridValidation
       );
     
     case "reschedule_appointment":
