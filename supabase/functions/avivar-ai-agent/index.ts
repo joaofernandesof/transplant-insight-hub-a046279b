@@ -4752,6 +4752,13 @@ Responda APENAS com o resumo, sem explicações adicionais.`;
       console.error("[AI Agent] Error generating context summary:", summaryError);
     }
 
+    // CLEAR AI PROCESSING LOCK
+    await supabase
+      .from("crm_conversations")
+      .update({ ai_processing: false, last_ai_processed_at: new Date().toISOString() })
+      .eq("id", conversationId);
+    console.log(`[AI Agent] ai_processing=false, last_ai_processed_at=NOW() for conversation ${conversationId}`);
+
     const duration = Date.now() - startTime;
     console.log(`[AI Agent] Completed in ${duration}ms`);
 
