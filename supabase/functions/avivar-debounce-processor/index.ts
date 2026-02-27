@@ -95,6 +95,39 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
 
       console.log(`[Debounce] Batch ${batchId} ready to process`);
 
+      // WAIT for AI processing lock to be released (prevents losing interleaved messages)
+      let aiLockWaitCount = 0;
+      const MAX_AI_LOCK_WAITS = 20; // 20 * 3s = 60s max wait
+      while (aiLockWaitCount < MAX_AI_LOCK_WAITS) {
+        const { data: lockCheck } = await supabase
+          .from("crm_conversations")
+          .select("ai_processing")
+          .eq("id", conversationId)
+          .single();
+        
+        if (!lockCheck?.ai_processing) break;
+        
+        aiLockWaitCount++;
+        console.log(`[Debounce] ⏳ AI still processing for conversation ${conversationId}, waiting... (${aiLockWaitCount}/${MAX_AI_LOCK_WAITS})`);
+        await sleep(3000);
+      }
+      
+      if (aiLockWaitCount >= MAX_AI_LOCK_WAITS) {
+        console.warn(`[Debounce] ⚠️ AI lock timeout for conversation ${conversationId}, proceeding anyway`);
+        // Force-clear stale lock
+        await supabase
+          .from("crm_conversations")
+          .update({ ai_processing: false })
+          .eq("id", conversationId);
+      }
+
+      // Fetch conversation metadata for last_ai_processed_at
+      const { data: convMeta } = await supabase
+        .from("crm_conversations")
+        .select("last_ai_processed_at")
+        .eq("id", conversationId)
+        .single();
+
       // Fetch all messages for this conversation
       const { data: allMessages, error: msgError } = await supabase
         .from("crm_messages")
@@ -107,14 +140,28 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
         break;
       }
 
+      // Use last_ai_processed_at as the cutoff to avoid losing messages
+      // that arrived during AI's multi-part response sending
+      const lastAiProcessedAt = convMeta?.last_ai_processed_at
+        ? new Date(convMeta.last_ai_processed_at)
+        : null;
+
       const outboundMessages = allMessages?.filter((m: any) => m.direction === "outbound") || [];
       const lastOutboundTime =
         outboundMessages.length > 0
           ? new Date(outboundMessages[outboundMessages.length - 1].sent_at)
           : new Date(0);
 
+      // CRITICAL FIX: Use last_ai_processed_at as cutoff (with fallback to lastOutboundTime)
+      // This ensures messages sent DURING AI's multi-part response are not lost
+      const cutoffTime = lastAiProcessedAt && lastAiProcessedAt > lastOutboundTime
+        ? lastAiProcessedAt
+        : lastOutboundTime;
+
+      console.log(`[Debounce] Cutoff: lastOutbound=${lastOutboundTime.toISOString()}, lastAiProcessed=${lastAiProcessedAt?.toISOString() || 'null'}, using=${cutoffTime.toISOString()}`);
+
       const newMessages =
-        allMessages?.filter((m: any) => m.direction === "inbound" && new Date(m.sent_at) > lastOutboundTime) || [];
+        allMessages?.filter((m: any) => m.direction === "inbound" && new Date(m.sent_at) > cutoffTime) || [];
 
       if (newMessages.length === 0) {
         console.log(`[Debounce] No new messages to process for batch ${batchId}`);

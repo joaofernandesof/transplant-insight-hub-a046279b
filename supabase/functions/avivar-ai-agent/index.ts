@@ -4140,6 +4140,13 @@ serve(async (req) => {
 
     console.log(`[AI Agent] Resolved accountId: ${accountId} for userId: ${userId}`);
 
+    // 0.5 SET AI PROCESSING LOCK — prevents debounce from losing interleaved messages
+    await supabase
+      .from("crm_conversations")
+      .update({ ai_processing: true })
+      .eq("id", conversationId);
+    console.log(`[AI Agent] ai_processing=true for conversation ${conversationId}`);
+
     // 1. Get lead stage and kanban for hybrid routing (based on Kanban position)
     const { stage: leadStage, kanbanId } = await getLeadStage(supabase, conversationId, leadPhone);
     console.log(`[AI Agent] Lead stage: ${leadStage}, kanban: ${kanbanId}`);
@@ -4745,6 +4752,13 @@ Responda APENAS com o resumo, sem explicações adicionais.`;
       console.error("[AI Agent] Error generating context summary:", summaryError);
     }
 
+    // CLEAR AI PROCESSING LOCK
+    await supabase
+      .from("crm_conversations")
+      .update({ ai_processing: false, last_ai_processed_at: new Date().toISOString() })
+      .eq("id", conversationId);
+    console.log(`[AI Agent] ai_processing=false, last_ai_processed_at=NOW() for conversation ${conversationId}`);
+
     const duration = Date.now() - startTime;
     console.log(`[AI Agent] Completed in ${duration}ms`);
 
@@ -4774,6 +4788,20 @@ Responda APENAS com o resumo, sem explicações adicionais.`;
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error("[AI Agent] Error:", error);
+
+    // CLEAR AI PROCESSING LOCK on error
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const sc = createClient(supabaseUrl, supabaseServiceKey);
+      await sc
+        .from("crm_conversations")
+        .update({ ai_processing: false, last_ai_processed_at: new Date().toISOString() })
+        .eq("id", conversationId);
+      console.log(`[AI Agent] ai_processing=false (error cleanup) for conversation ${conversationId}`);
+    } catch (cleanupErr) {
+      console.error("[AI Agent] Failed to clear ai_processing lock:", cleanupErr);
+    }
 
     // Fire-and-forget: log error
     try {

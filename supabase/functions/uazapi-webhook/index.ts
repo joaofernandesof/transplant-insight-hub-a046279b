@@ -847,9 +847,10 @@ serve(async (req) => {
                         const pendingUntil = new Date(Date.now() + 15000).toISOString(); // 15 seconds debounce
 
                         // Check if there's already a pending batch for this conversation
+                        // Also check ai_processing to always create debounce when AI is still sending
                         const { data: currentConv } = await supabase
                           .from("crm_conversations")
-                          .select("pending_batch_id, pending_until")
+                          .select("pending_batch_id, pending_until, ai_processing")
                           .eq("id", crmConversationId)
                           .single();
 
@@ -857,6 +858,14 @@ serve(async (req) => {
                         const existingPendingUntil = currentConv?.pending_until
                           ? new Date(currentConv.pending_until)
                           : null;
+
+                        // CRITICAL: If AI is currently processing (sending split messages),
+                        // ALWAYS create/extend a debounce batch so the message is queued
+                        // and processed AFTER AI finishes (debounce-processor waits for ai_processing=false)
+                        const isAiProcessing = currentConv?.ai_processing === true;
+                        if (isAiProcessing) {
+                          console.log(`[UazAPI Webhook] ⚠️ AI is currently processing for conversation ${crmConversationId}, ensuring debounce batch exists`);
+                        }
 
                         // A batch is only "active" if it exists AND its pending_until hasn't passed yet
                         // If pending_until has passed, the debounce processor has likely finished or failed
