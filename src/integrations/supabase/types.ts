@@ -5196,12 +5196,14 @@ export type Database = {
           account_id: string
           agent_mode: string | null
           ai_enabled: boolean
+          ai_processing: boolean | null
           assigned_agent_id: string | null
           assigned_to: string | null
           channel: string
           context_summary: string | null
           created_at: string
           id: string
+          last_ai_processed_at: string | null
           last_message_at: string | null
           lead_id: string
           pending_batch_id: string | null
@@ -5214,12 +5216,14 @@ export type Database = {
           account_id: string
           agent_mode?: string | null
           ai_enabled?: boolean
+          ai_processing?: boolean | null
           assigned_agent_id?: string | null
           assigned_to?: string | null
           channel?: string
           context_summary?: string | null
           created_at?: string
           id?: string
+          last_ai_processed_at?: string | null
           last_message_at?: string | null
           lead_id: string
           pending_batch_id?: string | null
@@ -5232,12 +5236,14 @@ export type Database = {
           account_id?: string
           agent_mode?: string | null
           ai_enabled?: boolean
+          ai_processing?: boolean | null
           assigned_agent_id?: string | null
           assigned_to?: string | null
           channel?: string
           context_summary?: string | null
           created_at?: string
           id?: string
+          last_ai_processed_at?: string | null
           last_message_at?: string | null
           lead_id?: string
           pending_batch_id?: string | null
