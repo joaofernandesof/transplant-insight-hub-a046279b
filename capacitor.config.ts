@@ -5,26 +5,24 @@ const config: CapacitorConfig = {
   appName: 'NeoHub',
   webDir: 'dist',
   
-  // Hot-reload via preview do Lovable (desenvolvimento)
-  // Comente o bloco "server" abaixo para build de produção (APK/AAB)
+  // Hot-reload via preview do Lovable
   server: {
     url: 'https://d75807d5-1df7-446d-aac3-36166617be60.lovableproject.com?forceHideBadge=true',
-    cleartext: true
+    cleartext: true,
+    androidScheme: 'https'
   },
   
   plugins: {
     PushNotifications: {
-      presentationOptions: ['badge', 'sound', 'alert']
+      presentationOptions: ['badge', 'alert']
     },
     SplashScreen: {
-      launchShowDuration: 1500,
+      launchShowDuration: 0,
       launchAutoHide: true,
       backgroundColor: '#0f172a',
-      androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
       showSpinner: false,
-      splashFullScreen: true,
-      splashImmersive: true
+      splashFullScreen: false,
+      splashImmersive: false
     },
     App: {},
     NativeBiometric: {
@@ -36,12 +34,13 @@ const config: CapacitorConfig = {
     contentInset: 'automatic',
     scheme: 'NeoHub',
     preferredContentMode: 'mobile',
-    allowsLinkPreview: true,
+    allowsLinkPreview: false,
   },
   
   android: {
     allowMixedContent: false,
-    backgroundColor: '#0f172a'
+    backgroundColor: '#0f172a',
+    appendUserAgent: 'NeoHubApp'
   }
 };
 
