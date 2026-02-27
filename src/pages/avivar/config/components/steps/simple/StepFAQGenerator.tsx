@@ -382,7 +382,14 @@ export function StepFAQGenerator({
               <Button
                 onClick={() => {
                   const content = generatedFAQ
-                    .map((item, i) => `**${i + 1}. ${item.pergunta}**\n${item.resposta}`)
+                    .map((item, i) => {
+                      let text = `**${i + 1}. ${item.pergunta}**\n${item.resposta}`;
+                      if (item.media?.url) {
+                        const typeLabel = item.media.type === 'audio' ? 'Áudio' : item.media.type === 'image' ? 'Imagem' : item.media.type === 'video' ? 'Vídeo' : 'Documento';
+                        text += `\n[Mídia: ${typeLabel} - ${item.media.url}${item.media.audio_forward ? ' (encaminhado)' : ''}]`;
+                      }
+                      return text;
+                    })
                     .join('\n\n');
                   onCopyToKnowledge(content);
                   toast.success('FAQ adicionado à Base de Conhecimento!');
