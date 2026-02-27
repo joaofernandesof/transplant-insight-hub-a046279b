@@ -1,35 +1,55 @@
 
 
+## Diagnostico: IA nao encontra horarios (2 bugs confirmados nos logs)
 
-## ✅ RESOLVIDO: Mensagem do lead perdida quando responde durante envio de mensagens split da IA
+### Bug 1: Funcao duplicada no banco (CRITICO)
 
-### Causa Raiz
-Race condition: AI divide respostas em partes com delay. Lead responde entre partes → mensagem fica com timestamp < lastOutboundTime → filtrada/perdida pelo debounce-processor.
+A migracao anterior criou uma NOVA versao de `get_available_slots_flexible` com parametros em ordem diferente, mas NAO removeu a versao antiga. Agora existem DUAS funcoes:
 
-### Solução Implementada
+```text
+OLD: (p_user_id uuid, p_agenda_id uuid, p_date date, p_duration_minutes integer)
+NEW: (p_user_id uuid, p_date date, p_duration_minutes integer, p_agenda_id uuid)
+```
 
-1. **Migração SQL**: Adicionadas colunas `ai_processing` (bool) e `last_ai_processed_at` (timestamptz) em `crm_conversations`
+Quando o AI agent chama `supabase.rpc("get_available_slots_flexible", {...})`, o PostgREST nao consegue escolher qual usar e retorna erro `PGRST203`:
+```
+"Could not choose the best candidate function between..."
+```
 
-2. **`avivar-ai-agent/index.ts`**: 
-   - Seta `ai_processing = true` no início do processamento
-   - Seta `ai_processing = false` + `last_ai_processed_at = NOW()` no final (success e error)
+Resultado: ZERO slots retornados para QUALQUER conta/agenda.
 
-3. **`avivar-debounce-processor/index.ts`**:
-   - Aguarda `ai_processing = false` antes de processar (max 60s com retry de 3s)
-   - Usa `last_ai_processed_at` como cutoff em vez de `lastOutboundTime` (com fallback)
-   - Garante que mensagens intercaladas nunca são perdidas
+**A agenda correta "Medic Clinica" IS sendo encontrada** (log confirma: `Using fallback agenda: "Medic Clinica" (Fortaleza)`). O problema e que a consulta de slots falha DEPOIS.
 
-4. **`uazapi-webhook/index.ts`**:
-   - Verifica `ai_processing` ao checar debounce
-   - Sempre cria/estende batch de debounce quando AI está processando
+A mensagem "consultei o sistema da nossa unidade em Fortaleza" e porque a agenda "Medic Clinica" tem `city = 'Fortaleza'`. NAO esta consultando agenda de outra conta.
 
-## ✅ RESOLVIDO: IA não encontra horários disponíveis
+### Bug 2: Nome formatado vs nome real (MENOR)
 
-### Causa Raiz
-1. RPC `get_available_slots_flexible` não fazia lookup por `account_id` (agente IA passa account_id como p_user_id)
-2. Sem fallback quando não há config de horários — retornava vazio em vez de gerar slots padrão
+`list_agendas` retorna `"Medic Clinica - Fortaleza (Lucas Araujo)"`, e a IA passa esse nome completo para `resolveAgenda`. O `ilike('%Medic Clinica - Fortaleza (Lucas Araujo)%')` nao encontra match porque o nome real e so `"Medic Clinica"`. Cai no fallback que pega a primeira agenda da conta (que e a correta, ja que so tem uma).
 
-### Solução Implementada
-- Adicionado lookup por `account_id` via `avivar_account_members` na RPC
-- Adicionado fallback de slots padrão (08:00-18:00, seg-sáb) quando não há config
-- Fallback respeita appointments existentes para evitar conflitos
+### Solucao
+
+**1. Migracao SQL — Dropar funcao antiga e recriar a correta**
+
+```sql
+-- Drop BOTH overloads to clean state
+DROP FUNCTION IF EXISTS public.get_available_slots_flexible(uuid, uuid, date, integer);
+DROP FUNCTION IF EXISTS public.get_available_slots_flexible(uuid, date, integer, uuid);
+
+-- Recreate single version (with fallback logic from last migration)
+CREATE OR REPLACE FUNCTION public.get_available_slots_flexible(...) ...
+```
+
+**2. `avivar-ai-agent/index.ts` — Melhorar resolveAgenda**
+
+Na funcao `resolveAgenda`, antes do fallback, fazer split do nome formatado para extrair apenas o nome base:
+```typescript
+// "Medic Clinica - Fortaleza (Lucas Araujo)" → "Medic Clinica"  
+const baseName = agendaName.split(' - ')[0].trim();
+```
+
+Tambem simplificar o formato de `list_agendas` para retornar so o nome da agenda (sem cidade/profissional concatenados) ja que `resolveAgenda` busca por nome e por cidade separadamente.
+
+### Arquivos alterados
+- Nova migracao SQL (drop duplicata + recriar funcao)
+- `supabase/functions/avivar-ai-agent/index.ts` — melhorar parsing de nome em `resolveAgenda`
+
