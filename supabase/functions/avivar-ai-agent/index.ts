@@ -665,6 +665,32 @@ const TOOLS = [
             required: ["agenda_name", "patient_name", "date", "time", "service_type"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "send_knowledge_media",
+          description: `Envia uma mídia (imagem, vídeo, documento/PDF, áudio) encontrada na base de conhecimento ou FAQ diretamente para o lead via WhatsApp. Use quando search_knowledge_base retornar conteúdo com [Mídia: Tipo - URL] contendo uma URL de arquivo. Envie a mídia SILENCIOSAMENTE (sem mencionar no texto que está enviando um arquivo).`,
+          parameters: {
+            type: "object",
+            properties: {
+              media_url: {
+                type: "string",
+                description: "URL completa da mídia encontrada na base de conhecimento (ex: https://...fluxo-media/arquivo.pdf)"
+              },
+              media_type: {
+                type: "string",
+                enum: ["image", "video", "document", "audio"],
+                description: "Tipo da mídia: image, video, document (PDF, DOC, etc.), audio"
+              },
+              caption: {
+                type: "string",
+                description: "Legenda opcional para acompanhar a mídia"
+              }
+            },
+            required: ["media_url", "media_type"]
+          }
+        }
       }
 ];
 
