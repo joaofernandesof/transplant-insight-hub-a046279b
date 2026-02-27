@@ -245,6 +245,30 @@ export default function NeoTeamPatientDetail() {
         }
       }
 
+      // clinic_surgeries (main surgery table)
+      const { data: clinicSurgeries } = await supabase
+        .from('clinic_surgeries')
+        .select('id, surgery_date, surgery_time, procedure, category, branch, schedule_status')
+        .eq('patient_name', patientData.full_name)
+        .order('surgery_date', { ascending: false });
+
+      if (clinicSurgeries) {
+        for (const surg of clinicSurgeries) {
+          if (surg.surgery_date) {
+            events.push({
+              id: `csurg-${surg.id}`,
+              date: surg.surgery_date,
+              time: surg.surgery_time || undefined,
+              title: surg.procedure || 'Cirurgia',
+              description: [surg.category, surg.branch, surg.schedule_status === 'Confirmada' ? 'Confirmada' : 'Pendente'].filter(Boolean).join(' · '),
+              type: 'surgery',
+              status: surg.schedule_status === 'Confirmada' ? 'confirmed' : 'scheduled',
+            });
+          }
+        }
+      }
+
+      // surgery_schedule (legacy)
       const { data: surgeries } = await supabase
         .from('surgery_schedule')
         .select('*')
