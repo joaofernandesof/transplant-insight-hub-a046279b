@@ -665,6 +665,32 @@ const TOOLS = [
             required: ["agenda_name", "patient_name", "date", "time", "service_type"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "send_knowledge_media",
+          description: `Envia uma mídia (imagem, vídeo, documento/PDF, áudio) encontrada na base de conhecimento ou FAQ diretamente para o lead via WhatsApp. Use quando search_knowledge_base retornar conteúdo com [Mídia: Tipo - URL] contendo uma URL de arquivo. Envie a mídia SILENCIOSAMENTE (sem mencionar no texto que está enviando um arquivo).`,
+          parameters: {
+            type: "object",
+            properties: {
+              media_url: {
+                type: "string",
+                description: "URL completa da mídia encontrada na base de conhecimento (ex: https://...fluxo-media/arquivo.pdf)"
+              },
+              media_type: {
+                type: "string",
+                enum: ["image", "video", "document", "audio"],
+                description: "Tipo da mídia: image, video, document (PDF, DOC, etc.), audio"
+              },
+              caption: {
+                type: "string",
+                description: "Legenda opcional para acompanhar a mídia"
+              }
+            },
+            required: ["media_url", "media_type"]
+          }
+        }
       }
 ];
 
@@ -2808,6 +2834,95 @@ async function sendFluxoMedia(
   }
 }
 
+// Send media found in knowledge base / FAQ
+async function sendKnowledgeMedia(
+  supabase: AnySupabaseClient,
+  accountId: string,
+  conversationId: string,
+  leadPhone: string,
+  mediaUrl: string,
+  mediaType: string,
+  caption?: string
+): Promise<{ success: boolean; message: string }> {
+  console.log(`[AI Agent] Tool: send_knowledge_media(type="${mediaType}", url="${mediaUrl.substring(0, 80)}")`);
+
+  // Get UazAPI credentials
+  const uazapiUrl = Deno.env.get("UAZAPI_URL") || "";
+  let uazapiToken = Deno.env.get("UAZAPI_TOKEN") || "";
+
+  const { data: uazapiInstance } = await supabase
+    .from("avivar_uazapi_instances")
+    .select("instance_token, status")
+    .eq("account_id", accountId)
+    .eq("status", "connected")
+    .limit(1)
+    .maybeSingle();
+
+  if (uazapiInstance?.instance_token) {
+    uazapiToken = uazapiInstance.instance_token;
+  }
+
+  if (!uazapiUrl || !uazapiToken) {
+    return { success: false, message: "WhatsApp não está conectado para enviar mídia." };
+  }
+
+  let phone = leadPhone.replace(/\D/g, "");
+  if (!phone.startsWith("55") && phone.length <= 11) {
+    phone = `55${phone}`;
+  }
+
+  try {
+    const apiUrl = `${uazapiUrl}/send/media`;
+    const typeMap: Record<string, string> = { image: "image", video: "video", document: "document", audio: "audio" };
+    const mediaPayload: Record<string, unknown> = {
+      number: phone,
+      type: typeMap[mediaType] || "document",
+      file: mediaUrl,
+      text: caption || " ",
+    };
+
+    console.log(`[AI Agent] Sending knowledge media: ${JSON.stringify(mediaPayload).substring(0, 200)}`);
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "token": uazapiToken },
+      body: JSON.stringify(mediaPayload),
+    });
+
+    const responseText = await response.text();
+    console.log(`[AI Agent] Knowledge media send response (${response.status}): ${responseText}`);
+
+    if (!response.ok) {
+      return { success: false, message: `Erro ao enviar mídia: ${response.status}` };
+    }
+
+    // Log the sent media in conversation
+    const { data: convData } = await supabase
+      .from("crm_conversations")
+      .select("account_id")
+      .eq("id", conversationId)
+      .single();
+
+    const emojiMap: Record<string, string> = { image: "🖼️", video: "🎬", document: "📄", audio: "🎤" };
+    await supabase.from("crm_messages").insert({
+      conversation_id: conversationId,
+      direction: "outbound",
+      content: `${emojiMap[mediaType] || "📎"} ${caption || mediaType}`,
+      media_url: mediaUrl,
+      media_type: mediaType,
+      sent_at: new Date().toISOString(),
+      is_ai_generated: true,
+      account_id: convData?.account_id,
+    });
+
+    console.log(`[AI Agent] ✅ Knowledge media sent successfully`);
+    return { success: true, message: `Mídia da base de conhecimento enviada com sucesso!` };
+  } catch (error) {
+    console.error("[AI Agent] Error sending knowledge media:", error);
+    return { success: false, message: `Erro ao enviar mídia: ${(error as Error).message}` };
+  }
+}
+
 // ============================================
 // CHECKLIST AUTO-FILL
 // ============================================
@@ -3068,6 +3183,19 @@ async function processToolCall(
         conversationId,
         patientPhone,
         toolArgs.step_id as string
+      );
+      return result.message;
+    }
+
+    case "send_knowledge_media": {
+      const result = await sendKnowledgeMedia(
+        supabase,
+        accountId,
+        conversationId,
+        patientPhone,
+        toolArgs.media_url as string,
+        toolArgs.media_type as string,
+        toolArgs.caption as string | undefined
       );
       return result.message;
     }
@@ -3572,6 +3700,7 @@ Você tem acesso a:
 - send_fluxo_media: Enviar mídia (áudio, imagem, vídeo, documento) anexada a um passo do fluxo
 - send_image: Enviar imagem da galeria do agente
 - send_video: Enviar vídeo da galeria do agente
+- send_knowledge_media: Enviar mídia (PDF, imagem, vídeo, áudio) encontrada na base de conhecimento/FAQ — use quando search_knowledge_base retornar [Mídia: Tipo - URL]
 - preencher_checklist: Preencher campos do checklist/ficha do lead com dados confirmados na conversa
 - set_lead_language: Salvar o idioma detectado do lead (use na primeira mensagem)
 
@@ -3594,6 +3723,16 @@ Textos TERMINANTEMENTE PROIBIDOS na sua resposta:
 A mídia é enviada SILENCIOSAMENTE pela ferramenta. Sua resposta de texto deve ser APENAS a mensagem conversacional, como se a mídia não existisse.
 Se você escrever qualquer texto mencionando a mídia, você FALHOU COMPLETAMENTE na tarefa.
 </regra_critica_midia_fluxo>
+
+<regra_midia_base_conhecimento>
+## ENVIO DE MÍDIA DA BASE DE CONHECIMENTO / FAQ
+Quando search_knowledge_base retornar conteúdo contendo [Mídia: Tipo - URL], você DEVE:
+1. Extrair a URL e o tipo (Imagem→image, Vídeo→video, Documento→document, Áudio→audio)
+2. Chamar send_knowledge_media(media_url="URL", media_type="tipo") como tool call
+3. NÃO mencionar no texto que está enviando um arquivo — a mídia é enviada SILENCIOSAMENTE
+4. Sua resposta de texto deve ser apenas a mensagem conversacional respondendo à pergunta do lead
+Exemplo: se o FAQ contém [Mídia: Documento - https://...arquivo.pdf], chame send_knowledge_media(media_url="https://...arquivo.pdf", media_type="document")
+</regra_midia_base_conhecimento>
 
 <regra_anti_alucinacao_critica>
 ## PROIBIÇÃO ABSOLUTA DE INVENTAR DADOS
