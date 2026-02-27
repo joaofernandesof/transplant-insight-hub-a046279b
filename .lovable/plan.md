@@ -1,45 +1,54 @@
 
 
-
-## ✅ RESOLVIDO: Mensagem do lead perdida quando responde durante envio de mensagens split da IA
-
-### Causa Raiz
-Race condition: AI divide respostas em partes com delay. Lead responde entre partes → mensagem fica com timestamp < lastOutboundTime → filtrada/perdida pelo debounce-processor.
-
-### Solução Implementada
-
-1. **Migração SQL**: Adicionadas colunas `ai_processing` (bool) e `last_ai_processed_at` (timestamptz) em `crm_conversations`
-
-2. **`avivar-ai-agent/index.ts`**: 
-   - Seta `ai_processing = true` no início do processamento
-   - Seta `ai_processing = false` + `last_ai_processed_at = NOW()` no final (success e error)
-
-3. **`avivar-debounce-processor/index.ts`**:
-   - Aguarda `ai_processing = false` antes de processar (max 60s com retry de 3s)
-   - Usa `last_ai_processed_at` como cutoff em vez de `lastOutboundTime` (com fallback)
-   - Garante que mensagens intercaladas nunca são perdidas
-
-4. **`uazapi-webhook/index.ts`**:
-   - Verifica `ai_processing` ao checar debounce
-   - Sempre cria/estende batch de debounce quando AI está processando
-
-## ✅ RESOLVIDO: IA não encontra horários disponíveis
+## Bug: IA encontra FAQ com PDF/mídia mas não consegue enviar ao lead
 
 ### Causa Raiz
-1. RPC `get_available_slots_flexible` não fazia lookup por `account_id` (agente IA passa account_id como p_user_id)
-2. Sem fallback quando não há config de horários — retornava vazio em vez de gerar slots padrão
 
-### Solução Implementada
-- Adicionado lookup por `account_id` via `avivar_account_members` na RPC
-- Adicionado fallback de slots padrão (08:00-18:00, seg-sáb) quando não há config
-- Fallback respeita appointments existentes para evitar conflitos
+O FAQ exportado para a base de conhecimento contém URLs de mídia no formato markdown:
+```text
+[Mídia: Vídeo - https://...fluxo-media/1772200184691.mp4]
+[Mídia: Imagem - https://...fluxo-media/1772199936744.jpeg]
+```
 
-## ✅ RESOLVIDO: Função RPC duplicada causando PGRST203
+Quando a IA chama `search_knowledge_base`, ela encontra esse conteúdo e VÊ as URLs. Porém, as ferramentas existentes **não aceitam URLs arbitrárias**:
+- `send_image` → busca apenas na galeria `avivar_agent_images`
+- `send_video` → busca apenas na galeria `avivar_agent_videos`  
+- `send_fluxo_media` → envia apenas mídia de passos do fluxo
 
-### Causa Raiz
-Migração anterior criou nova versão de `get_available_slots_flexible` com parâmetros em ordem diferente sem dropar a antiga. PostgREST não conseguia escolher entre as duas → erro PGRST203 → zero slots.
+A IA não tem ferramenta para enviar uma mídia por URL direta → responde dizendo "não tenho o arquivo configurado".
 
-### Solução Implementada
-- Dropadas AMBAS overloads e recriada versão única com lookup por account_id + fallback padrão
-- `resolveAgenda` agora extrai nome base antes do lookup (ex: "Medic Clinica - Fortaleza (Lucas)" → "Medic Clinica")
-- `list_agendas` retorna formato separado por pipes para evitar confusão de nomes
+### Solução
+
+Criar uma nova tool `send_knowledge_media` que aceita uma URL direta e envia via WhatsApp (UazAPI).
+
+**Arquivo: `supabase/functions/avivar-ai-agent/index.ts`**
+
+**1. Nova tool definition** (junto com as outras tools):
+```typescript
+{
+  type: "function",
+  function: {
+    name: "send_knowledge_media",
+    description: "Envia uma mídia (imagem, vídeo, documento/PDF, áudio) encontrada na base de conhecimento ou FAQ diretamente para o lead via WhatsApp. Use quando search_knowledge_base retornar conteúdo com [Mídia: ...] contendo uma URL.",
+    parameters: {
+      type: "object",
+      properties: {
+        media_url: { type: "string", description: "URL completa da mídia" },
+        media_type: { type: "string", enum: ["image","video","document","audio"], description: "Tipo da mídia" },
+        caption: { type: "string", description: "Legenda opcional" }
+      },
+      required: ["media_url", "media_type"]
+    }
+  }
+}
+```
+
+**2. Nova função `sendKnowledgeMedia`**: Reutiliza a mesma lógica de envio via UazAPI (`/send/media`) já usada em `send_image`/`send_video`, mas aceitando URL direta ao invés de buscar na galeria.
+
+**3. Registrar no switch de tools** (`case "send_knowledge_media"`).
+
+**4. Instrução no prompt**: Adicionar regra informando a IA que quando `search_knowledge_base` retornar conteúdo com `[Mídia: Tipo - URL]`, ela deve usar `send_knowledge_media` para enviar o arquivo ao lead, seguindo a mesma regra silenciosa das outras mídias.
+
+### Arquivos alterados
+- `supabase/functions/avivar-ai-agent/index.ts` — nova tool + função + instrução no prompt
+
