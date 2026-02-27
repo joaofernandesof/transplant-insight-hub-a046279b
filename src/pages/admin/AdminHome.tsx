@@ -170,22 +170,22 @@ export default function AdminHome() {
       />
 
       {/* Portais do NeoHub - PRIMEIRO após o banner */}
-      <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-3">
-        <div className="flex items-center gap-2 mb-2">
+      <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4">
+        <div className="flex items-center gap-2 mb-3">
           <Eye className="h-4 w-4 text-blue-400" />
           <h3 className="text-xs font-semibold text-white uppercase tracking-wide">Portais do NeoHub</h3>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
           {portals.map((portal) => (
             <button
               key={portal.id}
               onClick={() => navigate(portal.path)}
-              className="group flex flex-col items-center gap-1.5 p-2 rounded-lg border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
+              className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
             >
-              <div className={`p-2 rounded-lg bg-gradient-to-br ${portal.gradient} text-white shadow-md`}>
-                <portal.icon className="h-4 w-4" />
+              <div className={`p-3 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
+                <portal.icon className="h-6 w-6" />
               </div>
-              <span className="text-[10px] font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
+              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
             </button>
           ))}
         </div>
