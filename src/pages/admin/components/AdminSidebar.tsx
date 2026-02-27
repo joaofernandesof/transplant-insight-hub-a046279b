@@ -166,7 +166,8 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
           {!collapsed && <span className="text-sm font-medium">Sair</span>}
         </button>
       </div>
-}
+    </div>
+  );
 
 export function AdminSidebar({ collapsed, onToggle, onMobileClose }: AdminSidebarProps) {
   return (
