@@ -79,7 +79,7 @@ export function useBankAccounts() {
         .from('ipromed_bank_accounts')
         .insert({
           ...account,
-          user_id: user!.id,
+          user_id: user!.authUserId,
           balance: 0,
           integration_status: 'manual',
         })
@@ -212,7 +212,7 @@ export function useBankTransactions(accountId?: string) {
         .insert(
           transactionsToImport.map(t => ({
             ...t,
-            user_id: user!.id,
+            user_id: user!.authUserId,
             reconciliation_status: 'pending',
           }))
         )

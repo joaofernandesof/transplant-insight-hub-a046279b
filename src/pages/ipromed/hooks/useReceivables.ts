@@ -59,7 +59,7 @@ export function useReceivables() {
         .from('ipromed_receivables')
         .insert({
           ...receivable,
-          user_id: user!.id,
+          user_id: user!.authUserId,
         })
         .select()
         .single();
