@@ -1,4 +1,14 @@
 
+## ✅ RESOLVIDO: Race condition entre propose_slot e create_appointment
+
+### Causa Raiz
+Race condition: `propose_slot` validou horário usando fallback padrão (sem config de agenda). Entre a proposta e a confirmação do lead, o dono da conta configurou a agenda (desabilitando sábado). `create_appointment` re-validou contra a nova config → rejeitou o horário já aceito pelo lead.
+
+### Solução Implementada
+- Adicionado parâmetro `skipGridValidation` em `createAppointment`
+- Quando `pendingProposalDetected=true` (lead confirmou proposta anterior), `create_appointment` pula validação de grade e só verifica conflitos reais (appointments existentes)
+- Flag propagada via `processToolCall` → `createAppointment`
+- Garante que propostas validadas por `propose_slot` são honradas mesmo se a config da agenda mudar entre proposta e confirmação
 
 
 ## ✅ RESOLVIDO: Mensagem do lead perdida quando responde durante envio de mensagens split da IA
