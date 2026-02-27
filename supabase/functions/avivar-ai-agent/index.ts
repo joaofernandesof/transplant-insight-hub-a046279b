@@ -1319,7 +1319,8 @@ async function createAppointment(
   time: string,
   serviceType: string,
   notes?: string,
-  patientEmail?: string
+  patientEmail?: string,
+  skipGridValidation?: boolean
 ): Promise<string> {
   console.log(`[AI Agent] Tool: create_appointment(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
 
@@ -1345,59 +1346,81 @@ async function createAppointment(
   });
 
   // GRID VALIDATION: Reject times not in the configured schedule grid
-  const allGridTimes = (slots || []).map((s: { slot_start: string }) => s.slot_start.substring(0, 5));
-  const existsInGrid = allGridTimes.includes(normalizedTime);
-
-  if (!existsInGrid) {
-    const availableInGrid = (slots || [])
-      .filter((s: { is_available: boolean }) => s.is_available)
-      .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
-      .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+  // When skipGridValidation is true (pending proposal confirmed by lead), only check for actual conflicts
+  if (skipGridValidation) {
+    console.log(`[AI Agent] ⚡ skipGridValidation=true — skipping grid check, only checking for actual appointment conflicts`);
     
-    if (availableInGrid.length === 0) {
-      return `O horário ${formatTimeDisplay(normalizedTime)} não existe na grade de atendimento. Não encontrei horários disponíveis para esse dia.`;
+    // Only check for real overlapping appointments
+    const { data: conflicts } = await supabase
+      .from("avivar_appointments")
+      .select("id, start_time, end_time")
+      .eq("agenda_id", agendaId)
+      .eq("appointment_date", normalizedDate)
+      .in("status", ["scheduled", "confirmed"])
+      .gte("end_time", normalizedTime + ":00")
+      .lte("start_time", endTime + ":00");
+    
+    if (conflicts && conflicts.length > 0) {
+      console.log(`[AI Agent] ⚠️ skipGridValidation: actual conflict found at ${normalizedTime} on ${normalizedDate}`);
+      return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado por outro agendamento. Por favor, escolha outro horário.`;
     }
     
-    const target = timeToMinutes(normalizedTime);
-    const suggestions = availableInGrid
-      .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
-      .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
-      .slice(0, 2)
-      .map((x: { t: string }) => x.t);
-    
-    const suggestionText = suggestions.length === 1
-      ? formatTimeDisplay(suggestions[0])
-      : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
-    
-    return `O horário ${formatTimeDisplay(normalizedTime)} não existe na grade de atendimento. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
-  }
+    console.log(`[AI Agent] ✅ skipGridValidation: no conflicts found, proceeding with booking`);
+  } else {
+    const allGridTimes = (slots || []).map((s: { slot_start: string }) => s.slot_start.substring(0, 5));
+    const existsInGrid = allGridTimes.includes(normalizedTime);
 
-  const slotAvailable = (slots || []).some((s: { slot_start: string; is_available: boolean }) => 
-    s.slot_start.substring(0, 5) === normalizedTime && s.is_available
-  );
-
-  if (!slotAvailable) {
-    const availableInGrid = (slots || [])
-      .filter((s: { is_available: boolean }) => s.is_available)
-      .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
-      .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
-    
-    if (availableInGrid.length === 0) {
-      return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado e não há outros horários disponíveis nesse dia.`;
+    if (!existsInGrid) {
+      const availableInGrid = (slots || [])
+        .filter((s: { is_available: boolean }) => s.is_available)
+        .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+        .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+      
+      if (availableInGrid.length === 0) {
+        return `O horário ${formatTimeDisplay(normalizedTime)} não existe na grade de atendimento. Não encontrei horários disponíveis para esse dia.`;
+      }
+      
+      const target = timeToMinutes(normalizedTime);
+      const suggestions = availableInGrid
+        .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+        .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+        .slice(0, 2)
+        .map((x: { t: string }) => x.t);
+      
+      const suggestionText = suggestions.length === 1
+        ? formatTimeDisplay(suggestions[0])
+        : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
+      
+      return `O horário ${formatTimeDisplay(normalizedTime)} não existe na grade de atendimento. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
     }
-    
-    const target = timeToMinutes(normalizedTime);
-    const suggestions = availableInGrid
-      .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
-      .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
-      .slice(0, 2)
-      .map((x: { t: string }) => x.t);
-    
-    const suggestionText = suggestions.length === 1
-      ? formatTimeDisplay(suggestions[0])
-      : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
-    
-    return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
+
+    const slotAvailable = (slots || []).some((s: { slot_start: string; is_available: boolean }) => 
+      s.slot_start.substring(0, 5) === normalizedTime && s.is_available
+    );
+
+    if (!slotAvailable) {
+      const availableInGrid = (slots || [])
+        .filter((s: { is_available: boolean }) => s.is_available)
+        .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+        .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+      
+      if (availableInGrid.length === 0) {
+        return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado e não há outros horários disponíveis nesse dia.`;
+      }
+      
+      const target = timeToMinutes(normalizedTime);
+      const suggestions = availableInGrid
+        .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+        .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+        .slice(0, 2)
+        .map((x: { t: string }) => x.t);
+      
+      const suggestionText = suggestions.length === 1
+        ? formatTimeDisplay(suggestions[0])
+        : `${formatTimeDisplay(suggestions[0])} ou ${formatTimeDisplay(suggestions[1])}`;
+      
+      return `O horário ${formatTimeDisplay(normalizedTime)} já está ocupado. Os mais próximos disponíveis são: ${suggestionText}. Qual fica melhor para você?`;
+    }
   }
 
   const { data: appointment, error } = await supabase
@@ -3070,7 +3093,8 @@ async function processToolCall(
   conversationId: string,
   patientPhone: string,
   toolName: string,
-  toolArgs: Record<string, unknown>
+  toolArgs: Record<string, unknown>,
+  skipGridValidation?: boolean
 ): Promise<string> {
   switch (toolName) {
     case "list_agendas":
@@ -3113,7 +3137,8 @@ async function processToolCall(
         toolArgs.time as string,
         toolArgs.service_type as string,
         toolArgs.notes as string | undefined,
-        toolArgs.patient_email as string | undefined
+        toolArgs.patient_email as string | undefined,
+        skipGridValidation
       );
     
     case "reschedule_appointment":
@@ -4598,6 +4623,10 @@ serve(async (req) => {
       });
       
       for (const toolCall of filteredToolCalls) {
+        const shouldSkipGrid = pendingProposalDetected && toolCall.name === "create_appointment";
+        if (shouldSkipGrid) {
+          console.log(`[AI Agent] 🎯 pendingProposalDetected + create_appointment → skipGridValidation=true`);
+        }
         const result = await processToolCall(
           supabase,
           accountId || userId,
@@ -4607,7 +4636,8 @@ serve(async (req) => {
           conversationId,
           leadPhone,
           toolCall.name,
-          toolCall.arguments
+          toolCall.arguments,
+          shouldSkipGrid
         );
         
         console.log(`[AI Agent] Tool ${toolCall.name} result: ${result.substring(0, 100)}...`);
