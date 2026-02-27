@@ -185,6 +185,7 @@ export function StepFAQGenerator({
                     onChange={(m) => setNewMedia(m)}
                   />
                 </div>
+              </div>
               <div className="flex justify-end gap-2">
                 <Button
                   variant="ghost"
