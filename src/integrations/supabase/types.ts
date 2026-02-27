@@ -11666,6 +11666,449 @@ export type Database = {
         }
         Relationships: []
       }
+      neoacademy_account_members: {
+        Row: {
+          account_id: string
+          id: string
+          is_active: boolean | null
+          joined_at: string | null
+          role: Database["public"]["Enums"]["neoacademy_member_role"] | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["neoacademy_member_role"] | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["neoacademy_member_role"] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_account_members_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_accounts: {
+        Row: {
+          brand_color: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          owner_user_id: string
+          plan: string | null
+          settings: Json | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          brand_color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          owner_user_id: string
+          plan?: string | null
+          settings?: Json | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          brand_color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          owner_user_id?: string
+          plan?: string | null
+          settings?: Json | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      neoacademy_categories: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          order_index: number | null
+          slug: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          order_index?: number | null
+          slug: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          order_index?: number | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_categories_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_courses: {
+        Row: {
+          access_type: string | null
+          account_id: string
+          banner_url: string | null
+          category: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          is_featured: boolean | null
+          is_published: boolean | null
+          order_index: number | null
+          price: number | null
+          short_description: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          total_duration_minutes: number | null
+          total_lessons: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_type?: string | null
+          account_id: string
+          banner_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          order_index?: number | null
+          price?: number | null
+          short_description?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          total_duration_minutes?: number | null
+          total_lessons?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_type?: string | null
+          account_id?: string
+          banner_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          order_index?: number | null
+          price?: number | null
+          short_description?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          total_duration_minutes?: number | null
+          total_lessons?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_courses_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_enrollments: {
+        Row: {
+          account_id: string
+          completed_at: string | null
+          course_id: string
+          enrolled_at: string | null
+          id: string
+          is_active: boolean | null
+          last_accessed_at: string | null
+          progress_percent: number | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          completed_at?: string | null
+          course_id: string
+          enrolled_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          progress_percent?: number | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          completed_at?: string | null
+          course_id?: string
+          enrolled_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          progress_percent?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_enrollments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoacademy_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_lesson_progress: {
+        Row: {
+          account_id: string
+          completed_at: string | null
+          course_id: string
+          id: string
+          is_completed: boolean | null
+          last_position_seconds: number | null
+          lesson_id: string
+          updated_at: string | null
+          user_id: string
+          watch_time_seconds: number | null
+        }
+        Insert: {
+          account_id: string
+          completed_at?: string | null
+          course_id: string
+          id?: string
+          is_completed?: boolean | null
+          last_position_seconds?: number | null
+          lesson_id: string
+          updated_at?: string | null
+          user_id: string
+          watch_time_seconds?: number | null
+        }
+        Update: {
+          account_id?: string
+          completed_at?: string | null
+          course_id?: string
+          id?: string
+          is_completed?: boolean | null
+          last_position_seconds?: number | null
+          lesson_id?: string
+          updated_at?: string | null
+          user_id?: string
+          watch_time_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_lesson_progress_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoacademy_lesson_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoacademy_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_lessons: {
+        Row: {
+          account_id: string
+          attachments: Json | null
+          content: string | null
+          course_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_preview: boolean | null
+          is_published: boolean | null
+          lesson_type:
+            | Database["public"]["Enums"]["neoacademy_lesson_type"]
+            | null
+          module_id: string
+          order_index: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          video_duration_seconds: number | null
+          video_url: string | null
+        }
+        Insert: {
+          account_id: string
+          attachments?: Json | null
+          content?: string | null
+          course_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_preview?: boolean | null
+          is_published?: boolean | null
+          lesson_type?:
+            | Database["public"]["Enums"]["neoacademy_lesson_type"]
+            | null
+          module_id: string
+          order_index?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          video_duration_seconds?: number | null
+          video_url?: string | null
+        }
+        Update: {
+          account_id?: string
+          attachments?: Json | null
+          content?: string | null
+          course_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_preview?: boolean | null
+          is_published?: boolean | null
+          lesson_type?:
+            | Database["public"]["Enums"]["neoacademy_lesson_type"]
+            | null
+          module_id?: string
+          order_index?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          video_duration_seconds?: number | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_lessons_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoacademy_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoacademy_lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoacademy_modules: {
+        Row: {
+          account_id: string
+          course_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_published: boolean | null
+          order_index: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_id: string
+          course_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          course_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_modules_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoacademy_modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neohair_evaluations: {
         Row: {
           age: number | null
@@ -20514,6 +20957,14 @@ export type Database = {
         Args: { _module_code: string }
         Returns: boolean
       }
+      is_neoacademy_admin: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_neoacademy_member: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
       is_neoteam_admin_or_above: {
         Args: { _user_id: string }
@@ -20775,6 +21226,8 @@ export type Database = {
         | "follow_up"
         | "complaint"
         | "consultation"
+      neoacademy_lesson_type: "video" | "text" | "pdf" | "quiz" | "live"
+      neoacademy_member_role: "owner" | "admin" | "instructor" | "student"
       neohub_profile:
         | "paciente"
         | "colaborador"
@@ -21172,6 +21625,8 @@ export const Constants = {
         "complaint",
         "consultation",
       ],
+      neoacademy_lesson_type: ["video", "text", "pdf", "quiz", "live"],
+      neoacademy_member_role: ["owner", "admin", "instructor", "student"],
       neohub_profile: [
         "paciente",
         "colaborador",

@@ -198,6 +198,15 @@ const AvivarAgentRoutingConfig = lazy(() => import("./pages/avivar/config/Avivar
 const AvivarContacts = lazy(() => import("./pages/avivar/AvivarContacts"));
 const AvivarTeamPage = lazy(() => import("./pages/avivar/AvivarTeamPage"));
 const PermissionsMatrix = lazy(() => import("./pages/avivar/PermissionsMatrix"));
+
+// ====================================
+// Pages - NeoAcademy (SaaS Área de Membros)
+// ====================================
+const NeoAcademyDashboard = lazy(() => import("./neoacademy/pages/NeoAcademyDashboard"));
+const NeoAcademyCourseDetail = lazy(() => import("./neoacademy/pages/NeoAcademyCourseDetail"));
+const NeoAcademyLesson = lazy(() => import("./neoacademy/pages/NeoAcademyLesson"));
+const NeoAcademyCatalog = lazy(() => import("./neoacademy/pages/NeoAcademyCatalog"));
+const NeoAcademyPlaceholder = lazy(() => import("./neoacademy/pages/NeoAcademyPlaceholder"));
 const AvivarLeadPage = lazy(() => import("./pages/avivar/AvivarLeadPage"));
 
 // ====================================
@@ -553,6 +562,33 @@ function AcademyRoutes() {
 }
 
 // ====================================
+// NeoAcademy Routes (Portal SaaS Área de Membros)
+// ====================================
+import { NeoAcademySidebar } from './neoacademy/components/NeoAcademySidebar';
+
+function NeoAcademyRoutes() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0a0f]"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>}>
+      <NeoAcademySidebar>
+        <Routes>
+          <Route index element={<NeoAcademyDashboard />} />
+          <Route path="catalog" element={<NeoAcademyCatalog />} />
+          <Route path="course/:courseId" element={<NeoAcademyCourseDetail />} />
+          <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
+          <Route path="my-courses" element={<NeoAcademyPlaceholder title="Meus Cursos" />} />
+          <Route path="continue" element={<NeoAcademyPlaceholder title="Continuar Assistindo" />} />
+          <Route path="community" element={<NeoAcademyPlaceholder title="Comunidade" description="Feed de posts, curtidas, comentários e comunidades temáticas." />} />
+          <Route path="ranking" element={<NeoAcademyPlaceholder title="Ranking" description="Ranking geral de participação e pontuação dos alunos." />} />
+          <Route path="achievements" element={<NeoAcademyPlaceholder title="Conquistas" description="Badges, recompensas e cupons desbloqueáveis." />} />
+          <Route path="admin/*" element={<NeoAcademyPlaceholder title="Painel do Produtor" description="Gestão de cursos, alunos e analytics." />} />
+          <Route path="*" element={<Navigate to="/neoacademy" replace />} />
+        </Routes>
+      </NeoAcademySidebar>
+    </Suspense>
+  );
+}
+
+// ====================================
 // NeoLicense Routes (Portal do Licenciado)
 // ====================================
 function NeoLicenseRoutes() {
@@ -749,6 +785,7 @@ function AppRoutes() {
       <Route path="/neolicense/*" element={<ProtectedRoute><NeoLicenseRoutes /></ProtectedRoute>} />
       <Route path="/hotleads/*" element={<ProtectedRoute><HotLeadsRoutes /></ProtectedRoute>} />
       <Route path="/avivar/*" element={<ProtectedRoute><AvivarRoutes /></ProtectedRoute>} />
+      <Route path="/neoacademy/*" element={<ProtectedRoute><NeoAcademyRoutes /></ProtectedRoute>} />
 
       {/* ====================================
           Rotas Legadas - Redirects para Portais
