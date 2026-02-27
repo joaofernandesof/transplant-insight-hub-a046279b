@@ -125,7 +125,22 @@ export function useHotLeads() {
         body: { lead_id: leadId, user_email: userEmail },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Try to extract the error message from FunctionsHttpError response
+        let errorMessage = 'Erro ao adquirir lead. Tente novamente.';
+        try {
+          const context = (error as any)?.context;
+          if (context instanceof Response) {
+            const body = await context.json();
+            if (body?.error) errorMessage = body.error;
+          }
+        } catch {
+          // ignore parse errors
+        }
+        toast.error(errorMessage);
+        fetchLeads(true);
+        return false;
+      }
 
       if (data?.error) {
         toast.error(data.error);
