@@ -119,7 +119,7 @@ export function StepFAQGenerator({
 
     onFAQChange(generatedFAQ.map(item => 
       item.id === editingItem.id 
-        ? { ...item, pergunta: editingItem.pergunta, resposta: editingItem.resposta }
+        ? { ...item, pergunta: editingItem.pergunta, resposta: editingItem.resposta, media: editingItem.media }
         : item
     ));
     setEditingItem(null);
