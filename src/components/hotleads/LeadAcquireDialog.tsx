@@ -44,8 +44,6 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, setting
     }
   }, [open]);
 
-  // No auto-redirect - user clicks the link manually
-
   const handleConfirm = async () => {
     if (!lead || !userEmail || !settings) return;
     setIsSubmitting(true);
@@ -54,7 +52,6 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, setting
     if (success) {
       const whatsappUrl = generateWhatsAppUrl(lead.phone, lead.name);
       if (whatsappUrl) {
-        // Build the plain message for copy fallback
         const msg = `Olá, ${lead.name}, tudo bem?\n\nMeu nome é ${settings.licensee_name} e falo da clínica ${settings.clinic_name}.\n\nRecebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.\n\nVocê prefere que eu te ligue ou continuamos por aqui?`;
         setSuccessUrl(whatsappUrl);
         setSuccessMessage(msg);
@@ -74,85 +71,84 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, setting
     }
   };
 
-  // Preview of the message
   const previewMessage = settings && lead
     ? `Olá, ${lead.name}, tudo bem?\n\nMeu nome é ${settings.licensee_name} e falo da clínica ${settings.clinic_name}.\n\nRecebemos seu contato através do seu cadastro no site da Neo Folic, onde você solicitou informações sobre transplante capilar. Somos a clínica credenciada da Neo Folic na sua região. Quero entender melhor o que você está buscando e te explicar como funciona o procedimento.\n\nVocê prefere que eu te ligue ou continuamos por aqui?\n\n🖼️ [Imagem da Licença ByNeofolic será incluída no link]`
     : null;
 
-  // Success state
-  if (successUrl) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        {successUrl ? (
           <div className="flex flex-col items-center gap-4 py-4">
             <CheckCircle className="h-12 w-12 text-green-600" />
             <h3 className="text-lg font-semibold">Lead adquirido com sucesso!</h3>
-            <p className="text-sm text-muted-foreground text-center">Clique no botão abaixo para abrir o WhatsApp com a mensagem pronta.</p>
-            <div className="flex gap-2 w-full">
+            <p className="text-sm text-muted-foreground text-center">
+              Copie a mensagem e abra o WhatsApp para enviar ao paciente.
+            </p>
+            <div className="flex flex-col gap-2 w-full">
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleCopyMessage}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar mensagem
+              </Button>
               <a
                 href={successUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm font-medium"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground px-4 py-2 text-sm font-medium w-full"
               >
                 <ExternalLink className="h-4 w-4" />
-                Abrir WhatsApp
+                Abrir WhatsApp (nova aba)
               </a>
-              <Button variant="outline" onClick={handleCopyMessage}>
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar mensagem
-              </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-green-600" />
+                Adquirir Lead e Contatar via WhatsApp
+              </DialogTitle>
+              <DialogDescription>
+                {lead && (
+                  <span>
+                    Você está adquirindo o lead <strong>{maskName(lead.name)}</strong>.
+                    Após confirmar, será redirecionado ao WhatsApp com uma mensagem padronizada.
+                  </span>
+                )}
+              </DialogDescription>
+            </DialogHeader>
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-green-600" />
-            Adquirir Lead e Contatar via WhatsApp
-          </DialogTitle>
-          <DialogDescription>
-            {lead && (
-              <span>
-                Você está adquirindo o lead <strong>{maskName(lead.name)}</strong>.
-                Após confirmar, será redirecionado ao WhatsApp com uma mensagem padronizada.
-              </span>
+            {previewMessage && (
+              <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">Prévia da mensagem:</p>
+                <p className="text-sm text-green-900 dark:text-green-200 whitespace-pre-line leading-relaxed">
+                  {previewMessage}
+                </p>
+              </div>
             )}
-          </DialogDescription>
-        </DialogHeader>
 
-        {previewMessage && (
-          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
-            <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">Prévia da mensagem:</p>
-            <p className="text-sm text-green-900 dark:text-green-200 whitespace-pre-line leading-relaxed">
-              {previewMessage}
-            </p>
-          </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleConfirm} 
+                disabled={isSubmitting || !userEmail}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                Adquirir e abrir WhatsApp
+              </Button>
+            </DialogFooter>
+          </>
         )}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleConfirm} 
-            disabled={isSubmitting || !userEmail}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4 mr-2" />
-            )}
-            Adquirir e abrir WhatsApp
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
