@@ -35,6 +35,7 @@ import { HotLeadsAdminDashboard } from '@/components/hotleads/HotLeadsAdminDashb
 import { AdminTestLeadDialog } from '@/components/hotleads/AdminTestLeadDialog';
 import { OverdueLeadsPopup } from '@/components/hotleads/OverdueLeadsPopup';
 import { SaleFormDialog } from '@/components/hotleads/SaleFormDialog';
+import { DiscardFormDialog } from '@/components/hotleads/DiscardFormDialog';
 import { SaleCelebrationPopup } from '@/components/hotleads/SaleCelebrationPopup';
 import { HotLeadsAdminRadiusSettings } from '@/components/hotleads/HotLeadsAdminRadiusSettings';
 
@@ -250,12 +251,23 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const [saleFormLeadId, setSaleFormLeadId] = useState<string | null>(null);
   const saleFormLead = useMemo(() => leads.find(l => l.id === saleFormLeadId), [leads, saleFormLeadId]);
 
+  // Discard form dialog state
+  const [discardFormOpen, setDiscardFormOpen] = useState(false);
+  const [discardFormLeadId, setDiscardFormLeadId] = useState<string | null>(null);
+  const discardFormLead = useMemo(() => leads.find(l => l.id === discardFormLeadId), [leads, discardFormLeadId]);
+
   const handleUpdateOutcome = useCallback(async (leadId: string, outcome: any): Promise<boolean> => {
     // If marking as "vendido", show sale form first
     if (outcome === 'vendido') {
       setSaleFormLeadId(leadId);
       setSaleFormOpen(true);
-      return true; // optimistic — actual update happens in handleSaleConfirm
+      return true;
+    }
+    // If marking as "descartado", show discard form first
+    if (outcome === 'descartado') {
+      setDiscardFormLeadId(leadId);
+      setDiscardFormOpen(true);
+      return true;
     }
     const success = await updateLeadOutcome(leadId, outcome);
     if (success) {
@@ -308,6 +320,16 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     setSaleFormOpen(false);
     setSaleFormLeadId(null);
   }, [saleFormLeadId, leads, updateLeadOutcome, awardPoints, getClaimerName]);
+
+  const handleDiscardConfirm = useCallback(async (reason: string) => {
+    if (!discardFormLeadId) return;
+    const success = await updateLeadOutcome(discardFormLeadId, 'descartado');
+    if (success) {
+      await supabase.from('leads').update({ discard_reason: reason } as any).eq('id', discardFormLeadId);
+    }
+    setDiscardFormOpen(false);
+    setDiscardFormLeadId(null);
+  }, [discardFormLeadId, updateLeadOutcome]);
 
   // Global filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -1046,6 +1068,13 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         onClose={() => { setSaleFormOpen(false); setSaleFormLeadId(null); }}
         onConfirm={handleSaleConfirm}
         leadName={saleFormLead?.name || ''}
+      />
+
+      <DiscardFormDialog
+        open={discardFormOpen}
+        onClose={() => { setDiscardFormOpen(false); setDiscardFormLeadId(null); }}
+        onConfirm={handleDiscardConfirm}
+        leadName={discardFormLead?.name || ''}
       />
 
       <SaleCelebrationPopup />
