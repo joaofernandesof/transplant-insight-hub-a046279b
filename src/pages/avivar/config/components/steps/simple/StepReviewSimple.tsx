@@ -14,7 +14,7 @@ import {
   Building2, 
   User, 
   Bot, 
-  Package, 
+  Package,
   Clock,
   Image as ImageIcon,
   FileText,
