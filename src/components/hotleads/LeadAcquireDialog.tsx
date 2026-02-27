@@ -44,15 +44,7 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, setting
     }
   }, [open]);
 
-  // Auto-redirect after success
-  useEffect(() => {
-    if (successUrl) {
-      const timer = setTimeout(() => {
-        window.location.href = successUrl;
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [successUrl]);
+  // No auto-redirect - user clicks the link manually
 
   const handleConfirm = async () => {
     if (!lead || !userEmail || !settings) return;
@@ -93,17 +85,19 @@ export function LeadAcquireDialog({ lead, open, onOpenChange, onConfirm, setting
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <div className="flex flex-col items-center gap-4 py-4">
-            <CheckCircle className="h-12 w-12 text-green-600 animate-pulse" />
+            <CheckCircle className="h-12 w-12 text-green-600" />
             <h3 className="text-lg font-semibold">Lead adquirido com sucesso!</h3>
-            <p className="text-sm text-muted-foreground text-center">Abrindo WhatsApp automaticamente...</p>
+            <p className="text-sm text-muted-foreground text-center">Clique no botão abaixo para abrir o WhatsApp com a mensagem pronta.</p>
             <div className="flex gap-2 w-full">
-              <Button
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => { window.location.href = successUrl; }}
+              <a
+                href={successUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm font-medium"
               >
-                <ExternalLink className="h-4 w-4 mr-2" />
+                <ExternalLink className="h-4 w-4" />
                 Abrir WhatsApp
-              </Button>
+              </a>
               <Button variant="outline" onClick={handleCopyMessage}>
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar mensagem
