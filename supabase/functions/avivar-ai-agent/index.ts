@@ -699,9 +699,12 @@ async function listAgendas(
     return "Não há agendas configuradas no momento.";
   }
 
-  const formatted = agendas.map((a: any, i: number) => 
-    `${i + 1}. ${a.name}${a.city ? ` - ${a.city}` : ""}${a.professional_name ? ` (${a.professional_name})` : ""}`
-  ).join("\n");
+  const formatted = agendas.map((a: any, i: number) => {
+    const parts = [a.name];
+    if (a.city) parts.push(`Cidade: ${a.city}`);
+    if (a.professional_name) parts.push(`Profissional: ${a.professional_name}`);
+    return `${i + 1}. ${parts.join(" | ")}`;
+  }).join("\n");
 
   return `Nossas unidades disponíveis:\n\n${formatted}\n\nEm qual unidade você gostaria de agendar?`;
 }
