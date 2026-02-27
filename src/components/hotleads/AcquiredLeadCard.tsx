@@ -290,7 +290,7 @@ export function AcquiredLeadCard({ lead, claimerName, isOwned, onRelease, onUpda
           </div>
 
           {/* Outcome action buttons - always visible, toggleable */}
-          {isOwned && onUpdateOutcome && (
+          {onUpdateOutcome && (
             <div className="mt-2 pt-2 border-t flex flex-wrap gap-1.5">
               <Button
                 size="sm"

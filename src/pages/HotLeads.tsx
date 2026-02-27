@@ -524,7 +524,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
   // Determine which card component to render per lead
   const isOwnedTab = activeTab === 'acquired' || activeTab === 'in_progress' || activeTab === 'sold' || activeTab === 'discarded';
-  const showOutcomeActions = activeTab === 'acquired' || activeTab === 'in_progress';
+  const showOutcomeActions = activeTab === 'acquired' || activeTab === 'in_progress' || activeTab === 'sold' || activeTab === 'discarded';
 
   // Map tab to LeadListRow variant
   const getListRowVariant = (): 'available' | 'mine' | 'lost' => {
