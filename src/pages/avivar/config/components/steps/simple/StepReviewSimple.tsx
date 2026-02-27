@@ -215,8 +215,8 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Fluxo - step 5 */}
-            <ReviewRow icon={Route} stepIndex={5}>
+            {/* Fluxo - step 3 */}
+            <ReviewRow icon={Route} stepIndex={3}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 Fluxo de Atendimento
               </p>
