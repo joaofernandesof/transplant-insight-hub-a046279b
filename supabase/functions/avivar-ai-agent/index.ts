@@ -3700,6 +3700,7 @@ Você tem acesso a:
 - send_fluxo_media: Enviar mídia (áudio, imagem, vídeo, documento) anexada a um passo do fluxo
 - send_image: Enviar imagem da galeria do agente
 - send_video: Enviar vídeo da galeria do agente
+- send_knowledge_media: Enviar mídia (PDF, imagem, vídeo, áudio) encontrada na base de conhecimento/FAQ — use quando search_knowledge_base retornar [Mídia: Tipo - URL]
 - preencher_checklist: Preencher campos do checklist/ficha do lead com dados confirmados na conversa
 - set_lead_language: Salvar o idioma detectado do lead (use na primeira mensagem)
 
