@@ -79,8 +79,8 @@ export function StepReviewSimple({
   };
 
   // Step indices matching SIMPLE_STEPS:
-  // 0: Tipo de Negócio, 1: Sua Empresa, 2: Serviços, 3: Pagamentos,
-  // 4: Objetivos, 5: Fluxo, 6: FAQ, 7: Documentos, 8: Imagens
+  // 0: Tipo de Negócio, 1: Sua Empresa, 2: Objetivos, 3: Fluxo,
+  // 4: FAQ, 5: Documentos, 6: Imagens, 7: Finalizar (review)
 
   const ReviewRow = ({ icon: Icon, children, stepIndex }: { icon: React.ElementType; children: React.ReactNode; stepIndex: number }) => (
     <>
@@ -167,8 +167,8 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Serviços - step 2 */}
-            <ReviewRow icon={Package} stepIndex={2}>
+            {/* Serviços - step 1 (info) */}
+            <ReviewRow icon={Package} stepIndex={1}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 {enabledServices.length} serviço{enabledServices.length !== 1 ? 's' : ''} ativo{enabledServices.length !== 1 ? 's' : ''}
               </p>
@@ -186,8 +186,8 @@ export function StepReviewSimple({
               </div>
             </ReviewRow>
 
-            {/* Pagamentos - step 3 */}
-            <ReviewRow icon={CreditCard} stepIndex={3}>
+            {/* Pagamentos - step 1 (info) */}
+            <ReviewRow icon={CreditCard} stepIndex={1}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 {enabledPayments.length} forma{enabledPayments.length !== 1 ? 's' : ''} de pagamento
               </p>
@@ -205,8 +205,8 @@ export function StepReviewSimple({
               </div>
             </ReviewRow>
 
-            {/* Objetivos - step 4 */}
-            <ReviewRow icon={Target} stepIndex={4}>
+            {/* Objetivos - step 2 */}
+            <ReviewRow icon={Target} stepIndex={2}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 Objetivo do Agente
               </p>
@@ -215,8 +215,8 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Fluxo - step 5 */}
-            <ReviewRow icon={Route} stepIndex={5}>
+            {/* Fluxo - step 3 */}
+            <ReviewRow icon={Route} stepIndex={3}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 Fluxo de Atendimento
               </p>
@@ -225,8 +225,8 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Documentos - step 7 */}
-            <ReviewRow icon={FileText} stepIndex={7}>
+            {/* Documentos - step 5 */}
+            <ReviewRow icon={FileText} stepIndex={5}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 Base de Conhecimento
               </p>
@@ -235,8 +235,8 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Imagens - step 8 */}
-            <ReviewRow icon={ImageIcon} stepIndex={8}>
+            {/* Imagens - step 6 */}
+            <ReviewRow icon={ImageIcon} stepIndex={6}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 Galeria de Imagens
               </p>
