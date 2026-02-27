@@ -2,159 +2,316 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { Loader2, Heart, MessageCircle, Send, Pin, Users, Image as ImageIcon, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
+import { 
+  Loader2, Users, Search, MapPin, MessageCircle, 
+  Send, User, Building2, Instagram, Phone, Lock, X
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
+interface Member {
+  userId: string;
+  fullName: string;
+  avatarUrl: string | null;
+  email: string | null;
+  city: string | null;
+  state: string | null;
+  bio: string | null;
+  clinicName: string | null;
+  instagramPersonal: string | null;
+  whatsappPersonal: string | null;
+  profilePublic: boolean;
+  role: string;
+}
+
+function getInitials(name: string) {
+  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function formatLocation(city: string | null, state: string | null) {
+  if (city && state) return `${city}/${state}`;
+  return city || state || null;
+}
+
+// ─── Member Card ─────────────────────────────────────
+function MemberShowcaseCard({ 
+  member, 
+  onViewProfile, 
+  onMessage 
+}: { 
+  member: Member; 
+  onViewProfile: () => void;
+  onMessage: () => void;
+}) {
+  const location = formatLocation(member.city, member.state);
+
+  return (
+    <div className="group relative rounded-xl bg-[#14141f] border border-white/5 hover:border-violet-500/30 transition-all duration-300 overflow-hidden">
+      {/* Gradient accent on hover */}
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+      
+      <div className="p-5 flex flex-col items-center text-center">
+        <Avatar className="h-16 w-16 ring-2 ring-violet-500/20 group-hover:ring-violet-500/40 transition-all">
+          <AvatarImage src={member.avatarUrl || undefined} alt={member.fullName} />
+          <AvatarFallback className="bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-300 text-lg font-bold">
+            {getInitials(member.fullName)}
+          </AvatarFallback>
+        </Avatar>
+
+        <h3 className="mt-3 font-semibold text-white text-sm truncate w-full" title={member.fullName}>
+          {member.fullName}
+        </h3>
+
+        {location && (
+          <div className="flex items-center gap-1 text-xs text-zinc-500 mt-1">
+            <MapPin className="h-3 w-3" />
+            <span className="truncate">{location}</span>
+          </div>
+        )}
+
+        {member.clinicName && (
+          <div className="flex items-center gap-1 text-xs text-zinc-600 mt-1">
+            <Building2 className="h-3 w-3" />
+            <span className="truncate">{member.clinicName}</span>
+          </div>
+        )}
+
+        {member.role === 'owner' && (
+          <Badge className="mt-2 bg-violet-500/15 text-violet-400 border-violet-500/20 text-[10px]">
+            Produtor
+          </Badge>
+        )}
+
+        <div className="flex gap-2 mt-4 w-full">
+          <Button
+            onClick={onViewProfile}
+            size="sm"
+            variant="outline"
+            className="flex-1 gap-1.5 text-xs h-8 border-white/10 text-zinc-300 hover:bg-white/5 hover:text-white"
+          >
+            <User className="h-3.5 w-3.5" />
+            Perfil
+          </Button>
+          <Button
+            onClick={onMessage}
+            size="sm"
+            className="flex-1 gap-1.5 text-xs h-8 bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 border-0"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Mensagem
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Profile Dialog ──────────────────────────────────
+function ProfileDialog({ 
+  member, 
+  onClose, 
+  onMessage 
+}: { 
+  member: Member | null; 
+  onClose: () => void;
+  onMessage: () => void;
+}) {
+  if (!member) return null;
+  const location = formatLocation(member.city, member.state);
+
+  return (
+    <Dialog open={!!member} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md bg-[#14141f] border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle className="sr-only">Perfil de {member.fullName}</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col items-center text-center py-4">
+          <Avatar className="h-24 w-24 ring-4 ring-violet-500/20">
+            <AvatarImage src={member.avatarUrl || undefined} />
+            <AvatarFallback className="bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-300 text-2xl font-bold">
+              {getInitials(member.fullName)}
+            </AvatarFallback>
+          </Avatar>
+          <h2 className="text-xl font-bold mt-4">{member.fullName}</h2>
+          {location && (
+            <div className="flex items-center gap-1.5 text-zinc-400 mt-1">
+              <MapPin className="h-4 w-4" />
+              <span>{location}</span>
+            </div>
+          )}
+          {member.role === 'owner' && (
+            <Badge className="mt-2 bg-violet-500/15 text-violet-400 border-violet-500/20">Produtor</Badge>
+          )}
+        </div>
+
+        {member.profilePublic ? (
+          <div className="space-y-4 border-t border-white/5 pt-4">
+            {member.bio && (
+              <p className="text-sm text-zinc-400 text-center">{member.bio}</p>
+            )}
+            <div className="grid gap-3">
+              {member.clinicName && (
+                <div className="flex items-center gap-3 text-sm text-zinc-300">
+                  <Building2 className="h-4 w-4 text-zinc-500" />
+                  <span>{member.clinicName}</span>
+                </div>
+              )}
+              {member.instagramPersonal && (
+                <div className="flex items-center gap-3 text-sm">
+                  <Instagram className="h-4 w-4 text-zinc-500" />
+                  <a
+                    href={`https://instagram.com/${member.instagramPersonal.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-violet-400 hover:underline"
+                  >
+                    {member.instagramPersonal}
+                  </a>
+                </div>
+              )}
+              {member.whatsappPersonal && (
+                <div className="flex items-center gap-3 text-sm text-zinc-300">
+                  <Phone className="h-4 w-4 text-zinc-500" />
+                  <span>{member.whatsappPersonal}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="border-t border-white/5 pt-4">
+            <div className="flex flex-col items-center text-center py-4 text-zinc-500">
+              <Lock className="h-8 w-8 mb-2 opacity-50" />
+              <p className="text-sm">Perfil privado</p>
+              <p className="text-xs mt-1">Apenas nome e localização são visíveis.</p>
+            </div>
+          </div>
+        )}
+
+        <div className="border-t border-white/5 pt-4">
+          <Button
+            onClick={() => { onMessage(); onClose(); }}
+            className="w-full bg-violet-500 hover:bg-violet-600 text-white"
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Enviar Mensagem
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Main Page ───────────────────────────────────────
 export default function NeoAcademyCommunity() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
-  const [newPost, setNewPost] = useState('');
-  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
-  const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stateFilter, setStateFilter] = useState('all');
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [messageMember, setMessageMember] = useState<Member | null>(null);
+  const [message, setMessage] = useState('');
 
-  const { data: posts, isLoading } = useQuery({
-    queryKey: ['neoacademy-community'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('neoacademy_community_posts')
-        .select('*')
-        .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: userLikes } = useQuery({
-    queryKey: ['neoacademy-my-likes', user?.id],
+  // Fetch all members of the same NeoAcademy account
+  const { data: members = [], isLoading } = useQuery({
+    queryKey: ['neoacademy-members', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data } = await supabase
-        .from('neoacademy_post_likes')
-        .select('post_id')
-        .eq('user_id', user.id);
-      return data?.map(l => l.post_id) || [];
+
+      // Get current user's account
+      const { data: myMembership } = await supabase
+        .from('neoacademy_account_members')
+        .select('account_id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single();
+
+      if (!myMembership) return [];
+
+      // Get all members of the same account
+      const { data: accountMembers, error } = await supabase
+        .from('neoacademy_account_members')
+        .select('user_id, role')
+        .eq('account_id', myMembership.account_id)
+        .eq('is_active', true);
+
+      if (error || !accountMembers) return [];
+
+      const userIds = accountMembers
+        .map(m => m.user_id)
+        .filter(id => id !== user.id);
+
+      if (userIds.length === 0) return [];
+
+      // Fetch user details
+      const { data: users } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name, avatar_url, email, address_city, address_state, bio, clinic_name, instagram_personal, whatsapp_personal, profile_public')
+        .in('user_id', userIds);
+
+      const roleMap = new Map(accountMembers.map(m => [m.user_id, m.role]));
+
+      return (users || []).map((u): Member => ({
+        userId: u.user_id,
+        fullName: u.full_name || 'Membro',
+        avatarUrl: u.avatar_url,
+        email: u.email,
+        city: u.address_city,
+        state: u.address_state,
+        bio: u.bio,
+        clinicName: u.clinic_name,
+        instagramPersonal: u.instagram_personal,
+        whatsappPersonal: u.whatsapp_personal,
+        profilePublic: u.profile_public || false,
+        role: roleMap.get(u.user_id) || 'student',
+      }));
     },
     enabled: !!user?.id,
   });
 
-  const { data: allComments } = useQuery({
-    queryKey: ['neoacademy-comments'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('neoacademy_post_comments')
-        .select('*')
-        .order('created_at', { ascending: true });
-      return data || [];
-    },
-  });
-
-  const createPost = useMutation({
-    mutationFn: async (content: string) => {
-      if (!user?.id) throw new Error('Not authenticated');
-      const { data: account } = await supabase
-        .from('neoacademy_account_members')
-        .select('account_id')
-        .eq('user_id', user.id)
-        .single();
-      if (!account) throw new Error('No account');
-
-      const { error } = await supabase.from('neoacademy_community_posts').insert({
-        account_id: account.account_id,
-        user_id: user.id,
-        content,
-      });
+  // Send message
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ recipientId, content }: { recipientId: string; content: string }) => {
+      const { error } = await supabase
+        .from('community_messages')
+        .insert({
+          sender_id: user!.id,
+          recipient_id: recipientId,
+          content,
+        });
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['neoacademy-community'] });
-      setNewPost('');
-      toast.success('Post publicado!');
+      toast.success('Mensagem enviada!');
+      setMessage('');
+      setMessageMember(null);
     },
+    onError: () => toast.error('Erro ao enviar mensagem'),
   });
 
-  const toggleLike = useMutation({
-    mutationFn: async (postId: string) => {
-      if (!user?.id) return;
-      const isLiked = userLikes?.includes(postId);
-      if (isLiked) {
-        await supabase.from('neoacademy_post_likes').delete().eq('post_id', postId).eq('user_id', user.id);
-      } else {
-        await supabase.from('neoacademy_post_likes').insert({ post_id: postId, user_id: user.id });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['neoacademy-community'] });
-      queryClient.invalidateQueries({ queryKey: ['neoacademy-my-likes'] });
-    },
+  // Filters
+  const uniqueStates = [...new Set(members.map(m => m.state).filter(Boolean))].sort() as string[];
+
+  const filteredMembers = members.filter(m => {
+    const matchesSearch = !searchTerm.trim() || 
+      m.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.clinicName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.city?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesState = stateFilter === 'all' || m.state === stateFilter;
+    return matchesSearch && matchesState;
   });
-
-  const createComment = useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
-      if (!user?.id) throw new Error('Not authenticated');
-      const { data: account } = await supabase
-        .from('neoacademy_account_members')
-        .select('account_id')
-        .eq('user_id', user.id)
-        .single();
-      if (!account) throw new Error('No account');
-
-      const { error } = await supabase.from('neoacademy_post_comments').insert({
-        post_id: postId,
-        user_id: user.id,
-        account_id: account.account_id,
-        content,
-      });
-      if (error) throw error;
-
-      // Update comments_count
-      const post = posts?.find(p => p.id === postId);
-      if (post) {
-        await supabase.from('neoacademy_community_posts')
-          .update({ comments_count: (post.comments_count || 0) + 1 })
-          .eq('id', postId);
-      }
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['neoacademy-community'] });
-      queryClient.invalidateQueries({ queryKey: ['neoacademy-comments'] });
-      setCommentTexts(prev => ({ ...prev, [variables.postId]: '' }));
-      toast.success('Comentário publicado!');
-    },
-    onError: () => toast.error('Erro ao comentar'),
-  });
-
-  const deleteComment = useMutation({
-    mutationFn: async ({ commentId, postId }: { commentId: string; postId: string }) => {
-      const { error } = await supabase.from('neoacademy_post_comments').delete().eq('id', commentId);
-      if (error) throw error;
-      
-      const post = posts?.find(p => p.id === postId);
-      if (post && (post.comments_count || 0) > 0) {
-        await supabase.from('neoacademy_community_posts')
-          .update({ comments_count: Math.max(0, (post.comments_count || 0) - 1) })
-          .eq('id', postId);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['neoacademy-community'] });
-      queryClient.invalidateQueries({ queryKey: ['neoacademy-comments'] });
-    },
-  });
-
-  const toggleComments = (postId: string) => {
-    setExpandedComments(prev => {
-      const next = new Set(prev);
-      next.has(postId) ? next.delete(postId) : next.add(postId);
-      return next;
-    });
-  };
 
   if (isLoading) {
     return (
@@ -166,168 +323,121 @@ export default function NeoAcademyCommunity() {
 
   return (
     <div className="min-h-screen pb-12">
+      {/* Header */}
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
         <div className="flex items-center gap-3">
           <Users className="h-5 w-5 text-violet-400" />
           <h1 className="text-lg font-bold text-white">Comunidade</h1>
+          <Badge className="bg-violet-500/15 text-violet-400 border-violet-500/20 text-xs ml-auto">
+            {members.length} {members.length === 1 ? 'membro' : 'membros'}
+          </Badge>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-6 pt-6 space-y-6">
-        {/* New post */}
-        <div className="p-4 rounded-xl bg-[#14141f] border border-white/5">
+      <div className="max-w-6xl mx-auto px-6 pt-6 space-y-6">
+        {/* Search & Filter */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-600" />
+            <Input
+              placeholder="Buscar por nome, clínica ou cidade..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-[#14141f] border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-violet-500/50"
+            />
+          </div>
+          {uniqueStates.length > 0 && (
+            <Select value={stateFilter} onValueChange={setStateFilter}>
+              <SelectTrigger className="w-full sm:w-48 bg-[#14141f] border-white/10 text-zinc-300">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-zinc-500" />
+                  <SelectValue placeholder="Estado" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-[#14141f] border-white/10">
+                <SelectItem value="all">Todos os Estados</SelectItem>
+                {uniqueStates.map(state => (
+                  <SelectItem key={state} value={state}>{state}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {/* Results count */}
+        {searchTerm || stateFilter !== 'all' ? (
+          <p className="text-xs text-zinc-600">
+            {filteredMembers.length} {filteredMembers.length === 1 ? 'membro encontrado' : 'membros encontrados'}
+          </p>
+        ) : null}
+
+        {/* Members Grid (Vitrine) */}
+        {filteredMembers.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {filteredMembers.map(member => (
+              <MemberShowcaseCard
+                key={member.userId}
+                member={member}
+                onViewProfile={() => setSelectedMember(member)}
+                onMessage={() => setMessageMember(member)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <Users className="h-12 w-12 mx-auto text-zinc-700 mb-4" />
+            <h3 className="text-lg font-medium text-zinc-400">Nenhum membro encontrado</h3>
+            <p className="text-sm text-zinc-600 mt-1">
+              {searchTerm ? 'Tente ajustar os filtros de busca' : 'Seja o primeiro a se juntar!'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Profile Dialog */}
+      <ProfileDialog
+        member={selectedMember}
+        onClose={() => setSelectedMember(null)}
+        onMessage={() => {
+          if (selectedMember) setMessageMember(selectedMember);
+        }}
+      />
+
+      {/* Send Message Dialog */}
+      <Dialog open={!!messageMember} onOpenChange={() => setMessageMember(null)}>
+        <DialogContent className="sm:max-w-md bg-[#14141f] border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Enviar Mensagem</DialogTitle>
+            <DialogDescription className="text-zinc-500">
+              Envie uma mensagem para {messageMember?.fullName}.
+            </DialogDescription>
+          </DialogHeader>
           <Textarea
-            value={newPost}
-            onChange={(e) => setNewPost(e.target.value)}
-            placeholder="Compartilhe algo com a comunidade..."
-            className="bg-transparent border-none text-white placeholder:text-zinc-600 resize-none focus-visible:ring-0 min-h-[80px]"
+            placeholder="Digite sua mensagem..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={4}
+            className="bg-[#0a0a0f] border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-violet-500/50"
           />
-          <div className="flex justify-between items-center mt-3">
-            <button className="p-2 rounded-lg hover:bg-white/5 text-zinc-500">
-              <ImageIcon className="h-5 w-5" />
-            </button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMessageMember(null)} className="border-white/10 text-zinc-300 hover:bg-white/5">
+              Cancelar
+            </Button>
             <Button
-              size="sm"
-              disabled={!newPost.trim() || createPost.isPending}
-              onClick={() => createPost.mutate(newPost.trim())}
+              onClick={() => {
+                if (message.trim() && messageMember) {
+                  sendMessageMutation.mutate({ recipientId: messageMember.userId, content: message.trim() });
+                }
+              }}
+              disabled={!message.trim() || sendMessageMutation.isPending}
               className="bg-violet-500 hover:bg-violet-600 text-white gap-2"
             >
               <Send className="h-4 w-4" />
-              Publicar
+              Enviar
             </Button>
-          </div>
-        </div>
-
-        {/* Posts */}
-        {posts?.map((post: any) => {
-          const isLiked = userLikes?.includes(post.id);
-          const postComments = allComments?.filter(c => c.post_id === post.id) || [];
-          const isExpanded = expandedComments.has(post.id);
-          const commentText = commentTexts[post.id] || '';
-
-          return (
-            <div
-              key={post.id}
-              className="p-4 rounded-xl bg-[#14141f] border border-white/5 space-y-3"
-            >
-              {post.is_pinned && (
-                <div className="flex items-center gap-1.5 text-amber-400 text-xs font-medium">
-                  <Pin className="h-3 w-3" /> Fixado
-                </div>
-              )}
-
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-bold">
-                  {post.user_id?.slice(0, 2).toUpperCase() || 'U'}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white">Aluno</p>
-                  <p className="text-[10px] text-zinc-600">
-                    {post.created_at
-                      ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })
-                      : ''}
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">{post.content}</p>
-
-              {post.image_url && (
-                <img src={post.image_url} alt="" className="rounded-lg max-h-64 object-cover w-full" />
-              )}
-
-              <div className="flex items-center gap-4 pt-2 border-t border-white/5">
-                <button
-                  onClick={() => toggleLike.mutate(post.id)}
-                  className={`flex items-center gap-1.5 text-xs transition ${
-                    isLiked ? 'text-rose-400' : 'text-zinc-500 hover:text-rose-400'
-                  }`}
-                >
-                  <Heart className={`h-4 w-4 ${isLiked ? 'fill-rose-400' : ''}`} />
-                  {post.likes_count || 0}
-                </button>
-                <button
-                  onClick={() => toggleComments(post.id)}
-                  className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-violet-400 transition"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  {post.comments_count || 0}
-                  {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                </button>
-              </div>
-
-              {/* Comments Section */}
-              {isExpanded && (
-                <div className="space-y-3 pt-2">
-                  {/* Existing comments */}
-                  {postComments.length > 0 && (
-                    <div className="space-y-2 pl-4 border-l-2 border-white/5">
-                      {postComments.map((comment: any) => (
-                        <div key={comment.id} className="flex items-start gap-2 group/comment">
-                          <div className="h-6 w-6 rounded-full bg-gradient-to-br from-violet-500/60 to-fuchsia-500/60 flex items-center justify-center text-white text-[9px] font-bold shrink-0 mt-0.5">
-                            {comment.user_id?.slice(0, 2).toUpperCase() || 'U'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-zinc-300">
-                                {comment.user_id === user?.id ? 'Você' : 'Aluno'}
-                              </span>
-                              <span className="text-[10px] text-zinc-600">
-                                {comment.created_at
-                                  ? formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ptBR })
-                                  : ''}
-                              </span>
-                            </div>
-                            <p className="text-xs text-zinc-400 mt-0.5">{comment.content}</p>
-                          </div>
-                          {comment.user_id === user?.id && (
-                            <button
-                              onClick={() => deleteComment.mutate({ commentId: comment.id, postId: post.id })}
-                              className="opacity-0 group-hover/comment:opacity-100 p-1 rounded text-zinc-600 hover:text-rose-400 transition"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* New comment input */}
-                  <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                      {user?.id?.slice(0, 2).toUpperCase() || 'U'}
-                    </div>
-                    <input
-                      value={commentText}
-                      onChange={e => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
-                          e.preventDefault();
-                          createComment.mutate({ postId: post.id, content: commentText.trim() });
-                        }
-                      }}
-                      placeholder="Escreva um comentário..."
-                      className="flex-1 bg-[#0a0a0f] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/50"
-                    />
-                    <button
-                      onClick={() => {
-                        if (commentText.trim()) {
-                          createComment.mutate({ postId: post.id, content: commentText.trim() });
-                        }
-                      }}
-                      disabled={!commentText.trim() || createComment.isPending}
-                      className="p-1.5 rounded-lg bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 transition disabled:opacity-50"
-                    >
-                      <Send className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
