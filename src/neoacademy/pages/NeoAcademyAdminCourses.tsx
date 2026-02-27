@@ -2,20 +2,53 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { Loader2, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Star, Clock, Users } from 'lucide-react';
+import { Loader2, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Star, Clock, Users, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+
+interface CourseFormData {
+  title: string;
+  description: string;
+  short_description: string;
+  category: string;
+  thumbnail_url: string;
+  banner_url: string;
+  access_type: string;
+  price: string;
+  is_published: boolean;
+  is_featured: boolean;
+  total_lessons: string;
+  total_duration_minutes: string;
+}
+
+const EMPTY_FORM: CourseFormData = {
+  title: '',
+  description: '',
+  short_description: '',
+  category: '',
+  thumbnail_url: '',
+  banner_url: '',
+  access_type: 'free',
+  price: '0',
+  is_published: false,
+  is_featured: false,
+  total_lessons: '0',
+  total_duration_minutes: '0',
+};
 
 export default function NeoAcademyAdminCourses() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
+  const [form, setForm] = useState<CourseFormData>(EMPTY_FORM);
 
   const { data: courses, isLoading } = useQuery({
     queryKey: ['neoacademy-admin-courses'],
@@ -39,6 +72,65 @@ export default function NeoAcademyAdminCourses() {
       data?.forEach(e => { counts[e.course_id] = (counts[e.course_id] || 0) + 1; });
       return counts;
     },
+  });
+
+  const { data: memberAccount } = useQuery({
+    queryKey: ['neoacademy-member-account', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('neoacademy_account_members')
+        .select('account_id')
+        .eq('user_id', user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const saveCourse = useMutation({
+    mutationFn: async (formData: CourseFormData) => {
+      if (!user?.id || !memberAccount?.account_id) throw new Error('Missing data');
+
+      const courseData = {
+        title: formData.title,
+        description: formData.description || null,
+        short_description: formData.short_description || null,
+        category: formData.category || null,
+        thumbnail_url: formData.thumbnail_url || null,
+        banner_url: formData.banner_url || null,
+        access_type: formData.access_type || 'free',
+        price: parseFloat(formData.price) || 0,
+        is_published: formData.is_published,
+        is_featured: formData.is_featured,
+        total_lessons: parseInt(formData.total_lessons) || 0,
+        total_duration_minutes: parseInt(formData.total_duration_minutes) || 0,
+      };
+
+      if (editingCourse) {
+        const { error } = await supabase
+          .from('neoacademy_courses')
+          .update(courseData)
+          .eq('id', editingCourse.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('neoacademy_courses')
+          .insert({
+            ...courseData,
+            account_id: memberAccount.account_id,
+            created_by: user.id,
+            order_index: (courses?.length || 0) + 1,
+          });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['neoacademy-admin-courses'] });
+      toast.success(editingCourse ? 'Curso atualizado!' : 'Curso criado!');
+      closeDialog();
+    },
+    onError: (e) => toast.error('Erro ao salvar: ' + e.message),
   });
 
   const togglePublish = useMutation({
@@ -79,6 +171,46 @@ export default function NeoAcademyAdminCourses() {
     },
   });
 
+  const openNewCourse = () => {
+    setEditingCourse(null);
+    setForm(EMPTY_FORM);
+    setDialogOpen(true);
+  };
+
+  const openEditCourse = (course: any) => {
+    setEditingCourse(course);
+    setForm({
+      title: course.title || '',
+      description: course.description || '',
+      short_description: course.short_description || '',
+      category: course.category || '',
+      thumbnail_url: course.thumbnail_url || '',
+      banner_url: course.banner_url || '',
+      access_type: course.access_type || 'free',
+      price: String(course.price || 0),
+      is_published: course.is_published || false,
+      is_featured: course.is_featured || false,
+      total_lessons: String(course.total_lessons || 0),
+      total_duration_minutes: String(course.total_duration_minutes || 0),
+    });
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setEditingCourse(null);
+    setForm(EMPTY_FORM);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim()) {
+      toast.error('O título é obrigatório');
+      return;
+    }
+    saveCourse.mutate(form);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -95,17 +227,26 @@ export default function NeoAcademyAdminCourses() {
             <BookOpen className="h-5 w-5 text-violet-400" />
             <h1 className="text-lg font-bold text-white">Gerenciar Cursos</h1>
           </div>
-          <Button size="sm" className="bg-violet-500 hover:bg-violet-600 text-white gap-2">
+          <Button onClick={openNewCourse} size="sm" className="bg-violet-500 hover:bg-violet-600 text-white gap-2">
             <Plus className="h-4 w-4" /> Novo Curso
           </Button>
         </div>
       </header>
 
       <div className="px-6 pt-6">
+        {courses?.length === 0 && (
+          <div className="text-center py-16">
+            <BookOpen className="h-12 w-12 text-zinc-700 mx-auto mb-4" />
+            <p className="text-zinc-500 mb-4">Nenhum curso criado ainda.</p>
+            <Button onClick={openNewCourse} className="bg-violet-500 hover:bg-violet-600 text-white gap-2">
+              <Plus className="h-4 w-4" /> Criar Primeiro Curso
+            </Button>
+          </div>
+        )}
+
         <div className="space-y-3">
           {courses?.map((course: any) => (
             <div key={course.id} className="flex items-center gap-4 p-4 rounded-xl bg-[#14141f] border border-white/5">
-              {/* Thumbnail */}
               <div className="w-24 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-violet-900/40 to-fuchsia-900/40 shrink-0">
                 {course.thumbnail_url ? (
                   <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" />
@@ -116,7 +257,6 @@ export default function NeoAcademyAdminCourses() {
                 )}
               </div>
 
-              {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold text-white truncate">{course.title}</h3>
@@ -130,7 +270,6 @@ export default function NeoAcademyAdminCourses() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => toggleFeatured.mutate({ id: course.id, featured: !course.is_featured })}
@@ -146,7 +285,11 @@ export default function NeoAcademyAdminCourses() {
                 >
                   {course.is_published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </button>
-                <button className="p-2 rounded-lg text-zinc-600 hover:text-white hover:bg-white/5 transition" title="Editar">
+                <button
+                  onClick={() => openEditCourse(course)}
+                  className="p-2 rounded-lg text-zinc-600 hover:text-white hover:bg-white/5 transition"
+                  title="Editar"
+                >
                   <Edit className="h-4 w-4" />
                 </button>
                 <button
@@ -163,6 +306,180 @@ export default function NeoAcademyAdminCourses() {
           ))}
         </div>
       </div>
+
+      {/* Course Form Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-[#14141f] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              {editingCourse ? 'Editar Curso' : 'Novo Curso'}
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-5 mt-2">
+            {/* Title */}
+            <div>
+              <Label className="text-xs text-zinc-400">Título *</Label>
+              <Input
+                value={form.title}
+                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="Nome do curso"
+                className="bg-[#0a0a0f] border-white/10 text-white mt-1"
+                required
+              />
+            </div>
+
+            {/* Short description */}
+            <div>
+              <Label className="text-xs text-zinc-400">Descrição Curta</Label>
+              <Input
+                value={form.short_description}
+                onChange={e => setForm(f => ({ ...f, short_description: e.target.value }))}
+                placeholder="Resumo em uma frase"
+                className="bg-[#0a0a0f] border-white/10 text-white mt-1"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <Label className="text-xs text-zinc-400">Descrição Completa</Label>
+              <Textarea
+                value={form.description}
+                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Descreva o conteúdo do curso..."
+                className="bg-[#0a0a0f] border-white/10 text-white mt-1 min-h-[100px]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Category */}
+              <div>
+                <Label className="text-xs text-zinc-400">Categoria</Label>
+                <Input
+                  value={form.category}
+                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                  placeholder="Ex: Marketing Digital"
+                  className="bg-[#0a0a0f] border-white/10 text-white mt-1"
+                />
+              </div>
+
+              {/* Access Type */}
+              <div>
+                <Label className="text-xs text-zinc-400">Tipo de Acesso</Label>
+                <Select value={form.access_type} onValueChange={v => setForm(f => ({ ...f, access_type: v }))}>
+                  <SelectTrigger className="bg-[#0a0a0f] border-white/10 text-white mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#14141f] border-white/10">
+                    <SelectItem value="free">Gratuito</SelectItem>
+                    <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="members_only">Somente Membros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Price (show only if paid) */}
+            {form.access_type === 'paid' && (
+              <div>
+                <Label className="text-xs text-zinc-400">Preço (R$)</Label>
+                <Input
+                  type="number"
+                  value={form.price}
+                  onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                  placeholder="0"
+                  min="0"
+                  step="0.01"
+                  className="bg-[#0a0a0f] border-white/10 text-white mt-1"
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Thumbnail */}
+              <div>
+                <Label className="text-xs text-zinc-400">URL da Thumbnail</Label>
+                <Input
+                  value={form.thumbnail_url}
+                  onChange={e => setForm(f => ({ ...f, thumbnail_url: e.target.value }))}
+                  placeholder="https://..."
+                  className="bg-[#0a0a0f] border-white/10 text-white mt-1"
+                />
+              </div>
+
+              {/* Banner */}
+              <div>
+                <Label className="text-xs text-zinc-400">URL do Banner</Label>
+                <Input
+                  value={form.banner_url}
+                  onChange={e => setForm(f => ({ ...f, banner_url: e.target.value }))}
+                  placeholder="https://..."
+                  className="bg-[#0a0a0f] border-white/10 text-white mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Total lessons */}
+              <div>
+                <Label className="text-xs text-zinc-400">Total de Aulas</Label>
+                <Input
+                  type="number"
+                  value={form.total_lessons}
+                  onChange={e => setForm(f => ({ ...f, total_lessons: e.target.value }))}
+                  min="0"
+                  className="bg-[#0a0a0f] border-white/10 text-white mt-1"
+                />
+              </div>
+
+              {/* Duration */}
+              <div>
+                <Label className="text-xs text-zinc-400">Duração Total (minutos)</Label>
+                <Input
+                  type="number"
+                  value={form.total_duration_minutes}
+                  onChange={e => setForm(f => ({ ...f, total_duration_minutes: e.target.value }))}
+                  min="0"
+                  className="bg-[#0a0a0f] border-white/10 text-white mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Toggles */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={form.is_published}
+                  onCheckedChange={v => setForm(f => ({ ...f, is_published: v }))}
+                />
+                <Label className="text-xs text-zinc-300">Publicado</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={form.is_featured}
+                  onCheckedChange={v => setForm(f => ({ ...f, is_featured: v }))}
+                />
+                <Label className="text-xs text-zinc-300">Destaque</Label>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="ghost" onClick={closeDialog} className="text-zinc-400 hover:text-white">
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={saveCourse.isPending}
+                className="bg-violet-500 hover:bg-violet-600 text-white gap-2"
+              >
+                {saveCourse.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {editingCourse ? 'Salvar Alterações' : 'Criar Curso'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
