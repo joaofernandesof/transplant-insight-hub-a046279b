@@ -93,11 +93,13 @@ export function StepFAQGenerator({
       id: `faq_${Date.now()}`,
       pergunta: newPergunta.trim(),
       resposta: newResposta.trim(),
+      media: newMedia,
     };
 
     onFAQChange([newItem, ...generatedFAQ]);
     setNewPergunta('');
     setNewResposta('');
+    setNewMedia(undefined);
     setShowAddForm(false);
     setCurrentPage(1);
     toast.success('Pergunta adicionada!');
