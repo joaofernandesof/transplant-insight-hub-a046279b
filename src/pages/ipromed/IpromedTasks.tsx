@@ -478,64 +478,149 @@ export default function IpromedTasks() {
             </div>
           </div>
         ) : viewMode === "list" ? (
-          /* ===== LIST VIEW ===== */
+          /* ===== LIST VIEW - TABLE ===== */
           <div className="h-full overflow-auto rounded-lg border bg-background">
-            {filteredTasks.length === 0 ? (
-              <div className="text-center py-20 text-muted-foreground">
-                Nenhuma tarefa encontrada
-              </div>
-            ) : (
-              <div className="divide-y">
-                {filteredTasks.map((task) => {
-                  const dueDateInfo = getDueDateInfo(task.due_date, task.status);
-                  const priorityCfg = priorityConfig[task.priority as 1 | 2 | 3];
-                  const statusCfg = statusConfig[task.status as TaskStatus];
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm border-b">
+                <tr>
+                  <th className="text-left font-medium px-4 py-3 w-[40%]">Tarefa</th>
+                  <th className="text-left font-medium px-3 py-3 w-[13%]">Status</th>
+                  <th className="text-left font-medium px-3 py-3 w-[10%]">Prioridade</th>
+                  <th className="text-left font-medium px-3 py-3 w-[12%]">Prazo</th>
+                  <th className="text-left font-medium px-3 py-3 w-[10%]">Categoria</th>
+                  <th className="text-left font-medium px-3 py-3 w-[15%]">Responsável</th>
+                  <th className="text-center font-medium px-3 py-3 w-[50px]"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {filteredTasks.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-20 text-muted-foreground">
+                      Nenhuma tarefa encontrada
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTasks.map((task) => {
+                    const dueDateInfo = getDueDateInfo(task.due_date, task.status);
+                    const priorityCfg = priorityConfig[task.priority as 1 | 2 | 3];
+                    const statusCfg = statusConfig[task.status as TaskStatus];
 
-                  return (
-                    <div
-                      key={task.id}
-                      className="p-4 hover:bg-muted/50 cursor-pointer transition-colors flex items-center gap-4"
-                      onClick={() => { setSelectedTask(task); setIsDetailOpen(true); }}
-                    >
-                      <div className={cn("w-1.5 h-10 rounded-full flex-shrink-0", priorityCfg?.solidBg)} />
-                      <div className="flex-1 min-w-0">
-                        <p className={cn("font-medium text-sm truncate", task.status === "done" && "line-through text-muted-foreground")}>
-                          {task.title}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge className={cn("text-[10px] px-1.5", statusCfg?.bgColor, statusCfg?.textColor)}>{statusCfg?.label}</Badge>
-                          {dueDateInfo && (
-                            <span className={cn("text-xs flex items-center gap-1", dueDateInfo.isOverdue && "text-rose-600 font-medium", dueDateInfo.isDueToday && "text-amber-600")}>
-                              <Calendar className="h-3 w-3" />
+                    return (
+                      <tr
+                        key={task.id}
+                        className="hover:bg-muted/50 cursor-pointer transition-colors"
+                        onClick={() => { setSelectedTask(task); setIsDetailOpen(true); }}
+                      >
+                        {/* Tarefa */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {task.priority === 3 && task.status !== "done" && (
+                              <div className="w-1 h-5 rounded-full bg-rose-500 flex-shrink-0" />
+                            )}
+                            <span className={cn("font-medium truncate", task.status === "done" && "line-through text-muted-foreground")}>
+                              {task.title}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap", statusCfg?.bgColor, statusCfg?.textColor)}>
+                                {statusCfg?.label}
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              {Object.entries(statusConfig).map(([key, cfg]) => (
+                                <DropdownMenuItem
+                                  key={key}
+                                  onClick={() => handleStatusChange(task.id, key as TaskStatus)}
+                                  className={cn(task.status === key && "bg-muted")}
+                                >
+                                  <div className={cn("w-2 h-2 rounded-full mr-2", cfg.dotColor)} />
+                                  {cfg.label}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+
+                        {/* Prioridade */}
+                        <td className="px-3 py-3">
+                          <span className={cn("text-xs font-medium", priorityCfg?.color)}>
+                            {priorityCfg?.label}
+                          </span>
+                        </td>
+
+                        {/* Prazo */}
+                        <td className="px-3 py-3">
+                          {dueDateInfo ? (
+                            <span className={cn(
+                              "flex items-center gap-1 text-xs whitespace-nowrap",
+                              dueDateInfo.isOverdue && "text-rose-600 font-semibold",
+                              dueDateInfo.isDueToday && "text-amber-600 font-medium",
+                              !dueDateInfo.isOverdue && !dueDateInfo.isDueToday && "text-muted-foreground"
+                            )}>
+                              {dueDateInfo.isOverdue ? <AlertTriangle className="h-3.5 w-3.5" /> : <Calendar className="h-3.5 w-3.5" />}
                               {dueDateInfo.text}
                             </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
                           )}
-                          {task.category && <Badge variant="outline" className="text-[10px]">{task.category}</Badge>}
-                        </div>
-                      </div>
-                      {task.assigned_to_name && (
-                        <span className="text-xs text-muted-foreground hidden md:block">{task.assigned_to_name}</span>
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingTask(task); setIsFormOpen(true); }}>
-                            <Edit className="h-4 w-4 mr-2" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); deleteTaskMutation.mutate(task.id); }} className="text-destructive">
-                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                        </td>
+
+                        {/* Categoria */}
+                        <td className="px-3 py-3">
+                          {task.category ? (
+                            <Badge variant="outline" className="text-[10px] font-normal">{task.category}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </td>
+
+                        {/* Responsável */}
+                        <td className="px-3 py-3">
+                          {task.assigned_to_name ? (
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary flex-shrink-0">
+                                {task.assigned_to_name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+                              </div>
+                              <span className="text-xs truncate max-w-[100px]">{task.assigned_to_name}</span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </td>
+
+                        {/* Ações */}
+                        <td className="px-2 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => { setSelectedTask(task); setIsDetailOpen(true); }}>
+                                <Eye className="h-4 w-4 mr-2" /> Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setEditingTask(task); setIsFormOpen(true); }}>
+                                <Edit className="h-4 w-4 mr-2" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => deleteTaskMutation.mutate(task.id)} className="text-destructive">
+                                <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         ) : (
           /* ===== DASHBOARD VIEW ===== */
