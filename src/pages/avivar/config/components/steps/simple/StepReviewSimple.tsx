@@ -14,7 +14,7 @@ import {
   Building2, 
   User, 
   Bot, 
-  Package, 
+  
   Clock,
   Image as ImageIcon,
   FileText,
@@ -23,7 +23,7 @@ import {
   Sparkles,
   Settings2,
   Loader2,
-  CreditCard,
+  
   Target,
   Route,
   HelpCircle,
@@ -50,8 +50,7 @@ export function StepReviewSimple({
   );
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const enabledServices = config.services.filter(s => s.enabled);
-  const enabledPayments = config.paymentMethods.filter(p => p.enabled);
+  
 
   const imagesCount =
     (config.imageGallery?.before_after?.length || 0) +
@@ -167,43 +166,6 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Serviços - step 1 (info) */}
-            <ReviewRow icon={Package} stepIndex={1}>
-              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                {enabledServices.length} serviço{enabledServices.length !== 1 ? 's' : ''} ativo{enabledServices.length !== 1 ? 's' : ''}
-              </p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {enabledServices.slice(0, 3).map(s => (
-                  <Badge key={s.id} variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]">
-                    {s.name}
-                  </Badge>
-                ))}
-                {enabledServices.length > 3 && (
-                  <Badge variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]">
-                    +{enabledServices.length - 3}
-                  </Badge>
-                )}
-              </div>
-            </ReviewRow>
-
-            {/* Pagamentos - step 1 (info) */}
-            <ReviewRow icon={CreditCard} stepIndex={1}>
-              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                {enabledPayments.length} forma{enabledPayments.length !== 1 ? 's' : ''} de pagamento
-              </p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {enabledPayments.slice(0, 4).map(p => (
-                  <Badge key={p.id} variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]">
-                    {p.name}
-                  </Badge>
-                ))}
-                {enabledPayments.length > 4 && (
-                  <Badge variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]">
-                    +{enabledPayments.length - 4}
-                  </Badge>
-                )}
-              </div>
-            </ReviewRow>
 
             {/* Objetivos - step 2 */}
             <ReviewRow icon={Target} stepIndex={2}>
