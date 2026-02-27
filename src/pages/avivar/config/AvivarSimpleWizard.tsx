@@ -455,6 +455,8 @@ export default function AvivarSimpleWizard() {
         personality: autoConfig.aiIdentity,
         knowledge_files: config.knowledgeFiles || [],
         is_active: true,
+        is_draft: false,
+        wizard_step: SIMPLE_STEPS.length - 1,
         updated_at: new Date().toISOString(),
       };
 
@@ -467,12 +469,14 @@ export default function AvivarSimpleWizard() {
         name: agentPayload.name 
       });
 
-      if (isEditMode && agentId) {
-        // Atualizar agente existente
+      // Se tem rascunho ou está em modo edição, atualizar
+      const idToUpdate = isEditMode ? agentId : draftAgentId;
+      
+      if (idToUpdate) {
         const { error } = await supabase
           .from('avivar_agents')
           .update(agentPayload)
-          .eq('id', agentId);
+          .eq('id', idToUpdate);
 
         if (error) {
           console.error('[AgentSave] Update error:', error);
@@ -481,12 +485,12 @@ export default function AvivarSimpleWizard() {
           }
           throw error;
         }
-        savedAgentId = agentId;
+        savedAgentId = idToUpdate;
       } else {
-        // Criar novo agente
+        // Criar novo agente (fallback caso não tenha rascunho)
         const { data: newAgent, error } = await supabase
           .from('avivar_agents')
-          .insert(agentPayload)
+          .insert({ ...agentPayload, is_draft: false })
           .select('id')
           .single();
 
