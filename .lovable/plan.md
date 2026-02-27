@@ -1,44 +1,47 @@
 
 
-## Limpar leads de contas internas (ti@, adm@, nicholas.barreto@)
+## Priorizar liberação de leads para estados com médicos/licenciados ativos
 
-### Situação atual
-Existem 6 leads ainda vinculados a contas internas/administrativas que deveriam ter sido limpos ontem mas continuam aparecendo como adquiridos:
+### Problema atual
+O round-robin distribui leads igualmente entre todos os 27 estados, mas apenas **8 estados** possuem licenciados ativos (AL, AP, BA, CE, GO, MA, MS, SP). Leads liberados para estados sem licenciados (AC, AM, DF, ES, MG, MT, PA, PB, PE, PI, PR, RJ, RN, RO, RR, RS, SC, SE, TO) ficam disponíveis sem ninguém para atendê-los.
 
-| Lead | Conta | Cidade/UF |
-|------|-------|-----------|
-| [TESTE] Lucas Almeida | Nicholas Barreto | Juazeiro do Norte/CE |
-| Maristelio da cruz costa | TI | Natal/RN |
-| Leonardo | TI | Joinville/SC |
-| Marcos Andrade Fernandes | TI | Campo Grande/MS |
-| Isaías | TI | Porto Alegre/RS |
-| Bruno Araújo da Silva | TI | Campos/RJ |
+### Solução
+Modificar a função `release_random_queued_lead()` para usar **dois níveis de prioridade**:
 
-### Ação
-Executar uma migration SQL que:
-1. Remove `claimed_by`, `claimed_at`, `lead_outcome`, `outcome_at` desses 6 leads
-2. Reseta `status` para `'new'`
-3. Coloca `release_status` de volta para `'queued'` (voltam para a fila de liberação)
-4. Limpa `available_at` para que sejam liberados novamente pelo motor de liberação
+1. **Primeiro**: Round-robin entre estados que possuem licenciados ativos (consulta dinâmica na tabela `neohub_users` + `neohub_user_profiles` onde `profile = 'licenciado'`)
+2. **Segundo (fallback)**: Quando todos os estados prioritários já foram atendidos na rodada, libera dos demais estados
+
+Isso garante que a maioria dos 80 leads/dia vai para estados onde há alguém para trabalhar, sem abandonar completamente os outros.
 
 ### Detalhes técnicos
 
-**Migration SQL:**
-```sql
-UPDATE public.leads
-SET claimed_by = NULL,
-    claimed_at = NULL,
-    lead_outcome = NULL,
-    outcome_at = NULL,
-    status = 'new',
-    release_status = 'queued',
-    available_at = NULL
-WHERE claimed_by IN (
-  '1b58da47-d988-4f96-9847-ed2d8939505e',  -- TI Neo Folic
-  '00294ac4-0194-47bc-95ef-6efb83c316f7',  -- Administrador ByNeofolic
-  '9003cecf-7be7-45c7-8c53-1f4923c974f6',  -- Nicholas Barreto
-  '860ae553-aa79-4e54-af98-a90dd8317c15'   -- Lucas Araujo
-);
+**Migration SQL** — reescrever `release_random_queued_lead()`:
+
+```text
+Algoritmo:
+1. Buscar dinamicamente os estados com licenciados ativos:
+   SELECT DISTINCT n.address_state 
+   FROM neohub_users n 
+   JOIN neohub_user_profiles p ON p.neohub_user_id = n.id 
+   WHERE p.is_active = true AND p.profile = 'licenciado'
+     AND n.address_state IS NOT NULL AND n.address_state != ''
+
+2. No loop de seleção de estado, adicionar flag de prioridade:
+   ORDER BY 
+     CASE WHEN q.state IN (estados_ativos) THEN 0 ELSE 1 END ASC,  -- Prioriza estados com licenciados
+     COALESCE(d.released_count, 0) ASC,  -- Round-robin dentro do grupo
+     random()  -- Desempate
+
+3. v_priority_used registra 'licensee_state' ou 'non_licensee_state'
 ```
 
-Nenhuma alteração de código necessária -- apenas a limpeza dos dados no banco.
+A consulta de estados ativos é dinâmica — quando um novo licenciado for adicionado em um novo estado, ele automaticamente entra na prioridade sem precisar alterar a função.
+
+### Resultado esperado
+- ~90% dos leads liberados irão para AL, AP, BA, CE, GO, MA, MS, SP (onde há licenciados)
+- Estados sem licenciados só recebem leads quando os prioritários já foram atendidos na rodada
+- Distribuição continua sendo round-robin dentro de cada grupo (sem repetir estado antes de passar por todos)
+
+### Arquivos alterados
+- 1 migration SQL (reescrita da função `release_random_queued_lead`)
+- Nenhuma alteração de código frontend
