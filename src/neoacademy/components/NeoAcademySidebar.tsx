@@ -103,8 +103,11 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
         </nav>
       </aside>
 
+      {/* Spacer for fixed sidebar */}
+      <div className={cn("shrink-0 transition-all duration-300", collapsed ? "w-16" : "w-64")} />
+
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-[#0a0a0f]">
+      <main className="flex-1 overflow-y-auto min-h-screen bg-[#0a0a0f]">
         {children}
       </main>
     </div>
