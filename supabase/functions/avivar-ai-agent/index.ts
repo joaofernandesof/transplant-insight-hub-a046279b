@@ -4623,6 +4623,10 @@ serve(async (req) => {
       });
       
       for (const toolCall of filteredToolCalls) {
+        const shouldSkipGrid = pendingProposalDetected && toolCall.name === "create_appointment";
+        if (shouldSkipGrid) {
+          console.log(`[AI Agent] 🎯 pendingProposalDetected + create_appointment → skipGridValidation=true`);
+        }
         const result = await processToolCall(
           supabase,
           accountId || userId,
@@ -4632,7 +4636,8 @@ serve(async (req) => {
           conversationId,
           leadPhone,
           toolCall.name,
-          toolCall.arguments
+          toolCall.arguments,
+          shouldSkipGrid
         );
         
         console.log(`[AI Agent] Tool ${toolCall.name} result: ${result.substring(0, 100)}...`);
