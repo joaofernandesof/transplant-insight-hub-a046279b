@@ -121,10 +121,10 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
           .eq("id", conversationId);
       }
 
-      // Fetch conversation metadata for last_ai_processed_at
+      // Fetch conversation metadata for cutoff calculation
       const { data: convMeta } = await supabase
         .from("crm_conversations")
-        .select("last_ai_processed_at")
+        .select("last_ai_processed_at, ai_processing_started_at")
         .eq("id", conversationId)
         .single();
 
@@ -140,10 +140,11 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
         break;
       }
 
-      // Use last_ai_processed_at as the cutoff to avoid losing messages
-      // that arrived during AI's multi-part response sending
       const lastAiProcessedAt = convMeta?.last_ai_processed_at
         ? new Date(convMeta.last_ai_processed_at)
+        : null;
+      const aiProcessingStartedAt = convMeta?.ai_processing_started_at
+        ? new Date(convMeta.ai_processing_started_at)
         : null;
 
       const outboundMessages = allMessages?.filter((m: any) => m.direction === "outbound") || [];
@@ -152,13 +153,20 @@ async function processDebounceBatch(payload: DebounceStartPayload) {
           ? new Date(outboundMessages[outboundMessages.length - 1].sent_at)
           : new Date(0);
 
-      // CRITICAL FIX: Use last_ai_processed_at as cutoff (with fallback to lastOutboundTime)
-      // This ensures messages sent DURING AI's multi-part response are not lost
-      const cutoffTime = lastAiProcessedAt && lastAiProcessedAt > lastOutboundTime
-        ? lastAiProcessedAt
-        : lastOutboundTime;
+      // CRITICAL FIX: Use ai_processing_started_at as cutoff instead of last_ai_processed_at
+      // This captures messages that arrived DURING the AI's processing cycle
+      // Timeline: started_at(T0) → lead msg(T1) → AI finishes(T4)
+      // Old logic: cutoff=T4 → T1<T4 → msg LOST
+      // New logic: cutoff=T0 → T1>T0 → msg CAPTURED
+      let cutoffTime: Date;
+      if (aiProcessingStartedAt && lastAiProcessedAt && aiProcessingStartedAt < lastAiProcessedAt) {
+        // Use the START time of the last AI cycle as cutoff
+        cutoffTime = aiProcessingStartedAt;
+      } else {
+        cutoffTime = lastOutboundTime;
+      }
 
-      console.log(`[Debounce] Cutoff: lastOutbound=${lastOutboundTime.toISOString()}, lastAiProcessed=${lastAiProcessedAt?.toISOString() || 'null'}, using=${cutoffTime.toISOString()}`);
+      console.log(`[Debounce] Cutoff: lastOutbound=${lastOutboundTime.toISOString()}, aiStarted=${aiProcessingStartedAt?.toISOString() || 'null'}, aiFinished=${lastAiProcessedAt?.toISOString() || 'null'}, using=${cutoffTime.toISOString()}`);
 
       const newMessages =
         allMessages?.filter((m: any) => m.direction === "inbound" && new Date(m.sent_at) > cutoffTime) || [];

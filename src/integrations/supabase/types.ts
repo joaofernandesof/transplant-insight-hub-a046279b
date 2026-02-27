@@ -5197,6 +5197,7 @@ export type Database = {
           agent_mode: string | null
           ai_enabled: boolean
           ai_processing: boolean | null
+          ai_processing_started_at: string | null
           assigned_agent_id: string | null
           assigned_to: string | null
           channel: string
@@ -5217,6 +5218,7 @@ export type Database = {
           agent_mode?: string | null
           ai_enabled?: boolean
           ai_processing?: boolean | null
+          ai_processing_started_at?: string | null
           assigned_agent_id?: string | null
           assigned_to?: string | null
           channel?: string
@@ -5237,6 +5239,7 @@ export type Database = {
           agent_mode?: string | null
           ai_enabled?: boolean
           ai_processing?: boolean | null
+          ai_processing_started_at?: string | null
           assigned_agent_id?: string | null
           assigned_to?: string | null
           channel?: string
