@@ -17,7 +17,9 @@ import {
   X,
   MessageCircleQuestion,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpen,
+  CheckCircle2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { NichoType, SubnichoType, Service, PaymentMethod, AgentObjectives, BusinessUnit } from '../../../types';
