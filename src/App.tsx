@@ -758,6 +758,7 @@ function AppRoutes() {
       <Route path="/neolicense/*" element={<ProtectedRoute><NeoLicenseRoutes /></ProtectedRoute>} />
       <Route path="/hotleads/*" element={<ProtectedRoute><HotLeadsRoutes /></ProtectedRoute>} />
       <Route path="/avivar/*" element={<ProtectedRoute><AvivarRoutes /></ProtectedRoute>} />
+      <Route path="/neoacademy/*" element={<ProtectedRoute><NeoAcademyRoutes /></ProtectedRoute>} />
 
       {/* ====================================
           Rotas Legadas - Redirects para Portais

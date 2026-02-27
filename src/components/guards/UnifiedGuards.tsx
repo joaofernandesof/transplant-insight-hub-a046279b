@@ -216,6 +216,7 @@ function getPortalKeyFromRoute(route: string): string | null {
   if (route.startsWith('/avivar')) return 'avivar';
   if (route.startsWith('/vision')) return 'vision';
   if (route.startsWith('/neopay')) return 'neopay';
+  if (route.startsWith('/neoacademy')) return 'neoacademy';
   return null;
 }
 
