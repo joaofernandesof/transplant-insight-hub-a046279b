@@ -3186,6 +3186,19 @@ async function processToolCall(
       );
       return result.message;
     }
+
+    case "send_knowledge_media": {
+      const result = await sendKnowledgeMedia(
+        supabase,
+        accountId,
+        conversationId,
+        patientPhone,
+        toolArgs.media_url as string,
+        toolArgs.media_type as string,
+        toolArgs.caption as string | undefined
+      );
+      return result.message;
+    }
     
     case "preencher_checklist":
       return await preencherChecklist(
