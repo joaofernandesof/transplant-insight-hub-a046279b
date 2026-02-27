@@ -58,7 +58,7 @@ export function usePayables() {
         .from('ipromed_payables')
         .insert({
           ...payable,
-          user_id: user!.id,
+          user_id: user!.authUserId,
         })
         .select()
         .single();
