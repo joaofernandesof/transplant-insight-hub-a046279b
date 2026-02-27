@@ -2834,6 +2834,95 @@ async function sendFluxoMedia(
   }
 }
 
+// Send media found in knowledge base / FAQ
+async function sendKnowledgeMedia(
+  supabase: AnySupabaseClient,
+  accountId: string,
+  conversationId: string,
+  leadPhone: string,
+  mediaUrl: string,
+  mediaType: string,
+  caption?: string
+): Promise<{ success: boolean; message: string }> {
+  console.log(`[AI Agent] Tool: send_knowledge_media(type="${mediaType}", url="${mediaUrl.substring(0, 80)}")`);
+
+  // Get UazAPI credentials
+  const uazapiUrl = Deno.env.get("UAZAPI_URL") || "";
+  let uazapiToken = Deno.env.get("UAZAPI_TOKEN") || "";
+
+  const { data: uazapiInstance } = await supabase
+    .from("avivar_uazapi_instances")
+    .select("instance_token, status")
+    .eq("account_id", accountId)
+    .eq("status", "connected")
+    .limit(1)
+    .maybeSingle();
+
+  if (uazapiInstance?.instance_token) {
+    uazapiToken = uazapiInstance.instance_token;
+  }
+
+  if (!uazapiUrl || !uazapiToken) {
+    return { success: false, message: "WhatsApp não está conectado para enviar mídia." };
+  }
+
+  let phone = leadPhone.replace(/\D/g, "");
+  if (!phone.startsWith("55") && phone.length <= 11) {
+    phone = `55${phone}`;
+  }
+
+  try {
+    const apiUrl = `${uazapiUrl}/send/media`;
+    const typeMap: Record<string, string> = { image: "image", video: "video", document: "document", audio: "audio" };
+    const mediaPayload: Record<string, unknown> = {
+      number: phone,
+      type: typeMap[mediaType] || "document",
+      file: mediaUrl,
+      text: caption || " ",
+    };
+
+    console.log(`[AI Agent] Sending knowledge media: ${JSON.stringify(mediaPayload).substring(0, 200)}`);
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "token": uazapiToken },
+      body: JSON.stringify(mediaPayload),
+    });
+
+    const responseText = await response.text();
+    console.log(`[AI Agent] Knowledge media send response (${response.status}): ${responseText}`);
+
+    if (!response.ok) {
+      return { success: false, message: `Erro ao enviar mídia: ${response.status}` };
+    }
+
+    // Log the sent media in conversation
+    const { data: convData } = await supabase
+      .from("crm_conversations")
+      .select("account_id")
+      .eq("id", conversationId)
+      .single();
+
+    const emojiMap: Record<string, string> = { image: "🖼️", video: "🎬", document: "📄", audio: "🎤" };
+    await supabase.from("crm_messages").insert({
+      conversation_id: conversationId,
+      direction: "outbound",
+      content: `${emojiMap[mediaType] || "📎"} ${caption || mediaType}`,
+      media_url: mediaUrl,
+      media_type: mediaType,
+      sent_at: new Date().toISOString(),
+      is_ai_generated: true,
+      account_id: convData?.account_id,
+    });
+
+    console.log(`[AI Agent] ✅ Knowledge media sent successfully`);
+    return { success: true, message: `Mídia da base de conhecimento enviada com sucesso!` };
+  } catch (error) {
+    console.error("[AI Agent] Error sending knowledge media:", error);
+    return { success: false, message: `Erro ao enviar mídia: ${(error as Error).message}` };
+  }
+}
+
 // ============================================
 // CHECKLIST AUTO-FILL
 // ============================================
