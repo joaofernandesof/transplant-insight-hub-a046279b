@@ -54,6 +54,7 @@ const portals = [
   { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg', description: 'Portal jurídico' },
   { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision', description: 'Análise capilar' },
   { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay', description: 'Gateway pagamentos' },
+  { id: 'neoacademy', title: 'NeoAcademy', icon: BookOpen, gradient: 'from-violet-500 to-purple-600', path: '/neoacademy', description: 'Área de membros' },
 ];
 
 export default function AdminHome() {
