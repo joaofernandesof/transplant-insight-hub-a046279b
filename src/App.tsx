@@ -22,6 +22,7 @@ import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { ProtectedRoute, ProfileGuard, AdminRoute, MobileGuard } from "@/components/guards";
 import { PROFILE_ROUTES, getDefaultRouteForProfile } from "@/neohub/lib/permissions";
 import { MobileAppWrapper } from "@/components/MobileAppWrapper";
+import { useMobileEnvironment } from "@/hooks/useMobileEnvironment";
 import { Loader2 } from "lucide-react";
 
 // ====================================
@@ -376,6 +377,7 @@ function UnauthorizedPage() {
 // ====================================
 function HomeRouter() {
   const { user, isAdmin, activeProfile, isLoading } = useUnifiedAuth();
+  const { isNative } = useMobileEnvironment();
   
   if (isLoading) {
     return (
@@ -387,6 +389,11 @@ function HomeRouter() {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // No mobile nativo, sempre mostrar o seletor de portais
+  if (isNative) {
+    return <Navigate to="/select-profile" replace />;
   }
 
   // Se tem perfil ativo, redirecionar para o portal correspondente
