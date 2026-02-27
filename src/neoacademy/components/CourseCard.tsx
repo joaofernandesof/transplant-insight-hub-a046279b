@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
+type CardType = 'course' | 'module' | 'lesson';
+
 interface CourseCardProps {
   id: string;
   title: string;
@@ -13,12 +15,26 @@ interface CourseCardProps {
   totalDuration?: number;
   progress?: number;
   variant?: 'featured' | 'default' | 'continue';
+  cardType?: CardType;
 }
+
+const TYPE_LABELS: Record<CardType, string> = {
+  course: 'Curso Online',
+  module: 'Módulo',
+  lesson: 'Aula',
+};
+
+const TYPE_COLORS: Record<CardType, string> = {
+  course: 'bg-violet-500/80',
+  module: 'bg-fuchsia-500/80',
+  lesson: 'bg-sky-500/80',
+};
 
 export function CourseCard({ 
   id, title, thumbnail, category, 
   totalLessons = 0, totalDuration = 0, 
-  progress, variant = 'default' 
+  progress, variant = 'default',
+  cardType = 'course',
 }: CourseCardProps) {
   const navigate = useNavigate();
   const durationHours = Math.floor(totalDuration / 60);
@@ -30,16 +46,14 @@ export function CourseCard({
       className={cn(
         "group relative rounded-xl overflow-hidden text-left transition-all duration-300",
         "hover:scale-[1.03] hover:shadow-2xl hover:shadow-violet-500/10",
-        "bg-[#14141f] border border-white/5",
-        variant === 'featured' && "col-span-2 row-span-2",
-        variant === 'continue' && "flex flex-row h-28"
+        "bg-[#14141f] border border-white/5 w-full",
+        variant === 'continue' ? "flex flex-row h-28" : "flex flex-col"
       )}
     >
-      {/* Thumbnail */}
+      {/* Thumbnail — fixed aspect ratio for consistency */}
       <div className={cn(
-        "relative overflow-hidden bg-gradient-to-br from-violet-900/40 to-fuchsia-900/40",
-        variant === 'continue' ? "w-44 h-full shrink-0" : "aspect-video w-full",
-        variant === 'featured' && "aspect-[16/9]"
+        "relative overflow-hidden bg-gradient-to-br from-violet-900/40 to-fuchsia-900/40 shrink-0",
+        variant === 'continue' ? "w-44 h-full" : "aspect-[4/3] w-full"
       )}>
         {thumbnail ? (
           <img src={thumbnail} alt={title} className="w-full h-full object-cover" />
@@ -62,16 +76,23 @@ export function CourseCard({
             {category}
           </div>
         )}
+
+        {/* Type tag — always visible */}
+        <div className={cn(
+          "absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase text-white tracking-wider",
+          TYPE_COLORS[cardType]
+        )}>
+          {TYPE_LABELS[cardType]}
+        </div>
       </div>
 
-      {/* Info */}
+      {/* Info — fixed height for uniform cards */}
       <div className={cn(
         "p-3 flex flex-col gap-1.5",
-        variant === 'continue' && "flex-1 justify-center"
+        variant === 'continue' ? "flex-1 justify-center" : "h-[72px] justify-between"
       )}>
         <h3 className={cn(
-          "font-semibold text-white line-clamp-2",
-          variant === 'featured' ? "text-lg" : "text-sm"
+          "font-semibold text-white line-clamp-2 text-sm leading-tight"
         )}>
           {title}
         </h3>
