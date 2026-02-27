@@ -1,33 +1,23 @@
 
 
-## Corrigir envio de mensagem WhatsApp ao adquirir lead
+## ✅ RESOLVIDO: Mensagem do lead perdida quando responde durante envio de mensagens split da IA
 
-### Problema
-Quando o usuario clica em "Adquirir e abrir WhatsApp", a funcao `window.open(whatsappUrl, '_blank')` e bloqueada por popup blockers, especialmente em contextos de iframe e dispositivos moveis. A mensagem nunca chega ao paciente.
+### Causa Raiz
+Race condition: AI divide respostas em partes com delay. Lead responde entre partes → mensagem fica com timestamp < lastOutboundTime → filtrada/perdida pelo debounce-processor.
 
-### Solucao
-Substituir `window.open` por `window.location.href` para redirecionar diretamente ao WhatsApp (funciona em qualquer dispositivo/navegador sem ser bloqueado). Alem disso, adicionar um botao de fallback caso o redirecionamento nao funcione.
+### Solução Implementada
 
-### Detalhes tecnicos
+1. **Migração SQL**: Adicionadas colunas `ai_processing` (bool) e `last_ai_processed_at` (timestamptz) em `crm_conversations`
 
-**Arquivo: `src/components/hotleads/LeadAcquireDialog.tsx`**
+2. **`avivar-ai-agent/index.ts`**: 
+   - Seta `ai_processing = true` no início do processamento
+   - Seta `ai_processing = false` + `last_ai_processed_at = NOW()` no final (success e error)
 
-1. Apos o `onConfirm` retornar sucesso, em vez de fechar o dialog e chamar `window.open`:
-   - Salvar a URL do WhatsApp em estado local
-   - Mostrar uma tela de sucesso dentro do dialog com dois botoes:
-     - "Abrir WhatsApp" que usa `window.location.href = whatsappUrl` (redirecionamento direto)
-     - "Copiar mensagem" como fallback para copiar o texto manualmente
-   - Auto-redirecionar apos 1.5 segundos usando `window.location.href`
+3. **`avivar-debounce-processor/index.ts`**:
+   - Aguarda `ai_processing = false` antes de processar (max 60s com retry de 3s)
+   - Usa `last_ai_processed_at` como cutoff em vez de `lastOutboundTime` (com fallback)
+   - Garante que mensagens intercaladas nunca são perdidas
 
-2. O fluxo ficara:
-   - Usuario clica "Adquirir e abrir WhatsApp"
-   - Edge function faz o claim
-   - Dialog mostra "Lead adquirido! Abrindo WhatsApp..."
-   - Redireciona automaticamente via `window.location.href`
-   - Se nao redirecionar, usuario pode clicar no botao manualmente
-
-**Arquivo: `src/pages/HotLeads.tsx`**
-- Nenhuma alteracao necessaria (o `handleAcquireConfirm` continua funcionando igual)
-
-### Arquivos alterados
-- `src/components/hotleads/LeadAcquireDialog.tsx` — substituir `window.open` por redirecionamento direto + fallback
+4. **`uazapi-webhook/index.ts`**:
+   - Verifica `ai_processing` ao checar debounce
+   - Sempre cria/estende batch de debounce quando AI está processando
