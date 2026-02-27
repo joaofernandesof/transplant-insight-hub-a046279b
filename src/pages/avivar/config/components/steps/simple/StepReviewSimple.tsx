@@ -167,8 +167,8 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Serviços - step 2 */}
-            <ReviewRow icon={Package} stepIndex={2}>
+            {/* Serviços - step 1 (info) */}
+            <ReviewRow icon={Package} stepIndex={1}>
               <p className="font-medium text-[hsl(var(--avivar-foreground))]">
                 {enabledServices.length} serviço{enabledServices.length !== 1 ? 's' : ''} ativo{enabledServices.length !== 1 ? 's' : ''}
               </p>
