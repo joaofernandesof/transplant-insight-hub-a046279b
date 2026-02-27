@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,7 @@ interface PatientRegistrationDialogProps {
   onSuccess?: () => void;
 }
 
-const BRANCHES = ['FORTALEZA', 'JUAZEIRO', 'SÃO PAULO'];
+const BRANCHES_FALLBACK = ['FORTALEZA', 'JUAZEIRO', 'SÃO PAULO'];
 const CATEGORIES = [
   'Categoria A - Hygor',
   'Categoria A - Patrick',
@@ -53,6 +53,22 @@ export function PatientRegistrationDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [branches, setBranches] = useState<string[]>(BRANCHES_FALLBACK);
+
+  // Fetch branches from database
+  useEffect(() => {
+    const fetchBranches = async () => {
+      const { data } = await supabase
+        .from('neoteam_branches')
+        .select('name')
+        .eq('is_active', true)
+        .order('name');
+      if (data && data.length > 0) {
+        setBranches(data.map(d => d.name));
+      }
+    };
+    fetchBranches();
+  }, []);
   
   const [formData, setFormData] = useState({
     // Dados Pessoais
@@ -302,7 +318,7 @@ export function PatientRegistrationDialog({
                           <SelectValue placeholder="Selecione a filial" />
                         </SelectTrigger>
                         <SelectContent>
-                          {BRANCHES.map(branch => (
+                          {branches.map(branch => (
                             <SelectItem key={branch} value={branch}>{branch}</SelectItem>
                           ))}
                         </SelectContent>
