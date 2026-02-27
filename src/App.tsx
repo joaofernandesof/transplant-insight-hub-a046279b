@@ -568,8 +568,6 @@ import { NeoAcademySidebar } from './neoacademy/components/NeoAcademySidebar';
 const NeoAcademyMyCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyMyCourses'));
 const NeoAcademyContinue = React.lazy(() => import('./neoacademy/pages/NeoAcademyContinue'));
 const NeoAcademyCommunity = React.lazy(() => import('./neoacademy/pages/NeoAcademyCommunity'));
-const NeoAcademyRanking = React.lazy(() => import('./neoacademy/pages/NeoAcademyRanking'));
-const NeoAcademyAchievements = React.lazy(() => import('./neoacademy/pages/NeoAcademyAchievements'));
 const NeoAcademyAdminAnalytics = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminAnalytics'));
 const NeoAcademyAdminCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminCourses'));
 const NeoAcademyAdminStudents = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminStudents'));
@@ -587,8 +585,6 @@ function NeoAcademyRoutes() {
           <Route path="my-courses" element={<NeoAcademyMyCourses />} />
           <Route path="continue" element={<NeoAcademyContinue />} />
           <Route path="community" element={<NeoAcademyCommunity />} />
-          <Route path="ranking" element={<NeoAcademyRanking />} />
-          <Route path="achievements" element={<NeoAcademyAchievements />} />
           <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
           <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
           <Route path="admin/students" element={<NeoAcademyAdminStudents />} />

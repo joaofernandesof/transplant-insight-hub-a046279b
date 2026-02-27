@@ -1,9 +1,9 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, BookOpen, Play, Trophy, Users, 
+  LayoutDashboard, BookOpen, Play, Users, 
   Settings, BarChart3, ChevronLeft, Sparkles,
-  GraduationCap, Star
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -14,8 +14,6 @@ const NAV_ITEMS = [
   { label: 'Meus Cursos', icon: GraduationCap, path: '/neoacademy/my-courses' },
   { label: 'Continuar', icon: Play, path: '/neoacademy/continue' },
   { label: 'Comunidade', icon: Users, path: '/neoacademy/community' },
-  { label: 'Ranking', icon: Trophy, path: '/neoacademy/ranking' },
-  { label: 'Conquistas', icon: Star, path: '/neoacademy/achievements' },
 ];
 
 const ADMIN_ITEMS = [
