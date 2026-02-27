@@ -4789,6 +4789,20 @@ Responda APENAS com o resumo, sem explicações adicionais.`;
     const duration = Date.now() - startTime;
     console.error("[AI Agent] Error:", error);
 
+    // CLEAR AI PROCESSING LOCK on error
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const sc = createClient(supabaseUrl, supabaseServiceKey);
+      await sc
+        .from("crm_conversations")
+        .update({ ai_processing: false, last_ai_processed_at: new Date().toISOString() })
+        .eq("id", conversationId);
+      console.log(`[AI Agent] ai_processing=false (error cleanup) for conversation ${conversationId}`);
+    } catch (cleanupErr) {
+      console.error("[AI Agent] Failed to clear ai_processing lock:", cleanupErr);
+    }
+
     // Fire-and-forget: log error
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
