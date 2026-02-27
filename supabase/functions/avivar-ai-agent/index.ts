@@ -4160,11 +4160,12 @@ serve(async (req) => {
     console.log(`[AI Agent] Resolved accountId: ${accountId} for userId: ${userId}`);
 
     // 0.5 SET AI PROCESSING LOCK — prevents debounce from losing interleaved messages
+    const aiProcessingStartedAt = new Date().toISOString();
     await supabase
       .from("crm_conversations")
-      .update({ ai_processing: true })
+      .update({ ai_processing: true, ai_processing_started_at: aiProcessingStartedAt })
       .eq("id", conversationId);
-    console.log(`[AI Agent] ai_processing=true for conversation ${conversationId}`);
+    console.log(`[AI Agent] ai_processing=true, started_at=${aiProcessingStartedAt} for conversation ${conversationId}`);
 
     // 1. Get lead stage and kanban for hybrid routing (based on Kanban position)
     const { stage: leadStage, kanbanId } = await getLeadStage(supabase, conversationId, leadPhone);
