@@ -50,7 +50,7 @@ export function StepReviewSimple({
   );
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const enabledServices = config.services.filter(s => s.enabled);
+  
 
   const imagesCount =
     (config.imageGallery?.before_after?.length || 0) +
