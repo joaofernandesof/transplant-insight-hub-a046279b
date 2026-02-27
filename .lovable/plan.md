@@ -1,47 +1,33 @@
 
 
-## Priorizar liberação de leads para estados com médicos/licenciados ativos
+## Corrigir envio de mensagem WhatsApp ao adquirir lead
 
-### Problema atual
-O round-robin distribui leads igualmente entre todos os 27 estados, mas apenas **8 estados** possuem licenciados ativos (AL, AP, BA, CE, GO, MA, MS, SP). Leads liberados para estados sem licenciados (AC, AM, DF, ES, MG, MT, PA, PB, PE, PI, PR, RJ, RN, RO, RR, RS, SC, SE, TO) ficam disponíveis sem ninguém para atendê-los.
+### Problema
+Quando o usuario clica em "Adquirir e abrir WhatsApp", a funcao `window.open(whatsappUrl, '_blank')` e bloqueada por popup blockers, especialmente em contextos de iframe e dispositivos moveis. A mensagem nunca chega ao paciente.
 
-### Solução
-Modificar a função `release_random_queued_lead()` para usar **dois níveis de prioridade**:
+### Solucao
+Substituir `window.open` por `window.location.href` para redirecionar diretamente ao WhatsApp (funciona em qualquer dispositivo/navegador sem ser bloqueado). Alem disso, adicionar um botao de fallback caso o redirecionamento nao funcione.
 
-1. **Primeiro**: Round-robin entre estados que possuem licenciados ativos (consulta dinâmica na tabela `neohub_users` + `neohub_user_profiles` onde `profile = 'licenciado'`)
-2. **Segundo (fallback)**: Quando todos os estados prioritários já foram atendidos na rodada, libera dos demais estados
+### Detalhes tecnicos
 
-Isso garante que a maioria dos 80 leads/dia vai para estados onde há alguém para trabalhar, sem abandonar completamente os outros.
+**Arquivo: `src/components/hotleads/LeadAcquireDialog.tsx`**
 
-### Detalhes técnicos
+1. Apos o `onConfirm` retornar sucesso, em vez de fechar o dialog e chamar `window.open`:
+   - Salvar a URL do WhatsApp em estado local
+   - Mostrar uma tela de sucesso dentro do dialog com dois botoes:
+     - "Abrir WhatsApp" que usa `window.location.href = whatsappUrl` (redirecionamento direto)
+     - "Copiar mensagem" como fallback para copiar o texto manualmente
+   - Auto-redirecionar apos 1.5 segundos usando `window.location.href`
 
-**Migration SQL** — reescrever `release_random_queued_lead()`:
+2. O fluxo ficara:
+   - Usuario clica "Adquirir e abrir WhatsApp"
+   - Edge function faz o claim
+   - Dialog mostra "Lead adquirido! Abrindo WhatsApp..."
+   - Redireciona automaticamente via `window.location.href`
+   - Se nao redirecionar, usuario pode clicar no botao manualmente
 
-```text
-Algoritmo:
-1. Buscar dinamicamente os estados com licenciados ativos:
-   SELECT DISTINCT n.address_state 
-   FROM neohub_users n 
-   JOIN neohub_user_profiles p ON p.neohub_user_id = n.id 
-   WHERE p.is_active = true AND p.profile = 'licenciado'
-     AND n.address_state IS NOT NULL AND n.address_state != ''
-
-2. No loop de seleção de estado, adicionar flag de prioridade:
-   ORDER BY 
-     CASE WHEN q.state IN (estados_ativos) THEN 0 ELSE 1 END ASC,  -- Prioriza estados com licenciados
-     COALESCE(d.released_count, 0) ASC,  -- Round-robin dentro do grupo
-     random()  -- Desempate
-
-3. v_priority_used registra 'licensee_state' ou 'non_licensee_state'
-```
-
-A consulta de estados ativos é dinâmica — quando um novo licenciado for adicionado em um novo estado, ele automaticamente entra na prioridade sem precisar alterar a função.
-
-### Resultado esperado
-- ~90% dos leads liberados irão para AL, AP, BA, CE, GO, MA, MS, SP (onde há licenciados)
-- Estados sem licenciados só recebem leads quando os prioritários já foram atendidos na rodada
-- Distribuição continua sendo round-robin dentro de cada grupo (sem repetir estado antes de passar por todos)
+**Arquivo: `src/pages/HotLeads.tsx`**
+- Nenhuma alteracao necessaria (o `handleAcquireConfirm` continua funcionando igual)
 
 ### Arquivos alterados
-- 1 migration SQL (reescrita da função `release_random_queued_lead`)
-- Nenhuma alteração de código frontend
+- `src/components/hotleads/LeadAcquireDialog.tsx` — substituir `window.open` por redirecionamento direto + fallback
