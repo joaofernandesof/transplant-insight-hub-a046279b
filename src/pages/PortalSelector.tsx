@@ -20,7 +20,8 @@ import {
   Flame,
   CreditCard,
   Scale,
-  LayoutGrid
+  LayoutGrid,
+  UserCog
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
@@ -161,6 +162,16 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     profiles: ['ipromed'],
     route: '/cpg',
     portalKey: 'ipromed',
+  },
+  neorh: {
+    title: 'NeoRH',
+    description: 'Gestão de recursos humanos',
+    icon: UserCog,
+    gradient: 'from-indigo-500 to-blue-600',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
+    profiles: ['administrador', 'colaborador'],
+    route: '/neorh',
+    portalKey: 'neorh',
   },
 };
 
