@@ -380,7 +380,7 @@ function DraggableClientCard({
                 onClick={(e) => e.stopPropagation()}
                 title="Clique para editar datas do SLA"
               >
-                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div className="flex-1 h-3 rounded-full bg-muted overflow-hidden">
                   <div 
                     className={cn(
                       "h-full rounded-full transition-all",
