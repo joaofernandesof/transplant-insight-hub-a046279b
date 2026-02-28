@@ -474,6 +474,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
     setEditStatus(appointment.status);
     setEditType(appointment.appointment_type);
     setEditMeetingUrl(appointment.meeting_url || '');
+    setEditAssignedTo(appointment.assigned_to || '');
     setEditing(true);
   };
 
