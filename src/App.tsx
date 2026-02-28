@@ -806,6 +806,7 @@ function AppRoutes() {
       <Route path="/hotleads/*" element={<ProtectedRoute><HotLeadsRoutes /></ProtectedRoute>} />
       <Route path="/avivar/*" element={<ProtectedRoute><AvivarRoutes /></ProtectedRoute>} />
       <Route path="/neoacademy/*" element={<ProtectedRoute><NeoAcademyRoutes /></ProtectedRoute>} />
+      <Route path="/neorh/*" element={<ProtectedRoute><NeoRHRoutes /></ProtectedRoute>} />
 
       {/* ====================================
           Rotas Legadas - Redirects para Portais
