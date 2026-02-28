@@ -417,13 +417,14 @@ export default function IpromedTasks() {
         ) : viewMode === "kanban" ? (
           /* ===== KANBAN BY DUE DATE ===== */
           <div className="h-full">
-            <div className="grid grid-cols-5 gap-3 h-full">
+            <div className="grid grid-cols-6 gap-3 h-full">
               {([
                 { id: "overdue" as const, label: "Em atraso", headerBg: "bg-rose-500", columnBg: "bg-rose-50/60 dark:bg-rose-950/20", cardBorder: "border-l-rose-500" },
                 { id: "today" as const, label: "Hoje", headerBg: "bg-amber-500", columnBg: "bg-amber-50/60 dark:bg-amber-950/20", cardBorder: "border-l-amber-500" },
                 { id: "tomorrow" as const, label: "Amanhã", headerBg: "bg-blue-500", columnBg: "bg-blue-50/60 dark:bg-blue-950/20", cardBorder: "border-l-blue-500" },
                 { id: "upcoming" as const, label: "Próximos dias", headerBg: "bg-emerald-500", columnBg: "bg-emerald-50/60 dark:bg-emerald-950/20", cardBorder: "border-l-emerald-500" },
                 { id: "no_date" as const, label: "Sem prazo", headerBg: "bg-slate-400", columnBg: "bg-slate-50/60 dark:bg-slate-950/20", cardBorder: "border-l-slate-400" },
+                { id: "completed" as const, label: "Concluídas", headerBg: "bg-emerald-600", columnBg: "bg-emerald-50/40 dark:bg-emerald-950/10", cardBorder: "border-l-emerald-600" },
               ]).map((column) => {
                 const columnTasks = tasksByDueDate[column.id] || [];
 
