@@ -208,7 +208,7 @@ export default function IpromedTasks() {
           taskTitle: task.title,
           action: "deleted",
           performedBy: user?.authUserId || user?.id,
-          performedByName: user?.nome || user?.email,
+          performedByName: user?.fullName || user?.email,
         });
       }
     },
