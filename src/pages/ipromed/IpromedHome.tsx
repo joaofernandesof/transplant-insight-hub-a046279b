@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PortalBanner } from '@/components/shared/PortalBanner';
 import { TaskStatsCards } from './components/TaskStatsCards';
-import { WorkspaceTaskList } from './components/WorkspaceTaskList';
+
 import { WorkspaceAgenda } from './components/WorkspaceAgenda';
 
 import {
@@ -93,8 +93,7 @@ export default function IpromedHome() {
         {/* Agenda */}
         <WorkspaceAgenda />
 
-        {/* Tarefas */}
-        <WorkspaceTaskList />
+
       </div>
 
     </div>
