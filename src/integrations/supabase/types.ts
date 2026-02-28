@@ -21092,6 +21092,7 @@ export type Database = {
           state: string
         }[]
       }
+      get_rls_policies: { Args: never; Returns: Json }
       get_semana_do_mes: { Args: { p_date: string }; Returns: number }
       get_staff_profile: {
         Args: { _user_id: string }
@@ -21101,6 +21102,7 @@ export type Database = {
           role: Database["public"]["Enums"]["clinic_staff_role"]
         }[]
       }
+      get_system_tables_info: { Args: never; Returns: Json }
       get_user_avivar_account_id: {
         Args: { _user_id: string }
         Returns: string
