@@ -64,6 +64,7 @@ import {
   CheckSquare,
   Phone,
   Mail,
+  XCircle,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
