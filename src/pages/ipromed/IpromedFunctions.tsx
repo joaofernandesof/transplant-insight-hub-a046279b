@@ -209,9 +209,9 @@ export default function IpromedFunctions() {
         </Button>
       </div>
 
-      {/* Insight Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card className="border shadow-sm">
+      {/* Single row: Insight cards + Per-Lawyer cards */}
+      <div className="flex gap-3 overflow-x-auto pb-1">
+        <Card className="border shadow-sm shrink-0">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <Hash className="h-5 w-5 text-primary" />
@@ -222,7 +222,7 @@ export default function IpromedFunctions() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border shadow-sm">
+        <Card className="border shadow-sm shrink-0">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
               <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -233,7 +233,7 @@ export default function IpromedFunctions() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border shadow-sm">
+        <Card className="border shadow-sm shrink-0">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
               <Tag className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -244,7 +244,7 @@ export default function IpromedFunctions() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border shadow-sm">
+        <Card className="border shadow-sm shrink-0">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
               <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
@@ -255,10 +255,7 @@ export default function IpromedFunctions() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Per-Lawyer Breakdown */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
         {uniqueLawyers.sort().map(name => {
           const info = getLawyerInfo(name);
           const count = functions.filter(f => f.lawyer_name === name).length;
@@ -267,7 +264,7 @@ export default function IpromedFunctions() {
             <button
               key={name}
               onClick={() => setFilterLawyer(isActive ? "all" : name)}
-              className={`flex items-center gap-2 p-2.5 rounded-lg border text-left transition-all hover:shadow-sm ${isActive ? 'ring-2 ring-primary bg-primary/5' : 'bg-card hover:bg-muted/40'}`}
+              className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-all hover:shadow-sm shrink-0 ${isActive ? 'ring-2 ring-primary bg-primary/5' : 'bg-card hover:bg-muted/40'}`}
             >
               <Avatar className="h-8 w-8 shrink-0">
                 <AvatarImage src={info?.photo} alt={name} className="object-cover" />
@@ -276,7 +273,7 @@ export default function IpromedFunctions() {
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <p className="text-xs font-semibold truncate">{name.split(" ")[0]}</p>
+                <p className="text-xs font-semibold truncate">{name}</p>
                 <p className="text-[10px] text-muted-foreground">{count} {count === 1 ? "função" : "funções"}</p>
               </div>
             </button>
