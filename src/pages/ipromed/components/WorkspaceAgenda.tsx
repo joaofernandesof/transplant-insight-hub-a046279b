@@ -628,6 +628,17 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Responsável *</label>
+                  <Select value={editAssignedTo} onValueChange={setEditAssignedTo}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
+                    <SelectContent>
+                      {LAWYER_NAMES.map(name => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex gap-2 justify-end pt-1">
                   <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
                     <X className="h-3.5 w-3.5 mr-1" /> Cancelar
