@@ -768,6 +768,15 @@ export default function IpromedJourney() {
       
       // Permite mover para qualquer fase (incluindo voltar)
       if (currentPhase !== targetPhaseId) {
+        // Block moving to "Andamento" (stage 3) if onboarding form is not submitted
+        if (targetPhaseId === 'Andamento' && !isOnboardingFormSubmitted(clientId)) {
+          toast.error('O formulário de onboarding precisa ser preenchido pelo cliente antes de avançar para esta etapa.', {
+            duration: 5000,
+            description: 'Envie o link do formulário ao cliente e aguarde o preenchimento.',
+          });
+          return;
+        }
+
         const targetPhase = journeyPhases.find(p => p.id === targetPhaseId);
         const currentPhaseInfo = journeyPhases.find(p => p.id === currentPhase);
         toast.success(`Cliente movido de "${currentPhaseInfo?.label}" para "${targetPhase?.label}"`);
