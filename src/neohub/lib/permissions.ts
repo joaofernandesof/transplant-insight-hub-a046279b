@@ -16,7 +16,7 @@ export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar'
 
 // Mapeamento de perfis para portais
 export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
-  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'],
+  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay', 'neorh'],
   licenciado: ['neolicense', 'hotleads'],
   colaborador: ['neoteam'],
   medico: ['neoteam'],
