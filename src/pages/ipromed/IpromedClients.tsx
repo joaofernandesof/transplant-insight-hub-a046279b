@@ -301,6 +301,85 @@ export default function IpromedClients() {
           </div>
         </div>
 
+        {/* Insight Widgets */}
+        {!isLoading && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <Card className="border-border/60">
+              <CardContent className="p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  <span className="text-xs font-medium">Total</span>
+                </div>
+                <span className="text-2xl font-bold">{stats.total}</span>
+                <span className="text-[10px] text-muted-foreground">clientes cadastrados</span>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardContent className="p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <UserCheck className="h-4 w-4" />
+                  <span className="text-xs font-medium">Onboarding</span>
+                </div>
+                <span className="text-2xl font-bold">{stats.onboardingCompleted}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {stats.total > 0 ? `${Math.round((stats.onboardingCompleted / stats.total) * 100)}% concluído` : '—'}
+                </span>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardContent className="p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <DollarSign className="h-4 w-4" />
+                  <span className="text-xs font-medium">Pagamento</span>
+                </div>
+                <span className="text-2xl font-bold text-amber-600">{clients.filter(c => c.metadata?.payment_status === 'pending').length}</span>
+                <span className="text-[10px] text-muted-foreground">pendentes</span>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardContent className="p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <FileSignature className="h-4 w-4" />
+                  <span className="text-xs font-medium">Contratos</span>
+                </div>
+                <span className="text-2xl font-bold text-amber-600">{stats.pendingSignature}</span>
+                <span className="text-[10px] text-muted-foreground">aguardando assinatura</span>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardContent className="p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="text-xs font-medium">Risco Alto</span>
+                </div>
+                <span className="text-2xl font-bold text-destructive">{clients.filter(c => c.risk_level === 'high').length}</span>
+                <span className="text-[10px] text-muted-foreground">clientes em alerta</span>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardContent className="p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-xs font-medium">Novos (30d)</span>
+                </div>
+                <span className="text-2xl font-bold text-primary">
+                  {clients.filter(c => {
+                    const d = new Date(c.created_at);
+                    const now = new Date();
+                    return (now.getTime() - d.getTime()) <= 30 * 24 * 60 * 60 * 1000;
+                  }).length}
+                </span>
+                <span className="text-[10px] text-muted-foreground">últimos 30 dias</span>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Clients Table - Full Width */}
         <Card>
           <CardContent className="p-0">
