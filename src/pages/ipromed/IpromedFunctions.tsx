@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/table";
 import {
   Plus, Briefcase, Trash2, Pencil, Search, Users, Shield, Scale,
-  FileText, Gavel, BookOpen, AlertCircle, Loader2,
+  FileText, Gavel, BookOpen, AlertCircle, Loader2, ArrowUpDown, ArrowUp, ArrowDown,
+  BarChart3, Tag, Hash,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -59,6 +60,8 @@ export default function IpromedFunctions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLawyer, setFilterLawyer] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [sortColumn, setSortColumn] = useState<"lawyer_name" | "title" | "category">("lawyer_name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const [form, setForm] = useState({
     lawyer_name: "",
@@ -151,13 +154,41 @@ export default function IpromedFunctions() {
     if (filterCategory !== "all" && fn.category !== filterCategory) return false;
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
-      return fn.title.toLowerCase().includes(s) || (fn.description || "").toLowerCase().includes(s);
+      return fn.title.toLowerCase().includes(s) || (fn.description || "").toLowerCase().includes(s) || fn.lawyer_name.toLowerCase().includes(s);
     }
     return true;
+  }).sort((a, b) => {
+    const valA = a[sortColumn].toLowerCase();
+    const valB = b[sortColumn].toLowerCase();
+    return sortDir === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valA);
   });
 
   const getCategoryInfo = (cat: string) => CATEGORIES.find(c => c.value === cat) || CATEGORIES[CATEGORIES.length - 1];
   const getLawyerInfo = (name: string) => LAWYERS.find(l => l.value === name);
+
+  const toggleSort = (col: "lawyer_name" | "title" | "category") => {
+    if (sortColumn === col) {
+      setSortDir(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(col);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ col }: { col: string }) => {
+    if (sortColumn !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
+  // Compute insights
+  const uniqueLawyers = [...new Set(functions.map(f => f.lawyer_name))];
+  const uniqueCategories = [...new Set(functions.map(f => f.category))];
+  const topCategory = uniqueCategories.length > 0
+    ? uniqueCategories.reduce((best, cat) => {
+        const count = functions.filter(f => f.category === cat).length;
+        return count > (best.count || 0) ? { cat, count } : best;
+      }, { cat: "", count: 0 })
+    : { cat: "", count: 0 };
 
   return (
     <div className="space-y-6">
@@ -178,12 +209,87 @@ export default function IpromedFunctions() {
         </Button>
       </div>
 
+      {/* Insight Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="border shadow-sm">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Hash className="h-5 w-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold">{functions.length}</p>
+              <p className="text-xs text-muted-foreground">Total de Funções</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border shadow-sm">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold">{uniqueLawyers.length}</p>
+              <p className="text-xs text-muted-foreground">Responsáveis</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border shadow-sm">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+              <Tag className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-bold">{uniqueCategories.length}</p>
+              <p className="text-xs text-muted-foreground">Categorias</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border shadow-sm">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+              <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold truncate">{topCategory.cat ? getCategoryInfo(topCategory.cat).label : "—"}</p>
+              <p className="text-xs text-muted-foreground">Top Categoria ({topCategory.count})</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Per-Lawyer Breakdown */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+        {uniqueLawyers.sort().map(name => {
+          const info = getLawyerInfo(name);
+          const count = functions.filter(f => f.lawyer_name === name).length;
+          const isActive = filterLawyer === name;
+          return (
+            <button
+              key={name}
+              onClick={() => setFilterLawyer(isActive ? "all" : name)}
+              className={`flex items-center gap-2 p-2.5 rounded-lg border text-left transition-all hover:shadow-sm ${isActive ? 'ring-2 ring-primary bg-primary/5' : 'bg-card hover:bg-muted/40'}`}
+            >
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarImage src={info?.photo} alt={name} className="object-cover" />
+                <AvatarFallback className={`text-xs ${info?.color || ''}`}>
+                  {name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold truncate">{name.split(" ")[0]}</p>
+                <p className="text-[10px] text-muted-foreground">{count} {count === 1 ? "função" : "funções"}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar funções..."
+            placeholder="Buscar por nome, título..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -213,40 +319,13 @@ export default function IpromedFunctions() {
         </Select>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {LAWYERS.map(lawyer => {
-          const count = functions.filter(f => f.lawyer_name === lawyer.value).length;
-          return (
-            <Card key={lawyer.value} className={`border shadow-sm cursor-pointer hover:shadow-md transition-shadow ${filterLawyer === lawyer.value ? 'ring-2 ring-primary' : ''}`}
-              onClick={() => setFilterLawyer(filterLawyer === lawyer.value ? "all" : lawyer.value)}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={lawyer.photo} alt={lawyer.label} className="object-cover" />
-                  <AvatarFallback className={lawyer.color}>
-                    {lawyer.label.split(" ").map(n => n[0]).join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <p className="font-semibold text-sm truncate">{lawyer.label.split(" ")[0]}</p>
-                  <p className="text-xs text-muted-foreground">{count} {count === 1 ? "função" : "funções"}</p>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-        <Card className="border shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Briefcase className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-semibold text-sm">Total</p>
-              <p className="text-xs text-muted-foreground">{functions.length} funções</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Results count */}
+      {!loading && (
+        <p className="text-xs text-muted-foreground">
+          {filtered.length} de {functions.length} funções
+          {filterLawyer !== "all" || filterCategory !== "all" || searchTerm ? " (filtrado)" : ""}
+        </p>
+      )}
 
       {/* Table */}
       {loading ? (
@@ -267,9 +346,15 @@ export default function IpromedFunctions() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead className="w-[220px]">Responsável</TableHead>
-                  <TableHead>Função</TableHead>
-                  <TableHead className="w-[160px]">Categoria</TableHead>
+                  <TableHead className="w-[220px] cursor-pointer select-none" onClick={() => toggleSort("lawyer_name")}>
+                    <span className="flex items-center">Responsável <SortIcon col="lawyer_name" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("title")}>
+                    <span className="flex items-center">Função <SortIcon col="title" /></span>
+                  </TableHead>
+                  <TableHead className="w-[160px] cursor-pointer select-none" onClick={() => toggleSort("category")}>
+                    <span className="flex items-center">Categoria <SortIcon col="category" /></span>
+                  </TableHead>
                   <TableHead className="w-[80px] text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
