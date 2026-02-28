@@ -393,6 +393,7 @@ export default function AstreaStyleAgenda() {
                 created_at: new Date().toISOString(),
                 ipromed_legal_clients: { name: client.name },
                 deadline_type_id: null,
+                assigned_to: null,
                 doc_elaborated: false,
                 doc_delivered: false,
                 prazo_done: false,
