@@ -60,6 +60,11 @@ import {
   Settings2,
   Cake,
   Stethoscope,
+  CalendarDays,
+  Calendar,
+  CalendarRange,
+  List,
+  MapPin,
 } from "lucide-react";
 import {
   format,
@@ -231,7 +236,7 @@ export default function AstreaStyleAgenda() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'list'>('month');
   const [assigneeFilter, setAssigneeFilter] = useState('mine');
   const [activityFilter, setActivityFilter] = useState('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -760,6 +765,9 @@ export default function AstreaStyleAgenda() {
 
   // Generate calendar days based on view mode
   const calendarDays = useMemo(() => {
+    if (viewMode === 'day') {
+      return [currentDate];
+    }
     if (viewMode === 'week') {
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
       return eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
@@ -779,14 +787,20 @@ export default function AstreaStyleAgenda() {
   }, [calendarDays]);
 
   const navigatePrev = () => {
-    if (viewMode === 'week') {
+    if (viewMode === 'day') {
+      setCurrentDate(addDays(currentDate, -1));
+      setSelectedDate(addDays(currentDate, -1));
+    } else if (viewMode === 'week') {
       setCurrentDate(addDays(currentDate, -7));
     } else {
       setCurrentDate(subMonths(currentDate, 1));
     }
   };
   const navigateNext = () => {
-    if (viewMode === 'week') {
+    if (viewMode === 'day') {
+      setCurrentDate(addDays(currentDate, 1));
+      setSelectedDate(addDays(currentDate, 1));
+    } else if (viewMode === 'week') {
       setCurrentDate(addDays(currentDate, 7));
     } else {
       setCurrentDate(addMonths(currentDate, 1));
@@ -990,20 +1004,32 @@ export default function AstreaStyleAgenda() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <Select value={viewMode} onValueChange={(v) => setViewMode(v as 'month' | 'week')}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Por mês" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">Por semana</SelectItem>
-            <SelectItem value="month">Por mês</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* View Mode Toggle Buttons */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center bg-muted/50 rounded-lg p-1 gap-0.5">
+          {[
+            { id: 'day' as const, label: 'Dia', icon: CalendarDays },
+            { id: 'week' as const, label: 'Semana', icon: CalendarRange },
+            { id: 'month' as const, label: 'Mês', icon: Calendar },
+            { id: 'list' as const, label: 'Lista', icon: List },
+          ].map((mode) => (
+            <Button
+              key={mode.id}
+              variant={viewMode === mode.id ? 'default' : 'ghost'}
+              size="sm"
+              className={`gap-1.5 h-8 px-3 text-xs font-medium ${viewMode === mode.id ? '' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setViewMode(mode.id)}
+            >
+              <mode.icon className="h-3.5 w-3.5" />
+              {mode.label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="h-6 w-px bg-border mx-1" />
 
         <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[170px] h-8 text-xs">
             <SelectValue placeholder="Minhas atribuições" />
           </SelectTrigger>
           <SelectContent>
@@ -1014,7 +1040,7 @@ export default function AstreaStyleAgenda() {
         </Select>
 
         <Select value={activityFilter} onValueChange={setActivityFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[170px] h-8 text-xs">
             <SelectValue placeholder="Todas as atividades" />
           </SelectTrigger>
           <SelectContent>
@@ -1029,8 +1055,8 @@ export default function AstreaStyleAgenda() {
         {/* Color Legend Popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Palette className="h-4 w-4" />
+            <Button variant="outline" size="sm" className="gap-2 h-8">
+              <Palette className="h-3.5 w-3.5" />
               Cores
             </Button>
           </PopoverTrigger>
@@ -1067,35 +1093,25 @@ export default function AstreaStyleAgenda() {
           </PopoverContent>
         </Popover>
 
-        <Button variant="outline" size="icon">
-          <Tag className="h-4 w-4" />
+        <Button variant="outline" size="icon" className="h-8 w-8">
+          <Tag className="h-3.5 w-3.5" />
         </Button>
-        <Button variant="outline" size="icon">
-          <Search className="h-4 w-4" />
+        <Button variant="outline" size="icon" className="h-8 w-8">
+          <Search className="h-3.5 w-3.5" />
         </Button>
       </div>
 
-      {/* Main Content - Calendar + Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        {/* Calendar */}
+      {/* Main Content */}
+      {viewMode === 'list' ? (
+        /* === LIST VIEW === */
         <Card className="border shadow-sm">
           <CardHeader className="pb-3 border-b">
             <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold capitalize">
+                {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+              </h2>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold capitalize">
-                  {viewMode === 'week' 
-                    ? `${format(calendarDays[0], "d MMM", { locale: ptBR })} — ${format(calendarDays[6], "d MMM yyyy", { locale: ptBR })}`
-                    : format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })
-                  }
-                </h2>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={goToToday}>
-                  HOJE
-                </Button>
+                <Button variant="ghost" size="sm" onClick={goToToday}>HOJE</Button>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={navigatePrev}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -1106,92 +1122,319 @@ export default function AstreaStyleAgenda() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            {/* Week Days Header */}
-            <div className="grid grid-cols-7 border-b">
-              {['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'].map((day) => (
-                <div key={day} className="py-2 text-center text-xs font-medium text-muted-foreground">
-                  {day}
-                </div>
-              ))}
-            </div>
+            <ScrollArea className="h-[calc(100vh-300px)]">
+              <div className="divide-y">
+                {(() => {
+                  // Group filtered appointments by day within the current month
+                  const monthAppointments = filteredAppointments
+                    .filter(apt => isSameMonth(parseISO(apt.start_datetime), currentDate))
+                    .sort((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime());
 
-            {/* Calendar Grid */}
-            <div className="divide-y">
-              {weeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="grid grid-cols-7 divide-x">
-                  {week.map((day) => {
-                    const dayAppointments = getAppointmentsForDay(day);
-                    const isCurrentMonth = isSameMonth(day, currentDate);
+                  if (monthAppointments.length === 0) {
+                    return (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <CalendarDays className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                        <p className="text-sm">Nenhuma atividade neste mês</p>
+                      </div>
+                    );
+                  }
+
+                  const grouped: Record<string, Appointment[]> = {};
+                  monthAppointments.forEach(apt => {
+                    const key = format(parseISO(apt.start_datetime), 'yyyy-MM-dd');
+                    if (!grouped[key]) grouped[key] = [];
+                    grouped[key].push(apt);
+                  });
+
+                  return Object.entries(grouped).map(([dateKey, dayApts]) => {
+                    const day = parseISO(dateKey);
                     const dayIsToday = isToday(day);
-                    const isSelected = isSameDay(day, selectedDate);
-                    const maxVisible = 3;
+                    return (
+                      <div key={dateKey} className="flex">
+                        {/* Date column */}
+                        <div className={`w-24 shrink-0 p-4 text-center border-r ${dayIsToday ? 'bg-primary/5' : 'bg-muted/20'}`}>
+                          <div className={`text-2xl font-bold ${dayIsToday ? 'text-primary' : 'text-foreground'}`}>
+                            {format(day, 'd')}
+                          </div>
+                          <div className={`text-xs uppercase font-medium ${dayIsToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                            {format(day, 'EEE', { locale: ptBR })}
+                          </div>
+                          {dayIsToday && (
+                            <Badge className="mt-1 text-[10px] px-1.5 py-0">Hoje</Badge>
+                          )}
+                        </div>
+                        {/* Events column */}
+                        <div className="flex-1 p-3 space-y-2">
+                          {dayApts.map(apt => {
+                            const config = typeConfig[apt.appointment_type] || typeConfig.reuniao;
+                            const IconComponent = config.icon;
+                            return (
+                              <div
+                                key={apt.id}
+                                className={`flex items-center gap-3 p-3 rounded-lg border-l-4 ${config.borderColor} ${config.bgColor} cursor-pointer hover:shadow-sm transition-shadow`}
+                                onClick={(e) => openEventDetail(apt, e)}
+                              >
+                                <div className={`p-1.5 rounded-md ${config.bgColor}`}>
+                                  <IconComponent className={`h-4 w-4 ${config.color}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-sm truncate">{apt.title}</span>
+                                    {apt.priority === 'urgent' && (
+                                      <Badge className="bg-rose-500 text-white text-[10px] px-1.5 py-0 h-4 shrink-0">Urgente</Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+                                    {!apt.all_day && (
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {format(parseISO(apt.start_datetime), 'HH:mm')}
+                                        {apt.end_datetime && ` - ${format(parseISO(apt.end_datetime), 'HH:mm')}`}
+                                      </span>
+                                    )}
+                                    {apt.ipromed_legal_clients?.name && (
+                                      <span className="flex items-center gap-1 truncate">
+                                        <Users className="h-3 w-3" />
+                                        {apt.ipromed_legal_clients.name}
+                                      </span>
+                                    )}
+                                    {apt.location && (
+                                      <span className="flex items-center gap-1 truncate">
+                                        <MapPin className="h-3 w-3" />
+                                        {apt.location}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <Badge variant="outline" className={`text-[10px] shrink-0 ${config.color}`}>
+                                  {config.label}
+                                </Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      ) : viewMode === 'day' ? (
+        /* === DAY VIEW === */
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-3 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold capitalize">
+                  {format(currentDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={goToToday}>HOJE</Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={navigatePrev}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={navigateNext}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[calc(100vh-340px)]">
+                <div className="divide-y">
+                  {Array.from({ length: 14 }, (_, i) => i + 7).map(hour => {
+                    const hourStr = `${String(hour).padStart(2, '0')}:00`;
+                    const hourAppts = filteredAppointments.filter(apt => {
+                      if (!isSameDay(parseISO(apt.start_datetime), currentDate)) return false;
+                      const aptHour = parseISO(apt.start_datetime).getHours();
+                      return aptHour === hour;
+                    });
 
                     return (
-                      <div
-                        key={day.toISOString()}
-                        className={`min-h-[100px] p-1 cursor-pointer transition-colors
-                          ${!isCurrentMonth ? 'bg-muted/30' : 'hover:bg-muted/20'}
-                          ${isSelected ? 'bg-primary/5 ring-1 ring-primary/30' : ''}
-                        `}
-                        onClick={() => handleDayClick(day)}
-                      >
-                        <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full
-                          ${dayIsToday ? 'bg-primary text-primary-foreground' : ''}
-                          ${!isCurrentMonth ? 'text-muted-foreground' : ''}
-                        `}>
-                          {format(day, 'd')}
+                      <div key={hour} className="flex min-h-[60px] hover:bg-muted/10 transition-colors">
+                        <div className="w-16 shrink-0 py-2 px-3 text-right text-xs text-muted-foreground font-medium border-r">
+                          {hourStr}
                         </div>
-                        <div className="space-y-0.5">
-                          {dayAppointments.slice(0, maxVisible).map(renderCalendarEvent)}
-                          {dayAppointments.length > maxVisible && (
-                            <div className="text-[10px] text-muted-foreground text-center">
-                              mais {dayAppointments.length - maxVisible}
-                            </div>
-                          )}
+                        <div className="flex-1 p-1.5 space-y-1">
+                          {hourAppts.map(apt => {
+                            const config = typeConfig[apt.appointment_type] || typeConfig.reuniao;
+                            const IconComponent = config.icon;
+                            return (
+                              <div
+                                key={apt.id}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border-l-4 ${config.borderColor} ${config.calendarBg} cursor-pointer hover:shadow-sm transition-shadow`}
+                                onClick={(e) => openEventDetail(apt, e)}
+                              >
+                                <IconComponent className={`h-3.5 w-3.5 ${config.color} shrink-0`} />
+                                <span className={`text-sm font-medium truncate ${config.calendarText}`}>
+                                  {format(parseISO(apt.start_datetime), 'HH:mm')} {apt.title}
+                                </span>
+                                {apt.ipromed_legal_clients?.name && (
+                                  <span className="text-xs text-muted-foreground truncate ml-auto">
+                                    {apt.ipromed_legal_clients.name}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              ))}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Sidebar - Day Details */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold capitalize">
+                {format(selectedDate, "EEE, d MMM yyyy", { locale: ptBR })}
+              </h3>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground">
+                {selectedDayAppointments.length} atividade{selectedDayAppointments.length !== 1 ? 's' : ''}
+              </span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Sidebar - Day Details */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold capitalize">
-              {format(selectedDate, "EEE, d MMM yyyy", { locale: ptBR })}
-            </h3>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground">
-              {selectedDayAppointments.length} atividade{selectedDayAppointments.length !== 1 ? 's' : ''}
-            </span>
+            <ScrollArea className="h-[calc(100vh-340px)]">
+              <div className="space-y-3 pr-4">
+                {selectedDayAppointments.length > 0 ? (
+                  selectedDayAppointments.map(renderSidebarEvent)
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="text-sm">Nenhuma atividade neste dia</p>
+                    <Button variant="outline" size="sm" className="mt-4" onClick={openNewEventForm}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar atividade
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </div>
-
-          <ScrollArea className="h-[calc(100vh-340px)]">
-            <div className="space-y-3 pr-4">
-              {selectedDayAppointments.length > 0 ? (
-                selectedDayAppointments.map(renderSidebarEvent)
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className="text-sm">Nenhuma atividade neste dia</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-4"
-                    onClick={openNewEventForm}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar atividade
+        </div>
+      ) : (
+        /* === MONTH / WEEK VIEW === */
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          {/* Calendar */}
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-3 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold capitalize">
+                    {viewMode === 'week' 
+                      ? `${format(calendarDays[0], "d MMM", { locale: ptBR })} — ${format(calendarDays[6], "d MMM yyyy", { locale: ptBR })}`
+                      : format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })
+                    }
+                  </h2>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <ChevronLeft className="h-4 w-4" />
                   </Button>
                 </div>
-              )}
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={goToToday}>
+                    HOJE
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={navigatePrev}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={navigateNext}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {/* Week Days Header */}
+              <div className="grid grid-cols-7 border-b">
+                {['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'].map((day) => (
+                  <div key={day} className="py-2 text-center text-xs font-medium text-muted-foreground">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="divide-y">
+                {weeks.map((week, weekIndex) => (
+                  <div key={weekIndex} className="grid grid-cols-7 divide-x">
+                    {week.map((day) => {
+                      const dayAppointments = getAppointmentsForDay(day);
+                      const isCurrentMonth = isSameMonth(day, currentDate);
+                      const dayIsToday = isToday(day);
+                      const isSelected = isSameDay(day, selectedDate);
+                      const maxVisible = 3;
+
+                      return (
+                        <div
+                          key={day.toISOString()}
+                          className={`min-h-[100px] p-1 cursor-pointer transition-colors
+                            ${!isCurrentMonth ? 'bg-muted/30' : 'hover:bg-muted/20'}
+                            ${isSelected ? 'bg-primary/5 ring-1 ring-primary/30' : ''}
+                          `}
+                          onClick={() => handleDayClick(day)}
+                        >
+                          <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full
+                            ${dayIsToday ? 'bg-primary text-primary-foreground' : ''}
+                            ${!isCurrentMonth ? 'text-muted-foreground' : ''}
+                          `}>
+                            {format(day, 'd')}
+                          </div>
+                          <div className="space-y-0.5">
+                            {dayAppointments.slice(0, maxVisible).map(renderCalendarEvent)}
+                            {dayAppointments.length > maxVisible && (
+                              <div className="text-[10px] text-muted-foreground text-center">
+                                mais {dayAppointments.length - maxVisible}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Sidebar - Day Details */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold capitalize">
+                {format(selectedDate, "EEE, d MMM yyyy", { locale: ptBR })}
+              </h3>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground">
+                {selectedDayAppointments.length} atividade{selectedDayAppointments.length !== 1 ? 's' : ''}
+              </span>
             </div>
-          </ScrollArea>
+
+            <ScrollArea className="h-[calc(100vh-340px)]">
+              <div className="space-y-3 pr-4">
+                {selectedDayAppointments.length > 0 ? (
+                  selectedDayAppointments.map(renderSidebarEvent)
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="text-sm">Nenhuma atividade neste dia</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                      onClick={openNewEventForm}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar atividade
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* New/Edit Event Dialog */}
       <Dialog open={isFormOpen} onOpenChange={(open) => {
