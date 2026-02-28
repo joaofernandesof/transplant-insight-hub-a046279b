@@ -280,10 +280,11 @@ export function TaskStatsCards() {
             <Card 
               key={card.label} 
               className={cn(
-                "border-l-4 border-none shadow-sm",
+                "border-l-4 border-none shadow-sm cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200",
                 card.borderColor,
                 card.bgColor
               )}
+              onClick={() => navigate(`/cpg/tasks?filter=${card.filter}&view=list`)}
             >
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-start justify-between">
