@@ -291,16 +291,14 @@ export default function OnboardingPublicForm() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-[#1a365d] text-white py-8">
-        <div className="max-w-2xl mx-auto px-4">
+      <div className="bg-[#2d4a2e] text-white py-8">
+        <div className="max-w-2xl mx-auto px-4 flex flex-col items-center text-center">
+          <img src={cpgLogo} alt="CPG Advocacia Médica" className="h-16 md:h-20 mb-4 object-contain" />
           <h1 className="text-2xl md:text-3xl font-bold">
-            📋 Questionário de Onboarding
+            Questionário de Onboarding
           </h1>
-          <p className="text-blue-200 mt-2 text-sm md:text-base">
-            CPG Advocacia Médica{clientName ? ` — ${clientName}` : ''}
-          </p>
-          <p className="text-blue-300 mt-1 text-xs md:text-sm">
-            Preencha com os dados da sua clínica para que possamos finalizar a documentação.
+          <p className="text-white/70 mt-2 text-sm md:text-base">
+            {clientName ? `${clientName} — ` : ''}Preencha com os dados da sua clínica para que possamos finalizar a documentação.
           </p>
         </div>
       </div>
