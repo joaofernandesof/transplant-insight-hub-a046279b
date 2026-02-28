@@ -31,6 +31,7 @@ import {
   ExternalLink,
   BarChart3,
   UserCog,
+  ArrowDown,
 } from 'lucide-react';
 
 // Portais do ecossistema
