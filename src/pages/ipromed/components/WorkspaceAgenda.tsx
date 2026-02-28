@@ -534,7 +534,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
   return (
     <>
       <div
-        className={`p-1.5 rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all cursor-pointer overflow-hidden min-w-0`}
+        className={`${compact ? 'p-1' : 'p-1.5'} rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all cursor-pointer overflow-hidden min-w-0 h-full`}
         onClick={() => setOpen(true)}
       >
         {compact ? (
