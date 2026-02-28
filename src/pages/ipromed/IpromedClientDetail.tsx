@@ -435,10 +435,6 @@ export default function IpromedClientDetail() {
                     {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge className={`${status.color} text-white`}>{status.label}</Badge>
-                </div>
               </div>
 
               {/* Address within same card */}
