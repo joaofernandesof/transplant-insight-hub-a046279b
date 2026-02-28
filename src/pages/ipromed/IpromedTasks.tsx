@@ -253,9 +253,13 @@ export default function IpromedTasks() {
   }, [filteredTasks]);
 
   const tasksByDueDate = useMemo(() => {
-    const grouped: Record<string, Task[]> = { overdue: [], today: [], tomorrow: [], upcoming: [], no_date: [] };
+    const grouped: Record<string, Task[]> = { overdue: [], today: [], tomorrow: [], upcoming: [], no_date: [], completed: [] };
     const now = new Date();
-    filteredTasks.filter(t => t.status !== "done").forEach((task) => {
+    filteredTasks.forEach((task) => {
+      if (task.status === "done") {
+        grouped.completed.push(task);
+        return;
+      }
       if (!task.due_date) {
         grouped.no_date.push(task);
       } else {
@@ -271,6 +275,8 @@ export default function IpromedTasks() {
         }
       }
     });
+    // Sort completed by completed_at desc
+    grouped.completed.sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''));
     return grouped;
   }, [filteredTasks]);
 
@@ -411,13 +417,14 @@ export default function IpromedTasks() {
         ) : viewMode === "kanban" ? (
           /* ===== KANBAN BY DUE DATE ===== */
           <div className="h-full">
-            <div className="grid grid-cols-5 gap-3 h-full">
+            <div className="grid grid-cols-6 gap-3 h-full">
               {([
                 { id: "overdue" as const, label: "Em atraso", headerBg: "bg-rose-500", columnBg: "bg-rose-50/60 dark:bg-rose-950/20", cardBorder: "border-l-rose-500" },
                 { id: "today" as const, label: "Hoje", headerBg: "bg-amber-500", columnBg: "bg-amber-50/60 dark:bg-amber-950/20", cardBorder: "border-l-amber-500" },
                 { id: "tomorrow" as const, label: "Amanhã", headerBg: "bg-blue-500", columnBg: "bg-blue-50/60 dark:bg-blue-950/20", cardBorder: "border-l-blue-500" },
                 { id: "upcoming" as const, label: "Próximos dias", headerBg: "bg-emerald-500", columnBg: "bg-emerald-50/60 dark:bg-emerald-950/20", cardBorder: "border-l-emerald-500" },
                 { id: "no_date" as const, label: "Sem prazo", headerBg: "bg-slate-400", columnBg: "bg-slate-50/60 dark:bg-slate-950/20", cardBorder: "border-l-slate-400" },
+                { id: "completed" as const, label: "Concluídas", headerBg: "bg-emerald-600", columnBg: "bg-emerald-50/40 dark:bg-emerald-950/10", cardBorder: "border-l-emerald-600" },
               ]).map((column) => {
                 const columnTasks = tasksByDueDate[column.id] || [];
 
@@ -451,7 +458,7 @@ export default function IpromedTasks() {
                                 onClick={() => { setSelectedTask(task); setIsDetailOpen(true); }}
                               >
                                 <div className="flex items-start gap-2">
-                                  <p className="font-semibold text-xs line-clamp-2 flex-1 min-w-0">{task.title}</p>
+                                  <p className={cn("font-semibold text-xs line-clamp-2 flex-1 min-w-0", column.id === "completed" && "line-through text-muted-foreground")}>{task.title}</p>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                       <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 flex-shrink-0 rounded-lg">
@@ -479,12 +486,17 @@ export default function IpromedTasks() {
                                       <Flag className="h-2.5 w-2.5" />{pCfg.label}
                                     </div>
                                   )}
-                                  {task.due_date && (
+                                  {column.id === "completed" && task.completed_at ? (
+                                    <span className="text-[10px] text-emerald-600 flex items-center gap-0.5 ml-auto">
+                                      <CheckSquare className="h-2.5 w-2.5" />
+                                      {format(new Date(task.completed_at), "dd MMM", { locale: ptBR })}
+                                    </span>
+                                  ) : task.due_date ? (
                                     <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 ml-auto">
                                       <CalendarClock className="h-2.5 w-2.5" />
                                       {format(new Date(task.due_date), "dd MMM", { locale: ptBR })}
                                     </span>
-                                  )}
+                                  ) : null}
                                 </div>
                                 {task.assigned_to_name && (
                                   <span className="text-[10px] text-muted-foreground mt-1 block truncate">{task.assigned_to_name}</span>
@@ -496,13 +508,15 @@ export default function IpromedTasks() {
                       </div>
                     </ScrollArea>
 
-                    <button
-                      className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-t bg-background"
-                      onClick={() => { setEditingTask(null); setIsFormOpen(true); }}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      Adicionar Tarefa
-                    </button>
+                    {column.id !== "completed" && (
+                      <button
+                        className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-t bg-background"
+                        onClick={() => { setEditingTask(null); setIsFormOpen(true); }}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Adicionar Tarefa
+                      </button>
+                    )}
                   </div>
                 );
               })}
