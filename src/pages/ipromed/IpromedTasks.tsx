@@ -486,12 +486,17 @@ export default function IpromedTasks() {
                                       <Flag className="h-2.5 w-2.5" />{pCfg.label}
                                     </div>
                                   )}
-                                  {task.due_date && (
+                                  {column.id === "completed" && task.completed_at ? (
+                                    <span className="text-[10px] text-emerald-600 flex items-center gap-0.5 ml-auto">
+                                      <CheckSquare className="h-2.5 w-2.5" />
+                                      {format(new Date(task.completed_at), "dd MMM", { locale: ptBR })}
+                                    </span>
+                                  ) : task.due_date ? (
                                     <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 ml-auto">
                                       <CalendarClock className="h-2.5 w-2.5" />
                                       {format(new Date(task.due_date), "dd MMM", { locale: ptBR })}
                                     </span>
-                                  )}
+                                  ) : null}
                                 </div>
                                 {task.assigned_to_name && (
                                   <span className="text-[10px] text-muted-foreground mt-1 block truncate">{task.assigned_to_name}</span>
