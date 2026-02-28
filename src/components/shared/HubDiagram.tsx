@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Heart, Users, GraduationCap, Building2, Zap, Scale, CreditCard } from 'lucide-react';
+import { Heart, Users, GraduationCap, Building2, Zap, Scale, CreditCard, Flame, UserCog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 
