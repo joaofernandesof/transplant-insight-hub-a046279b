@@ -363,7 +363,15 @@ export function WorkspaceAgenda() {
                           <div className="w-10 shrink-0 text-[10px] text-muted-foreground font-mono py-1 text-center border-r border-border/20 bg-muted/20">
                             {String(hour).padStart(2, '0')}h
                           </div>
-                          <div className="flex-1 p-1 space-y-1">
+                          <div
+                            className={`flex-1 p-1 space-y-1 ${hourAppts.length === 0 ? 'cursor-pointer hover:bg-primary/5 transition-colors' : ''}`}
+                            onClick={() => {
+                              if (hourAppts.length === 0) {
+                                navigate(`/cpg/agenda?new=1&date=${key}&time=${String(hour).padStart(2, '0')}:00`);
+                              }
+                            }}
+                            title={hourAppts.length === 0 ? 'Clique para criar agendamento' : undefined}
+                          >
                             {hourAppts.map((apt) => (
                               <KanbanAppointmentCard key={apt.id} appointment={apt} />
                             ))}
