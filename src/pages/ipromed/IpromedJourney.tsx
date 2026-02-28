@@ -260,7 +260,7 @@ function DraggableClientCard({
               className="font-medium text-sm hover:text-primary cursor-pointer leading-tight break-words"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/cpg/clients/${client.id}`);
+                onViewJourney(client);
               }}
             >
               {client.name}
