@@ -1652,6 +1652,123 @@ export default function IpromedJourney() {
         />
       )}
 
+      {/* Journey Detail Dialog */}
+      <Dialog open={!!journeyDetailClient} onOpenChange={(open) => !open && setJourneyDetailClient(null)}>
+        <DialogContent className="max-w-lg">
+          {journeyDetailClient && (() => {
+            const c = journeyDetailClient;
+            const meta = c.metadata as any;
+            const phase = getClientPhase(c);
+            const phaseInfo = allPhases.find(p => p.id === phase);
+            const sla = getClientSlaInfo(c, phase);
+            const history = (meta?.phase_history || []) as { phase: string; entered_at: string; left_at: string }[];
+            const startDate = meta?.journey_start_date || c.created_at;
+            const totalDays = differenceInDays(new Date(), new Date(startDate));
+
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className={cn("text-white text-sm", phaseInfo?.color || 'bg-primary')}>
+                        {c.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p>{c.name}</p>
+                      <p className="text-sm font-normal text-muted-foreground">{c.email || c.phone}</p>
+                    </div>
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                  {/* Current Phase */}
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Etapa Atual</p>
+                      <p className="font-semibold">{phaseInfo?.fullLabel || phaseInfo?.label}</p>
+                    </div>
+                    <Badge className={cn(
+                      sla.status === 'overdue' ? 'bg-destructive text-destructive-foreground' :
+                      sla.status === 'warning' ? 'bg-amber-500 text-white' :
+                      'bg-emerald-500 text-white'
+                    )}>
+                      {sla.slaLimit > 0 ? `${sla.daysInPhase}d / ${sla.slaLimit}d` : 'Sem SLA'}
+                    </Badge>
+                  </div>
+
+                  {/* SLA Progress */}
+                  {sla.slaLimit > 0 && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">Progresso do SLA</span>
+                        <span className={cn(
+                          sla.status === 'overdue' ? 'text-destructive font-medium' :
+                          sla.status === 'warning' ? 'text-amber-600 font-medium' : 'text-muted-foreground'
+                        )}>
+                          {sla.status === 'overdue' ? `${sla.daysInPhase - sla.slaLimit}d atrasado` : `${sla.slaLimit - sla.daysInPhase}d restantes`}
+                        </span>
+                      </div>
+                      <Progress value={Math.min(100, sla.percent)} className="h-2" />
+                    </div>
+                  )}
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Na jornada há</p>
+                      <p className="text-lg font-bold">{totalDays} dias</p>
+                    </div>
+                    <div className="p-3 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Etapas percorridas</p>
+                      <p className="text-lg font-bold">{history.length + 1}</p>
+                    </div>
+                  </div>
+
+                  {/* Phase Timeline */}
+                  {history.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Histórico de Etapas</p>
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {history.map((h, i) => {
+                          const pInfo = allPhases.find(p => p.id === h.phase);
+                          const days = differenceInDays(new Date(h.left_at), new Date(h.entered_at));
+                          return (
+                            <div key={i} className="flex items-center gap-3 text-sm">
+                              <div className={cn("h-2 w-2 rounded-full shrink-0", pInfo?.color || 'bg-muted')} />
+                              <span className="flex-1 truncate">{pInfo?.label || h.phase}</span>
+                              <span className="text-muted-foreground text-xs">{days}d</span>
+                              <span className="text-muted-foreground text-xs">{format(new Date(h.entered_at), 'dd/MM')}</span>
+                            </div>
+                          );
+                        })}
+                        {/* Current phase */}
+                        <div className="flex items-center gap-3 text-sm font-medium">
+                          <div className={cn("h-2 w-2 rounded-full shrink-0", phaseInfo?.color || 'bg-muted')} />
+                          <span className="flex-1 truncate">{phaseInfo?.label} (atual)</span>
+                          <span className="text-muted-foreground text-xs">{sla.daysInPhase}d</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button variant="outline" onClick={() => setJourneyDetailClient(null)}>Fechar</Button>
+                  <Button onClick={() => {
+                    setJourneyDetailClient(null);
+                    navigate(`/cpg/clients/${c.id}`);
+                  }}>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Ver Página do Cliente
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
