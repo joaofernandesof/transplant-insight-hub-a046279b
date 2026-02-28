@@ -116,6 +116,7 @@ interface Appointment {
   created_at: string;
   ipromed_legal_clients?: { name: string } | null;
   deadline_type_id: string | null;
+  assigned_to: string | null;
   // Legacy fields (kept for compatibility)
   doc_elaborated: boolean;
   doc_delivered: boolean;
