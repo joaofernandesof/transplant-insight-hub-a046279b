@@ -59,6 +59,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { logClientActivity } from "./ClientActivityTimeline";
+import { Link2, ClipboardCopy } from "lucide-react";
 
 // Interface para participantes
 interface Participant {
