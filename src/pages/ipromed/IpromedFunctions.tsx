@@ -60,6 +60,8 @@ export default function IpromedFunctions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLawyer, setFilterLawyer] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [sortColumn, setSortColumn] = useState<"lawyer_name" | "title" | "category">("lawyer_name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const [form, setForm] = useState({
     lawyer_name: "",
