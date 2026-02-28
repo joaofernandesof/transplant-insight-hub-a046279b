@@ -70,6 +70,7 @@ const PORTAL_BG_COLORS: Record<Portal, string> = {
   hotleads: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800',
   vision: 'bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800',
   neopay: 'bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800',
+  neorh: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800',
 };
 
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];

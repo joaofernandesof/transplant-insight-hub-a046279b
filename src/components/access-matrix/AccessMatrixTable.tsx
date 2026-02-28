@@ -92,6 +92,7 @@ const PORTAL_ACCENT: Record<Portal, string> = {
   hotleads: 'border-l-orange-600',
   vision: 'border-l-violet-500',
   neopay: 'border-l-teal-500',
+  neorh: 'border-l-indigo-500',
 };
 
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
