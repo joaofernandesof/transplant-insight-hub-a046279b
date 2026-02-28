@@ -90,11 +90,11 @@ export default function IpromedHome() {
       <div className="space-y-6">
         <h2 className="text-xl font-semibold mb-4">Área de Trabalho</h2>
         
-        {/* Tarefas */}
-        <WorkspaceTaskList />
-
         {/* Agenda */}
         <WorkspaceAgenda />
+
+        {/* Tarefas */}
+        <WorkspaceTaskList />
       </div>
 
     </div>
