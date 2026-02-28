@@ -1034,16 +1034,29 @@ export default function AstreaStyleAgenda() {
 
         <div className="h-6 w-px bg-border mx-1" />
 
-        <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-          <SelectTrigger className="w-[170px] h-8 text-xs">
-            <SelectValue placeholder="Minhas atribuições" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="mine">Minhas atribuições</SelectItem>
-            <SelectItem value="all">Todas atribuições</SelectItem>
-            <SelectItem value="team">Da equipe</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1.5">
+          {[
+            { value: 'all', label: 'Geral' },
+            { value: 'Dra. Caroline Parahyba', label: 'Dra. Caroline' },
+            { value: 'Dra. Larissa Guerreiro', label: 'Dra. Larissa' },
+            { value: 'Isabele Cartaxo', label: 'Isabele' },
+          ].map((opt) => (
+            <Button
+              key={opt.value}
+              variant={assigneeFilter === opt.value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setAssigneeFilter(opt.value)}
+              className="rounded-full px-3 h-7 text-xs"
+            >
+              {opt.label}
+              {opt.value !== 'all' && (
+                <Badge variant="secondary" className="ml-1.5 h-4 min-w-4 px-1 text-[10px] rounded-full">
+                  {appointments.filter(a => a.assigned_to === opt.value).length}
+                </Badge>
+              )}
+            </Button>
+          ))}
+        </div>
 
         <Select value={activityFilter} onValueChange={setActivityFilter}>
           <SelectTrigger className="w-[170px] h-8 text-xs">
