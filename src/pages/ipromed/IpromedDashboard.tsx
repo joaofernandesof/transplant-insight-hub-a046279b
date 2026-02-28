@@ -79,7 +79,7 @@ export default function IpromedDashboard() {
 
       // Calculate metrics
       const totalClients = clients?.length || 0;
-      const activeClients = clients?.filter(c => c.status === 'active')?.length || 0;
+      const activeClients = totalClients;
       
       const totalContracts = contracts?.length || 0;
       const activeContracts = contracts?.filter(c => ['active', 'signed'].includes(c.status))?.length || 0;

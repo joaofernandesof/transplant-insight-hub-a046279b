@@ -45,7 +45,7 @@ const clientSchema = z.object({
   phone: z.string().optional(),
   cpf_cnpj: z.string().optional(),
   client_type: z.enum(["pf", "pj"]),
-  status: z.enum(["prospect", "active", "churned"]),
+  
   risk_level: z.enum(["low", "medium", "high"]),
   journey_stage: z.enum(["prospect", "onboarding", "retention", "expansion", "advocacy"]),
   notes: z.string().optional(),
@@ -79,7 +79,6 @@ interface ClientFormModalProps {
     phone?: string | null;
     cpf_cnpj?: string | null;
     client_type?: string;
-    status?: string;
     risk_level?: string;
     journey_stage?: string;
     notes?: string | null;
@@ -127,7 +126,7 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
       phone: client?.phone || "",
       cpf_cnpj: client?.cpf_cnpj || "",
       client_type: (client?.client_type as "pf" | "pj") || "pf",
-      status: (client?.status as "prospect" | "active" | "churned") || "prospect",
+      
       risk_level: (client?.risk_level as "low" | "medium" | "high") || "low",
       journey_stage: (client?.journey_stage as "prospect" | "onboarding" | "retention" | "expansion" | "advocacy") || "prospect",
       notes: client?.notes || "",
@@ -156,7 +155,7 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
         phone: values.phone || null,
         cpf_cnpj: values.cpf_cnpj || null,
         client_type: values.client_type,
-        status: values.status,
+        
         risk_level: values.risk_level,
         journey_stage: values.journey_stage,
         notes: values.notes || null,
@@ -293,20 +292,6 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                       <FormItem>
                         <FormLabel className="flex items-center gap-1"><Cake className="h-3.5 w-3.5" /> Data de Nascimento</FormLabel>
                         <FormControl><Input type="date" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="status" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
-                          <SelectContent>
-                            <SelectItem value="prospect">Prospecto</SelectItem>
-                            <SelectItem value="active">Ativo</SelectItem>
-                            <SelectItem value="churned">Cancelado</SelectItem>
-                          </SelectContent>
-                        </Select>
                         <FormMessage />
                       </FormItem>
                     )} />

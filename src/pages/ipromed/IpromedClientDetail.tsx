@@ -225,7 +225,7 @@ export default function IpromedClientDetail() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const status = statusConfig[client.status] || statusConfig.prospect;
+  
   const risk = riskConfig[client.risk_level] || riskConfig.low;
   const RiskIcon = risk.icon;
 
@@ -271,7 +271,6 @@ export default function IpromedClientDetail() {
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-bold">{client.name}</h1>
-                  <Badge className={`${status.color} text-white`}>{status.label}</Badge>
                   {metadata?.partner && (
                     <Badge variant="outline">
                       <Building2 className="h-3 w-3 mr-1" />
@@ -435,10 +434,6 @@ export default function IpromedClientDetail() {
                   <p className="font-medium">
                     {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge className={`${status.color} text-white`}>{status.label}</Badge>
                 </div>
               </div>
 
@@ -671,7 +666,7 @@ export default function IpromedClientDetail() {
           phone: client.phone,
           cpf_cnpj: client.cpf_cnpj,
           client_type: client.client_type,
-          status: client.status,
+          
           risk_level: client.risk_level,
           journey_stage: client.journey_stage,
           notes: client.notes,

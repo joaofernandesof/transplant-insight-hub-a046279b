@@ -9695,7 +9695,6 @@ export type Database = {
           responsible_lawyer_id: string | null
           risk_level: Database["public"]["Enums"]["risk_level"] | null
           shared_contract_id: string | null
-          status: string | null
           updated_at: string | null
         }
         Insert: {
@@ -9723,7 +9722,6 @@ export type Database = {
           responsible_lawyer_id?: string | null
           risk_level?: Database["public"]["Enums"]["risk_level"] | null
           shared_contract_id?: string | null
-          status?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -9751,7 +9749,6 @@ export type Database = {
           responsible_lawyer_id?: string | null
           risk_level?: Database["public"]["Enums"]["risk_level"] | null
           shared_contract_id?: string | null
-          status?: string | null
           updated_at?: string | null
         }
         Relationships: [

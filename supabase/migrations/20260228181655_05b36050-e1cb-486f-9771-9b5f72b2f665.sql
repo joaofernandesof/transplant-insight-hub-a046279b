@@ -1,0 +1,1 @@
+ALTER TABLE public.ipromed_legal_clients DROP COLUMN IF EXISTS status;

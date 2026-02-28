@@ -141,7 +141,7 @@ interface Client {
   name: string;
   email: string | null;
   phone: string | null;
-  status: string;
+  
   journey_stage: string;
   created_at: string;
   metadata: {
@@ -667,7 +667,6 @@ export default function IpromedJourney() {
       const { data, error } = await supabase
         .from('ipromed_legal_clients')
         .select('*')
-        .in('status', ['active', 'inactive'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;

@@ -117,7 +117,7 @@ export default function IndicatorsDashboard() {
   const lostCases = cases.filter(c => c.status === 'suspended').length;
   
   const totalClients = clients.length;
-  const activeClients = clients.filter(c => c.status === 'ativo').length;
+  const activeClients = totalClients;
   
   const totalBilled = invoices.reduce((sum, i) => sum + Number(i.amount || 0), 0);
   const totalReceived = invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + Number(i.amount || 0), 0);

@@ -129,7 +129,6 @@ export default function AILegalAssistant() {
       const { data, error } = await supabase
         .from('ipromed_legal_clients')
         .select('id, name')
-        .eq('status', 'ativo')
         .order('name');
       
       if (error) throw error;

@@ -83,7 +83,7 @@ interface LegalClient {
   cpf_cnpj: string | null;
   client_number: string | null;
   client_type: string;
-  status: string;
+  
   risk_level: string;
   journey_stage: string;
   health_score: number | null;
@@ -148,7 +148,7 @@ export default function IpromedClients() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  
   const [journeyFilter, setJourneyFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [riskFilter, setRiskFilter] = useState<string>('all');
@@ -184,7 +184,7 @@ export default function IpromedClients() {
         (client.client_number?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         (client.address?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         (client.address?.state?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-      const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
+      const matchesStatus = true;
       const matchesJourney = journeyFilter === 'all' || (client.metadata?.journey_phase || client.journey_stage) === journeyFilter;
       const matchesPayment = paymentFilter === 'all' || client.metadata?.payment_status === paymentFilter;
       const matchesRisk = riskFilter === 'all' || client.risk_level === riskFilter;
@@ -202,9 +202,6 @@ export default function IpromedClients() {
           break;
         case 'created_at':
           comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-          break;
-        case 'status':
-          comparison = a.status.localeCompare(b.status);
           break;
         case 'risk_level':
           const riskOrder = { high: 3, medium: 2, low: 1 };
@@ -247,18 +244,18 @@ export default function IpromedClients() {
 
   const stats = {
     total: clients.length,
-    active: clients.filter(c => c.status === 'active').length,
-    prospects: clients.filter(c => c.status === 'prospect').length,
+    active: clients.length,
+    prospects: 0,
     paid: clients.filter(c => c.metadata?.payment_status === 'paid').length,
     pendingSignature: clients.filter(c => c.metadata?.contract_status === 'pending_signature').length,
     onboardingCompleted: clients.filter(c => c.onboarding_completed).length,
   };
 
-  const activeFiltersCount = [statusFilter, journeyFilter, paymentFilter, riskFilter, onboardingFilter, contractFilter]
+  const activeFiltersCount = [journeyFilter, paymentFilter, riskFilter, onboardingFilter, contractFilter]
     .filter(f => f !== 'all').length;
 
   const clearFilters = () => {
-    setStatusFilter('all');
+    
     setJourneyFilter('all');
     setPaymentFilter('all');
     setRiskFilter('all');
@@ -337,34 +334,6 @@ export default function IpromedClients() {
                       </TableHead>
 
                       {/* Status - 7% */}
-                      <TableHead className="w-[7%]">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className={cn(
-                              "h-8 -ml-3 font-medium hover:bg-muted gap-1",
-                              statusFilter !== 'all' && "text-primary"
-                            )}>
-                              Status
-                              <Filter className="h-3 w-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="bg-background">
-                            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
-                              Todos {statusFilter === 'all' && '✓'}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setStatusFilter('active')}>
-                              Ativos {statusFilter === 'active' && '✓'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setStatusFilter('prospect')}>
-                              Prospectos {statusFilter === 'prospect' && '✓'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setStatusFilter('churned')}>
-                              Cancelados {statusFilter === 'churned' && '✓'}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableHead>
 
                       {/* Código - 9% */}
                       <TableHead className="w-[9%]">
@@ -590,7 +559,7 @@ export default function IpromedClients() {
                       </TableRow>
                     ) : (
                       filteredClients.map((client) => {
-                        const status = statusConfig[client.status] || statusConfig.prospect;
+                        
                         const risk = riskConfig[client.risk_level] || riskConfig.low;
                         const RiskIcon = risk.icon;
                         const journey = journeyConfig[client.metadata?.journey_phase || client.journey_stage] || journeyConfig.prospect;
@@ -616,12 +585,6 @@ export default function IpromedClients() {
                             </div>
                           </TableCell>
 
-                          {/* Status */}
-                          <TableCell>
-                            <Badge className={cn(status.color, "text-white text-xs")}>
-                              {status.label}
-                            </Badge>
-                          </TableCell>
 
                           {/* Código */}
                           <TableCell>
