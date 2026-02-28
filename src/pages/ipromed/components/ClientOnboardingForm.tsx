@@ -89,7 +89,7 @@ export function ClientOnboardingForm({ clientId, clientName }: ClientOnboardingF
         description: `Enviar o link do formulário de onboarding para o cliente ${clientName}. Link: ${window.location.origin}/forms/onboarding/${token}`,
         assigned_to_name: 'Isabele Cartaxo',
         status: 'pending',
-        priority: 'high',
+        priority: 3,
         category: 'onboarding',
         due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       }]);
