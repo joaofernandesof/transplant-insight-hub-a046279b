@@ -33,6 +33,7 @@ import {
   FileText,
   Wallet,
 } from "lucide-react";
+import cpgLogo from "@/assets/cpg-logo-horizontal.png";
 
 interface FormData {
   doctor_name: string;
