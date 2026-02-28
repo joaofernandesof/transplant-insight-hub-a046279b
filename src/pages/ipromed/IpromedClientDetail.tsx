@@ -271,7 +271,6 @@ export default function IpromedClientDetail() {
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-bold">{client.name}</h1>
-                  <Badge className={`${status.color} text-white`}>{status.label}</Badge>
                   {metadata?.partner && (
                     <Badge variant="outline">
                       <Building2 className="h-3 w-3 mr-1" />
