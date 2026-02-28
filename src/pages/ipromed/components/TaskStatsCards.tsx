@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,6 +32,7 @@ interface TaskStats {
 }
 
 export function TaskStatsCards() {
+  const navigate = useNavigate();
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -137,6 +139,7 @@ export function TaskStatsCards() {
       iconColor: 'text-slate-500',
       badge: stats?.total ?? 0,
       badgeBg: 'bg-slate-100 text-slate-600',
+      filter: 'todo',
     },
     {
       label: 'Vencem hoje',
@@ -149,6 +152,7 @@ export function TaskStatsCards() {
       iconColor: 'text-slate-500',
       badge: stats?.dueToday ?? 0,
       badgeBg: 'bg-emerald-500 text-white',
+      filter: 'due_today',
     },
     {
       label: 'Em atraso',
@@ -162,6 +166,7 @@ export function TaskStatsCards() {
       badge: 'Atenção',
       badgeBg: 'bg-red-500 text-white',
       showBadge: (stats?.overdue ?? 0) > 0,
+      filter: 'overdue',
     },
     {
       label: 'Concluídas',
@@ -174,6 +179,7 @@ export function TaskStatsCards() {
       iconColor: 'text-emerald-500',
       badge: `${stats?.completionRate ?? 0}%`,
       badgeBg: 'bg-emerald-500 text-white',
+      filter: 'completed',
     },
   ];
 
@@ -274,10 +280,11 @@ export function TaskStatsCards() {
             <Card 
               key={card.label} 
               className={cn(
-                "border-l-4 border-none shadow-sm",
+                "border-l-4 border-none shadow-sm cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200",
                 card.borderColor,
                 card.bgColor
               )}
+              onClick={() => navigate(`/cpg/tasks?filter=${card.filter}&view=list`)}
             >
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-start justify-between">

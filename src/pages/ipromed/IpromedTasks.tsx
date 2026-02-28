@@ -3,7 +3,8 @@
  * Layout Kanban inspirado no NeoTeam com colunas coloridas
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateAllTaskQueries } from "./utils/invalidateTaskQueries";
@@ -156,12 +157,23 @@ const statusConfig = {
 export default function IpromedTasks() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [viewMode, setViewMode] = useState<"kanban" | "list" | "dashboard">("kanban");
+  const [viewMode, setViewMode] = useState<"kanban" | "list" | "dashboard">(
+    (searchParams.get("view") as "list" | "kanban" | "dashboard") || "kanban"
+  );
+  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("filter") || "all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [userFilter, setUserFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("priority");
+
+  // Clear URL params after reading them
+  useEffect(() => {
+    if (searchParams.has("filter") || searchParams.has("view")) {
+      setSearchParams({}, { replace: true });
+    }
+  }, []);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -222,6 +234,30 @@ export default function IpromedTasks() {
   const filteredTasks = useMemo(() => {
     let result = [...tasks];
 
+    // Apply status filter from URL params
+    if (statusFilter === "todo") {
+      result = result.filter(t => t.status !== "done" && t.status !== "completed");
+    } else if (statusFilter === "due_today") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(today);
+      todayEnd.setHours(23, 59, 59, 999);
+      result = result.filter(t => {
+        if (!t.due_date || t.status === "done" || t.status === "completed") return false;
+        const d = new Date(t.due_date);
+        return d >= today && d <= todayEnd;
+      });
+    } else if (statusFilter === "overdue") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      result = result.filter(t => {
+        if (!t.due_date || t.status === "done" || t.status === "completed") return false;
+        return new Date(t.due_date) < today;
+      });
+    } else if (statusFilter === "completed") {
+      result = result.filter(t => t.status === "done" || t.status === "completed");
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -249,7 +285,7 @@ export default function IpromedTasks() {
     });
 
     return result;
-  }, [tasks, searchQuery, priorityFilter, userFilter, sortBy]);
+  }, [tasks, searchQuery, priorityFilter, userFilter, sortBy, statusFilter]);
 
   const stats = useMemo(() => ({
     todo: tasks.filter((t) => t.status === "todo").length,
@@ -350,6 +386,21 @@ export default function IpromedTasks() {
           </div>
         </div>
       </div>
+
+      {/* Active filter indicator */}
+      {statusFilter !== "all" && (
+        <div className="pb-2 flex-shrink-0">
+          <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/20 rounded-xl">
+            <Filter className="h-3.5 w-3.5 text-primary" />
+            <span className="text-sm text-primary font-medium">
+              Filtrando: {statusFilter === "todo" ? "Tarefas a fazer" : statusFilter === "due_today" ? "Vencem hoje" : statusFilter === "overdue" ? "Em atraso" : "Concluídas"}
+            </span>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs ml-auto" onClick={() => setStatusFilter("all")}>
+              Limpar filtro
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Filters + View Tabs */}
       <div className="pb-4 flex-shrink-0">
