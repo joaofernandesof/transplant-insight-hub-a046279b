@@ -149,6 +149,7 @@ const IpromedLayout = lazy(() => import("./pages/ipromed/components/IpromedLayou
 const IpromedReports = lazy(() => import("./pages/ipromed/IpromedReports"));
 const IpromedFunctions = lazy(() => import("./pages/ipromed/IpromedFunctions"));
 const IpromedAccessManagement = lazy(() => import("./pages/ipromed/IpromedAccessManagement"));
+const IpromedOnboardingForms = lazy(() => import("./pages/ipromed/IpromedOnboardingForms"));
 
 // ====================================
 // Pages - NeoPay (Gateway de Pagamentos)
