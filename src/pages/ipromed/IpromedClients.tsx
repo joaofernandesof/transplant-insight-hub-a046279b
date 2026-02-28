@@ -337,34 +337,6 @@ export default function IpromedClients() {
                       </TableHead>
 
                       {/* Status - 7% */}
-                      <TableHead className="w-[7%]">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className={cn(
-                              "h-8 -ml-3 font-medium hover:bg-muted gap-1",
-                              statusFilter !== 'all' && "text-primary"
-                            )}>
-                              Status
-                              <Filter className="h-3 w-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="bg-background">
-                            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
-                              Todos {statusFilter === 'all' && '✓'}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setStatusFilter('active')}>
-                              Ativos {statusFilter === 'active' && '✓'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setStatusFilter('prospect')}>
-                              Prospectos {statusFilter === 'prospect' && '✓'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setStatusFilter('churned')}>
-                              Cancelados {statusFilter === 'churned' && '✓'}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableHead>
 
                       {/* Código - 9% */}
                       <TableHead className="w-[9%]">
