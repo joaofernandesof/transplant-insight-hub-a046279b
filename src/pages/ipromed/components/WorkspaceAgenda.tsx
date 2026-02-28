@@ -348,17 +348,29 @@ export function WorkspaceAgenda() {
                     )}
                   </div>
 
-                  {/* Column body */}
-                  <div className="flex-1 p-2 space-y-2 min-h-[120px] overflow-y-auto">
-                    {dayAppts.length === 0 ? (
-                      <div className="flex items-center justify-center h-full text-xs text-muted-foreground py-8">
-                        Sem eventos
-                      </div>
-                    ) : (
-                      dayAppts.map((apt) => (
-                        <KanbanAppointmentCard key={apt.id} appointment={apt} />
-                      ))
-                    )}
+                  {/* Column body - hourly slots */}
+                  <div className="flex-1 p-0">
+                    {HOURS.map((hour) => {
+                      const hourAppts = dayAppts.filter((apt) => {
+                        const h = new Date(apt.start_datetime).getHours();
+                        return h === hour;
+                      });
+                      return (
+                        <div
+                          key={hour}
+                          className="flex border-b last:border-b-0 border-border/30 min-h-[40px]"
+                        >
+                          <div className="w-10 shrink-0 text-[10px] text-muted-foreground font-mono py-1 text-center border-r border-border/20 bg-muted/20">
+                            {String(hour).padStart(2, '0')}h
+                          </div>
+                          <div className="flex-1 p-1 space-y-1">
+                            {hourAppts.map((apt) => (
+                              <KanbanAppointmentCard key={apt.id} appointment={apt} />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
