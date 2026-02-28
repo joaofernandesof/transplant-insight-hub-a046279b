@@ -209,8 +209,6 @@ export function WorkspaceTaskList() {
       queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
     },
   });
-    },
-  });
 
   const handleComplete = useCallback((taskId: string) => {
     // Optimistically hide the task
