@@ -732,6 +732,7 @@ export default function AstreaStyleAgenda() {
       meeting_url: apt.meeting_url || '',
       client_id: apt.client_id || '',
       priority: apt.priority,
+      assigned_to: apt.assigned_to || '',
     });
 
     setEditingAppointmentId(apt.id);
