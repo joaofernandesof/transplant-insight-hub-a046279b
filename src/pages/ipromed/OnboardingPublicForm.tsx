@@ -118,10 +118,10 @@ const initialFormData: FormData = {
 function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
   return (
     <div className="flex items-center gap-3 pt-8 pb-4">
-      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#1a365d] text-white">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#2d4a2e] text-white">
         <Icon className="h-5 w-5" />
       </div>
-      <h2 className="text-xl font-semibold text-[#1a365d]">{title}</h2>
+      <h2 className="text-xl font-semibold text-[#2d4a2e]">{title}</h2>
     </div>
   );
 }
