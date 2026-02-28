@@ -30,6 +30,7 @@ import {
   ChevronDown,
   ExternalLink,
   BarChart3,
+  UserCog,
 } from 'lucide-react';
 
 // Portais do ecossistema
