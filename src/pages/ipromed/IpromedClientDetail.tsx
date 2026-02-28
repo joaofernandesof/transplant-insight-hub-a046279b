@@ -548,6 +548,9 @@ export default function IpromedClientDetail() {
 
           {/* Contract Installments Management */}
           <ClientContractInstallments clientId={client.id} clientName={client.name} />
+
+          {/* Onboarding Form */}
+          <ClientOnboardingForm clientId={client.id} clientName={client.name} />
         </div>
 
         {/* Right Column */}
