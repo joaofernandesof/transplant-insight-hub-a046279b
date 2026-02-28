@@ -364,7 +364,7 @@ export function WorkspaceAgenda() {
                             {String(hour).padStart(2, '0')}h
                           </div>
                           <div
-                            className={`flex-1 p-1 space-y-1 ${hourAppts.length === 0 ? 'cursor-pointer hover:bg-primary/5 transition-colors' : ''}`}
+                            className={`flex-1 p-1 space-y-1 overflow-hidden min-w-0 ${hourAppts.length === 0 ? 'cursor-pointer hover:bg-primary/5 transition-colors' : ''}`}
                             onClick={() => {
                               if (hourAppts.length === 0) {
                                 navigate(`/cpg/agenda?new=1&date=${key}&time=${String(hour).padStart(2, '0')}:00`);
