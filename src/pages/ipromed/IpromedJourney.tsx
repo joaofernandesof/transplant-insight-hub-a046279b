@@ -1162,6 +1162,10 @@ export default function IpromedJourney() {
                     setMeetingClient(client);
                     setMeetingDialogOpen(true);
                   }}
+                  onDistrato={(client) => {
+                    updateClientPhase.mutate({ clientId: client.id, newPhase: 'Distratados' });
+                    toast.success(`${client.name} movido para Distratados`);
+                  }}
                   onViewPhaseDetail={(phaseDetail) => {
                     setSelectedPhaseDetail(phaseDetail);
                     setPhaseDetailOpen(true);
