@@ -58,6 +58,7 @@ interface UnifiedAppointment {
   status: string;
   appointment_type: string;
   client_name?: string | null;
+  assigned_to?: string | null;
   source: 'appointment' | 'meeting';
 }
 
