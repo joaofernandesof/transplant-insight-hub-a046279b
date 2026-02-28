@@ -212,10 +212,13 @@ export default function IpromedFunctions() {
   const pieData = lawyerStats.map(l => ({ name: l.name.split(" ")[0], value: l.count, fill: l.pie }));
 
   const categoryBarData = useMemo(() => {
-    return CATEGORIES.filter(c => functions.some(f => f.category === c.value)).map((c, i) => {
-      const entry: Record<string, string | number> = { category: c.label };
+    // Use actual categories from data, matching with CATEGORIES for labels
+    const allCats = [...new Set(functions.map(f => f.category))];
+    return allCats.map((catValue) => {
+      const catInfo = CATEGORIES.find(c => c.value === catValue);
+      const entry: Record<string, string | number> = { category: catInfo?.label || catValue };
       uniqueLawyers.forEach(name => {
-        entry[name.split(" ")[0]] = functions.filter(f => f.category === c.value && f.lawyer_name === name).length;
+        entry[name.split(" ")[0]] = functions.filter(f => f.category === catValue && f.lawyer_name === name).length;
       });
       return entry;
     });
