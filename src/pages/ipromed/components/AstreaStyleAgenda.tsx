@@ -1481,15 +1481,32 @@ export default function AstreaStyleAgenda() {
                 </div>
 
                 <div className="flex gap-3 pt-4">
+                  {/* Only show delete for real appointments (not virtual birthday/specialty events) */}
+                  {!selectedAppointment.id.startsWith('birthday-') && !selectedAppointment.id.startsWith('specialty-') && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => {
+                        if (confirm('Tem certeza que deseja excluir este compromisso?')) {
+                          deleteAppointment.mutate(selectedAppointment.id);
+                        }
+                      }}
+                      disabled={deleteAppointment.isPending}
+                    >
+                      {deleteAppointment.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Excluir'}
+                    </Button>
+                  )}
                   <Button variant="outline" className="flex-1" onClick={() => setIsDetailOpen(false)}>
                     Fechar
                   </Button>
-                  <Button 
-                    className="flex-1" 
-                    onClick={() => openEditForm(selectedAppointment)}
-                  >
-                    Editar
-                  </Button>
+                  {!selectedAppointment.id.startsWith('birthday-') && !selectedAppointment.id.startsWith('specialty-') && (
+                    <Button 
+                      className="flex-1" 
+                      onClick={() => openEditForm(selectedAppointment)}
+                    >
+                      Editar
+                    </Button>
+                  )}
                 </div>
               </>
             );
