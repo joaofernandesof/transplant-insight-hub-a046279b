@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/table";
 import {
   Plus, Briefcase, Trash2, Pencil, Search, Users, Shield, Scale,
-  FileText, Gavel, BookOpen, AlertCircle, Loader2,
+  FileText, Gavel, BookOpen, AlertCircle, Loader2, ArrowUpDown, ArrowUp, ArrowDown,
+  BarChart3, Tag, Hash,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
