@@ -443,26 +443,6 @@ export default function OnboardingMeetingAgenda({
     enabled: !!meetingData?.client_id,
   });
 
-  // Buscar dados do formulário de onboarding do cliente (preenchido externamente)
-  const effectiveClientId = selectedClientId || clientId || meetingData?.client_id;
-  const { data: onboardingFormData } = useQuery({
-    queryKey: ['ipromed-onboarding-form-data', effectiveClientId],
-    queryFn: async () => {
-      if (!effectiveClientId) return null;
-      const { data, error } = await supabase
-        .from('ipromed_onboarding_forms')
-        .select('*')
-        .eq('client_id', effectiveClientId)
-        .eq('status', 'submitted')
-        .order('submitted_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!effectiveClientId,
-  });
-
   // Buscar clientes cadastrados
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ['ipromed-clients-onboarding'],
