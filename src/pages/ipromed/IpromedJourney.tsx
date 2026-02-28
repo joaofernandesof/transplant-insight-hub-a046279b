@@ -34,6 +34,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -150,6 +156,8 @@ interface Client {
     journey_progress?: number;
     risk_level?: string;
     phase_entered_at?: string;
+    sla_custom_start?: string;
+    sla_custom_limit?: number;
     phase_history?: { phase: string; entered_at: string; left_at: string }[];
   } | null;
 }
@@ -157,10 +165,10 @@ interface Client {
 // SLA calculation helper
 function getClientSlaInfo(client: Client, phase: string) {
   const meta = client.metadata as any;
-  const slaLimit = PHASE_SLA[phase] || 0;
-  if (slaLimit === 0) return { daysInPhase: 0, slaLimit: 0, status: 'ok' as const, percent: 0 };
+  const slaLimit = meta?.sla_custom_limit || PHASE_SLA[phase] || 0;
+  if (slaLimit === 0) return { daysInPhase: 0, slaLimit: 0, status: 'ok' as const, percent: 0, startDate: '' };
   
-  const enteredAt = meta?.phase_entered_at || client.created_at;
+  const enteredAt = meta?.sla_custom_start || meta?.phase_entered_at || client.created_at;
   const daysInPhase = differenceInDays(new Date(), new Date(enteredAt));
   const percent = Math.min(100, (daysInPhase / slaLimit) * 100);
   
@@ -168,7 +176,55 @@ function getClientSlaInfo(client: Client, phase: string) {
   if (daysInPhase > slaLimit) status = 'overdue';
   else if (percent >= 70) status = 'warning';
   
-  return { daysInPhase, slaLimit, status, percent };
+  return { daysInPhase, slaLimit, status, percent, startDate: enteredAt };
+}
+
+// SLA Editor inline component
+function SlaEditor({ client, phase, slaInfo, onSave }: {
+  client: Client;
+  phase: string;
+  slaInfo: { startDate: string; slaLimit: number };
+  onSave: (clientId: string, startDate: string, limitDays: number) => void;
+}) {
+  const startDateValue = slaInfo.startDate ? format(new Date(slaInfo.startDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+  const [localStart, setLocalStart] = useState(startDateValue);
+  const [localLimit, setLocalLimit] = useState(String(slaInfo.slaLimit));
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold text-foreground">Configurar SLA</p>
+      <div className="space-y-2">
+        <div>
+          <Label className="text-[11px] text-muted-foreground">Data de início</Label>
+          <Input
+            type="date"
+            value={localStart}
+            onChange={(e) => setLocalStart(e.target.value)}
+            className="h-7 text-xs mt-0.5"
+          />
+        </div>
+        <div>
+          <Label className="text-[11px] text-muted-foreground">Prazo (dias)</Label>
+          <Input
+            type="number"
+            min={1}
+            value={localLimit}
+            onChange={(e) => setLocalLimit(e.target.value)}
+            className="h-7 text-xs mt-0.5"
+          />
+        </div>
+      </div>
+      <Button
+        size="sm"
+        className="w-full h-7 text-xs"
+        onClick={() => {
+          onSave(client.id, new Date(localStart + 'T12:00:00').toISOString(), parseInt(localLimit) || slaInfo.slaLimit);
+        }}
+      >
+        Salvar
+      </Button>
+    </div>
+  );
 }
 
 // Draggable Client Card Component
@@ -179,6 +235,7 @@ function DraggableClientCard({
   onScheduleMeeting,
   onDistrato,
   onViewJourney,
+  onUpdateSla,
   isDragging,
   isSelected,
   onSelect,
@@ -189,6 +246,7 @@ function DraggableClientCard({
   onScheduleMeeting: (client: Client) => void;
   onDistrato: (client: Client) => void;
   onViewJourney: (client: Client) => void;
+  onUpdateSla: (clientId: string, startDate: string, limitDays: number) => void;
   isDragging?: boolean;
   isSelected?: boolean;
   onSelect?: (clientId: string, selected: boolean) => void;
@@ -313,26 +371,42 @@ function DraggableClientCard({
           )}
         </div>
 
-        {/* SLA Indicator */}
+        {/* SLA Indicator - Clickable to edit */}
         {slaInfo.slaLimit > 0 && (
-          <div className="flex items-center gap-1.5">
-            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+          <Popover>
+            <PopoverTrigger asChild>
               <div 
-                className={cn(
-                  "h-full rounded-full transition-all",
-                  slaInfo.status === 'overdue' ? 'bg-destructive' : slaInfo.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
-                )}
-                style={{ width: `${Math.min(100, slaInfo.percent)}%` }}
+                className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+                title="Clique para editar datas do SLA"
+              >
+                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      slaInfo.status === 'overdue' ? 'bg-destructive' : slaInfo.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
+                    )}
+                    style={{ width: `${Math.min(100, slaInfo.percent)}%` }}
+                  />
+                </div>
+                <span className={cn(
+                  "text-[10px] font-medium whitespace-nowrap",
+                  slaInfo.status === 'overdue' ? 'text-destructive' : slaInfo.status === 'warning' ? 'text-amber-600' : 'text-muted-foreground'
+                )}>
+                  {slaInfo.daysInPhase}d/{slaInfo.slaLimit}d
+                </span>
+                {slaInfo.status === 'overdue' && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3" align="start" onClick={(e) => e.stopPropagation()}>
+              <SlaEditor 
+                client={client} 
+                phase={phase.id}
+                slaInfo={slaInfo}
+                onSave={onUpdateSla}
               />
-            </div>
-            <span className={cn(
-              "text-[10px] font-medium whitespace-nowrap",
-              slaInfo.status === 'overdue' ? 'text-destructive' : slaInfo.status === 'warning' ? 'text-amber-600' : 'text-muted-foreground'
-            )}>
-              {slaInfo.daysInPhase}d/{slaInfo.slaLimit}d
-            </span>
-            {slaInfo.status === 'overdue' && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
-          </div>
+            </PopoverContent>
+          </Popover>
         )}
         
         {/* Tags */}
@@ -362,6 +436,7 @@ function DroppableColumn({
   onScheduleMeeting,
   onDistrato,
   onViewJourney,
+  onUpdateSla,
   onViewPhaseDetail,
   isOver,
   activeId,
@@ -378,6 +453,7 @@ function DroppableColumn({
   onScheduleMeeting: (client: Client) => void;
   onDistrato: (client: Client) => void;
   onViewJourney: (client: Client) => void;
+  onUpdateSla: (clientId: string, startDate: string, limitDays: number) => void;
   onViewPhaseDetail: (phase: PhaseDetail) => void;
   isOver: boolean;
   activeId: string | null;
@@ -526,6 +602,7 @@ function DroppableColumn({
               onScheduleMeeting={onScheduleMeeting}
               onDistrato={onDistrato}
               onViewJourney={onViewJourney}
+              onUpdateSla={onUpdateSla}
               isDragging={activeId === client.id}
               isSelected={selectedClients.has(client.id)}
               onSelect={onSelectClient}
@@ -762,6 +839,35 @@ export default function IpromedJourney() {
       queryClient.invalidateQueries({ queryKey: ['ipromed-journey-clients'] });
     },
   });
+
+  // SLA update handler
+  const handleUpdateSla = async (clientId: string, startDate: string, limitDays: number) => {
+    const { data: client } = await supabase
+      .from('ipromed_legal_clients')
+      .select('metadata')
+      .eq('id', clientId)
+      .single();
+    
+    const currentMetadata = (client?.metadata as any) || {};
+    const { error } = await supabase
+      .from('ipromed_legal_clients')
+      .update({
+        metadata: {
+          ...currentMetadata,
+          sla_custom_start: startDate,
+          sla_custom_limit: limitDays,
+          phase_entered_at: startDate,
+        }
+      })
+      .eq('id', clientId);
+    
+    if (error) {
+      toast.error('Erro ao atualizar SLA');
+    } else {
+      toast.success('SLA atualizado');
+      queryClient.invalidateQueries({ queryKey: ['ipromed-journey-clients'] });
+    }
+  };
 
   // Use only real database clients
   const clients = dbClients;
@@ -1248,6 +1354,7 @@ export default function IpromedJourney() {
                     toast.success(`${client.name} movido para Distratados`);
                   }}
                   onViewJourney={(client) => setJourneyDetailClient(client)}
+                  onUpdateSla={handleUpdateSla}
                   onViewPhaseDetail={(phaseDetail) => {
                     setSelectedPhaseDetail(phaseDetail);
                     setPhaseDetailOpen(true);
