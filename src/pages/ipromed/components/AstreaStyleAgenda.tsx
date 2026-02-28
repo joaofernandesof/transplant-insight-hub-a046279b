@@ -1391,7 +1391,7 @@ export default function AstreaStyleAgenda() {
               <Button
                 className="flex-1"
                 onClick={() => isEditMode ? updateAppointment.mutate() : createAppointment.mutate()}
-                disabled={!formData.title || createAppointment.isPending || updateAppointment.isPending}
+                disabled={!formData.title || !formData.assigned_to || createAppointment.isPending || updateAppointment.isPending}
               >
                 {(createAppointment.isPending || updateAppointment.isPending) ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
