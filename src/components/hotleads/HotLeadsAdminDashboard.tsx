@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -10,9 +11,10 @@ import {
 import {
   Flame, MapPin, Building2, TrendingUp, Clock, UserCheck, Target,
   BarChart3, Lightbulb, Zap, AlertTriangle, CheckCircle2, Trophy, Crown, Medal, User,
-  XCircle, ShoppingCart, Stethoscope, Eye, ArrowLeft,
+  XCircle, ShoppingCart, Stethoscope, Eye, ArrowLeft, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter,
 } from 'lucide-react';
 import { SalesControlTable } from '@/components/hotleads/SalesControlTable';
+import { StateDetailTable } from '@/components/hotleads/StateDetailTable';
 import { DiscardRankingTable } from '@/components/hotleads/DiscardRankingTable';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -731,94 +733,8 @@ export function HotLeadsAdminDashboard() {
       {/* Heat Map */}
       <BrazilMapChart byState={stats.byState} />
 
-      {/* Full State Table */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-green-500" />
-            Todos os Estados — Detalhamento Completo
-            <Badge variant="outline" className="font-normal text-[10px]">{stats.byState.length} estados</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground">Estado</th>
-                  <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground min-w-[200px]">Volume</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">Total</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">Na Fila</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">Disponíveis</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">Adquiridos</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">%</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.byState.map((s, i) => {
-                  const pct = stats.total > 0 ? ((s.total / stats.total) * 100) : 0;
-                  const maxTotal = stats.byState[0]?.total || 1;
-                  const barWidth = (s.total / maxTotal) * 100;
-                  const queuedWidth = s.total > 0 ? (s.queued / s.total) * barWidth : 0;
-                  const availableWidth = s.total > 0 ? (s.available / s.total) * barWidth : 0;
-                  const claimedWidth = s.total > 0 ? (s.claimed / s.total) * barWidth : 0;
-                  return (
-                    <tr key={s.state} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="py-2.5 px-3 font-semibold flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                        {s.state}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <div className="flex h-4 w-full rounded-full overflow-hidden bg-muted/50">
-                          {queuedWidth > 0 && (
-                            <div
-                              className="h-full bg-amber-400 transition-all duration-500"
-                              style={{ width: `${queuedWidth}%` }}
-                              title={`Na Fila: ${s.queued.toLocaleString('pt-BR')}`}
-                            />
-                          )}
-                          {availableWidth > 0 && (
-                            <div
-                              className="h-full bg-green-500 transition-all duration-500"
-                              style={{ width: `${availableWidth}%` }}
-                              title={`Disponíveis: ${s.available.toLocaleString('pt-BR')}`}
-                            />
-                          )}
-                          {claimedWidth > 0 && (
-                            <div
-                              className="h-full bg-blue-500 transition-all duration-500"
-                              style={{ width: `${claimedWidth}%` }}
-                              title={`Adquiridos: ${s.claimed.toLocaleString('pt-BR')}`}
-                            />
-                          )}
-                        </div>
-                      </td>
-                      <td className="text-right py-2.5 px-3 font-bold">{s.total.toLocaleString('pt-BR')}</td>
-                      <td className="text-right py-2.5 px-3 text-amber-600 font-medium">{s.queued.toLocaleString('pt-BR')}</td>
-                      <td className="text-right py-2.5 px-3 text-green-600 font-medium">{s.available.toLocaleString('pt-BR')}</td>
-                      <td className="text-right py-2.5 px-3 text-blue-600 font-medium">{s.claimed.toLocaleString('pt-BR')}</td>
-                      <td className="text-right py-2.5 px-3">
-                        <span className="text-xs text-muted-foreground">{pct.toFixed(1)}%</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 bg-muted/30">
-                  <td className="py-2.5 px-3 font-bold">TOTAL</td>
-                  <td className="py-2.5 px-3"></td>
-                  <td className="text-right py-2.5 px-3 font-bold">{stats.total.toLocaleString('pt-BR')}</td>
-                  <td className="text-right py-2.5 px-3 font-bold text-amber-600">{stats.queued.toLocaleString('pt-BR')}</td>
-                  <td className="text-right py-2.5 px-3 font-bold text-green-600">{stats.available.toLocaleString('pt-BR')}</td>
-                  <td className="text-right py-2.5 px-3 font-bold text-blue-600">{stats.claimed.toLocaleString('pt-BR')}</td>
-                  <td className="text-right py-2.5 px-3 font-bold">100%</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Full State Table - Enhanced */}
+      <StateDetailTable stats={stats} COLORS={COLORS} fetchDrillDownLeads={fetchDrillDownLeads} />
 
 
       {/* Top Licensees Ranking */}
