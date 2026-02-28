@@ -428,29 +428,21 @@ function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointmen
   return (
     <>
       <div
-        className={`p-2 rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all cursor-pointer`}
+        className={`p-1.5 rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all cursor-pointer overflow-hidden min-w-0`}
         onClick={() => setOpen(true)}
       >
-        <div className="flex items-center gap-1.5 mb-1">
-          <span className="text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0 shrink-0">
             {startTime}
           </span>
-          <Badge variant="outline" className={`text-[10px] px-1 py-0 ${config.color} border-current/20`}>
+          <Badge variant="outline" className={`text-[10px] px-1 py-0 ${config.color} border-current/20 shrink-0`}>
             {config.label}
           </Badge>
-        </div>
-        <div className="flex items-start gap-1.5">
-          <IconComponent className={`h-3.5 w-3.5 ${config.color} shrink-0 mt-0.5`} />
-          <span className="text-xs font-medium leading-tight line-clamp-2">
-            {appointment.title}
+          <IconComponent className={`h-3 w-3 ${config.color} shrink-0`} />
+          <span className="text-[11px] font-medium truncate min-w-0">
+            {appointment.client_name || appointment.title}
           </span>
         </div>
-        {appointment.client_name && (
-          <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
-            <Users className="h-3 w-3" />
-            <span className="truncate">{appointment.client_name}</span>
-          </div>
-        )}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
