@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -10,7 +11,7 @@ import {
 import {
   Flame, MapPin, Building2, TrendingUp, Clock, UserCheck, Target,
   BarChart3, Lightbulb, Zap, AlertTriangle, CheckCircle2, Trophy, Crown, Medal, User,
-  XCircle, ShoppingCart, Stethoscope, Eye, ArrowLeft,
+  XCircle, ShoppingCart, Stethoscope, Eye, ArrowLeft, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter,
 } from 'lucide-react';
 import { SalesControlTable } from '@/components/hotleads/SalesControlTable';
 import { DiscardRankingTable } from '@/components/hotleads/DiscardRankingTable';
