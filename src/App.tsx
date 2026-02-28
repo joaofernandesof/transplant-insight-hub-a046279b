@@ -521,6 +521,7 @@ function NeoRHRoutes() {
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'administrador']}>
       <UnifiedSidebar>
+        <NeoRHBanner />
         <Routes>
           <Route index element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHDashboard /></Suspense>} />
           <Route path="colaboradores" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHColaboradores /></Suspense>} />
