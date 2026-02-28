@@ -3,8 +3,9 @@
  */
 
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logTaskActivity } from "../../utils/logTaskActivity";
 import {
   Dialog,
   DialogContent,
