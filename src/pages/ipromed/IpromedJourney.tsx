@@ -1625,11 +1625,21 @@ export default function IpromedJourney() {
       {meetingClient && (
         <MeetingScheduleDialog
           open={meetingDialogOpen}
-          onOpenChange={setMeetingDialogOpen}
+          onOpenChange={(open) => {
+            setMeetingDialogOpen(open);
+            // If closing dialog without scheduling AND it was from a drag to "Agendado", revert
+            if (!open && !meetingScheduled && pendingDragOriginPhase && meetingClient) {
+              updateClientPhase.mutate({ clientId: meetingClient.id, newPhase: pendingDragOriginPhase });
+              toast.info('Agendamento cancelado. Cliente voltou para a etapa anterior.');
+              setPendingDragOriginPhase(null);
+            }
+          }}
           clientId={meetingClient.id}
           clientName={meetingClient.name}
           onSchedule={(data) => {
             console.log('Meeting scheduled:', data);
+            setMeetingScheduled(true);
+            setPendingDragOriginPhase(null);
             toast.success('Reunião agendada com sucesso!');
           }}
         />
