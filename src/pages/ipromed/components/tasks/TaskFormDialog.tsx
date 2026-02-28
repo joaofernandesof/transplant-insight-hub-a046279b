@@ -125,6 +125,7 @@ export function TaskFormDialog({
   onSuccess,
 }: TaskFormDialogProps) {
   const { user } = useUnifiedAuth();
+  const queryClient = useQueryClient();
   const isEditing = !!task;
 
   // Custom options state
