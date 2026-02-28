@@ -189,14 +189,6 @@ function DraggableClientCard({
   isSelected?: boolean;
   onSelect?: (clientId: string, selected: boolean) => void;
 }) {
-  client: Client; 
-  phase: typeof journeyPhases[0]; 
-  navigate: (path: string) => void;
-  onScheduleMeeting: (client: Client) => void;
-  isDragging?: boolean;
-  isSelected?: boolean;
-  onSelect?: (clientId: string, selected: boolean) => void;
-}) {
   const {
     attributes,
     listeners,
