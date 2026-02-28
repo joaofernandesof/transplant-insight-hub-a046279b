@@ -1,5 +1,6 @@
 /**
- * CPG Advocacia - Card de respostas do formulário de onboarding na página do cliente
+ * CPG Advocacia - Widget "Formulários" na página do cliente
+ * Lista todos os formulários enviados para o cliente (onboarding, etc.)
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -16,11 +17,19 @@ import {
   ExternalLink,
   Send,
   Loader2,
+  FileText,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface ClientOnboardingFormProps {
   clientId: string;
@@ -30,7 +39,7 @@ interface ClientOnboardingFormProps {
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null;
   return (
-    <div className="flex justify-between py-1.5 border-b border-gray-100 last:border-0">
+    <div className="flex justify-between py-1.5 border-b border-border last:border-0">
       <span className="text-sm text-muted-foreground">{label}</span>
       <span className="text-sm font-medium text-right max-w-[60%]">{value}</span>
     </div>
@@ -40,7 +49,7 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
 function BoolRow({ label, value }: { label: string; value: boolean | null | undefined }) {
   if (value === null || value === undefined) return null;
   return (
-    <div className="flex justify-between py-1.5 border-b border-gray-100 last:border-0">
+    <div className="flex justify-between py-1.5 border-b border-border last:border-0">
       <span className="text-sm text-muted-foreground">{label}</span>
       <Badge variant={value ? "default" : "secondary"} className="text-xs">
         {value ? "Sim" : "Não"}
@@ -49,22 +58,124 @@ function BoolRow({ label, value }: { label: string; value: boolean | null | unde
   );
 }
 
+function FormCard({ form }: { form: any }) {
+  const [expanded, setExpanded] = useState(false);
+  const formLink = `${window.location.origin}/forms/onboarding/${form.token}`;
+  const isPending = form.status === 'pending';
+  const isSubmitted = form.status === 'submitted';
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(formLink);
+    toast.success('Link copiado!');
+  };
+
+  return (
+    <Collapsible open={expanded} onOpenChange={setExpanded}>
+      <div className="border border-border rounded-lg overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Formulário de Onboarding</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isPending && (
+                <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300 bg-amber-50 text-xs">
+                  <Clock className="h-3 w-3" /> Aguardando
+                </Badge>
+              )}
+              {isSubmitted && (
+                <Badge className="gap-1 bg-emerald-500 text-white text-xs">
+                  <CheckCircle2 className="h-3 w-3" /> Respondido
+                </Badge>
+              )}
+              {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </div>
+          </button>
+        </CollapsibleTrigger>
+
+        {/* Always show link bar */}
+        <div className="px-3 pb-2">
+          <div className="flex items-center gap-2 bg-muted rounded-lg p-2">
+            <code className="text-xs flex-1 truncate">{formLink}</code>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); copyLink(); }} title="Copiar link">
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7" asChild title="Abrir formulário">
+              <a href={formLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </Button>
+          </div>
+          {isPending && (
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Criado em {form.created_at ? format(new Date(form.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : '—'}
+            </p>
+          )}
+        </div>
+
+        <CollapsibleContent>
+          {isSubmitted && (
+            <div className="px-3 pb-3 space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Respondido em {form.submitted_at ? format(new Date(form.submitted_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : '—'}
+              </p>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">👨‍⚕️ Dados do Médico</h4>
+                <InfoRow label="Nome" value={form.doctor_name} />
+                <InfoRow label="Data de Nascimento" value={form.birth_date ? format(new Date(form.birth_date + 'T12:00:00'), "dd/MM/yyyy") : null} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">🏥 Clínica</h4>
+                <InfoRow label="Tipo" value={form.doc_entity_type === 'pessoa_fisica' ? 'Pessoa Física' : form.doc_entity_type === 'pessoa_juridica' ? 'Pessoa Jurídica' : null} />
+                <InfoRow label="CNPJ" value={form.cnpj} />
+                <InfoRow label="Endereço" value={form.clinic_address} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">🚫 Cancelamento</h4>
+                <InfoRow label="Prazo mínimo (h)" value={form.cancel_min_hours?.toString()} />
+                <BoolRow label="Multa" value={form.cancel_has_fine} />
+                <InfoRow label="Detalhe" value={form.cancel_fine_detail} />
+                <BoolRow label="Cobrança integral no-show" value={form.noshow_full_charge} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">💰 Sinal / Reserva</h4>
+                <BoolRow label="Cobra sinal" value={form.deposit_required} />
+                <InfoRow label="Valor/%" value={form.deposit_amount} />
+                <BoolRow label="Reembolsável" value={form.deposit_refundable} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">🔄 Retorno</h4>
+                <BoolRow label="Tem retorno" value={form.has_followup} />
+                <InfoRow label="Dias" value={form.followup_days?.toString()} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-muted-foreground">💳 Financeiro</h4>
+                <BoolRow label="Reembolso consulta" value={form.has_consultation_refund} />
+                <BoolRow label="Reembolso procedimento" value={form.has_procedure_refund} />
+              </div>
+            </div>
+          )}
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+}
+
 export function ClientOnboardingForm({ clientId, clientName }: ClientOnboardingFormProps) {
   const [creating, setCreating] = useState(false);
 
-  const { data: form, isLoading, refetch } = useQuery({
-    queryKey: ['client-onboarding-form', clientId],
+  const { data: forms, isLoading, refetch } = useQuery({
+    queryKey: ['client-onboarding-forms', clientId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ipromed_onboarding_forms')
         .select('*')
         .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
@@ -83,7 +194,6 @@ export function ClientOnboardingForm({ clientId, clientName }: ClientOnboardingF
 
       if (error) throw error;
 
-      // Create task for Isabele
       await supabase.from('ipromed_legal_tasks').insert([{
         title: `Enviar formulário de onboarding para ${clientName}`,
         description: `Enviar o link do formulário de onboarding para o cliente ${clientName}. Link: ${window.location.origin}/forms/onboarding/${token}`,
@@ -104,13 +214,6 @@ export function ClientOnboardingForm({ clientId, clientName }: ClientOnboardingF
     }
   };
 
-  const copyLink = () => {
-    if (!form?.token) return;
-    const link = `${window.location.origin}/forms/onboarding/${form.token}`;
-    navigator.clipboard.writeText(link);
-    toast.success('Link copiado!');
-  };
-
   if (isLoading) {
     return (
       <Card>
@@ -120,168 +223,33 @@ export function ClientOnboardingForm({ clientId, clientName }: ClientOnboardingF
     );
   }
 
-  if (!form) {
-    return (
-      <Card className="border-dashed">
-        <CardContent className="py-8 text-center">
-          <ClipboardList className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-          <p className="text-sm text-muted-foreground mb-4">
-            Nenhum formulário de onboarding enviado para este cliente.
-          </p>
-          <Button onClick={generateFormLink} disabled={creating} className="gap-2">
-            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Gerar Formulário de Onboarding
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const formLink = `${window.location.origin}/forms/onboarding/${form.token}`;
-  const isPending = form.status === 'pending';
-
-  if (isPending) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ClipboardList className="h-5 w-5" />
-              Formulário de Onboarding
-            </CardTitle>
-            <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300 bg-amber-50">
-              <Clock className="h-3 w-3" /> Aguardando resposta
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 bg-muted rounded-lg p-3">
-            <code className="text-xs flex-1 truncate">{formLink}</code>
-            <Button variant="ghost" size="icon" onClick={copyLink} title="Copiar link">
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" asChild title="Abrir formulário">
-              <a href={formLink} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Form submitted - show all responses
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <ClipboardList className="h-5 w-5" />
-            Formulário de Onboarding
-          </CardTitle>
-          <Badge className="gap-1 bg-emerald-500 text-white">
-            <CheckCircle2 className="h-3 w-3" /> Respondido
-            {form.submitted_at && (
-              <span className="ml-1">
-                em {format(new Date(form.submitted_at), "dd/MM/yyyy", { locale: ptBR })}
-              </span>
-            )}
-          </Badge>
-        </div>
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          Formulários ({forms?.length || 0})
+        </CardTitle>
+        <Button size="sm" variant="outline" onClick={generateFormLink} disabled={creating} className="gap-1">
+          {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+          Novo Formulário
+        </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Dados Pessoais */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">👨‍⚕️ Dados do Médico</h4>
-          <InfoRow label="Nome" value={form.doctor_name} />
-          <InfoRow label="Data de Nascimento" value={form.birth_date ? format(new Date(form.birth_date + 'T12:00:00'), "dd/MM/yyyy") : null} />
-        </div>
-
-        {/* Clínica */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">🏥 Clínica</h4>
-          <InfoRow label="Tipo" value={form.doc_entity_type === 'pessoa_fisica' ? 'Pessoa Física' : form.doc_entity_type === 'pessoa_juridica' ? 'Pessoa Jurídica' : null} />
-          <InfoRow label="CNPJ" value={form.cnpj} />
-          <InfoRow label="Endereço" value={form.clinic_address} />
-        </div>
-
-        {/* Cancelamento */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">🚫 Política de Cancelamento</h4>
-          <InfoRow label="Prazo mínimo (horas)" value={form.cancel_min_hours?.toString()} />
-          <BoolRow label="Multa por cancelamento" value={form.cancel_has_fine} />
-          <InfoRow label="Detalhe da multa" value={form.cancel_fine_detail} />
-          <BoolRow label="Cobrança integral no-show" value={form.noshow_full_charge} />
-          <InfoRow label="Política de remarcação" value={form.noshow_reschedule_policy} />
-          <InfoRow label="Emergência médica" value={form.cancel_medical_emergency} />
-        </div>
-
-        {/* Sinal */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">💰 Sinal / Reserva</h4>
-          <BoolRow label="Cobra sinal" value={form.deposit_required} />
-          <InfoRow label="Valor/Percentual" value={form.deposit_amount} />
-          <BoolRow label="Reembolsável" value={form.deposit_refundable} />
-          <BoolRow label="Convertível em crédito" value={form.deposit_convertible} />
-          <InfoRow label="Tolerância de atraso (min)" value={form.late_tolerance_minutes?.toString()} />
-        </div>
-
-        {/* Atrasos */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">⏰ Atrasos</h4>
-          <InfoRow label="Limite de atraso (min)" value={form.late_limit_minutes?.toString()} />
-          <InfoRow label="Após o prazo" value={form.late_policy === 'cancelada' ? 'Cancelada' : form.late_policy === 'reduzida' ? 'Reduzida' : form.late_policy === 'remarcada' ? 'Remarcada' : null} />
-          <BoolRow label="Possibilidade de encaixe" value={form.late_fit_in} />
-        </div>
-
-        {/* Retorno */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">🔄 Retorno</h4>
-          <BoolRow label="Tem retorno" value={form.has_followup} />
-          <InfoRow label="Dias de validade" value={form.followup_days?.toString()} />
-          <InfoRow label="Modalidade" value={form.followup_modality === 'presencial' ? 'Presencial' : form.followup_modality === 'online' ? 'Online' : form.followup_modality === 'ambos' ? 'Ambos' : null} />
-          <InfoRow label="Escopo" value={form.followup_scope === 'avaliacao' ? 'Apenas avaliação' : form.followup_scope === 'ajustes' ? 'Avaliação + ajustes' : null} />
-          <InfoRow label="Após o prazo" value={form.followup_expired_policy} />
-        </div>
-
-        {/* Confirmação */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">💬 Confirmação</h4>
-          <InfoRow label="Tentativas de contato" value={form.confirmation_attempts?.toString()} />
-          <BoolRow label="Cancelamento automático" value={form.no_response_auto_cancel} />
-          <InfoRow label="Canal oficial" value={
-            form.official_channel === 'whatsapp' ? 'WhatsApp' :
-            form.official_channel === 'email' ? 'E-mail' :
-            form.official_channel === 'phone' ? 'Ligação' :
-            form.official_channel === 'multiple' ? 'Múltiplos canais' : null
-          } />
-          <BoolRow label="Mensagens automáticas" value={form.uses_auto_messages} />
-        </div>
-
-        {/* Teleconsulta */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">📹 Consulta Online</h4>
-          <BoolRow label="Teleconsulta" value={form.has_teleconsultation} />
-          <InfoRow label="Plataforma" value={form.teleconsultation_platform} />
-        </div>
-
-        {/* Documentação */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">📄 Documentação e Preparo</h4>
-          <BoolRow label="Orientação prévia" value={form.has_prior_instructions} />
-          <InfoRow label="Antecedência (min)" value={form.arrival_advance_minutes?.toString()} />
-          <InfoRow label="Duração da consulta (min)" value={form.consultation_duration_minutes?.toString()} />
-        </div>
-
-        {/* Financeiro */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2 text-muted-foreground">💳 Regras Financeiras</h4>
-          <BoolRow label="Reembolso de consulta" value={form.has_consultation_refund} />
-          <BoolRow label="Reembolso de procedimento" value={form.has_procedure_refund} />
-          <BoolRow label="Pagamento vira crédito" value={form.advance_payment_credit} />
-          <InfoRow label="Validade do crédito (dias)" value={form.credit_validity_days?.toString()} />
-        </div>
+      <CardContent>
+        {(!forms || forms.length === 0) ? (
+          <div className="py-6 text-center">
+            <ClipboardList className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-50" />
+            <p className="text-sm text-muted-foreground">
+              Nenhum formulário enviado para este cliente.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {forms.map((form: any) => (
+              <FormCard key={form.id} form={form} />
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

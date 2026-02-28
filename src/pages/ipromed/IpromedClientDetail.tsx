@@ -549,8 +549,7 @@ export default function IpromedClientDetail() {
           {/* Contract Installments Management */}
           <ClientContractInstallments clientId={client.id} clientName={client.name} />
 
-          {/* Onboarding Form */}
-          <ClientOnboardingForm clientId={client.id} clientName={client.name} />
+          {/* Formulários widget moved below timeline */}
         </div>
 
         {/* Right Column */}
@@ -654,6 +653,9 @@ export default function IpromedClientDetail() {
 
           {/* Activity Timeline */}
           <ClientActivityTimeline clientId={id!} />
+
+          {/* Formulários do Cliente */}
+          <ClientOnboardingForm clientId={client.id} clientName={client.name} />
         </div>
       </div>
 
