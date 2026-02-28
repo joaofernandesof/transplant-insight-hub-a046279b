@@ -557,6 +557,8 @@ export default function IpromedJourney() {
   const [selectedPhaseDetail, setSelectedPhaseDetail] = useState<PhaseDetail | null>(null);
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
   const [meetingClient, setMeetingClient] = useState<Client | null>(null);
+  const [pendingDragOriginPhase, setPendingDragOriginPhase] = useState<string | null>(null);
+  const [meetingScheduled, setMeetingScheduled] = useState(false);
   
   // Selection state
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
