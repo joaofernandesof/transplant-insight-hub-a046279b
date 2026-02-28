@@ -595,6 +595,27 @@ export default function AstreaStyleAgenda() {
     },
   });
 
+  // Delete appointment
+  const deleteAppointment = useMutation({
+    mutationFn: async (id: string) => {
+      // Delete related checks first
+      await supabase.from('ipromed_appointment_checks').delete().eq('appointment_id', id);
+      const { error } = await supabase.from('ipromed_appointments').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointment-checks'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-agenda-unified'] });
+      toast.success('Compromisso excluído!');
+      setIsDetailOpen(false);
+      setSelectedAppointment(null);
+    },
+    onError: (error) => {
+      toast.error('Erro ao excluir: ' + error.message);
+    },
+  });
+
   // Toggle appointment check
   const toggleAppointmentCheck = useMutation({
     mutationFn: async ({ checkId, value }: { checkId: string; value: boolean }) => {
