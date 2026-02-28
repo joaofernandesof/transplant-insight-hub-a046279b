@@ -840,6 +840,35 @@ export default function IpromedJourney() {
     },
   });
 
+  // SLA update handler
+  const handleUpdateSla = async (clientId: string, startDate: string, limitDays: number) => {
+    const { data: client } = await supabase
+      .from('ipromed_legal_clients')
+      .select('metadata')
+      .eq('id', clientId)
+      .single();
+    
+    const currentMetadata = (client?.metadata as any) || {};
+    const { error } = await supabase
+      .from('ipromed_legal_clients')
+      .update({
+        metadata: {
+          ...currentMetadata,
+          sla_custom_start: startDate,
+          sla_custom_limit: limitDays,
+          phase_entered_at: startDate,
+        }
+      })
+      .eq('id', clientId);
+    
+    if (error) {
+      toast.error('Erro ao atualizar SLA');
+    } else {
+      toast.success('SLA atualizado');
+      queryClient.invalidateQueries({ queryKey: ['ipromed-journey-clients'] });
+    }
+  };
+
   // Use only real database clients
   const clients = dbClients;
 
