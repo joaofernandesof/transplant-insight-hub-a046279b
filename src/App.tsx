@@ -132,6 +132,7 @@ const IpromedLeads = lazy(() => import("./pages/ipromed/IpromedLeads"));
 const IpromedClients = lazy(() => import("./pages/ipromed/IpromedClients"));
 const IpromedClientDetail = lazy(() => import("./pages/ipromed/IpromedClientDetail"));
 const IpromedCaseDetail = lazy(() => import("./pages/ipromed/IpromedCaseDetail"));
+const OnboardingPublicForm = lazy(() => import("./pages/ipromed/OnboardingPublicForm"));
 const IpromedContracts = lazy(() => import("./pages/ipromed/IpromedContracts"));
 const IpromedContractDetail = lazy(() => import("./pages/ipromed/IpromedContractDetail"));
 const IpromedJourney = lazy(() => import("./pages/ipromed/IpromedJourney"));
@@ -742,6 +743,7 @@ function AppRoutes() {
       <Route path="/indicacao-formacao360/:code" element={<Formacao360ReferralLanding />} />
       <Route path="/api-docs" element={<ApiDocs />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/forms/onboarding/:token" element={<LazyRoute><OnboardingPublicForm /></LazyRoute>} />
       <Route path="/neocare-landing" element={<NeoCareLanding />} />
       <Route path="/neocare-protect" element={<NeoCareProductLanding />} />
       <Route path="/audit-report" element={<AuditReportExport />} />

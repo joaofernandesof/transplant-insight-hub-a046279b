@@ -58,6 +58,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ClientActivityTimeline, logClientActivity } from "./components/ClientActivityTimeline";
 import { ClientContractInstallments } from "./components/ClientContractInstallments";
+import { ClientOnboardingForm } from "./components/ClientOnboardingForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -547,6 +548,9 @@ export default function IpromedClientDetail() {
 
           {/* Contract Installments Management */}
           <ClientContractInstallments clientId={client.id} clientName={client.name} />
+
+          {/* Onboarding Form */}
+          <ClientOnboardingForm clientId={client.id} clientName={client.name} />
         </div>
 
         {/* Right Column */}
