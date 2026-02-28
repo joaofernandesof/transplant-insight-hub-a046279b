@@ -18197,6 +18197,233 @@ export type Database = {
         }
         Relationships: []
       }
+      rh_areas: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      rh_cargos: {
+        Row: {
+          competencias: string | null
+          created_at: string
+          faixa_salarial_max: number | null
+          faixa_salarial_min: number | null
+          formacao: string | null
+          id: string
+          modelo_contratacao: string
+          nivel: string
+          nome: string
+          objetivo: string | null
+          responsabilidades: string | null
+          tem_comissao: boolean
+        }
+        Insert: {
+          competencias?: string | null
+          created_at?: string
+          faixa_salarial_max?: number | null
+          faixa_salarial_min?: number | null
+          formacao?: string | null
+          id?: string
+          modelo_contratacao?: string
+          nivel?: string
+          nome: string
+          objetivo?: string | null
+          responsabilidades?: string | null
+          tem_comissao?: boolean
+        }
+        Update: {
+          competencias?: string | null
+          created_at?: string
+          faixa_salarial_max?: number | null
+          faixa_salarial_min?: number | null
+          formacao?: string | null
+          id?: string
+          modelo_contratacao?: string
+          nivel?: string
+          nome?: string
+          objetivo?: string | null
+          responsabilidades?: string | null
+          tem_comissao?: boolean
+        }
+        Relationships: []
+      }
+      rh_colaboradores: {
+        Row: {
+          area_id: string | null
+          cargo_id: string | null
+          cpf: string | null
+          created_at: string
+          email: string | null
+          gestor_nome: string | null
+          id: string
+          modelo_contratacao: string
+          nome: string
+          observacoes: string | null
+          salario_fixo: number | null
+          status: string
+          telefone: string | null
+          tem_comissao: boolean
+          unidade_id: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          cargo_id?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          gestor_nome?: string | null
+          id?: string
+          modelo_contratacao?: string
+          nome: string
+          observacoes?: string | null
+          salario_fixo?: number | null
+          status?: string
+          telefone?: string | null
+          tem_comissao?: boolean
+          unidade_id?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          cargo_id?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          gestor_nome?: string | null
+          id?: string
+          modelo_contratacao?: string
+          nome?: string
+          observacoes?: string | null
+          salario_fixo?: number | null
+          status?: string
+          telefone?: string | null
+          tem_comissao?: boolean
+          unidade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_colaboradores_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "rh_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rh_colaboradores_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "rh_cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rh_colaboradores_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "rh_unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rh_unidades: {
+        Row: {
+          cidade: string | null
+          created_at: string
+          id: string
+          nome: string
+          status: string
+        }
+        Insert: {
+          cidade?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          status?: string
+        }
+        Update: {
+          cidade?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      rh_vagas: {
+        Row: {
+          area_id: string | null
+          cargo_id: string | null
+          created_at: string
+          data_abertura: string
+          descricao_curta: string | null
+          id: string
+          motivo_abertura: string
+          requisitos: string | null
+          status: string
+          unidade_id: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          cargo_id?: string | null
+          created_at?: string
+          data_abertura?: string
+          descricao_curta?: string | null
+          id?: string
+          motivo_abertura?: string
+          requisitos?: string | null
+          status?: string
+          unidade_id?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          cargo_id?: string | null
+          created_at?: string
+          data_abertura?: string
+          descricao_curta?: string | null
+          id?: string
+          motivo_abertura?: string
+          requisitos?: string | null
+          status?: string
+          unidade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_vagas_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "rh_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rh_vagas_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "rh_cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rh_vagas_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "rh_unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sala_tecnica_confirmations: {
         Row: {
           attendance_status: string | null
