@@ -1120,7 +1120,9 @@ export default function IpromedJourney() {
             <RefreshCw className="h-4 w-4" />
           </Button>
           <span className="text-sm text-muted-foreground">
-            Total: <span className="font-medium text-foreground">{clients.length}</span> clientes
+            Total: <span className="font-medium text-foreground">{activeClients.length}</span> clientes
+            {distratoClients.length > 0 && <span className="text-destructive ml-1">({distratoClients.length} distratados)</span>}
+          </span>
           </span>
           
           {/* Selected count */}
