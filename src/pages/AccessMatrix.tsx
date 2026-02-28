@@ -57,6 +57,7 @@ const PORTAL_COLORS: Record<Portal, string> = {
   hotleads: 'from-orange-500 to-red-600',
   vision: 'from-violet-500 to-purple-500',
   neopay: 'from-teal-500 to-cyan-500',
+  neorh: 'from-indigo-500 to-blue-500',
 };
 
 const PORTAL_BG_COLORS: Record<Portal, string> = {
