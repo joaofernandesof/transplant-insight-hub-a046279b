@@ -185,6 +185,7 @@ export function WorkspaceAgenda() {
           status: meeting.status,
           appointment_type: meeting.agenda_type || 'reuniao',
           client_name: meeting.ipromed_legal_clients?.name,
+          assigned_to: null,
           source: 'meeting',
         });
       });
