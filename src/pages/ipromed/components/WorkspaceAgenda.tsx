@@ -401,7 +401,14 @@ function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointmen
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(appointment.title);
   const [editLocation, setEditLocation] = useState(appointment.location || '');
-  const [editNotes, setEditNotes] = useState('');
+  const [editDate, setEditDate] = useState(format(new Date(appointment.start_datetime), 'yyyy-MM-dd'));
+  const [editStartTime, setEditStartTime] = useState(format(new Date(appointment.start_datetime), 'HH:mm'));
+  const [editEndTime, setEditEndTime] = useState(
+    appointment.end_datetime ? format(new Date(appointment.end_datetime), 'HH:mm') : ''
+  );
+  const [editStatus, setEditStatus] = useState(appointment.status);
+  const [editType, setEditType] = useState(appointment.appointment_type);
+  const [editMeetingUrl, setEditMeetingUrl] = useState(appointment.meeting_url || '');
   const queryClient = useQueryClient();
 
   const startTime = format(new Date(appointment.start_datetime), "HH:mm");
@@ -412,15 +419,54 @@ function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointmen
   const config = typeConfig[appointment.appointment_type] || typeConfig.reuniao;
   const IconComponent = config.icon;
 
+  const handleStartEdit = () => {
+    setEditTitle(appointment.title);
+    setEditLocation(appointment.location || '');
+    setEditDate(format(new Date(appointment.start_datetime), 'yyyy-MM-dd'));
+    setEditStartTime(format(new Date(appointment.start_datetime), 'HH:mm'));
+    setEditEndTime(appointment.end_datetime ? format(new Date(appointment.end_datetime), 'HH:mm') : '');
+    setEditStatus(appointment.status);
+    setEditType(appointment.appointment_type);
+    setEditMeetingUrl(appointment.meeting_url || '');
+    setEditing(true);
+  };
+
   const updateMutation = useMutation({
     mutationFn: async () => {
-      const table = appointment.source === 'meeting' ? 'ipromed_client_meetings' : 'ipromed_appointments';
-      const updates: Record<string, string> = { title: editTitle };
-      if (appointment.source === 'appointment') {
-        updates.location = editLocation;
+      if (appointment.source === 'meeting') {
+        const updates: Record<string, any> = {
+          title: editTitle,
+          scheduled_date: editDate,
+          scheduled_time: editStartTime,
+          status: editStatus,
+          agenda_type: editType,
+          location: editLocation,
+          meeting_link: editMeetingUrl || null,
+          modality: editMeetingUrl ? 'virtual' : 'presencial',
+        };
+        if (editEndTime && editStartTime) {
+          const start = new Date(`${editDate}T${editStartTime}:00`);
+          const end = new Date(`${editDate}T${editEndTime}:00`);
+          updates.duration_minutes = Math.round((end.getTime() - start.getTime()) / 60000);
+        }
+        const { error } = await supabase.from('ipromed_client_meetings').update(updates).eq('id', appointment.id);
+        if (error) throw error;
+      } else {
+        const startDatetime = `${editDate}T${editStartTime}:00`;
+        const endDatetime = editEndTime ? `${editDate}T${editEndTime}:00` : null;
+        const updates: Record<string, any> = {
+          title: editTitle,
+          start_datetime: startDatetime,
+          end_datetime: endDatetime,
+          location: editLocation,
+          status: editStatus,
+          appointment_type: editType,
+          meeting_url: editMeetingUrl || null,
+          is_virtual: !!editMeetingUrl,
+        };
+        const { error } = await supabase.from('ipromed_appointments').update(updates).eq('id', appointment.id);
+        if (error) throw error;
       }
-      const { error } = await supabase.from(table).update(updates).eq('id', appointment.id);
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace-agenda-kanban'] });
@@ -430,7 +476,20 @@ function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointmen
     onError: () => toast.error('Erro ao atualizar'),
   });
 
-  const isSynthetic = appointment.id.startsWith('birthday-') || appointment.id.startsWith('specialty-');
+  const isSynthetic = appointment.id.startsWith('birthday-') || appointment.id.startsWith('specialty-') || appointment.id.startsWith('task-');
+
+  const statusOptions = [
+    { value: 'scheduled', label: 'Agendado' },
+    { value: 'confirmed', label: 'Confirmado' },
+    { value: 'completed', label: 'Concluído' },
+    { value: 'cancelled', label: 'Cancelado' },
+    { value: 'no_show', label: 'Não compareceu' },
+  ];
+
+  const typeOptions = Object.entries(typeConfig).map(([key, val]) => ({
+    value: key,
+    label: val.label,
+  }));
 
   return (
     <>
@@ -462,24 +521,57 @@ function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointmen
           </DialogHeader>
 
           <div className="space-y-4 pt-2">
-            {/* Badge tipo */}
-            <Badge variant="outline" className={`${config.color} border-current/20`}>
-              {config.label}
-            </Badge>
-
             {editing ? (
               <div className="space-y-3">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">Título</label>
                   <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} />
                 </div>
-                {appointment.source === 'appointment' && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+                  <Select value={editType} onValueChange={setEditType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {typeOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Data</label>
+                  <Input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground">Local</label>
-                    <Input value={editLocation} onChange={e => setEditLocation(e.target.value)} />
+                    <label className="text-xs font-medium text-muted-foreground">Início</label>
+                    <Input type="time" value={editStartTime} onChange={e => setEditStartTime(e.target.value)} />
                   </div>
-                )}
-                <div className="flex gap-2 justify-end">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Fim</label>
+                    <Input type="time" value={editEndTime} onChange={e => setEditEndTime(e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Local</label>
+                  <Input value={editLocation} onChange={e => setEditLocation(e.target.value)} placeholder="Local do evento" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Link da reunião (virtual)</label>
+                  <Input value={editMeetingUrl} onChange={e => setEditMeetingUrl(e.target.value)} placeholder="https://meet.google.com/..." />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Status</label>
+                  <Select value={editStatus} onValueChange={setEditStatus}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2 justify-end pt-1">
                   <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
                     <X className="h-3.5 w-3.5 mr-1" /> Cancelar
                   </Button>
@@ -490,6 +582,11 @@ function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointmen
               </div>
             ) : (
               <div className="space-y-3">
+                {/* Badge tipo */}
+                <Badge variant="outline" className={`${config.color} border-current/20`}>
+                  {config.label}
+                </Badge>
+
                 <h3 className="font-semibold text-base">{appointment.title}</h3>
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -533,7 +630,7 @@ function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointmen
 
                 {!isSynthetic && (
                   <div className="flex justify-end pt-2">
-                    <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+                    <Button variant="outline" size="sm" onClick={handleStartEdit}>
                       <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
                     </Button>
                   </div>
