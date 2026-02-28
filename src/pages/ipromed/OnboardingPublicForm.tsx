@@ -33,6 +33,7 @@ import {
   FileText,
   Wallet,
 } from "lucide-react";
+import cpgLogo from "@/assets/cpg-logo-horizontal.png";
 
 interface FormData {
   doctor_name: string;
@@ -117,10 +118,10 @@ const initialFormData: FormData = {
 function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
   return (
     <div className="flex items-center gap-3 pt-8 pb-4">
-      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#1a365d] text-white">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#2d4a2e] text-white">
         <Icon className="h-5 w-5" />
       </div>
-      <h2 className="text-xl font-semibold text-[#1a365d]">{title}</h2>
+      <h2 className="text-xl font-semibold text-[#2d4a2e]">{title}</h2>
     </div>
   );
 }
@@ -256,7 +257,7 @@ export default function OnboardingPublicForm() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1a365d]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#2d4a2e]" />
       </div>
     );
   }
@@ -290,16 +291,14 @@ export default function OnboardingPublicForm() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-[#1a365d] text-white py-8">
-        <div className="max-w-2xl mx-auto px-4">
+      <div className="bg-[#2d4a2e] text-white py-8">
+        <div className="max-w-2xl mx-auto px-4 flex flex-col items-center text-center">
+          <img src={cpgLogo} alt="CPG Advocacia Médica" className="h-16 md:h-20 mb-4 object-contain" />
           <h1 className="text-2xl md:text-3xl font-bold">
-            📋 Questionário de Onboarding
+            Questionário de Onboarding
           </h1>
-          <p className="text-blue-200 mt-2 text-sm md:text-base">
-            CPG Advocacia Médica{clientName ? ` — ${clientName}` : ''}
-          </p>
-          <p className="text-blue-300 mt-1 text-xs md:text-sm">
-            Preencha com os dados da sua clínica para que possamos finalizar a documentação.
+          <p className="text-white/70 mt-2 text-sm md:text-base">
+            {clientName ? `${clientName} — ` : ''}Preencha com os dados da sua clínica para que possamos finalizar a documentação.
           </p>
         </div>
       </div>
@@ -309,7 +308,7 @@ export default function OnboardingPublicForm() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mt-6 p-6 md:p-8">
           {/* Dados Pessoais */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-[#1a365d]">Dados do Médico</h2>
+            <h2 className="text-lg font-semibold text-[#2d4a2e]">Dados do Médico</h2>
             <div>
               <Label className="text-sm font-medium text-gray-700">Nome do médico *</Label>
               <Input value={formData.doctor_name} onChange={e => set('doctor_name')(e.target.value)} placeholder="Nome completo" className="mt-1" />
@@ -540,7 +539,7 @@ export default function OnboardingPublicForm() {
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-[#1a365d] hover:bg-[#2d4a7a] text-white px-12 py-6 text-lg rounded-xl shadow-lg"
+            className="bg-[#2d4a2e] hover:bg-[#3d5e3e] text-white px-12 py-6 text-lg rounded-xl shadow-lg"
           >
             {submitting ? (
               <>
