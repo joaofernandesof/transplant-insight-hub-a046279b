@@ -307,6 +307,7 @@ export function MeetingScheduleDialog({
         .from('ipromed_client_meetings' as any)
         .insert({
           client_id: clientId,
+          created_by: (await supabase.auth.getUser()).data.user?.id,
           title: agenda?.name || 'Reunião',
           description: agenda?.description || '',
           agenda_type: agendaType === "predefined" ? selectedAgenda : 'custom',
