@@ -1,44 +1,26 @@
 /**
- * CPG Advocacia Médica - Funções do Escritório
- * Gestão de responsabilidades e atribuições das advogadas
+ * CPG Advocacia Médica - Funções do Escritório (Tabela)
  */
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Plus,
-  Briefcase,
-  Trash2,
-  Pencil,
-  Search,
-  Filter,
-  Users,
-  Shield,
-  Scale,
-  FileText,
-  Gavel,
-  BookOpen,
-  AlertCircle,
-  Loader2,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Plus, Briefcase, Trash2, Pencil, Search, Users, Shield, Scale,
+  FileText, Gavel, BookOpen, AlertCircle, Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -55,7 +37,7 @@ const CATEGORIES = [
   { value: "geral", label: "Geral", icon: Users, color: "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300" },
 ];
 
-const LAWYERS = ipromedTeam.map(m => ({ value: m.name, label: m.name, photo: m.photo, color: m.color }));
+const LAWYERS = ipromedTeam.map(m => ({ value: m.name, label: m.name, photo: m.photo, color: m.color, role: m.role }));
 
 interface LawyerFunction {
   id: string;
@@ -177,12 +159,6 @@ export default function IpromedFunctions() {
   const getCategoryInfo = (cat: string) => CATEGORIES.find(c => c.value === cat) || CATEGORIES[CATEGORIES.length - 1];
   const getLawyerInfo = (name: string) => LAWYERS.find(l => l.value === name);
 
-  // Group by lawyer
-  const grouped = filtered.reduce<Record<string, LawyerFunction[]>>((acc, fn) => {
-    (acc[fn.lawyer_name] = acc[fn.lawyer_name] || []).push(fn);
-    return acc;
-  }, {});
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -241,13 +217,12 @@ export default function IpromedFunctions() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {LAWYERS.map(lawyer => {
           const count = functions.filter(f => f.lawyer_name === lawyer.value).length;
-          const lawyerTeam = ipromedTeam.find(t => t.name === lawyer.value);
           return (
-            <Card key={lawyer.value} className="border shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            <Card key={lawyer.value} className={`border shadow-sm cursor-pointer hover:shadow-md transition-shadow ${filterLawyer === lawyer.value ? 'ring-2 ring-primary' : ''}`}
               onClick={() => setFilterLawyer(filterLawyer === lawyer.value ? "all" : lawyer.value)}>
               <CardContent className="p-4 flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={lawyerTeam?.photo} alt={lawyer.label} className="object-cover" />
+                  <AvatarImage src={lawyer.photo} alt={lawyer.label} className="object-cover" />
                   <AvatarFallback className={lawyer.color}>
                     {lawyer.label.split(" ").map(n => n[0]).join("")}
                   </AvatarFallback>
@@ -273,79 +248,83 @@ export default function IpromedFunctions() {
         </Card>
       </div>
 
-      {/* Content */}
+      {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      ) : Object.keys(grouped).length === 0 ? (
+      ) : filtered.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-16 text-center">
             <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground font-medium">Nenhuma função cadastrada</p>
+            <p className="text-muted-foreground font-medium">Nenhuma função encontrada</p>
             <p className="text-sm text-muted-foreground mt-1">Clique em "Nova Função" para começar.</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
-          {Object.entries(grouped).map(([lawyerName, fns]) => {
-            const lawyerInfo = getLawyerInfo(lawyerName);
-            const lawyerTeam = ipromedTeam.find(t => t.name === lawyerName);
-            return (
-              <Card key={lawyerName} className="border shadow-sm">
-                <CardHeader className="pb-3 bg-muted/30 border-b">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={lawyerTeam?.photo} alt={lawyerName} className="object-cover" />
-                      <AvatarFallback className={lawyerInfo?.color || ""}>
-                        {lawyerName.split(" ").map(n => n[0]).join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-lg">{lawyerName}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {lawyerTeam?.role} • {fns.length} {fns.length === 1 ? "função" : "funções"}
-                      </p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {fns.map(fn => {
-                      const cat = getCategoryInfo(fn.category);
-                      const CatIcon = cat.icon;
-                      return (
-                        <div
-                          key={fn.id}
-                          className="group relative border rounded-lg p-4 hover:shadow-md transition-shadow bg-card"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <Badge className={`${cat.color} text-xs`}>
-                              <CatIcon className="h-3 w-3 mr-1" />
-                              {cat.label}
-                            </Badge>
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(fn)}>
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(fn.id)}>
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
+        <Card className="border shadow-sm">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead className="w-[220px]">Responsável</TableHead>
+                  <TableHead>Função</TableHead>
+                  <TableHead className="w-[160px]">Categoria</TableHead>
+                  <TableHead className="w-[80px] text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((fn) => {
+                  const cat = getCategoryInfo(fn.category);
+                  const CatIcon = cat.icon;
+                  const lawyerInfo = getLawyerInfo(fn.lawyer_name);
+                  return (
+                    <TableRow key={fn.id} className="group">
+                      <TableCell>
+                        <div className="flex items-center gap-2.5">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={lawyerInfo?.photo} alt={fn.lawyer_name} className="object-cover" />
+                            <AvatarFallback className={`text-xs ${lawyerInfo?.color || ''}`}>
+                              {fn.lawyer_name.split(" ").map(n => n[0]).join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{fn.lawyer_name}</p>
+                            {lawyerInfo?.role && (
+                              <p className="text-[11px] text-muted-foreground truncate">{lawyerInfo.role}</p>
+                            )}
                           </div>
-                          <h4 className="font-semibold text-sm mt-2">{fn.title}</h4>
-                          {fn.description && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{fn.description}</p>
-                          )}
                         </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                      </TableCell>
+                      <TableCell>
+                        <p className="font-medium text-sm">{fn.title}</p>
+                        {fn.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{fn.description}</p>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${cat.color} text-xs`}>
+                          <CatIcon className="h-3 w-3 mr-1" />
+                          {cat.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(fn)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(fn.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
 
       {/* Dialog */}
