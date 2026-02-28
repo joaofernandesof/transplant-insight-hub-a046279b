@@ -90,10 +90,13 @@ function getDayLabel(date: Date, today: Date): string {
   return format(date, "EEE", { locale: ptBR });
 }
 
+const LAWYER_NAMES = ['Dra. Caroline Parahyba', 'Dra. Larissa Guerreiro', 'Isabele Cartaxo'];
+
 export function WorkspaceAgenda() {
   const navigate = useNavigate();
   const today = startOfDay(new Date());
   const endDate = endOfDay(addDays(today, DAYS_AHEAD - 1));
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   // Generate array of days
   const days = Array.from({ length: DAYS_AHEAD }, (_, i) => addDays(today, i));
