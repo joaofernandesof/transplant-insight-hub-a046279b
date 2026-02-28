@@ -387,6 +387,21 @@ export default function IpromedTasks() {
         </div>
       </div>
 
+      {/* Active filter indicator */}
+      {statusFilter !== "all" && (
+        <div className="pb-2 flex-shrink-0">
+          <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/20 rounded-xl">
+            <Filter className="h-3.5 w-3.5 text-primary" />
+            <span className="text-sm text-primary font-medium">
+              Filtrando: {statusFilter === "todo" ? "Tarefas a fazer" : statusFilter === "due_today" ? "Vencem hoje" : statusFilter === "overdue" ? "Em atraso" : "Concluídas"}
+            </span>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs ml-auto" onClick={() => setStatusFilter("all")}>
+              Limpar filtro
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Filters + View Tabs */}
       <div className="pb-4 flex-shrink-0">
         <div className="flex flex-wrap items-center gap-3 p-3 bg-background rounded-2xl border shadow-sm">
