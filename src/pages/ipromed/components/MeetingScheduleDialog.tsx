@@ -59,6 +59,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { logClientActivity } from "./ClientActivityTimeline";
+import { Link2, ClipboardCopy } from "lucide-react";
 
 // Interface para participantes
 interface Participant {
@@ -158,7 +159,7 @@ export function MeetingScheduleDialog({
   onSchedule,
 }: MeetingScheduleDialogProps) {
   const queryClient = useQueryClient();
-  const [step, setStep] = useState<"agenda" | "details">("agenda");
+  const [step, setStep] = useState<"agenda" | "details" | "form_link">("agenda");
   const [agendaType, setAgendaType] = useState<"predefined" | "custom">("predefined");
   const [selectedAgenda, setSelectedAgenda] = useState<string>("");
   const [customAgenda, setCustomAgenda] = useState({
@@ -178,6 +179,8 @@ export function MeetingScheduleDialog({
   const [participantSearch, setParticipantSearch] = useState("");
   const [isParticipantPopoverOpen, setIsParticipantPopoverOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [onboardingFormLink, setOnboardingFormLink] = useState<string | null>(null);
+  const [onboardingFormCreating, setOnboardingFormCreating] = useState(false);
 
   // Query para buscar clientes e colaboradores do sistema
   const { data: availablePeople } = useQuery({
@@ -311,6 +314,48 @@ export function MeetingScheduleDialog({
       
       const meeting = meetingData as unknown as { id: string };
 
+      // Auto-create onboarding form if this is an onboarding meeting
+      if (selectedAgenda === 'onboarding' && agendaType === 'predefined') {
+        try {
+          // Check if client already has a pending form
+          const { data: existingForm } = await supabase
+            .from('ipromed_onboarding_forms')
+            .select('id, token')
+            .eq('client_id', clientId)
+            .eq('status', 'pending')
+            .maybeSingle();
+
+          let formToken: string;
+          if (existingForm) {
+            formToken = (existingForm as any).token;
+          } else {
+            formToken = crypto.randomUUID().replace(/-/g, '').substring(0, 32);
+            await supabase.from('ipromed_onboarding_forms').insert({
+              client_id: clientId,
+              token: formToken,
+              status: 'pending',
+            });
+
+            // Create task for follow-up
+            await supabase.from('ipromed_legal_tasks').insert([{
+              title: `Enviar formulário de onboarding para ${clientName}`,
+              description: `Enviar o link do formulário de onboarding para o cliente ${clientName}. Link: ${window.location.origin}/forms/onboarding/${formToken}`,
+              assigned_to_name: 'Isabele Cartaxo',
+              status: 'pending',
+              priority: 3,
+              category: 'onboarding',
+              due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            }]);
+          }
+
+          const link = `${window.location.origin}/forms/onboarding/${formToken}`;
+          setOnboardingFormLink(link);
+          queryClient.invalidateQueries({ queryKey: ['ipromed-onboarding-form'] });
+        } catch (formErr) {
+          console.error('Error creating onboarding form:', formErr);
+        }
+      }
+
       // Log activity
       await logClientActivity(
         clientId,
@@ -338,8 +383,14 @@ export function MeetingScheduleDialog({
       }
 
       toast.success("Reunião agendada com sucesso!");
-      onOpenChange(false);
-      resetForm();
+      
+      // If onboarding meeting with form link, show it instead of closing
+      if (onboardingFormLink) {
+        setStep("form_link" as any);
+      } else {
+        onOpenChange(false);
+        resetForm();
+      }
     } catch (error: any) {
       console.error("Error scheduling meeting:", error);
       toast.error("Erro ao agendar reunião: " + error.message);
@@ -363,6 +414,7 @@ export function MeetingScheduleDialog({
     });
     setParticipants([]);
     setParticipantSearch("");
+    setOnboardingFormLink(null);
   };
 
   return (
@@ -769,23 +821,73 @@ export function MeetingScheduleDialog({
           </div>
         )}
 
+        {/* ═══ FORM LINK STEP ═══ */}
+        {step === "form_link" && onboardingFormLink && (
+          <div className="space-y-4">
+            <div className="text-center space-y-2">
+              <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h3 className="font-bold text-lg">Reunião agendada!</h3>
+              <p className="text-sm text-muted-foreground">
+                O formulário de onboarding foi criado automaticamente.<br />
+                <strong>Envie o link abaixo ao cliente</strong> — é obrigatório que ele preencha antes de avançar para a próxima etapa.
+              </p>
+            </div>
+
+            <div className="bg-muted rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-sm font-medium">Link do Formulário de Onboarding</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input 
+                  readOnly 
+                  value={onboardingFormLink} 
+                  className="text-xs bg-background"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(onboardingFormLink);
+                    toast.success('Link copiado!');
+                  }}
+                >
+                  <ClipboardCopy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                ⚠️ O cliente só poderá avançar para "Pacote Jurídico em andamento" após preencher este formulário.
+              </p>
+            </div>
+          </div>
+        )}
+
         <DialogFooter className="gap-2">
           {step === "details" && (
             <Button variant="outline" onClick={() => setStep("agenda")}>
               Voltar
             </Button>
           )}
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
+          {step !== "form_link" && (
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+          )}
           {step === "agenda" ? (
             <Button onClick={handleNext}>
               Continuar
             </Button>
-          ) : (
+          ) : step === "details" ? (
             <Button onClick={handleSchedule} disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Agendar Reunião
+            </Button>
+          ) : (
+            <Button onClick={() => { onOpenChange(false); resetForm(); }}>
+              Concluir
             </Button>
           )}
         </DialogFooter>
