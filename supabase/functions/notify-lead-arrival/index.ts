@@ -41,31 +41,27 @@ Deno.serve(async (req) => {
 
     console.log("Processing lead notification for:", lead.name, "State:", lead.state);
 
-    // If lead has no state, we can't notify anyone
-    if (!lead.state) {
-      console.log("Lead has no state, skipping notification");
-      return new Response(
-        JSON.stringify({ message: "Lead has no state, no notifications sent" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Find licensees - filter by state if available, otherwise notify all
+    let profilesQuery = supabase
+      .from("profiles")
+      .select("user_id, name, state");
+    
+    if (lead.state) {
+      profilesQuery = profilesQuery.eq("state", lead.state);
     }
 
-    // Find all licensees from the same state
-    const { data: matchingProfiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("user_id, name, state")
-      .eq("state", lead.state);
+    const { data: matchingProfiles, error: profilesError } = await profilesQuery;
 
     if (profilesError) {
       console.error("Error fetching profiles:", profilesError);
       throw profilesError;
     }
 
-    console.log(`Found ${matchingProfiles?.length || 0} licensees in state ${lead.state}`);
+    console.log(`Found ${matchingProfiles?.length || 0} licensees${lead.state ? ` in state ${lead.state}` : ' (all states, lead has no state)'}`);
 
     if (!matchingProfiles || matchingProfiles.length === 0) {
       return new Response(
-        JSON.stringify({ message: "No licensees found in this state" }),
+        JSON.stringify({ message: "No licensees found" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

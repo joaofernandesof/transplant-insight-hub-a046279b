@@ -92,10 +92,15 @@ serve(async (req) => {
         });
       }
 
-      // Process webhook outbox in background
+      // Process webhook outbox and notify licensees in background
       if (data?.success) {
         // Fire webhook (non-blocking)
         EdgeRuntime.waitUntil(processWebhookOutbox(supabase));
+
+        // Notify licensees about the new lead (non-blocking)
+        if (data.lead_id) {
+          EdgeRuntime.waitUntil(notifyLeadArrival(supabase, data.lead_id));
+        }
 
         // Calculate next release time with jitter
         const releaseInfo = await calculateNextRelease(supabase);
@@ -350,5 +355,46 @@ async function processWebhookOutbox(supabase: any) {
     }
   } catch (err) {
     console.error("Webhook outbox processing error:", err);
+}
+
+async function notifyLeadArrival(supabase: any, leadId: string) {
+  try {
+    // Fetch the released lead details
+    const { data: lead, error: leadError } = await supabase
+      .from("leads")
+      .select("id, name, phone, email, city, state, source, created_at")
+      .eq("id", leadId)
+      .single();
+
+    if (leadError || !lead) {
+      console.error("[notifyLeadArrival] Failed to fetch lead:", leadError);
+      return;
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/notify-lead-arrival`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify({ lead }),
+      }
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("[notifyLeadArrival] Notification failed:", response.status, text);
+    } else {
+      const result = await response.json();
+      console.log("[notifyLeadArrival] Notification sent:", result);
+    }
+  } catch (err) {
+    console.error("[notifyLeadArrival] Error:", err);
   }
+}
 }
