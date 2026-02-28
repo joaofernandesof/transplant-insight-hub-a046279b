@@ -562,7 +562,7 @@ export default function IpromedClients() {
                       </TableRow>
                     ) : (
                       filteredClients.map((client) => {
-                        const status = statusConfig[client.status] || statusConfig.prospect;
+                        
                         const risk = riskConfig[client.risk_level] || riskConfig.low;
                         const RiskIcon = risk.icon;
                         const journey = journeyConfig[client.metadata?.journey_phase || client.journey_stage] || journeyConfig.prospect;
