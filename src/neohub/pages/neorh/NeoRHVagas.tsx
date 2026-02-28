@@ -512,26 +512,8 @@ export default function NeoRHVagas() {
                   <div className="flex items-center gap-2 mb-3">
                     {fluxo === 'express' ? <Zap className="h-5 w-5 text-amber-500" /> : <Crown className="h-5 w-5 text-violet-500" />}
                     <h2 className="font-bold text-lg">{fluxo === 'express' ? 'Fluxo Express' : 'Fluxo Executivo'}</h2>
-                    <Badge variant="outline" className="text-xs">{fluxoVagas.length} vagas</Badge>
                   </div>
                 )}
-
-                {/* Funil summary */}
-                <div className="flex items-center gap-1 mb-3 overflow-x-auto pb-1">
-                  {etapas.map((etapa, i) => {
-                    const count = fluxoVagas.filter(v => (v.etapa_kanban || 'solicitacao') === etapa.id).length;
-                    return (
-                      <div key={etapa.id} className="flex items-center">
-                        <div className="flex items-center gap-1.5 bg-muted/50 rounded-md px-2.5 py-1.5 whitespace-nowrap">
-                          <div className={cn('w-2 h-2 rounded-full', etapa.dot)} />
-                          <span className="text-[11px] font-medium">{etapa.shortLabel}</span>
-                          <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{count}</Badge>
-                        </div>
-                        {i < etapas.length - 1 && <ChevronRight className="h-3 w-3 text-muted-foreground/50 mx-0.5 shrink-0" />}
-                      </div>
-                    );
-                  })}
-                </div>
 
                 {/* Board */}
                 <ScrollArea className="w-full">
