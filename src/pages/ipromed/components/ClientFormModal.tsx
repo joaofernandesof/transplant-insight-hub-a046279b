@@ -222,8 +222,9 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6 min-h-0 flex-1">
-            <ScrollArea className="flex-1 pr-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col min-h-0 flex-1">
+            <div className="flex-1 overflow-y-auto px-6 pb-4">
+              <div className="space-y-6">
               <div className="space-y-6">
                 {/* ── Dados Básicos ── */}
                 <div>
