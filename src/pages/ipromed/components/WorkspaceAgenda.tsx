@@ -333,7 +333,30 @@ export function WorkspaceAgenda() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="px-5 pb-5">
+      <CardContent className="px-5 pb-5 space-y-3">
+        {/* User filter buttons */}
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <Button
+            variant={selectedUser === null ? 'default' : 'outline'}
+            size="sm"
+            className="text-xs h-7 px-3"
+            onClick={() => setSelectedUser(null)}
+          >
+            Geral
+          </Button>
+          {LAWYER_NAMES.map(name => (
+            <Button
+              key={name}
+              variant={selectedUser === name ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs h-7 px-3"
+              onClick={() => setSelectedUser(name)}
+            >
+              {name}
+            </Button>
+          ))}
+        </div>
+
         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
             {days.map((day) => {
               const key = format(day, 'yyyy-MM-dd');
