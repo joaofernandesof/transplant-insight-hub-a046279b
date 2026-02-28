@@ -293,7 +293,7 @@ export default function OnboardingPublicForm() {
       {/* Header */}
       <div className="bg-[#2d4a2e] text-white py-8">
         <div className="max-w-2xl mx-auto px-4 flex flex-col items-center text-center">
-          <img src={cpgLogo} alt="CPG Advocacia Médica" className="h-32 md:h-40 mb-4 object-contain" />
+          <img src={cpgLogo} alt="CPG Advocacia Médica" className="h-48 md:h-60 mb-4 object-contain" />
           <h1 className="text-2xl md:text-3xl font-bold">
             Questionário de Onboarding
           </h1>
