@@ -374,6 +374,31 @@ export default function IpromedTasks() {
             </TabsList>
           </Tabs>
         </div>
+
+        {/* User filter buttons */}
+        <div className="flex items-center justify-center gap-2 mt-3">
+          {[
+            { value: "all", label: "Todos" },
+            { value: "Dra. Caroline Parahyba", label: "Dra. Caroline" },
+            { value: "Dra. Larissa Guerreiro", label: "Dra. Larissa" },
+            { value: "Isabele Cartaxo", label: "Isabele" },
+          ].map((opt) => (
+            <Button
+              key={opt.value}
+              variant={userFilter === opt.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setUserFilter(opt.value)}
+              className="rounded-full px-4 text-xs"
+            >
+              {opt.label}
+              {opt.value !== "all" && (
+                <Badge variant="secondary" className="ml-1.5 h-5 min-w-5 px-1 text-[10px] rounded-full">
+                  {tasks.filter(t => t.assigned_to_name === opt.value && t.status !== "done").length}
+                </Badge>
+              )}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Content */}
