@@ -184,7 +184,7 @@ export default function IpromedClients() {
         (client.client_number?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         (client.address?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         (client.address?.state?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-      const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
+      const matchesStatus = true;
       const matchesJourney = journeyFilter === 'all' || (client.metadata?.journey_phase || client.journey_stage) === journeyFilter;
       const matchesPayment = paymentFilter === 'all' || client.metadata?.payment_status === paymentFilter;
       const matchesRisk = riskFilter === 'all' || client.risk_level === riskFilter;
