@@ -458,7 +458,7 @@ export default function IpromedTasks() {
                                 onClick={() => { setSelectedTask(task); setIsDetailOpen(true); }}
                               >
                                 <div className="flex items-start gap-2">
-                                  <p className="font-semibold text-xs line-clamp-2 flex-1 min-w-0">{task.title}</p>
+                                  <p className={cn("font-semibold text-xs line-clamp-2 flex-1 min-w-0", column.id === "completed" && "line-through text-muted-foreground")}>{task.title}</p>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                       <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 flex-shrink-0 rounded-lg">
