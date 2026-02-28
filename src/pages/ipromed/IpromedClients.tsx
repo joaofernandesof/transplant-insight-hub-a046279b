@@ -203,9 +203,6 @@ export default function IpromedClients() {
         case 'created_at':
           comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           break;
-        case 'status':
-          comparison = a.status.localeCompare(b.status);
-          break;
         case 'risk_level':
           const riskOrder = { high: 3, medium: 2, low: 1 };
           comparison = (riskOrder[a.risk_level as keyof typeof riskOrder] || 0) - (riskOrder[b.risk_level as keyof typeof riskOrder] || 0);
