@@ -225,7 +225,7 @@ export default function IpromedClientDetail() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const status = statusConfig[client.status] || statusConfig.prospect;
+  
   const risk = riskConfig[client.risk_level] || riskConfig.low;
   const RiskIcon = risk.icon;
 
