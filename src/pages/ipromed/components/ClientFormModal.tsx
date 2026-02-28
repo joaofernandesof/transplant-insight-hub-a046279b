@@ -79,7 +79,6 @@ interface ClientFormModalProps {
     phone?: string | null;
     cpf_cnpj?: string | null;
     client_type?: string;
-    status?: string;
     risk_level?: string;
     journey_stage?: string;
     notes?: string | null;
