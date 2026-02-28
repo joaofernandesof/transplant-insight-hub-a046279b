@@ -194,20 +194,22 @@ export function MeetingScheduleDialog({
 
       // Buscar apenas usuários com acesso ao portal CPG (perfil ipromed)
       const { data: cpgUserIds } = await supabase
-        .from('neohub_user_profiles')
+        .from('neohub_user_profiles' as any)
         .select('user_id')
         .eq('profile_type', 'ipromed')
         .eq('is_active', true);
 
       const allowedIds = (cpgUserIds || []).map((u: any) => u.user_id);
 
-      const { data: profiles } = allowedIds.length > 0
-        ? await supabase
-            .from('profiles')
-            .select('id, full_name, email')
-            .in('id', allowedIds)
-            .order('full_name')
-        : { data: [] };
+      let profiles: any[] = [];
+      if (allowedIds.length > 0) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', allowedIds)
+          .order('full_name');
+        profiles = data || [];
+      }
 
       const people: (Participant & { searchText: string })[] = [];
       
