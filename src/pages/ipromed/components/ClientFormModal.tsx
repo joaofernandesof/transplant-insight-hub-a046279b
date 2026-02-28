@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -208,8 +208,8 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
             {isEditing ? "Editar Cliente" : "Novo Cliente Jurídico"}
@@ -222,8 +222,9 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6 min-h-0 flex-1">
-            <ScrollArea className="flex-1 pr-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col min-h-0 flex-1">
+            <div className="flex-1 overflow-y-auto px-6 pb-4">
+              <div className="space-y-6">
               <div className="space-y-6">
                 {/* ── Dados Básicos ── */}
                 <div>
@@ -457,13 +458,14 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                   </div>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
+            </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className="flex justify-end gap-3 px-6 py-4 border-t">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>
                 {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isEditing ? "Salvar Alterações" : "Cadastrar Cliente"}
               </Button>
