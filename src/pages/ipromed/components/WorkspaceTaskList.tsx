@@ -401,8 +401,7 @@ export function WorkspaceTaskList() {
         onOpenChange={setShowCreateDialog}
         task={null}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['workspace-tasks'] });
-          queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
+          invalidateAllTaskQueries(queryClient);
           setShowCreateDialog(false);
         }}
       />
