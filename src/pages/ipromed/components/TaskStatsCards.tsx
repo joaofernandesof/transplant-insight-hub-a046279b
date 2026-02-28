@@ -32,6 +32,7 @@ interface TaskStats {
 }
 
 export function TaskStatsCards() {
+  const navigate = useNavigate();
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
