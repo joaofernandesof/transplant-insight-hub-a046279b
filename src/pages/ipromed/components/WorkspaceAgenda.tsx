@@ -90,10 +90,13 @@ function getDayLabel(date: Date, today: Date): string {
   return format(date, "EEE", { locale: ptBR });
 }
 
+const LAWYER_NAMES = ['Dra. Caroline Parahyba', 'Dra. Larissa Guerreiro', 'Isabele Cartaxo'];
+
 export function WorkspaceAgenda() {
   const navigate = useNavigate();
   const today = startOfDay(new Date());
   const endDate = endOfDay(addDays(today, DAYS_AHEAD - 1));
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   // Generate array of days
   const days = Array.from({ length: DAYS_AHEAD }, (_, i) => addDays(today, i));
@@ -261,13 +264,25 @@ export function WorkspaceAgenda() {
     },
   });
 
+  // Filter by selected user
+  const filteredAppointments = selectedUser
+    ? appointments?.filter(apt => {
+        // Tasks have assigned_to_name in client_name
+        if (apt.appointment_type === 'tarefa') {
+          return apt.client_name === selectedUser;
+        }
+        // Regular appointments/meetings show for all (no assigned_to data)
+        return true;
+      })
+    : appointments;
+
   // Group appointments by day
   const appointmentsByDay = new Map<string, UnifiedAppointment[]>();
   days.forEach(day => {
     const key = format(day, 'yyyy-MM-dd');
     appointmentsByDay.set(key, []);
   });
-  appointments?.forEach(apt => {
+  filteredAppointments?.forEach(apt => {
     if (!apt.start_datetime) return;
     const d = new Date(apt.start_datetime);
     if (isNaN(d.getTime())) return;
@@ -318,7 +333,30 @@ export function WorkspaceAgenda() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="px-5 pb-5">
+      <CardContent className="px-5 pb-5 space-y-3">
+        {/* User filter buttons */}
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <Button
+            variant={selectedUser === null ? 'default' : 'outline'}
+            size="sm"
+            className="text-xs h-7 px-3"
+            onClick={() => setSelectedUser(null)}
+          >
+            Geral
+          </Button>
+          {LAWYER_NAMES.map(name => (
+            <Button
+              key={name}
+              variant={selectedUser === name ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs h-7 px-3"
+              onClick={() => setSelectedUser(name)}
+            >
+              {name}
+            </Button>
+          ))}
+        </div>
+
         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
             {days.map((day) => {
               const key = format(day, 'yyyy-MM-dd');
