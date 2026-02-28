@@ -160,6 +160,7 @@ export function WorkspaceAgenda() {
           status: apt.status,
           appointment_type: apt.appointment_type || 'reuniao',
           client_name: apt.ipromed_legal_clients?.name,
+          assigned_to: apt.assigned_to || null,
           source: 'appointment',
         });
       });
