@@ -226,6 +226,7 @@ const typeConfig: Record<string, {
 };
 
 export default function AstreaStyleAgenda() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
@@ -240,6 +241,32 @@ export default function AstreaStyleAgenda() {
   const [newDeadlineTypeName, setNewDeadlineTypeName] = useState('');
   const [newDeadlineTypeItems, setNewDeadlineTypeItems] = useState<{key: string; label: string}[]>([]);
   const [newItemLabel, setNewItemLabel] = useState('');
+
+  // Auto-open form from query params (e.g. ?new=1&date=2026-03-02&time=13:00)
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
+      const time = searchParams.get('time') || '09:00';
+      const endHour = parseInt(time.split(':')[0]) + 1;
+      const endTime = `${String(endHour).padStart(2, '0')}:00`;
+
+      setFormData(prev => ({
+        ...prev,
+        start_date: date,
+        start_time: time,
+        end_time: endTime,
+      }));
+      setSelectedDate(new Date(date + 'T12:00:00'));
+      setCurrentDate(new Date(date + 'T12:00:00'));
+      setIsFormOpen(true);
+
+      // Clean up query params
+      searchParams.delete('new');
+      searchParams.delete('date');
+      searchParams.delete('time');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
 
   const [formData, setFormData] = useState({
     title: '',
