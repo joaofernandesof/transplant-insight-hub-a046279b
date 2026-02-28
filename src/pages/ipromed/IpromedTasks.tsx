@@ -157,12 +157,23 @@ const statusConfig = {
 export default function IpromedTasks() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [viewMode, setViewMode] = useState<"kanban" | "list" | "dashboard">("kanban");
+  const [viewMode, setViewMode] = useState<"kanban" | "list" | "dashboard">(
+    (searchParams.get("view") as "list" | "kanban" | "dashboard") || "kanban"
+  );
+  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("filter") || "all");
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [userFilter, setUserFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("priority");
+
+  // Clear URL params after reading them
+  useEffect(() => {
+    if (searchParams.has("filter") || searchParams.has("view")) {
+      setSearchParams({}, { replace: true });
+    }
+  }, []);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
