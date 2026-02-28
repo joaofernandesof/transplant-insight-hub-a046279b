@@ -653,6 +653,9 @@ export default function IpromedClientDetail() {
 
           {/* Activity Timeline */}
           <ClientActivityTimeline clientId={id!} />
+
+          {/* Formulários do Cliente */}
+          <ClientOnboardingForm clientId={client.id} clientName={client.name} />
         </div>
       </div>
 
