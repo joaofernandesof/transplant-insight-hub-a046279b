@@ -93,8 +93,7 @@ export default function IpromedHome() {
         {/* Agenda */}
         <WorkspaceAgenda />
 
-        {/* Tarefas */}
-        <WorkspaceTaskList />
+
       </div>
 
     </div>
