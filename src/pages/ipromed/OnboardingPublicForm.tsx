@@ -308,7 +308,7 @@ export default function OnboardingPublicForm() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mt-6 p-6 md:p-8">
           {/* Dados Pessoais */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-[#1a365d]">Dados do Médico</h2>
+            <h2 className="text-lg font-semibold text-[#2d4a2e]">Dados do Médico</h2>
             <div>
               <Label className="text-sm font-medium text-gray-700">Nome do médico *</Label>
               <Input value={formData.doctor_name} onChange={e => set('doctor_name')(e.target.value)} placeholder="Nome completo" className="mt-1" />
