@@ -509,8 +509,29 @@ function NeoTeamRoutes() {
 }
 
 // ====================================
-// Academy Routes (Portal do Aluno - IBRAMEC)
+// NeoRH Routes (Portal de RH)
 // ====================================
+function NeoRHRoutes() {
+  const NeoRHDashboard = lazy(() => import('@/neohub/pages/neorh/NeoRHDashboard'));
+  const NeoRHColaboradores = lazy(() => import('@/neohub/pages/neorh/NeoRHColaboradores'));
+  const NeoRHCargos = lazy(() => import('@/neohub/pages/neorh/NeoRHCargos'));
+  const NeoRHVagas = lazy(() => import('@/neohub/pages/neorh/NeoRHVagas'));
+
+  return (
+    <ProfileGuard allowedProfiles={['colaborador', 'administrador']}>
+      <UnifiedSidebar>
+        <Routes>
+          <Route index element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHDashboard /></Suspense>} />
+          <Route path="colaboradores" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHColaboradores /></Suspense>} />
+          <Route path="cargos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHCargos /></Suspense>} />
+          <Route path="vagas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHVagas /></Suspense>} />
+          <Route path="*" element={<Navigate to="/neorh" replace />} />
+        </Routes>
+      </UnifiedSidebar>
+    </ProfileGuard>
+  );
+}
+
 import {
   AcademyHome, 
   AcademyCourses, 
@@ -806,6 +827,7 @@ function AppRoutes() {
       <Route path="/hotleads/*" element={<ProtectedRoute><HotLeadsRoutes /></ProtectedRoute>} />
       <Route path="/avivar/*" element={<ProtectedRoute><AvivarRoutes /></ProtectedRoute>} />
       <Route path="/neoacademy/*" element={<ProtectedRoute><NeoAcademyRoutes /></ProtectedRoute>} />
+      <Route path="/neorh/*" element={<ProtectedRoute><NeoRHRoutes /></ProtectedRoute>} />
 
       {/* ====================================
           Rotas Legadas - Redirects para Portais
