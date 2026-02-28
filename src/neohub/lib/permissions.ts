@@ -120,6 +120,7 @@ export function getPortalFromRoute(route: string): Portal | null {
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/avivar')) return 'avivar';
   if (route.startsWith('/cpg')) return 'ipromed';
+  if (route.startsWith('/neorh')) return 'neorh';
   return null;
 }
 
