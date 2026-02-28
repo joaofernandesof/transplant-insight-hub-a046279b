@@ -258,7 +258,7 @@ export default function IpromedClients() {
     .filter(f => f !== 'all').length;
 
   const clearFilters = () => {
-    setStatusFilter('all');
+    
     setJourneyFilter('all');
     setPaymentFilter('all');
     setRiskFilter('all');
