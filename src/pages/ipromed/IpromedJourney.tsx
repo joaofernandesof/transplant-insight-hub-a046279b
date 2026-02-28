@@ -532,6 +532,7 @@ function DroppableColumn({
               onScheduleMeeting={onScheduleMeeting}
               onDistrato={onDistrato}
               onViewJourney={onViewJourney}
+              onUpdateSla={onUpdateSla}
               isDragging={activeId === client.id}
               isSelected={selectedClients.has(client.id)}
               onSelect={onSelectClient}
