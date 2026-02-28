@@ -518,7 +518,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-agenda-kanban'] });
+      invalidateAllAgendaQueries(queryClient);
       toast.success('Agendamento atualizado');
       setEditing(false);
     },
