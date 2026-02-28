@@ -126,7 +126,7 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
       phone: client?.phone || "",
       cpf_cnpj: client?.cpf_cnpj || "",
       client_type: (client?.client_type as "pf" | "pj") || "pf",
-      status: (client?.status as "prospect" | "active" | "churned") || "prospect",
+      
       risk_level: (client?.risk_level as "low" | "medium" | "high") || "low",
       journey_stage: (client?.journey_stage as "prospect" | "onboarding" | "retention" | "expansion" | "advocacy") || "prospect",
       notes: client?.notes || "",
