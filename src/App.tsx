@@ -132,6 +132,7 @@ const IpromedLeads = lazy(() => import("./pages/ipromed/IpromedLeads"));
 const IpromedClients = lazy(() => import("./pages/ipromed/IpromedClients"));
 const IpromedClientDetail = lazy(() => import("./pages/ipromed/IpromedClientDetail"));
 const IpromedCaseDetail = lazy(() => import("./pages/ipromed/IpromedCaseDetail"));
+const OnboardingPublicForm = lazy(() => import("./pages/ipromed/OnboardingPublicForm"));
 const IpromedContracts = lazy(() => import("./pages/ipromed/IpromedContracts"));
 const IpromedContractDetail = lazy(() => import("./pages/ipromed/IpromedContractDetail"));
 const IpromedJourney = lazy(() => import("./pages/ipromed/IpromedJourney"));
