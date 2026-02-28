@@ -821,23 +821,73 @@ export function MeetingScheduleDialog({
           </div>
         )}
 
+        {/* ═══ FORM LINK STEP ═══ */}
+        {step === "form_link" && onboardingFormLink && (
+          <div className="space-y-4">
+            <div className="text-center space-y-2">
+              <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h3 className="font-bold text-lg">Reunião agendada!</h3>
+              <p className="text-sm text-muted-foreground">
+                O formulário de onboarding foi criado automaticamente.<br />
+                <strong>Envie o link abaixo ao cliente</strong> — é obrigatório que ele preencha antes de avançar para a próxima etapa.
+              </p>
+            </div>
+
+            <div className="bg-muted rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-sm font-medium">Link do Formulário de Onboarding</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input 
+                  readOnly 
+                  value={onboardingFormLink} 
+                  className="text-xs bg-background"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(onboardingFormLink);
+                    toast.success('Link copiado!');
+                  }}
+                >
+                  <ClipboardCopy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                ⚠️ O cliente só poderá avançar para "Pacote Jurídico em andamento" após preencher este formulário.
+              </p>
+            </div>
+          </div>
+        )}
+
         <DialogFooter className="gap-2">
           {step === "details" && (
             <Button variant="outline" onClick={() => setStep("agenda")}>
               Voltar
             </Button>
           )}
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
+          {step !== "form_link" && (
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+          )}
           {step === "agenda" ? (
             <Button onClick={handleNext}>
               Continuar
             </Button>
-          ) : (
+          ) : step === "details" ? (
             <Button onClick={handleSchedule} disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Agendar Reunião
+            </Button>
+          ) : (
+            <Button onClick={() => { onOpenChange(false); resetForm(); }}>
+              Concluir
             </Button>
           )}
         </DialogFooter>
