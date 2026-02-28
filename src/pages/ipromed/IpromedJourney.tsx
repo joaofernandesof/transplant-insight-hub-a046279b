@@ -1168,6 +1168,48 @@ export default function IpromedJourney() {
         </div>
       </div>
 
+      {/* KPI Widgets */}
+      {activeTab === "pipeline" && (
+        <div className="px-4 pt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10"><Users className="h-4 w-4 text-primary" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Ativos</p><p className="text-lg font-bold">{slaStats.totalActive}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Acomp. Contínuo</p><p className="text-lg font-bold">{slaStats.inLastPhase}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-destructive/10"><AlertTriangle className="h-4 w-4 text-destructive" /></div>
+              <div><p className="text-[11px] text-muted-foreground">SLA Estourado</p><p className="text-lg font-bold text-destructive">{slaStats.overdueCount}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10"><Clock className="h-4 w-4 text-amber-600" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Em Alerta</p><p className="text-lg font-bold text-amber-600">{slaStats.warningCount}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10"><TrendingUp className="h-4 w-4 text-blue-600" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Conversão</p><p className="text-lg font-bold">{slaStats.conversionRate}%</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-violet-500/10"><Calendar className="h-4 w-4 text-violet-600" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Tempo Médio</p><p className="text-lg font-bold">{slaStats.avgDaysToCompletion}d</p></div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Kanban Content with DnD - Avivar Style */}
       {activeTab === "pipeline" && (
         <DndContext
