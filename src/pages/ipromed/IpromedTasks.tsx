@@ -157,6 +157,7 @@ export default function IpromedTasks() {
   const [viewMode, setViewMode] = useState<"kanban" | "list" | "dashboard">("kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [userFilter, setUserFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("priority");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
