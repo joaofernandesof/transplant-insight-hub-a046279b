@@ -667,7 +667,7 @@ export default function IpromedTasks() {
         onSuccess={() => {
           setIsFormOpen(false);
           setEditingTask(null);
-          queryClient.invalidateQueries({ queryKey: ["ipromed-tasks"] });
+          invalidateAllTaskQueries(queryClient);
         }}
       />
 
