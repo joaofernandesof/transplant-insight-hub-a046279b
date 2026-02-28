@@ -454,6 +454,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
   const [editStatus, setEditStatus] = useState(appointment.status);
   const [editType, setEditType] = useState(appointment.appointment_type);
   const [editMeetingUrl, setEditMeetingUrl] = useState(appointment.meeting_url || '');
+  const [editAssignedTo, setEditAssignedTo] = useState(appointment.assigned_to || '');
   const queryClient = useQueryClient();
 
   const startTime = format(new Date(appointment.start_datetime), "HH:mm");
