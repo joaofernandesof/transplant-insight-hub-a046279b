@@ -557,6 +557,8 @@ export default function IpromedJourney() {
   const [selectedPhaseDetail, setSelectedPhaseDetail] = useState<PhaseDetail | null>(null);
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
   const [meetingClient, setMeetingClient] = useState<Client | null>(null);
+  const [pendingDragOriginPhase, setPendingDragOriginPhase] = useState<string | null>(null);
+  const [meetingScheduled, setMeetingScheduled] = useState(false);
   
   // Selection state
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
@@ -898,7 +900,9 @@ export default function IpromedJourney() {
         updateClientPhase.mutate({ clientId, newPhase: targetPhaseId });
 
         // Auto-open meeting scheduler when moving to "Agendado" (stage 2)
-        if (targetPhaseId === 'Agendado' && client) {
+        if (targetPhaseId === 'Agendado' && client && currentPhase) {
+          setPendingDragOriginPhase(currentPhase);
+          setMeetingScheduled(false);
           setTimeout(() => {
             setMeetingClient(client);
             setMeetingDialogOpen(true);
@@ -1621,11 +1625,21 @@ export default function IpromedJourney() {
       {meetingClient && (
         <MeetingScheduleDialog
           open={meetingDialogOpen}
-          onOpenChange={setMeetingDialogOpen}
+          onOpenChange={(open) => {
+            setMeetingDialogOpen(open);
+            // If closing dialog without scheduling AND it was from a drag to "Agendado", revert
+            if (!open && !meetingScheduled && pendingDragOriginPhase && meetingClient) {
+              updateClientPhase.mutate({ clientId: meetingClient.id, newPhase: pendingDragOriginPhase });
+              toast.info('Agendamento cancelado. Cliente voltou para a etapa anterior.');
+              setPendingDragOriginPhase(null);
+            }
+          }}
           clientId={meetingClient.id}
           clientName={meetingClient.name}
           onSchedule={(data) => {
             console.log('Meeting scheduled:', data);
+            setMeetingScheduled(true);
+            setPendingDragOriginPhase(null);
             toast.success('Reunião agendada com sucesso!');
           }}
         />
