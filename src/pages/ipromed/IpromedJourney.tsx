@@ -360,6 +360,7 @@ function DroppableColumn({
   navigate,
   onScheduleMeeting,
   onDistrato,
+  onViewJourney,
   onViewPhaseDetail,
   isOver,
   activeId,
@@ -375,6 +376,7 @@ function DroppableColumn({
   navigate: (path: string) => void;
   onScheduleMeeting: (client: Client) => void;
   onDistrato: (client: Client) => void;
+  onViewJourney: (client: Client) => void;
   onViewPhaseDetail: (phase: PhaseDetail) => void;
   isOver: boolean;
   activeId: string | null;
