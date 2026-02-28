@@ -148,6 +148,7 @@ const IpromedProposalEditor = lazy(() => import("./pages/ipromed/IpromedProposal
 const IpromedLayout = lazy(() => import("./pages/ipromed/components/IpromedLayout"));
 const IpromedReports = lazy(() => import("./pages/ipromed/IpromedReports"));
 const IpromedFunctions = lazy(() => import("./pages/ipromed/IpromedFunctions"));
+const IpromedAccessManagement = lazy(() => import("./pages/ipromed/IpromedAccessManagement"));
 
 // ====================================
 // Pages - NeoPay (Gateway de Pagamentos)
@@ -925,6 +926,7 @@ function AppRoutes() {
       <Route path="/cpg/proposals/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/reports" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedReports /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/functions" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFunctions /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/access" element={<ProfileGuard allowedProfiles={['administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedAccessManagement /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       {/* Legacy redirect */}
       <Route path="/ipromed/*" element={<Navigate to="/cpg" replace />} />
       <Route path="/ipromed" element={<Navigate to="/cpg" replace />} />
