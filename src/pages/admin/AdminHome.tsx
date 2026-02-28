@@ -154,7 +154,7 @@ export default function AdminHome() {
       {/* ====== PORTAIS ====== */}
       <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4">
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Portais do NeoHub</h3>
-        <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {portals.map((portal) => (
             <button
               key={portal.id}
