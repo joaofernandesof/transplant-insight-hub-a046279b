@@ -101,6 +101,16 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// SLA definitions per phase (in days)
+const PHASE_SLA: Record<string, number> = {
+  'Novos': 3,
+  'Agendado': 7,
+  'Andamento': 15,
+  'Apresentacao': 10,
+  'Continuo': 0, // No SLA for ongoing
+  'Distratados': 0,
+};
+
 // Journey phases with colors - mapped to detailed phases
 const journeyPhases = journeyPhasesDetailed.map(p => ({
   id: p.id,
@@ -110,6 +120,19 @@ const journeyPhases = journeyPhasesDetailed.map(p => ({
   description: p.description,
   deliverables: p.deliverables.length,
 }));
+
+// Hidden phase for churned clients
+const distratoPhase = {
+  id: 'Distratados',
+  label: 'Distratados',
+  fullLabel: 'Clientes Distratados',
+  color: 'bg-red-600',
+  description: 'Clientes que cancelaram contrato',
+  deliverables: 0,
+};
+
+// All phases including hidden
+const allPhases = [...journeyPhases, distratoPhase];
 
 interface Client {
   id: string;
