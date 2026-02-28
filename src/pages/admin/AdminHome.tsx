@@ -46,6 +46,7 @@ const portals = [
   { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
   { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
   { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
+  { id: 'neorh', title: 'NeoRH', icon: UserCog, gradient: 'from-indigo-500 to-blue-600', path: '/neorh' },
 ];
 
 // Cores dos portais para widgets
