@@ -79,6 +79,7 @@ const PORTAL_ROW_COLORS: Record<Portal, string> = {
   hotleads: 'bg-orange-50/60 dark:bg-orange-950/20',
   vision: 'bg-violet-50/60 dark:bg-violet-950/20',
   neopay: 'bg-teal-50/60 dark:bg-teal-950/20',
+  neorh: 'bg-indigo-50/60 dark:bg-indigo-950/20',
 };
 
 const PORTAL_ACCENT: Record<Portal, string> = {
@@ -91,6 +92,7 @@ const PORTAL_ACCENT: Record<Portal, string> = {
   hotleads: 'border-l-orange-600',
   vision: 'border-l-violet-500',
   neopay: 'border-l-teal-500',
+  neorh: 'border-l-indigo-500',
 };
 
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];

@@ -325,6 +325,13 @@ export const HOTLEADS_MENU_ITEMS: MenuItem[] = [
   { id: 'hotleads_settings', code: 'hotleads_settings', title: 'Configurações', icon: Settings, route: '/hotleads/settings' },
 ];
 
+export const NEORH_MENU_ITEMS: MenuItem[] = [
+  { id: 'neorh_dashboard', code: 'neorh_dashboard', title: 'Dashboard', icon: Home, route: '/neorh' },
+  { id: 'neorh_colaboradores', code: 'neorh_colaboradores', title: 'Colaboradores', icon: Users, route: '/neorh/colaboradores' },
+  { id: 'neorh_cargos', code: 'neorh_cargos', title: 'Cargos', icon: Briefcase, route: '/neorh/cargos' },
+  { id: 'neorh_vagas', code: 'neorh_vagas', title: 'Vagas', icon: ClipboardList, route: '/neorh/vagas' },
+];
+
 // Mapeamento de portal para menu flat (compatibilidade)
 export const PORTAL_MENUS: Record<string, MenuItem[]> = {
   neocare: NEOCARE_MENU_ITEMS,
@@ -333,6 +340,7 @@ export const PORTAL_MENUS: Record<string, MenuItem[]> = {
   neolicense: NEOLICENSE_MENU_ITEMS,
   avivar: AVIVAR_MENU_ITEMS,
   hotleads: HOTLEADS_MENU_ITEMS,
+  neorh: NEORH_MENU_ITEMS,
 };
 
 // Mapeamento de portal para menu em categorias
