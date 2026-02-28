@@ -195,14 +195,26 @@ export default function IpromedTasks() {
 
   const deleteTaskMutation = useMutation({
     mutationFn: async (id: string) => {
+      const task = tasks.find(t => t.id === id);
       const { error } = await supabase
         .from("ipromed_legal_tasks")
         .delete()
         .eq("id", id);
       if (error) throw error;
+      if (task) {
+        logTaskActivity({
+          accountId: user?.authUserId || user?.id || "",
+          taskId: id,
+          taskTitle: task.title,
+          action: "deleted",
+          performedBy: user?.authUserId || user?.id,
+          performedByName: user?.nome || user?.email,
+        });
+      }
     },
     onSuccess: () => {
       invalidateAllTaskQueries(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
       toast.success("Tarefa excluída");
     },
   });
