@@ -359,6 +359,14 @@ const sections: SectionConfig[] = [
     fields: ["7.2.1", "7.2.2", "7.2.3", "7.2.4"],
     requiredFields: []
   },
+  { 
+    id: "politicas-clinica", 
+    icon: FileText, 
+    title: "Políticas da Clínica", 
+    emoji: "📋", 
+    fields: [],
+    requiredFields: []
+  },
 ];
 
 // Opções de listas suspensas
