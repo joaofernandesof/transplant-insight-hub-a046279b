@@ -3,8 +3,9 @@
  */
 
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logTaskActivity } from "../../utils/logTaskActivity";
 import {
   Dialog,
   DialogContent,
@@ -124,6 +125,7 @@ export function TaskFormDialog({
   onSuccess,
 }: TaskFormDialogProps) {
   const { user } = useUnifiedAuth();
+  const queryClient = useQueryClient();
   const isEditing = !!task;
 
   // Custom options state
@@ -211,6 +213,16 @@ export function TaskFormDialog({
       }
     },
     onSuccess: () => {
+      logTaskActivity({
+        accountId: user?.authUserId || user?.id || "",
+        taskId: task?.id,
+        taskTitle: formData.title,
+        action: isEditing ? "updated" : "created",
+        changes: isEditing ? { title: formData.title, status: formData.status, priority: formData.priority } : undefined,
+        performedBy: user?.authUserId || user?.id,
+        performedByName: user?.fullName || user?.email,
+      });
+      queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
       toast.success(isEditing ? "Tarefa atualizada!" : "Tarefa criada!");
       onSuccess();
     },

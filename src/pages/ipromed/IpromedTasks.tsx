@@ -7,6 +7,8 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateAllTaskQueries } from "./utils/invalidateTaskQueries";
+import { logTaskActivity } from "./utils/logTaskActivity";
+import { TaskActivityLog } from "./components/tasks/TaskActivityLog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -193,14 +195,26 @@ export default function IpromedTasks() {
 
   const deleteTaskMutation = useMutation({
     mutationFn: async (id: string) => {
+      const task = tasks.find(t => t.id === id);
       const { error } = await supabase
         .from("ipromed_legal_tasks")
         .delete()
         .eq("id", id);
       if (error) throw error;
+      if (task) {
+        logTaskActivity({
+          accountId: user?.authUserId || user?.id || "",
+          taskId: id,
+          taskTitle: task.title,
+          action: "deleted",
+          performedBy: user?.authUserId || user?.id,
+          performedByName: user?.fullName || user?.email,
+        });
+      }
     },
     onSuccess: () => {
       invalidateAllTaskQueries(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
       toast.success("Tarefa excluída");
     },
   });
@@ -281,10 +295,26 @@ export default function IpromedTasks() {
   }, [filteredTasks]);
 
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    const task = tasks.find(t => t.id === taskId);
     updateTaskMutation.mutate({
       id: taskId,
       status: newStatus,
       completed_at: newStatus === "done" ? new Date().toISOString() : null,
+    }, {
+      onSuccess: () => {
+        if (task) {
+          logTaskActivity({
+            accountId: user?.authUserId || user?.id || "",
+            taskId,
+            taskTitle: task.title,
+            action: newStatus === "done" ? "completed" : "status_changed",
+            changes: { status: newStatus },
+            performedBy: user?.authUserId || user?.id,
+            performedByName: user?.fullName || user?.email,
+          });
+          queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
+        }
+      }
     });
   };
 
@@ -380,6 +410,8 @@ export default function IpromedTasks() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <TaskActivityLog />
         </div>
 
         {/* User filter buttons */}

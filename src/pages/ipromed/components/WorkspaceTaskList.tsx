@@ -6,7 +6,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { invalidateAllTaskQueries } from "../utils/invalidateTaskQueries";
+import { logTaskActivity } from "../utils/logTaskActivity";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -99,6 +101,7 @@ interface PendingCompletion {
 
 export function WorkspaceTaskList() {
   const navigate = useNavigate();
+  const { user } = useUnifiedAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -159,27 +162,51 @@ export function WorkspaceTaskList() {
 
   const completeMutation = useMutation({
     mutationFn: async (taskId: string) => {
+      const task = tasks.find(t => t.id === taskId);
       const { error } = await supabase
         .from('ipromed_legal_tasks')
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq('id', taskId);
       if (error) throw error;
+      if (task) {
+        logTaskActivity({
+          accountId: user?.authUserId || user?.id || "",
+          taskId,
+          taskTitle: task.title,
+          action: "completed",
+          performedBy: user?.authUserId || user?.id,
+          performedByName: user?.fullName || user?.email,
+        });
+      }
     },
     onSuccess: () => {
       invalidateAllTaskQueries(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
     },
   });
 
   const undoMutation = useMutation({
     mutationFn: async (taskId: string) => {
+      const task = tasks.find(t => t.id === taskId) || completedTasks.find(t => t.id === taskId);
       const { error } = await supabase
         .from('ipromed_legal_tasks')
         .update({ status: 'todo', completed_at: null })
         .eq('id', taskId);
       if (error) throw error;
+      if (task) {
+        logTaskActivity({
+          accountId: user?.authUserId || user?.id || "",
+          taskId,
+          taskTitle: task.title,
+          action: "restored",
+          performedBy: user?.authUserId || user?.id,
+          performedByName: user?.fullName || user?.email,
+        });
+      }
     },
     onSuccess: () => {
       invalidateAllTaskQueries(queryClient);
+      queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
     },
   });
 

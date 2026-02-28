@@ -20539,6 +20539,42 @@ export type Database = {
           },
         ]
       }
+      task_activity_log: {
+        Row: {
+          account_id: string
+          action: string
+          changes: Json | null
+          created_at: string
+          id: string
+          performed_by: string | null
+          performed_by_name: string | null
+          task_id: string | null
+          task_title: string
+        }
+        Insert: {
+          account_id: string
+          action: string
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          performed_by?: string | null
+          performed_by_name?: string | null
+          task_id?: string | null
+          task_title: string
+        }
+        Update: {
+          account_id?: string
+          action?: string
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          performed_by?: string | null
+          performed_by_name?: string | null
+          task_id?: string | null
+          task_title?: string
+        }
+        Relationships: []
+      }
       tenant_module_activations: {
         Row: {
           activated_at: string | null
