@@ -310,7 +310,7 @@ export default function IpromedTasks() {
             action: newStatus === "done" ? "completed" : "status_changed",
             changes: { status: newStatus },
             performedBy: user?.authUserId || user?.id,
-            performedByName: user?.nome || user?.email,
+            performedByName: user?.fullName || user?.email,
           });
           queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
         }
