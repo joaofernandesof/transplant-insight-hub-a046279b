@@ -234,6 +234,30 @@ export default function IpromedTasks() {
   const filteredTasks = useMemo(() => {
     let result = [...tasks];
 
+    // Apply status filter from URL params
+    if (statusFilter === "todo") {
+      result = result.filter(t => t.status !== "done" && t.status !== "completed");
+    } else if (statusFilter === "due_today") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(today);
+      todayEnd.setHours(23, 59, 59, 999);
+      result = result.filter(t => {
+        if (!t.due_date || t.status === "done" || t.status === "completed") return false;
+        const d = new Date(t.due_date);
+        return d >= today && d <= todayEnd;
+      });
+    } else if (statusFilter === "overdue") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      result = result.filter(t => {
+        if (!t.due_date || t.status === "done" || t.status === "completed") return false;
+        return new Date(t.due_date) < today;
+      });
+    } else if (statusFilter === "completed") {
+      result = result.filter(t => t.status === "done" || t.status === "completed");
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
