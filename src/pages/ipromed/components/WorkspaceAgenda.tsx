@@ -643,7 +643,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
                   <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
                     <X className="h-3.5 w-3.5 mr-1" /> Cancelar
                   </Button>
-                  <Button size="sm" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+                  <Button size="sm" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending || !editAssignedTo}>
                     <Save className="h-3.5 w-3.5 mr-1" /> Salvar
                   </Button>
                 </div>
