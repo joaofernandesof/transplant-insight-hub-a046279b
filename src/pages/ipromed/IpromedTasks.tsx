@@ -253,9 +253,13 @@ export default function IpromedTasks() {
   }, [filteredTasks]);
 
   const tasksByDueDate = useMemo(() => {
-    const grouped: Record<string, Task[]> = { overdue: [], today: [], tomorrow: [], upcoming: [], no_date: [] };
+    const grouped: Record<string, Task[]> = { overdue: [], today: [], tomorrow: [], upcoming: [], no_date: [], completed: [] };
     const now = new Date();
-    filteredTasks.filter(t => t.status !== "done").forEach((task) => {
+    filteredTasks.forEach((task) => {
+      if (task.status === "done") {
+        grouped.completed.push(task);
+        return;
+      }
       if (!task.due_date) {
         grouped.no_date.push(task);
       } else {
@@ -271,6 +275,8 @@ export default function IpromedTasks() {
         }
       }
     });
+    // Sort completed by completed_at desc
+    grouped.completed.sort((a, b) => (b.completed_at || '').localeCompare(a.completed_at || ''));
     return grouped;
   }, [filteredTasks]);
 
