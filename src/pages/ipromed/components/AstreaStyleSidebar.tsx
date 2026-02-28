@@ -36,6 +36,7 @@ import {
   FileSignature,
   Briefcase,
   Shield,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -72,6 +73,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/cpg/reports' },
   { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/cpg/logs' },
   { id: 'functions', label: 'Funções', icon: Briefcase, href: '/cpg/functions', isNew: true },
+  { id: 'forms', label: 'Formulários', icon: ClipboardList, href: '/cpg/forms' },
   { id: 'access', label: 'Gestão de Acessos', icon: Shield, href: '/cpg/access' },
 ];
 
