@@ -678,6 +678,7 @@ export default function IpromedJourney() {
               metadata: {
                 ...(client.metadata as any),
                 journey_phase: newPhase,
+                phase_entered_at: new Date().toISOString(),
               }
             };
           }
