@@ -323,26 +323,42 @@ function DraggableClientCard({
           )}
         </div>
 
-        {/* SLA Indicator */}
+        {/* SLA Indicator - Clickable to edit */}
         {slaInfo.slaLimit > 0 && (
-          <div className="flex items-center gap-1.5">
-            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+          <Popover>
+            <PopoverTrigger asChild>
               <div 
-                className={cn(
-                  "h-full rounded-full transition-all",
-                  slaInfo.status === 'overdue' ? 'bg-destructive' : slaInfo.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
-                )}
-                style={{ width: `${Math.min(100, slaInfo.percent)}%` }}
+                className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+                title="Clique para editar datas do SLA"
+              >
+                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      slaInfo.status === 'overdue' ? 'bg-destructive' : slaInfo.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
+                    )}
+                    style={{ width: `${Math.min(100, slaInfo.percent)}%` }}
+                  />
+                </div>
+                <span className={cn(
+                  "text-[10px] font-medium whitespace-nowrap",
+                  slaInfo.status === 'overdue' ? 'text-destructive' : slaInfo.status === 'warning' ? 'text-amber-600' : 'text-muted-foreground'
+                )}>
+                  {slaInfo.daysInPhase}d/{slaInfo.slaLimit}d
+                </span>
+                {slaInfo.status === 'overdue' && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3" align="start" onClick={(e) => e.stopPropagation()}>
+              <SlaEditor 
+                client={client} 
+                phase={phase.id}
+                slaInfo={slaInfo}
+                onSave={onUpdateSla}
               />
-            </div>
-            <span className={cn(
-              "text-[10px] font-medium whitespace-nowrap",
-              slaInfo.status === 'overdue' ? 'text-destructive' : slaInfo.status === 'warning' ? 'text-amber-600' : 'text-muted-foreground'
-            )}>
-              {slaInfo.daysInPhase}d/{slaInfo.slaLimit}d
-            </span>
-            {slaInfo.status === 'overdue' && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
-          </div>
+            </PopoverContent>
+          </Popover>
         )}
         
         {/* Tags */}
