@@ -177,6 +177,7 @@ function DraggableClientCard({
   navigate, 
   onScheduleMeeting,
   onDistrato,
+  onViewJourney,
   isDragging,
   isSelected,
   onSelect,
@@ -186,6 +187,7 @@ function DraggableClientCard({
   navigate: (path: string) => void;
   onScheduleMeeting: (client: Client) => void;
   onDistrato: (client: Client) => void;
+  onViewJourney: (client: Client) => void;
   isDragging?: boolean;
   isSelected?: boolean;
   onSelect?: (clientId: string, selected: boolean) => void;
