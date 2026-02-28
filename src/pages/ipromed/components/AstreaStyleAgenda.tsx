@@ -747,11 +747,17 @@ export default function AstreaStyleAgenda() {
     setIsFormOpen(true);
   };
 
-  // Filter appointments by activity type
+  // Filter appointments by activity type and assignee
   const filteredAppointments = useMemo(() => {
-    if (activityFilter === 'all') return appointments;
-    return appointments.filter((apt) => apt.appointment_type === activityFilter);
-  }, [appointments, activityFilter]);
+    let result = appointments;
+    if (activityFilter !== 'all') {
+      result = result.filter((apt) => apt.appointment_type === activityFilter);
+    }
+    if (assigneeFilter !== 'all') {
+      result = result.filter((apt) => apt.assigned_to === assigneeFilter);
+    }
+    return result;
+  }, [appointments, activityFilter, assigneeFilter]);
 
   // Get appointments for a specific day (using filtered list)
   const getAppointmentsForDay = (day: Date) =>
