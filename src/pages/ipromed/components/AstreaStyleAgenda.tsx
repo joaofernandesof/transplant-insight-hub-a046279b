@@ -116,6 +116,7 @@ interface Appointment {
   created_at: string;
   ipromed_legal_clients?: { name: string } | null;
   deadline_type_id: string | null;
+  assigned_to: string | null;
   // Legacy fields (kept for compatibility)
   doc_elaborated: boolean;
   doc_delivered: boolean;
@@ -282,6 +283,7 @@ export default function AstreaStyleAgenda() {
     meeting_url: '',
     client_id: '',
     priority: 'normal',
+    assigned_to: '',
   });
 
   const queryClient = useQueryClient();
@@ -351,6 +353,7 @@ export default function AstreaStyleAgenda() {
         created_at: meeting.created_at,
         ipromed_legal_clients: meeting.ipromed_legal_clients,
         deadline_type_id: null,
+        assigned_to: null,
         doc_elaborated: false,
         doc_delivered: false,
         prazo_done: false,
@@ -390,6 +393,7 @@ export default function AstreaStyleAgenda() {
                 created_at: new Date().toISOString(),
                 ipromed_legal_clients: { name: client.name },
                 deadline_type_id: null,
+                assigned_to: null,
                 doc_elaborated: false,
                 doc_delivered: false,
                 prazo_done: false,
@@ -422,7 +426,8 @@ export default function AstreaStyleAgenda() {
                   priority: 'normal',
                   created_at: new Date().toISOString(),
                   ipromed_legal_clients: { name: client.name },
-                  deadline_type_id: null,
+                   deadline_type_id: null,
+                   assigned_to: null,
                   doc_elaborated: false,
                   doc_delivered: false,
                   prazo_done: false,
@@ -538,6 +543,7 @@ export default function AstreaStyleAgenda() {
           client_id: formData.client_id && formData.client_id !== '__none__' ? formData.client_id : null,
           priority: formData.priority,
           deadline_type_id: deadlineTypeId,
+          assigned_to: formData.assigned_to || null,
         }])
         .select('id')
         .single();
@@ -604,6 +610,7 @@ export default function AstreaStyleAgenda() {
           client_id: formData.client_id && formData.client_id !== '__none__' ? formData.client_id : null,
           priority: formData.priority,
           deadline_type_id: deadlineTypeId,
+          assigned_to: formData.assigned_to || null,
         })
         .eq('id', editingAppointmentId);
 
@@ -704,6 +711,7 @@ export default function AstreaStyleAgenda() {
       meeting_url: '',
       client_id: '',
       priority: 'normal',
+      assigned_to: '',
     });
     setIsEditMode(false);
     setEditingAppointmentId(null);
@@ -728,6 +736,7 @@ export default function AstreaStyleAgenda() {
       meeting_url: apt.meeting_url || '',
       client_id: apt.client_id || '',
       priority: apt.priority,
+      assigned_to: apt.assigned_to || '',
     });
 
     setEditingAppointmentId(apt.id);
@@ -1281,6 +1290,27 @@ export default function AstreaStyleAgenda() {
                     Checklist: {deadlineTypes.find(dt => dt.id === formData.deadline_type_id)?.checklist_items.map(i => i.label).join(' • ')}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Responsável - shown for prazo and tarefa */}
+            {(formData.appointment_type === 'prazo' || formData.appointment_type === 'tarefa') && (
+              <div>
+                <Label>Responsável</Label>
+                <Select
+                  value={formData.assigned_to}
+                  onValueChange={(v) => setFormData({ ...formData, assigned_to: v === '__none__' ? '' : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o responsável" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Nenhum</SelectItem>
+                    <SelectItem value="Dra. Caroline Parahyba">Dra. Caroline Parahyba</SelectItem>
+                    <SelectItem value="Dra. Larissa Guerreiro">Dra. Larissa Guerreiro</SelectItem>
+                    <SelectItem value="Isabele Cartaxo">Isabele Cartaxo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
