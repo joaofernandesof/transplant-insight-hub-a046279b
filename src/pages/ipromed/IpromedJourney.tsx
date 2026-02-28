@@ -141,7 +141,7 @@ interface Client {
   name: string;
   email: string | null;
   phone: string | null;
-  status: string;
+  
   journey_stage: string;
   created_at: string;
   metadata: {
