@@ -743,6 +743,7 @@ function AppRoutes() {
       <Route path="/indicacao-formacao360/:code" element={<Formacao360ReferralLanding />} />
       <Route path="/api-docs" element={<ApiDocs />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/forms/onboarding/:token" element={<LazyRoute><OnboardingPublicForm /></LazyRoute>} />
       <Route path="/neocare-landing" element={<NeoCareLanding />} />
       <Route path="/neocare-protect" element={<NeoCareProductLanding />} />
       <Route path="/audit-report" element={<AuditReportExport />} />
