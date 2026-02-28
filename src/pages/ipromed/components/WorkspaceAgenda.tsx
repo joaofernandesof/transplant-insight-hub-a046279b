@@ -696,6 +696,20 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
                   <Badge variant="secondary" className="text-xs">{appointment.status}</Badge>
                 </div>
 
+                {appointment.assigned_to && (
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                        {appointment.assigned_to.split(' ').map(n => n[0]).filter(Boolean).join('').slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Responsável</span>
+                      <span className="text-sm font-medium">{appointment.assigned_to}</span>
+                    </div>
+                  </div>
+                )}
+
                 {!isSynthetic && (
                   <div className="flex justify-end pt-2">
                     <Button variant="outline" size="sm" onClick={handleStartEdit}>
