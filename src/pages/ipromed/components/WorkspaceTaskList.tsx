@@ -101,6 +101,7 @@ interface PendingCompletion {
 
 export function WorkspaceTaskList() {
   const navigate = useNavigate();
+  const { user } = useUnifiedAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
