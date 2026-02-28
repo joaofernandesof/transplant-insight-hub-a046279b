@@ -254,7 +254,7 @@ export default function IpromedClients() {
     onboardingCompleted: clients.filter(c => c.onboarding_completed).length,
   };
 
-  const activeFiltersCount = [statusFilter, journeyFilter, paymentFilter, riskFilter, onboardingFilter, contractFilter]
+  const activeFiltersCount = [journeyFilter, paymentFilter, riskFilter, onboardingFilter, contractFilter]
     .filter(f => f !== 'all').length;
 
   const clearFilters = () => {
