@@ -436,7 +436,7 @@ export function WorkspaceAgenda() {
   );
 }
 
-function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointment }) {
+function KanbanAppointmentCard({ appointment, compact = false }: { appointment: UnifiedAppointment; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(appointment.title);
