@@ -286,13 +286,13 @@ export default function NeoRHVagas() {
                       </div>
 
                       {/* Cards */}
-                      <CardContent className="p-2 bg-muted/20 min-h-[300px]">
+                      <CardContent className="p-2 bg-muted/20 min-h-[calc(100vh-280px)]">
                         {etapaVagas.length === 0 ? (
                           <div className="flex items-center justify-center h-[200px] text-muted-foreground text-xs">
                             Nenhuma vaga
                           </div>
                         ) : (
-                          <ScrollArea className="h-[400px]">
+                          <ScrollArea className="h-[calc(100vh-320px)]">
                             <div className="space-y-2 pr-1">
                               {etapaVagas.map(vaga => (
                                 <VagaKanbanCard
