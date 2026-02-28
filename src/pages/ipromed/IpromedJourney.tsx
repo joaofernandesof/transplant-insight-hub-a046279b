@@ -64,6 +64,7 @@ import {
   CheckSquare,
   Phone,
   Mail,
+  XCircle,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -101,6 +102,16 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// SLA definitions per phase (in days)
+const PHASE_SLA: Record<string, number> = {
+  'Novos': 3,
+  'Agendado': 7,
+  'Andamento': 15,
+  'Apresentacao': 10,
+  'Continuo': 0, // No SLA for ongoing
+  'Distratados': 0,
+};
+
 // Journey phases with colors - mapped to detailed phases
 const journeyPhases = journeyPhasesDetailed.map(p => ({
   id: p.id,
@@ -110,6 +121,19 @@ const journeyPhases = journeyPhasesDetailed.map(p => ({
   description: p.description,
   deliverables: p.deliverables.length,
 }));
+
+// Hidden phase for churned clients
+const distratoPhase = {
+  id: 'Distratados',
+  label: 'Distratados',
+  fullLabel: 'Clientes Distratados',
+  color: 'bg-red-600',
+  description: 'Clientes que cancelaram contrato',
+  deliverables: 0,
+};
+
+// All phases including hidden
+const allPhases = [...journeyPhases, distratoPhase];
 
 interface Client {
   id: string;
@@ -124,7 +148,26 @@ interface Client {
     journey_start_date?: string;
     journey_progress?: number;
     risk_level?: string;
+    phase_entered_at?: string;
+    phase_history?: { phase: string; entered_at: string; left_at: string }[];
   } | null;
+}
+
+// SLA calculation helper
+function getClientSlaInfo(client: Client, phase: string) {
+  const meta = client.metadata as any;
+  const slaLimit = PHASE_SLA[phase] || 0;
+  if (slaLimit === 0) return { daysInPhase: 0, slaLimit: 0, status: 'ok' as const, percent: 0 };
+  
+  const enteredAt = meta?.phase_entered_at || client.created_at;
+  const daysInPhase = differenceInDays(new Date(), new Date(enteredAt));
+  const percent = Math.min(100, (daysInPhase / slaLimit) * 100);
+  
+  let status: 'ok' | 'warning' | 'overdue' = 'ok';
+  if (daysInPhase > slaLimit) status = 'overdue';
+  else if (percent >= 70) status = 'warning';
+  
+  return { daysInPhase, slaLimit, status, percent };
 }
 
 // Draggable Client Card Component
@@ -133,6 +176,7 @@ function DraggableClientCard({
   phase, 
   navigate, 
   onScheduleMeeting,
+  onDistrato,
   isDragging,
   isSelected,
   onSelect,
@@ -141,6 +185,7 @@ function DraggableClientCard({
   phase: typeof journeyPhases[0]; 
   navigate: (path: string) => void;
   onScheduleMeeting: (client: Client) => void;
+  onDistrato: (client: Client) => void;
   isDragging?: boolean;
   isSelected?: boolean;
   onSelect?: (clientId: string, selected: boolean) => void;
@@ -159,6 +204,8 @@ function DraggableClientCard({
     transition,
     opacity: isSortableDragging ? 0.5 : 1,
   };
+
+  const slaInfo = getClientSlaInfo(client, phase.id);
 
   return (
     <Card 
@@ -238,6 +285,11 @@ function DraggableClientCard({
                 <Video className="h-4 w-4 mr-2" />
                 Agendar Reunião
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onDistrato(client)} className="text-destructive">
+                <XCircle className="h-4 w-4 mr-2" />
+                Mover para Distratados
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -257,6 +309,28 @@ function DraggableClientCard({
             </div>
           )}
         </div>
+
+        {/* SLA Indicator */}
+        {slaInfo.slaLimit > 0 && (
+          <div className="flex items-center gap-1.5">
+            <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className={cn(
+                  "h-full rounded-full transition-all",
+                  slaInfo.status === 'overdue' ? 'bg-destructive' : slaInfo.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
+                )}
+                style={{ width: `${Math.min(100, slaInfo.percent)}%` }}
+              />
+            </div>
+            <span className={cn(
+              "text-[10px] font-medium whitespace-nowrap",
+              slaInfo.status === 'overdue' ? 'text-destructive' : slaInfo.status === 'warning' ? 'text-amber-600' : 'text-muted-foreground'
+            )}>
+              {slaInfo.daysInPhase}d/{slaInfo.slaLimit}d
+            </span>
+            {slaInfo.status === 'overdue' && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
+          </div>
+        )}
         
         {/* Tags */}
         {(client.metadata as any)?.tags && (
@@ -283,6 +357,7 @@ function DroppableColumn({
   searchTerm,
   navigate,
   onScheduleMeeting,
+  onDistrato,
   onViewPhaseDetail,
   isOver,
   activeId,
@@ -297,6 +372,7 @@ function DroppableColumn({
   searchTerm: string;
   navigate: (path: string) => void;
   onScheduleMeeting: (client: Client) => void;
+  onDistrato: (client: Client) => void;
   onViewPhaseDetail: (phase: PhaseDetail) => void;
   isOver: boolean;
   activeId: string | null;
@@ -443,6 +519,7 @@ function DroppableColumn({
               phase={phase}
               navigate={navigate}
               onScheduleMeeting={onScheduleMeeting}
+              onDistrato={onDistrato}
               isDragging={activeId === client.id}
               isSelected={selectedClients.has(client.id)}
               onSelect={onSelectClient}
@@ -581,7 +658,7 @@ export default function IpromedJourney() {
       const { data, error } = await supabase
         .from('ipromed_legal_clients')
         .select('*')
-        .eq('status', 'active')
+        .in('status', ['active', 'inactive'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -621,6 +698,11 @@ export default function IpromedJourney() {
       const updatedMetadata = {
         ...currentMetadata,
         journey_phase: newPhase,
+        phase_entered_at: new Date().toISOString(),
+        phase_history: [
+          ...(currentMetadata.phase_history || []),
+          { phase: currentMetadata.journey_phase || 'Novos', entered_at: currentMetadata.phase_entered_at || new Date().toISOString(), left_at: new Date().toISOString() },
+        ],
       };
       
       const { error: updateError } = await supabase
@@ -650,6 +732,7 @@ export default function IpromedJourney() {
               metadata: {
                 ...(client.metadata as any),
                 journey_phase: newPhase,
+                phase_entered_at: new Date().toISOString(),
               }
             };
           }
@@ -678,9 +761,10 @@ export default function IpromedJourney() {
   // Calculate client's current phase based on contract date
   const getClientPhase = (client: Client) => {
     const meta = client.metadata as any;
-    if (meta?.journey_phase) return meta.journey_phase;
-    
-    // Fallback logic for clients without explicit phase
+    if (meta?.journey_phase) {
+      // If distratado, always return that regardless
+      return meta.journey_phase;
+    }
     const startDate = meta?.journey_start_date || client.created_at;
     const daysSinceStart = differenceInDays(new Date(), new Date(startDate));
     
@@ -693,24 +777,55 @@ export default function IpromedJourney() {
 
   // Get phase color
   const getPhaseColor = (phase: string) => {
-    const found = journeyPhases.find(p => p.id === phase);
+    const found = allPhases.find(p => p.id === phase);
     return found?.color || 'bg-gray-500';
   };
 
+  // Only active (non-distratado) clients for the visible kanban
+  const activeClients = clients.filter(c => getClientPhase(c) !== 'Distratados');
+  const distratoClients = clients.filter(c => getClientPhase(c) === 'Distratados');
+
   // Filter clients
-  const filteredClients = clients.filter(c => {
+  const filteredClients = activeClients.filter(c => {
     const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
     const clientPhase = getClientPhase(c);
     const matchesPhase = !selectedPhase || clientPhase === selectedPhase;
     return matchesSearch && matchesPhase;
   });
 
-  // Group clients by phase
+  // Group clients by phase (only visible phases)
   const clientsByPhase = useMemo(() => {
     return journeyPhases.reduce((acc, phase) => {
-      acc[phase.id] = clients.filter(c => getClientPhase(c) === phase.id);
+      acc[phase.id] = activeClients.filter(c => getClientPhase(c) === phase.id);
       return acc;
     }, {} as Record<string, Client[]>);
+  }, [clients]);
+
+  // SLA stats for widgets
+  const slaStats = useMemo(() => {
+    const totalActive = activeClients.length;
+    const inLastPhase = (clientsByPhase['Continuo'] || []).length;
+    const overdueCount = activeClients.filter(c => {
+      const phase = getClientPhase(c);
+      const sla = getClientSlaInfo(c, phase);
+      return sla.status === 'overdue';
+    }).length;
+    const warningCount = activeClients.filter(c => {
+      const phase = getClientPhase(c);
+      const sla = getClientSlaInfo(c, phase);
+      return sla.status === 'warning';
+    }).length;
+    
+    // Avg days to reach Continuo
+    const completedClients = (clientsByPhase['Continuo'] || []);
+    const avgDaysToCompletion = completedClients.length > 0
+      ? Math.round(completedClients.reduce((sum, c) => sum + differenceInDays(new Date(), new Date(c.created_at)), 0) / completedClients.length)
+      : 0;
+    
+    // Conversion rate: clients that reached last phase / total
+    const conversionRate = totalActive > 0 ? Math.round((inLastPhase / totalActive) * 100) : 0;
+    
+    return { totalActive, inLastPhase, overdueCount, warningCount, avgDaysToCompletion, conversionRate, distratoCount: distratoClients.length };
   }, [clients]);
 
   // Calculate due date for current phase
@@ -1006,7 +1121,8 @@ export default function IpromedJourney() {
             <RefreshCw className="h-4 w-4" />
           </Button>
           <span className="text-sm text-muted-foreground">
-            Total: <span className="font-medium text-foreground">{clients.length}</span> clientes
+            Total: <span className="font-medium text-foreground">{activeClients.length}</span> clientes
+            {distratoClients.length > 0 && <span className="text-destructive ml-1">({distratoClients.length} distratados)</span>}
           </span>
           
           {/* Selected count */}
@@ -1052,6 +1168,48 @@ export default function IpromedJourney() {
         </div>
       </div>
 
+      {/* KPI Widgets */}
+      {activeTab === "pipeline" && (
+        <div className="px-4 pt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10"><Users className="h-4 w-4 text-primary" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Ativos</p><p className="text-lg font-bold">{slaStats.totalActive}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Acomp. Contínuo</p><p className="text-lg font-bold">{slaStats.inLastPhase}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-destructive/10"><AlertTriangle className="h-4 w-4 text-destructive" /></div>
+              <div><p className="text-[11px] text-muted-foreground">SLA Estourado</p><p className="text-lg font-bold text-destructive">{slaStats.overdueCount}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10"><Clock className="h-4 w-4 text-amber-600" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Em Alerta</p><p className="text-lg font-bold text-amber-600">{slaStats.warningCount}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10"><TrendingUp className="h-4 w-4 text-blue-600" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Conversão</p><p className="text-lg font-bold">{slaStats.conversionRate}%</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-violet-500/10"><Calendar className="h-4 w-4 text-violet-600" /></div>
+              <div><p className="text-[11px] text-muted-foreground">Tempo Médio</p><p className="text-lg font-bold">{slaStats.avgDaysToCompletion}d</p></div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Kanban Content with DnD - Avivar Style */}
       {activeTab === "pipeline" && (
         <DndContext
@@ -1074,6 +1232,10 @@ export default function IpromedJourney() {
                   onScheduleMeeting={(client) => {
                     setMeetingClient(client);
                     setMeetingDialogOpen(true);
+                  }}
+                  onDistrato={(client) => {
+                    updateClientPhase.mutate({ clientId: client.id, newPhase: 'Distratados' });
+                    toast.success(`${client.name} movido para Distratados`);
                   }}
                   onViewPhaseDetail={(phaseDetail) => {
                     setSelectedPhaseDetail(phaseDetail);
