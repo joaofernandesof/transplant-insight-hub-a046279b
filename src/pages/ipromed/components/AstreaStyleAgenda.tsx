@@ -236,7 +236,7 @@ export default function AstreaStyleAgenda() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'list'>('month');
   const [assigneeFilter, setAssigneeFilter] = useState('mine');
   const [activityFilter, setActivityFilter] = useState('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
