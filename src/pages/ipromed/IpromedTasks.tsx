@@ -157,6 +157,7 @@ export default function IpromedTasks() {
   const [viewMode, setViewMode] = useState<"kanban" | "list" | "dashboard">("kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [userFilter, setUserFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("priority");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -220,6 +221,10 @@ export default function IpromedTasks() {
       result = result.filter((t) => String(t.priority) === priorityFilter);
     }
 
+    if (userFilter !== "all") {
+      result = result.filter((t) => t.assigned_to_name === userFilter);
+    }
+
     result.sort((a, b) => {
       if (sortBy === "priority") return (b.priority || 0) - (a.priority || 0);
       if (!a.due_date && !b.due_date) return 0;
@@ -229,7 +234,7 @@ export default function IpromedTasks() {
     });
 
     return result;
-  }, [tasks, searchQuery, priorityFilter, sortBy]);
+  }, [tasks, searchQuery, priorityFilter, userFilter, sortBy]);
 
   const stats = useMemo(() => ({
     todo: tasks.filter((t) => t.status === "todo").length,
@@ -368,6 +373,31 @@ export default function IpromedTasks() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+        </div>
+
+        {/* User filter buttons */}
+        <div className="flex items-center justify-center gap-2 mt-3">
+          {[
+            { value: "all", label: "Todos" },
+            { value: "Dra. Caroline Parahyba", label: "Dra. Caroline" },
+            { value: "Dra. Larissa Guerreiro", label: "Dra. Larissa" },
+            { value: "Isabele Cartaxo", label: "Isabele" },
+          ].map((opt) => (
+            <Button
+              key={opt.value}
+              variant={userFilter === opt.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setUserFilter(opt.value)}
+              className="rounded-full px-4 text-xs"
+            >
+              {opt.label}
+              {opt.value !== "all" && (
+                <Badge variant="secondary" className="ml-1.5 h-5 min-w-5 px-1 text-[10px] rounded-full">
+                  {tasks.filter(t => t.assigned_to_name === opt.value && t.status !== "done").length}
+                </Badge>
+              )}
+            </Button>
+          ))}
         </div>
       </div>
 
