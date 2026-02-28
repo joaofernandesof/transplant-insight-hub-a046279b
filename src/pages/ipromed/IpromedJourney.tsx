@@ -150,6 +150,8 @@ interface Client {
     journey_progress?: number;
     risk_level?: string;
     phase_entered_at?: string;
+    sla_custom_start?: string;
+    sla_custom_limit?: number;
     phase_history?: { phase: string; entered_at: string; left_at: string }[];
   } | null;
 }
@@ -157,10 +159,10 @@ interface Client {
 // SLA calculation helper
 function getClientSlaInfo(client: Client, phase: string) {
   const meta = client.metadata as any;
-  const slaLimit = PHASE_SLA[phase] || 0;
-  if (slaLimit === 0) return { daysInPhase: 0, slaLimit: 0, status: 'ok' as const, percent: 0 };
+  const slaLimit = meta?.sla_custom_limit || PHASE_SLA[phase] || 0;
+  if (slaLimit === 0) return { daysInPhase: 0, slaLimit: 0, status: 'ok' as const, percent: 0, startDate: '' };
   
-  const enteredAt = meta?.phase_entered_at || client.created_at;
+  const enteredAt = meta?.sla_custom_start || meta?.phase_entered_at || client.created_at;
   const daysInPhase = differenceInDays(new Date(), new Date(enteredAt));
   const percent = Math.min(100, (daysInPhase / slaLimit) * 100);
   
@@ -168,7 +170,7 @@ function getClientSlaInfo(client: Client, phase: string) {
   if (daysInPhase > slaLimit) status = 'overdue';
   else if (percent >= 70) status = 'warning';
   
-  return { daysInPhase, slaLimit, status, percent };
+  return { daysInPhase, slaLimit, status, percent, startDate: enteredAt };
 }
 
 // Draggable Client Card Component
