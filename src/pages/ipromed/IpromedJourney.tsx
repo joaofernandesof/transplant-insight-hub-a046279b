@@ -284,6 +284,11 @@ function DraggableClientCard({
                 <Video className="h-4 w-4 mr-2" />
                 Agendar Reunião
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onDistrato(client)} className="text-destructive">
+                <XCircle className="h-4 w-4 mr-2" />
+                Mover para Distratados
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
