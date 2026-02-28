@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateAllAgendaQueries } from "../utils/invalidateTaskQueries";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -566,8 +567,7 @@ export default function AstreaStyleAgenda() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointment-checks'] });
+      invalidateAllAgendaQueries(queryClient);
       toast.success('Compromisso criado!');
       setIsFormOpen(false);
       resetForm();
@@ -617,8 +617,7 @@ export default function AstreaStyleAgenda() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
-      queryClient.invalidateQueries({ queryKey: ['workspace-agenda-unified'] });
+      invalidateAllAgendaQueries(queryClient);
       toast.success('Compromisso atualizado!');
       setIsFormOpen(false);
       setIsEditMode(false);
@@ -639,9 +638,7 @@ export default function AstreaStyleAgenda() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointment-checks'] });
-      queryClient.invalidateQueries({ queryKey: ['workspace-agenda-unified'] });
+      invalidateAllAgendaQueries(queryClient);
       toast.success('Compromisso excluído!');
       setIsDetailOpen(false);
       setSelectedAppointment(null);

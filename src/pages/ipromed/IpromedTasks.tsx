@@ -6,6 +6,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateAllTaskQueries } from "./utils/invalidateTaskQueries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -186,7 +187,7 @@ export default function IpromedTasks() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ipromed-tasks"] });
+      invalidateAllTaskQueries(queryClient);
     },
   });
 
@@ -199,7 +200,7 @@ export default function IpromedTasks() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ipromed-tasks"] });
+      invalidateAllTaskQueries(queryClient);
       toast.success("Tarefa excluída");
     },
   });
@@ -666,7 +667,7 @@ export default function IpromedTasks() {
         onSuccess={() => {
           setIsFormOpen(false);
           setEditingTask(null);
-          queryClient.invalidateQueries({ queryKey: ["ipromed-tasks"] });
+          invalidateAllTaskQueries(queryClient);
         }}
       />
 

@@ -6,6 +6,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateAllTaskQueries } from "../utils/invalidateTaskQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -165,9 +166,7 @@ export function WorkspaceTaskList() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['workspace-tasks-completed'] });
-      queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
+      invalidateAllTaskQueries(queryClient);
     },
   });
 
@@ -180,9 +179,7 @@ export function WorkspaceTaskList() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['workspace-tasks-completed'] });
-      queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
+      invalidateAllTaskQueries(queryClient);
     },
   });
 
@@ -404,8 +401,7 @@ export function WorkspaceTaskList() {
         onOpenChange={setShowCreateDialog}
         task={null}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['workspace-tasks'] });
-          queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
+          invalidateAllTaskQueries(queryClient);
           setShowCreateDialog(false);
         }}
       />

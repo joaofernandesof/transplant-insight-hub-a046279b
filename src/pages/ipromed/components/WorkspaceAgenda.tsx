@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateAllAgendaQueries } from "../utils/invalidateTaskQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -517,7 +518,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-agenda-kanban'] });
+      invalidateAllAgendaQueries(queryClient);
       toast.success('Agendamento atualizado');
       setEditing(false);
     },
