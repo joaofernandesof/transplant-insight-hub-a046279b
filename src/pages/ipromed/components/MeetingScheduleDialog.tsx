@@ -383,8 +383,14 @@ export function MeetingScheduleDialog({
       }
 
       toast.success("Reunião agendada com sucesso!");
-      onOpenChange(false);
-      resetForm();
+      
+      // If onboarding meeting with form link, show it instead of closing
+      if (onboardingFormLink) {
+        setStep("form_link" as any);
+      } else {
+        onOpenChange(false);
+        resetForm();
+      }
     } catch (error: any) {
       console.error("Error scheduling meeting:", error);
       toast.error("Erro ao agendar reunião: " + error.message);
