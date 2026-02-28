@@ -1211,6 +1211,12 @@ export default function AstreaStyleAgenda() {
                                         {apt.end_datetime && ` - ${format(parseISO(apt.end_datetime), 'HH:mm')}`}
                                       </span>
                                     )}
+                                    {apt.assigned_to && (
+                                      <span className="flex items-center gap-1 truncate">
+                                        <User className="h-3 w-3" />
+                                        {apt.assigned_to}
+                                      </span>
+                                    )}
                                     {apt.ipromed_legal_clients?.name && (
                                       <span className="flex items-center gap-1 truncate">
                                         <Users className="h-3 w-3" />
