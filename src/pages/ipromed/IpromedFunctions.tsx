@@ -210,18 +210,27 @@ export default function IpromedFunctions() {
       </div>
 
       {/* Single row: User cards with embedded metrics */}
-      <div className="flex gap-3 overflow-x-auto pb-1">
+      <div className="flex gap-4 overflow-x-auto pb-1">
         {/* Summary card */}
         <button
           onClick={() => { setFilterLawyer("all"); }}
-          className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-sm shrink-0 min-w-[180px] ${filterLawyer === "all" ? 'ring-2 ring-primary bg-primary/5' : 'bg-card hover:bg-muted/40'}`}
+          className={`flex flex-col gap-3 p-5 rounded-xl border text-left transition-all hover:shadow-md shrink-0 min-w-[200px] ${filterLawyer === "all" ? 'ring-2 ring-primary bg-primary/5 shadow-sm' : 'bg-card hover:bg-muted/40'}`}
         >
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Briefcase className="h-5 w-5 text-primary" />
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Briefcase className="h-6 w-6 text-primary" />
+            </div>
+            <p className="text-sm font-bold">Todos</p>
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold">Todos</p>
-            <p className="text-[10px] text-muted-foreground">{functions.length} funções · {uniqueCategories.length} categorias</p>
+          <div className="flex items-baseline gap-4">
+            <div>
+              <p className="text-3xl font-extrabold">{functions.length}</p>
+              <p className="text-[11px] text-muted-foreground">funções</p>
+            </div>
+            <div>
+              <p className="text-3xl font-extrabold">{uniqueCategories.length}</p>
+              <p className="text-[11px] text-muted-foreground">categorias</p>
+            </div>
           </div>
         </button>
 
@@ -234,17 +243,26 @@ export default function IpromedFunctions() {
             <button
               key={name}
               onClick={() => setFilterLawyer(isActive ? "all" : name)}
-              className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-sm shrink-0 min-w-[200px] ${isActive ? 'ring-2 ring-primary bg-primary/5' : 'bg-card hover:bg-muted/40'}`}
+              className={`flex flex-col gap-3 p-5 rounded-xl border text-left transition-all hover:shadow-md shrink-0 min-w-[210px] ${isActive ? 'ring-2 ring-primary bg-primary/5 shadow-sm' : 'bg-card hover:bg-muted/40'}`}
             >
-              <Avatar className="h-10 w-10 shrink-0">
-                <AvatarImage src={info?.photo} alt={name} className="object-cover" />
-                <AvatarFallback className={`text-xs ${info?.color || ''}`}>
-                  {name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold truncate">{name}</p>
-                <p className="text-[10px] text-muted-foreground">{count} {count === 1 ? "função" : "funções"} · {lawyerCategories} {lawyerCategories === 1 ? "cat" : "cats"}</p>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12 shrink-0">
+                  <AvatarImage src={info?.photo} alt={name} className="object-cover" />
+                  <AvatarFallback className={`text-sm ${info?.color || ''}`}>
+                    {name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <p className="text-sm font-bold truncate">{name}</p>
+              </div>
+              <div className="flex items-baseline gap-4">
+                <div>
+                  <p className="text-3xl font-extrabold">{count}</p>
+                  <p className="text-[11px] text-muted-foreground">{count === 1 ? "função" : "funções"}</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-extrabold">{lawyerCategories}</p>
+                  <p className="text-[11px] text-muted-foreground">{lawyerCategories === 1 ? "cat" : "cats"}</p>
+                </div>
               </div>
             </button>
           );
