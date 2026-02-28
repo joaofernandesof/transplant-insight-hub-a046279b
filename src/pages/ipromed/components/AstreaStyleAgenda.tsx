@@ -60,6 +60,11 @@ import {
   Settings2,
   Cake,
   Stethoscope,
+  CalendarDays,
+  Calendar,
+  CalendarRange,
+  List,
+  MapPin,
 } from "lucide-react";
 import {
   format,
