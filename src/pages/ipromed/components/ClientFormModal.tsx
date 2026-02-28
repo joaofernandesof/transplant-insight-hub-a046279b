@@ -209,7 +209,7 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col overflow-hidden p-0">
-        <DialogHeader>
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
             {isEditing ? "Editar Cliente" : "Novo Cliente Jurídico"}
