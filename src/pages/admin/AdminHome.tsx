@@ -30,6 +30,7 @@ import {
   ChevronDown,
   ExternalLink,
   BarChart3,
+  UserCog,
 } from 'lucide-react';
 
 // Portais do ecossistema
@@ -45,6 +46,7 @@ const portals = [
   { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
   { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
   { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
+  { id: 'neorh', title: 'NeoRH', icon: UserCog, gradient: 'from-indigo-500 to-blue-600', path: '/neorh' },
 ];
 
 // Cores dos portais para widgets
@@ -60,6 +62,7 @@ const PORTAL_BORDER_COLORS: Record<string, string> = {
   ipromed: 'border-l-indigo-500',
   vision: 'border-l-pink-500',
   neopay: 'border-l-green-500',
+  neorh: 'border-l-indigo-500',
 };
 
 const PORTAL_ICON_COLORS: Record<string, string> = {
@@ -74,6 +77,7 @@ const PORTAL_ICON_COLORS: Record<string, string> = {
   ipromed: 'text-indigo-400',
   vision: 'text-pink-400',
   neopay: 'text-green-400',
+  neorh: 'text-indigo-400',
 };
 
 const PORTAL_ICONS: Record<string, React.ElementType> = {
@@ -88,6 +92,7 @@ const PORTAL_ICONS: Record<string, React.ElementType> = {
   ipromed: Scale,
   vision: Eye,
   neopay: CreditCard,
+  neorh: UserCog,
 };
 
 export default function AdminHome() {
@@ -290,6 +295,19 @@ export default function AdminHome() {
               { label: 'Ativos', value: formatNumber(metrics.portals.find(p => p.id === 'neopay')?.activeUsers || 0) },
               { label: 'Trend', value: `${metrics.portals.find(p => p.id === 'neopay')?.trend || 0}%` },
               { label: 'Atividade', value: formatNumber(metrics.portals.find(p => p.id === 'neopay')?.recentActivity || 0) },
+            ]}
+          />
+
+          {/* NeoRH */}
+          <PortalWidget
+            id="neorh"
+            title="NeoRH"
+            onClick={() => navigate('/neorh')}
+            metrics={[
+              { label: 'Colaboradores', value: formatNumber(metrics.portals.find(p => p.id === 'neorh')?.totalUsers || 0) },
+              { label: 'Ativos', value: formatNumber(metrics.portals.find(p => p.id === 'neorh')?.activeUsers || 0) },
+              { label: 'Trend', value: `${metrics.portals.find(p => p.id === 'neorh')?.trend || 0}%` },
+              { label: 'Atividade', value: formatNumber(metrics.portals.find(p => p.id === 'neorh')?.recentActivity || 0) },
             ]}
           />
         </div>
