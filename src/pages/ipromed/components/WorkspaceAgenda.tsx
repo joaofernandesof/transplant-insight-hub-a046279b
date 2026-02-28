@@ -358,7 +358,7 @@ export function WorkspaceAgenda() {
                       return (
                         <div
                           key={hour}
-                          className="flex border-b last:border-b-0 border-border/30 min-h-[40px]"
+                          className="flex border-b last:border-b-0 border-border/30 h-[40px] overflow-hidden"
                         >
                           <div className="w-10 shrink-0 text-[10px] text-muted-foreground font-mono py-1 text-center border-r border-border/20 bg-muted/20">
                             {String(hour).padStart(2, '0')}h
