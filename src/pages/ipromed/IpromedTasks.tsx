@@ -285,7 +285,7 @@ export default function IpromedTasks() {
     });
 
     return result;
-  }, [tasks, searchQuery, priorityFilter, userFilter, sortBy]);
+  }, [tasks, searchQuery, priorityFilter, userFilter, sortBy, statusFilter]);
 
   const stats = useMemo(() => ({
     todo: tasks.filter((t) => t.status === "todo").length,
