@@ -382,6 +382,8 @@ export default function IpromedTasks() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <TaskActivityLog />
         </div>
 
         {/* User filter buttons */}
