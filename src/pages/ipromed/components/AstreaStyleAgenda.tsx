@@ -1293,26 +1293,23 @@ export default function AstreaStyleAgenda() {
               </div>
             )}
 
-            {/* Responsável - shown for prazo and tarefa */}
-            {(formData.appointment_type === 'prazo' || formData.appointment_type === 'tarefa') && (
-              <div>
-                <Label>Responsável</Label>
-                <Select
-                  value={formData.assigned_to}
-                  onValueChange={(v) => setFormData({ ...formData, assigned_to: v === '__none__' ? '' : v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o responsável" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">Nenhum</SelectItem>
-                    <SelectItem value="Dra. Caroline Parahyba">Dra. Caroline Parahyba</SelectItem>
-                    <SelectItem value="Dra. Larissa Guerreiro">Dra. Larissa Guerreiro</SelectItem>
-                    <SelectItem value="Isabele Cartaxo">Isabele Cartaxo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* Responsável - obrigatório para todos os tipos */}
+            <div>
+              <Label>Responsável *</Label>
+              <Select
+                value={formData.assigned_to}
+                onValueChange={(v) => setFormData({ ...formData, assigned_to: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Dra. Caroline Parahyba">Dra. Caroline Parahyba</SelectItem>
+                  <SelectItem value="Dra. Larissa Guerreiro">Dra. Larissa Guerreiro</SelectItem>
+                  <SelectItem value="Isabele Cartaxo">Isabele Cartaxo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <div>
               <Label>Data</Label>
