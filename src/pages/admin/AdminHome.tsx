@@ -168,12 +168,13 @@ export default function AdminHome() {
             <button
               key={portal.id}
               onClick={() => navigate(portal.path)}
-              className="group flex flex-col items-center gap-2.5 p-4 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
+              className="group flex flex-col items-center gap-1.5 p-4 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
             >
               <div className={`p-3.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
                 <portal.icon className="h-7 w-7" />
               </div>
-              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
+              <ArrowDown className="h-3 w-3 text-slate-500 group-hover:text-blue-400 transition-colors" />
+              <span className="text-[11px] font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
             </button>
           ))}
         </div>
