@@ -244,8 +244,8 @@ export default function IpromedClients() {
 
   const stats = {
     total: clients.length,
-    active: clients.filter(c => c.status === 'active').length,
-    prospects: clients.filter(c => c.status === 'prospect').length,
+    active: clients.length,
+    prospects: 0,
     paid: clients.filter(c => c.metadata?.payment_status === 'paid').length,
     pendingSignature: clients.filter(c => c.metadata?.contract_status === 'pending_signature').length,
     onboardingCompleted: clients.filter(c => c.onboarding_completed).length,
