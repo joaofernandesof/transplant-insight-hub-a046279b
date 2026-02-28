@@ -722,6 +722,57 @@ export default function OnboardingMeetingAgenda({
     }
   }, [meetingData, form, isRestored]);
 
+  // Pre-preencher campos de políticas com dados do formulário de onboarding
+  useEffect(() => {
+    if (onboardingFormData && !isRestored) {
+      const fd = onboardingFormData as any;
+      const currentValues = form.getValues();
+      // Só preencher se os campos estiverem vazios
+      const updates: Record<string, any> = {};
+      if (!currentValues.polDocEntityType && fd.doc_entity_type) updates.polDocEntityType = fd.doc_entity_type;
+      if (!currentValues.polCnpj && fd.cnpj) updates.polCnpj = fd.cnpj;
+      if (!currentValues.polClinicAddress && fd.clinic_address) updates.polClinicAddress = fd.clinic_address;
+      if (currentValues.polCancelMinHours === undefined && fd.cancel_min_hours != null) updates.polCancelMinHours = fd.cancel_min_hours;
+      if (currentValues.polCancelHasFine === undefined && fd.cancel_has_fine != null) updates.polCancelHasFine = fd.cancel_has_fine;
+      if (!currentValues.polCancelFineDetail && fd.cancel_fine_detail) updates.polCancelFineDetail = fd.cancel_fine_detail;
+      if (currentValues.polNoshowFullCharge === undefined && fd.noshow_full_charge != null) updates.polNoshowFullCharge = fd.noshow_full_charge;
+      if (!currentValues.polNoshowReschedulePolicy && fd.noshow_reschedule_policy) updates.polNoshowReschedulePolicy = fd.noshow_reschedule_policy;
+      if (!currentValues.polCancelMedicalEmergency && fd.cancel_medical_emergency) updates.polCancelMedicalEmergency = fd.cancel_medical_emergency;
+      if (currentValues.polDepositRequired === undefined && fd.deposit_required != null) updates.polDepositRequired = fd.deposit_required;
+      if (!currentValues.polDepositAmount && fd.deposit_amount) updates.polDepositAmount = fd.deposit_amount;
+      if (currentValues.polDepositRefundable === undefined && fd.deposit_refundable != null) updates.polDepositRefundable = fd.deposit_refundable;
+      if (currentValues.polDepositConvertible === undefined && fd.deposit_convertible != null) updates.polDepositConvertible = fd.deposit_convertible;
+      if (currentValues.polLateToleranceMinutes === undefined && fd.late_tolerance_minutes != null) updates.polLateToleranceMinutes = fd.late_tolerance_minutes;
+      if (currentValues.polLateLimitMinutes === undefined && fd.late_limit_minutes != null) updates.polLateLimitMinutes = fd.late_limit_minutes;
+      if (!currentValues.polLatePolicy && fd.late_policy) updates.polLatePolicy = fd.late_policy;
+      if (currentValues.polLateFitIn === undefined && fd.late_fit_in != null) updates.polLateFitIn = fd.late_fit_in;
+      if (currentValues.polHasFollowup === undefined && fd.has_followup != null) updates.polHasFollowup = fd.has_followup;
+      if (currentValues.polFollowupDays === undefined && fd.followup_days != null) updates.polFollowupDays = fd.followup_days;
+      if (!currentValues.polFollowupModality && fd.followup_modality) updates.polFollowupModality = fd.followup_modality;
+      if (!currentValues.polFollowupScope && fd.followup_scope) updates.polFollowupScope = fd.followup_scope;
+      if (!currentValues.polFollowupExpiredPolicy && fd.followup_expired_policy) updates.polFollowupExpiredPolicy = fd.followup_expired_policy;
+      if (currentValues.polConfirmationAttempts === undefined && fd.confirmation_attempts != null) updates.polConfirmationAttempts = fd.confirmation_attempts;
+      if (currentValues.polNoResponseAutoCancel === undefined && fd.no_response_auto_cancel != null) updates.polNoResponseAutoCancel = fd.no_response_auto_cancel;
+      if (!currentValues.polOfficialChannel && fd.official_channel) updates.polOfficialChannel = fd.official_channel;
+      if (currentValues.polUsesAutoMessages === undefined && fd.uses_auto_messages != null) updates.polUsesAutoMessages = fd.uses_auto_messages;
+      if (currentValues.polHasTeleconsultation === undefined && fd.has_teleconsultation != null) updates.polHasTeleconsultation = fd.has_teleconsultation;
+      if (!currentValues.polTeleconsultationPlatform && fd.teleconsultation_platform) updates.polTeleconsultationPlatform = fd.teleconsultation_platform;
+      if (currentValues.polHasPriorInstructions === undefined && fd.has_prior_instructions != null) updates.polHasPriorInstructions = fd.has_prior_instructions;
+      if (currentValues.polArrivalAdvanceMinutes === undefined && fd.arrival_advance_minutes != null) updates.polArrivalAdvanceMinutes = fd.arrival_advance_minutes;
+      if (currentValues.polConsultationDurationMinutes === undefined && fd.consultation_duration_minutes != null) updates.polConsultationDurationMinutes = fd.consultation_duration_minutes;
+      if (currentValues.polHasConsultationRefund === undefined && fd.has_consultation_refund != null) updates.polHasConsultationRefund = fd.has_consultation_refund;
+      if (currentValues.polHasProcedureRefund === undefined && fd.has_procedure_refund != null) updates.polHasProcedureRefund = fd.has_procedure_refund;
+      if (currentValues.polAdvancePaymentCredit === undefined && fd.advance_payment_credit != null) updates.polAdvancePaymentCredit = fd.advance_payment_credit;
+      if (currentValues.polCreditValidityDays === undefined && fd.credit_validity_days != null) updates.polCreditValidityDays = fd.credit_validity_days;
+      
+      if (Object.keys(updates).length > 0) {
+        Object.entries(updates).forEach(([key, value]) => {
+          form.setValue(key as any, value);
+        });
+      }
+    }
+  }, [onboardingFormData, isRestored, form]);
+
   // Mostrar notificação de restauração do localStorage (apenas se NÃO veio do banco)
   useEffect(() => {
     if (savedCheckpoint && !isRestored && !savedCheckpoint.fromDatabase) {
