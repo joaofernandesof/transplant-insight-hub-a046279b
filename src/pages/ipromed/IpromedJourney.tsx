@@ -900,7 +900,9 @@ export default function IpromedJourney() {
         updateClientPhase.mutate({ clientId, newPhase: targetPhaseId });
 
         // Auto-open meeting scheduler when moving to "Agendado" (stage 2)
-        if (targetPhaseId === 'Agendado' && client) {
+        if (targetPhaseId === 'Agendado' && client && currentPhase) {
+          setPendingDragOriginPhase(currentPhase);
+          setMeetingScheduled(false);
           setTimeout(() => {
             setMeetingClient(client);
             setMeetingDialogOpen(true);
