@@ -9,7 +9,6 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://d75807d5-1df7-446d-aac3-36166617be60.lovableproject.com?forceHideBadge=true',
     cleartext: true,
-    androidScheme: 'https'
   },
   
   plugins: {
@@ -40,7 +39,8 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     backgroundColor: '#0f172a',
-    appendUserAgent: 'NeoHubApp'
+    appendUserAgent: 'NeoHubApp',
+    webContentsDebuggingEnabled: false
   }
 };
 

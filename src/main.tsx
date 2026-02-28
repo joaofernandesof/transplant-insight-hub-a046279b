@@ -2,6 +2,10 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { patchWindowOpenForNative } from "./utils/openUrl";
+
+// Intercepta window.open no Capacitor para não abrir Chrome
+patchWindowOpenForNative();
 
 // Auto-reload on chunk loading errors (stale cache after deploy)
 window.addEventListener('error', (e) => {
