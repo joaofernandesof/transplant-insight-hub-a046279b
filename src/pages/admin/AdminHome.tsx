@@ -25,7 +25,6 @@ import {
   CreditCard,
   Flame,
   Building2,
-  BookOpen,
   RefreshCw,
   Stethoscope,
 } from 'lucide-react';
