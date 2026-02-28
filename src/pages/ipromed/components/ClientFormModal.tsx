@@ -458,13 +458,14 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                   </div>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
+            </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className="flex justify-end gap-3 px-6 py-4 border-t">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>
                 {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isEditing ? "Salvar Alterações" : "Cadastrar Cliente"}
               </Button>
