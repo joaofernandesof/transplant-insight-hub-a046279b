@@ -163,6 +163,16 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     route: '/cpg',
     portalKey: 'ipromed',
   },
+  neorh: {
+    title: 'NeoRH',
+    description: 'Gestão de recursos humanos',
+    icon: UserCog,
+    gradient: 'from-indigo-500 to-blue-600',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
+    profiles: ['administrador', 'colaborador'],
+    route: '/neorh',
+    portalKey: 'neorh',
+  },
 };
 
 export default function PortalSelector() {
