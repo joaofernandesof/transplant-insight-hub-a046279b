@@ -138,6 +138,7 @@ export function TaskStatsCards() {
       iconColor: 'text-slate-500',
       badge: stats?.total ?? 0,
       badgeBg: 'bg-slate-100 text-slate-600',
+      filter: 'todo',
     },
     {
       label: 'Vencem hoje',
@@ -150,6 +151,7 @@ export function TaskStatsCards() {
       iconColor: 'text-slate-500',
       badge: stats?.dueToday ?? 0,
       badgeBg: 'bg-emerald-500 text-white',
+      filter: 'due_today',
     },
     {
       label: 'Em atraso',
@@ -163,6 +165,7 @@ export function TaskStatsCards() {
       badge: 'Atenção',
       badgeBg: 'bg-red-500 text-white',
       showBadge: (stats?.overdue ?? 0) > 0,
+      filter: 'overdue',
     },
     {
       label: 'Concluídas',
@@ -175,6 +178,7 @@ export function TaskStatsCards() {
       iconColor: 'text-emerald-500',
       badge: `${stats?.completionRate ?? 0}%`,
       badgeBg: 'bg-emerald-500 text-white',
+      filter: 'completed',
     },
   ];
 
