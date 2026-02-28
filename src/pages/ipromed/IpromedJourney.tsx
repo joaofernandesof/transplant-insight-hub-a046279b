@@ -517,13 +517,14 @@ function DroppableColumn({
           strategy={verticalListSortingStrategy}
         >
           {sortedClients.map((client) => (
-            <DraggableClientCard
+             <DraggableClientCard
               key={client.id}
               client={client}
               phase={phase}
               navigate={navigate}
               onScheduleMeeting={onScheduleMeeting}
               onDistrato={onDistrato}
+              onViewJourney={onViewJourney}
               isDragging={activeId === client.id}
               isSelected={selectedClients.has(client.id)}
               onSelect={onSelectClient}
