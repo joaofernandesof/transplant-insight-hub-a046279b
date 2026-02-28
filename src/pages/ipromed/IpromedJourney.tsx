@@ -742,24 +742,55 @@ export default function IpromedJourney() {
 
   // Get phase color
   const getPhaseColor = (phase: string) => {
-    const found = journeyPhases.find(p => p.id === phase);
+    const found = allPhases.find(p => p.id === phase);
     return found?.color || 'bg-gray-500';
   };
 
+  // Only active (non-distratado) clients for the visible kanban
+  const activeClients = clients.filter(c => getClientPhase(c) !== 'Distratados');
+  const distratoClients = clients.filter(c => getClientPhase(c) === 'Distratados');
+
   // Filter clients
-  const filteredClients = clients.filter(c => {
+  const filteredClients = activeClients.filter(c => {
     const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
     const clientPhase = getClientPhase(c);
     const matchesPhase = !selectedPhase || clientPhase === selectedPhase;
     return matchesSearch && matchesPhase;
   });
 
-  // Group clients by phase
+  // Group clients by phase (only visible phases)
   const clientsByPhase = useMemo(() => {
     return journeyPhases.reduce((acc, phase) => {
-      acc[phase.id] = clients.filter(c => getClientPhase(c) === phase.id);
+      acc[phase.id] = activeClients.filter(c => getClientPhase(c) === phase.id);
       return acc;
     }, {} as Record<string, Client[]>);
+  }, [clients]);
+
+  // SLA stats for widgets
+  const slaStats = useMemo(() => {
+    const totalActive = activeClients.length;
+    const inLastPhase = (clientsByPhase['Continuo'] || []).length;
+    const overdueCount = activeClients.filter(c => {
+      const phase = getClientPhase(c);
+      const sla = getClientSlaInfo(c, phase);
+      return sla.status === 'overdue';
+    }).length;
+    const warningCount = activeClients.filter(c => {
+      const phase = getClientPhase(c);
+      const sla = getClientSlaInfo(c, phase);
+      return sla.status === 'warning';
+    }).length;
+    
+    // Avg days to reach Continuo
+    const completedClients = (clientsByPhase['Continuo'] || []);
+    const avgDaysToCompletion = completedClients.length > 0
+      ? Math.round(completedClients.reduce((sum, c) => sum + differenceInDays(new Date(), new Date(c.created_at)), 0) / completedClients.length)
+      : 0;
+    
+    // Conversion rate: clients that reached last phase / total
+    const conversionRate = totalActive > 0 ? Math.round((inLastPhase / totalActive) * 100) : 0;
+    
+    return { totalActive, inLastPhase, overdueCount, warningCount, avgDaysToCompletion, conversionRate, distratoCount: distratoClients.length };
   }, [clients]);
 
   // Calculate due date for current phase
