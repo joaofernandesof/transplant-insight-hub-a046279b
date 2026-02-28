@@ -31,22 +31,23 @@ import {
   ExternalLink,
   BarChart3,
   UserCog,
+  ArrowDown,
 } from 'lucide-react';
 
 // Portais do ecossistema
 const portals = [
-  { id: 'admin', title: 'Administrador', icon: Shield, gradient: 'from-slate-500 to-slate-700', path: '/admin-portal' },
-  { id: 'academy', title: 'Academy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
+  { id: 'admin', title: 'Portal Administrador', icon: Shield, gradient: 'from-slate-500 to-slate-700', path: '/admin-portal' },
+  { id: 'academy', title: 'Academy IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
   { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
-  { id: 'neocare', title: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
-  { id: 'neoteam', title: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
-  { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
-  { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
+  { id: 'neocare', title: 'NeoCare Pacientes', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
+  { id: 'neoteam', title: 'NeoTeam Operações', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
+  { id: 'doctor', title: 'Portal Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
+  { id: 'avivar', title: 'Avivar CRM', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
   { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg' },
-  { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
-  { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
-  { id: 'neorh', title: 'NeoRH', icon: UserCog, gradient: 'from-indigo-500 to-blue-600', path: '/neorh' },
+  { id: 'vision', title: 'Vision IA', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
+  { id: 'neopay', title: 'NeoPay Pagamentos', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
+  { id: 'hotleads', title: 'HotLeads Marketplace', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
+  { id: 'neorh', title: 'NeoRH Recursos Humanos', icon: UserCog, gradient: 'from-indigo-500 to-blue-600', path: '/neorh' },
 ];
 
 // Cores dos portais para widgets
@@ -167,12 +168,13 @@ export default function AdminHome() {
             <button
               key={portal.id}
               onClick={() => navigate(portal.path)}
-              className="group flex flex-col items-center gap-2.5 p-4 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
+              className="group flex flex-col items-center gap-1.5 p-4 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
             >
               <div className={`p-3.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
                 <portal.icon className="h-7 w-7" />
               </div>
-              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
+              <ArrowDown className="h-3 w-3 text-slate-500 group-hover:text-blue-400 transition-colors" />
+              <span className="text-[11px] font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
             </button>
           ))}
         </div>
