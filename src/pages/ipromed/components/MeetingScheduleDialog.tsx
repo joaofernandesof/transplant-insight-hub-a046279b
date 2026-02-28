@@ -314,6 +314,48 @@ export function MeetingScheduleDialog({
       
       const meeting = meetingData as unknown as { id: string };
 
+      // Auto-create onboarding form if this is an onboarding meeting
+      if (selectedAgenda === 'onboarding' && agendaType === 'predefined') {
+        try {
+          // Check if client already has a pending form
+          const { data: existingForm } = await supabase
+            .from('ipromed_onboarding_forms')
+            .select('id, token')
+            .eq('client_id', clientId)
+            .eq('status', 'pending')
+            .maybeSingle();
+
+          let formToken: string;
+          if (existingForm) {
+            formToken = (existingForm as any).token;
+          } else {
+            formToken = crypto.randomUUID().replace(/-/g, '').substring(0, 32);
+            await supabase.from('ipromed_onboarding_forms').insert({
+              client_id: clientId,
+              token: formToken,
+              status: 'pending',
+            });
+
+            // Create task for follow-up
+            await supabase.from('ipromed_legal_tasks').insert([{
+              title: `Enviar formulário de onboarding para ${clientName}`,
+              description: `Enviar o link do formulário de onboarding para o cliente ${clientName}. Link: ${window.location.origin}/forms/onboarding/${formToken}`,
+              assigned_to_name: 'Isabele Cartaxo',
+              status: 'pending',
+              priority: 3,
+              category: 'onboarding',
+              due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            }]);
+          }
+
+          const link = `${window.location.origin}/forms/onboarding/${formToken}`;
+          setOnboardingFormLink(link);
+          queryClient.invalidateQueries({ queryKey: ['ipromed-onboarding-form'] });
+        } catch (formErr) {
+          console.error('Error creating onboarding form:', formErr);
+        }
+      }
+
       // Log activity
       await logClientActivity(
         clientId,
