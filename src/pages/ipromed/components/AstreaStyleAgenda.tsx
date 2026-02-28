@@ -765,6 +765,9 @@ export default function AstreaStyleAgenda() {
 
   // Generate calendar days based on view mode
   const calendarDays = useMemo(() => {
+    if (viewMode === 'day') {
+      return [currentDate];
+    }
     if (viewMode === 'week') {
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
       return eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
