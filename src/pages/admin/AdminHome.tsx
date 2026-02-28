@@ -27,6 +27,9 @@ import {
   Building2,
   RefreshCw,
   Stethoscope,
+  ChevronDown,
+  ExternalLink,
+  BarChart3,
 } from 'lucide-react';
 
 // Portais do ecossistema
@@ -159,12 +162,12 @@ export default function AdminHome() {
             <button
               key={portal.id}
               onClick={() => navigate(portal.path)}
-              className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
+              className="group flex flex-col items-center gap-2.5 p-4 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
             >
-              <div className={`p-2.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
-                <portal.icon className="h-5 w-5" />
+              <div className={`p-3.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
+                <portal.icon className="h-7 w-7" />
               </div>
-              <span className="text-[10px] font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
+              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
             </button>
           ))}
         </div>
@@ -306,6 +309,7 @@ interface PortalWidgetProps {
 }
 
 function PortalWidget({ id, title, onClick, metrics }: PortalWidgetProps) {
+  const [expanded, setExpanded] = useState(false);
   const Icon = PORTAL_ICONS[id] || Users;
   const iconColor = PORTAL_ICON_COLORS[id] || 'text-slate-400';
   const borderColor = PORTAL_BORDER_COLORS[id] || 'border-l-slate-500';
@@ -313,12 +317,15 @@ function PortalWidget({ id, title, onClick, metrics }: PortalWidgetProps) {
   return (
     <Card
       className={`bg-slate-800/50 border-slate-700/50 border-l-4 ${borderColor} hover:border-slate-600 cursor-pointer transition-all group`}
-      onClick={onClick}
+      onClick={() => setExpanded(!expanded)}
     >
       <CardContent className="p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Icon className={`h-4 w-4 ${iconColor}`} />
-          <span className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">{title}</span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Icon className={`h-4 w-4 ${iconColor}`} />
+            <span className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">{title}</span>
+          </div>
+          <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           {metrics.map((m, i) => (
@@ -328,6 +335,28 @@ function PortalWidget({ id, title, onClick, metrics }: PortalWidgetProps) {
             </div>
           ))}
         </div>
+        {expanded && (
+          <div className="mt-4 pt-3 border-t border-slate-700/50 flex flex-col gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start text-slate-300 hover:text-white hover:bg-slate-700/50 text-xs"
+              onClick={(e) => { e.stopPropagation(); onClick(); }}
+            >
+              <ExternalLink className="h-3.5 w-3.5 mr-2" />
+              Abrir Portal
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start text-slate-300 hover:text-white hover:bg-slate-700/50 text-xs"
+              onClick={(e) => { e.stopPropagation(); onClick(); }}
+            >
+              <BarChart3 className="h-3.5 w-3.5 mr-2" />
+              Ver Métricas Detalhadas
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
