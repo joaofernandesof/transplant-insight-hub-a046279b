@@ -35,18 +35,18 @@ import {
 
 // Portais do ecossistema
 const portals = [
-  { id: 'admin', title: 'Administrador', icon: Shield, gradient: 'from-slate-500 to-slate-700', path: '/admin-portal' },
-  { id: 'academy', title: 'Academy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
+  { id: 'admin', title: 'Portal Administrador', icon: Shield, gradient: 'from-slate-500 to-slate-700', path: '/admin-portal' },
+  { id: 'academy', title: 'Academy IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
   { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
-  { id: 'neocare', title: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
-  { id: 'neoteam', title: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
-  { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
-  { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
+  { id: 'neocare', title: 'NeoCare Pacientes', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
+  { id: 'neoteam', title: 'NeoTeam Operações', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
+  { id: 'doctor', title: 'Portal Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
+  { id: 'avivar', title: 'Avivar CRM', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
   { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg' },
-  { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
-  { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
-  { id: 'neorh', title: 'NeoRH', icon: UserCog, gradient: 'from-indigo-500 to-blue-600', path: '/neorh' },
+  { id: 'vision', title: 'Vision IA', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
+  { id: 'neopay', title: 'NeoPay Pagamentos', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
+  { id: 'hotleads', title: 'HotLeads Marketplace', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
+  { id: 'neorh', title: 'NeoRH Recursos Humanos', icon: UserCog, gradient: 'from-indigo-500 to-blue-600', path: '/neorh' },
 ];
 
 // Cores dos portais para widgets
