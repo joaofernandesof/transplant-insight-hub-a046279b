@@ -248,7 +248,7 @@ function DraggableClientCard({
             className="h-8 w-8 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/cpg/clients/${client.id}`);
+              onViewJourney(client);
             }}
           >
             <AvatarFallback className={cn("text-xs font-medium text-white", phase.color)}>
