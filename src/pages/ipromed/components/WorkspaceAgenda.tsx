@@ -205,6 +205,7 @@ export function WorkspaceAgenda() {
           status: task.status,
           appointment_type: 'tarefa',
           client_name: task.assigned_to_name || null,
+          assigned_to: null,
           source: 'appointment',
         });
       });
