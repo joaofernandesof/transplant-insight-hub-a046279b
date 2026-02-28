@@ -7,6 +7,8 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateAllTaskQueries } from "./utils/invalidateTaskQueries";
+import { logTaskActivity } from "./utils/logTaskActivity";
+import { TaskActivityLog } from "./components/tasks/TaskActivityLog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
