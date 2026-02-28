@@ -175,10 +175,20 @@ function DraggableClientCard({
   phase, 
   navigate, 
   onScheduleMeeting,
+  onDistrato,
   isDragging,
   isSelected,
   onSelect,
 }: { 
+  client: Client; 
+  phase: typeof journeyPhases[0]; 
+  navigate: (path: string) => void;
+  onScheduleMeeting: (client: Client) => void;
+  onDistrato: (client: Client) => void;
+  isDragging?: boolean;
+  isSelected?: boolean;
+  onSelect?: (clientId: string, selected: boolean) => void;
+}) {
   client: Client; 
   phase: typeof journeyPhases[0]; 
   navigate: (path: string) => void;
