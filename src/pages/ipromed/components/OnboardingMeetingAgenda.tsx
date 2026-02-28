@@ -3075,6 +3075,66 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionContent>
               </AccordionItem>
+
+              {/* 8. Políticas da Clínica (dados do formulário de onboarding) */}
+              <AccordionItem 
+                value="politicas-clinica" 
+                data-section-id="politicas-clinica"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("politicas-clinica") && "opacity-50"
+                )}
+              >
+                <AccordionTrigger 
+                  className={cn(
+                    "px-4 py-3 hover:no-underline",
+                    completedSections.includes("politicas-clinica") && "bg-emerald-50 dark:bg-emerald-950/20"
+                  )}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("politicas-clinica");
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📋</span>
+                    <div className="text-left">
+                      <p className="font-medium">8. Políticas da Clínica</p>
+                      <p className="text-xs text-muted-foreground">Cancelamento, sinal, atrasos, retorno, financeiro</p>
+                    </div>
+                    {onboardingFormData && (
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700 ml-2 text-xs">
+                        Formulário preenchido
+                      </Badge>
+                    )}
+                    {completedSections.includes("politicas-clinica") && (
+                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("politicas-clinica") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
+                      </Badge>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <OnboardingPoliciesSection onboardingFormData={onboardingFormData} />
+                  <div className="flex justify-end mt-4">
+                    <Button 
+                      type="button" 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => validateAndCompleteSection("politicas-clinica")}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Marcar como concluído
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
 
             {/* Footer Actions - simplificado no modo embedded */}
