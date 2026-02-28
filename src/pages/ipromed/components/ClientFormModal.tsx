@@ -45,7 +45,7 @@ const clientSchema = z.object({
   phone: z.string().optional(),
   cpf_cnpj: z.string().optional(),
   client_type: z.enum(["pf", "pj"]),
-  status: z.enum(["prospect", "active", "churned"]),
+  
   risk_level: z.enum(["low", "medium", "high"]),
   journey_stage: z.enum(["prospect", "onboarding", "retention", "expansion", "advocacy"]),
   notes: z.string().optional(),
