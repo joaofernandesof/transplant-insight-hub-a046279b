@@ -1,131 +1,96 @@
 /**
- * AdminHome - Dashboard principal do Portal Administrativo
- * Visão consolidada de métricas e acesso aos portais do ecossistema
+ * AdminHome - Dashboard simplificado do Portal Administrativo
+ * Botões de portais em cima + widgets de métricas por portal embaixo
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import NotificationDialog from '@/components/NotificationDialog';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
-import { GlobalDashboard } from '@/components/admin/GlobalDashboard';
+import { useGlobalMetrics, formatNumber, formatCurrency, formatPercentage } from '@/hooks/useGlobalMetrics';
 import {
   Users,
-  Activity,
   Loader2,
   Shield,
   Send,
   GraduationCap,
   Heart,
-  Stethoscope,
   Zap,
   Scale,
-  CreditCard,
   Eye,
-  Award,
+  CreditCard,
   Flame,
   Building2,
   BookOpen,
+  RefreshCw,
+  Stethoscope,
 } from 'lucide-react';
-import { subDays } from 'date-fns';
-import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
-
-interface SystemStats {
-  totalUsers: number;
-  activeUsers: number;
-  totalLicensees: number;
-  totalStudents: number;
-  totalPatients: number;
-  totalCollaborators: number;
-  onlineUsers: number;
-  weeklyActiveUsers: number;
-}
 
 // Portais do ecossistema
 const portals = [
-  { id: 'neocare', title: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare', description: 'Portal do paciente' },
-  { id: 'neoteam', title: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam', description: 'Equipe clínica' },
-  { id: 'academy', title: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy', description: 'Portal educacional' },
-  { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense', description: 'Gestão de licenças' },
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads', description: 'Marketplace de leads' },
-  { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar', description: 'CRM & Marketing IA' },
-  { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg', description: 'Portal jurídico' },
-  { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision', description: 'Análise capilar' },
-  { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay', description: 'Gateway pagamentos' },
-  { id: 'neoacademy', title: 'NeoAcademy', icon: BookOpen, gradient: 'from-violet-500 to-purple-600', path: '/neoacademy', description: 'Área de membros' },
+  { id: 'neocare', title: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
+  { id: 'neoteam', title: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
+  { id: 'academy', title: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
+  { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
+  { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
+  { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
+  { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg' },
+  { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
+  { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
+  { id: 'neoacademy', title: 'NeoAcademy', icon: BookOpen, gradient: 'from-violet-500 to-purple-600', path: '/neoacademy' },
 ];
+
+// Cores dos portais para widgets
+const PORTAL_BORDER_COLORS: Record<string, string> = {
+  neocare: 'border-l-rose-500',
+  neoteam: 'border-l-blue-500',
+  academy: 'border-l-emerald-500',
+  neolicense: 'border-l-amber-500',
+  hotleads: 'border-l-orange-500',
+  avivar: 'border-l-purple-500',
+  ipromed: 'border-l-indigo-500',
+  vision: 'border-l-pink-500',
+  neopay: 'border-l-green-500',
+};
+
+const PORTAL_ICON_COLORS: Record<string, string> = {
+  neocare: 'text-rose-400',
+  neoteam: 'text-blue-400',
+  academy: 'text-emerald-400',
+  neolicense: 'text-amber-400',
+  hotleads: 'text-orange-400',
+  avivar: 'text-purple-400',
+  ipromed: 'text-indigo-400',
+  vision: 'text-pink-400',
+  neopay: 'text-green-400',
+};
+
+const PORTAL_ICONS: Record<string, React.ElementType> = {
+  neocare: Heart,
+  neoteam: Users,
+  academy: GraduationCap,
+  neolicense: Building2,
+  hotleads: Flame,
+  avivar: Zap,
+  ipromed: Scale,
+  vision: Eye,
+  neopay: CreditCard,
+};
 
 export default function AdminHome() {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
   const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
-  const [stats, setStats] = useState<SystemStats>({
-    totalUsers: 0,
-    activeUsers: 0,
-    totalLicensees: 0,
-    totalStudents: 0,
-    totalPatients: 0,
-    totalCollaborators: 0,
-    onlineUsers: 0,
-    weeklyActiveUsers: 0,
-  });
+  const { metrics, isLoading, refresh } = useGlobalMetrics();
 
-  useEffect(() => {
-    if (!isAdmin) {
-      navigate('/');
-      return;
-    }
-    fetchStats();
-  }, [isAdmin]);
-
-  const fetchStats = async () => {
-    try {
-      const now = new Date();
-      const weekAgo = subDays(now, 7);
-      const fiveMinutesAgo = subDays(now, 1 / 288);
-
-      const [
-        neohubUsersRes,
-        profilesRes,
-        studentsRes,
-        patientsRes,
-        collaboratorsRes,
-        licensedRes,
-        onlineUsersRes,
-        weeklyActiveRes,
-      ] = await Promise.all([
-        supabase.from('neohub_users').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('profiles').select('status'),
-        supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'aluno').eq('is_active', true),
-        supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'paciente').eq('is_active', true),
-        supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'colaborador').eq('is_active', true),
-        supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'licenciado').eq('is_active', true),
-        supabase.from('neohub_users').select('id', { count: 'exact', head: true }).gte('last_seen_at', fiveMinutesAgo.toISOString()),
-        supabase.from('neohub_users').select('id', { count: 'exact', head: true }).gte('last_seen_at', weekAgo.toISOString()),
-      ]);
-
-      const profiles = profilesRes.data || [];
-      const activeProfiles = profiles.filter(p => p.status === 'active').length;
-
-      setStats({
-        totalUsers: neohubUsersRes.count || 0,
-        activeUsers: activeProfiles,
-        totalLicensees: licensedRes.count || 0,
-        totalStudents: studentsRes.count || 0,
-        totalPatients: patientsRes.count || 0,
-        totalCollaborators: collaboratorsRes.count || 0,
-        onlineUsers: onlineUsersRes.count || 0,
-        weeklyActiveUsers: weeklyActiveRes.count || 0,
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (!isAdmin) {
+    navigate('/');
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -136,11 +101,10 @@ export default function AdminHome() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 p-3 lg:p-4 overflow-x-hidden w-full space-y-3">
-      {/* Breadcrumb */}
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 p-3 lg:p-4 overflow-x-hidden w-full space-y-4">
       <GlobalBreadcrumb />
-      
-      {/* Portal Banner - Compacto */}
+
+      {/* Header Banner */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-800 via-slate-800/80 to-blue-900/30 border border-slate-700/50 p-4">
         <div className="absolute inset-0 bg-grid-white/[0.02]" />
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
@@ -154,14 +118,25 @@ export default function AdminHome() {
               <p className="text-sm text-slate-400">Bem-vindo, {user?.name?.split(' ')[0] || 'Administrador'}</p>
             </div>
           </div>
-          <Button
-            onClick={() => setIsNotificationDialogOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-            size="sm"
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Enviar Notificação
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={refresh}
+              variant="outline"
+              size="sm"
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+            <Button
+              onClick={() => setIsNotificationDialogOpen(true)}
+              className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+              size="sm"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Enviar Notificação
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -170,93 +145,184 @@ export default function AdminHome() {
         onOpenChange={setIsNotificationDialogOpen}
       />
 
-      {/* Portais do NeoHub - PRIMEIRO após o banner */}
+      {/* ====== PORTAIS ====== */}
       <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Eye className="h-4 w-4 text-blue-400" />
-          <h3 className="text-xs font-semibold text-white uppercase tracking-wide">Portais do NeoHub</h3>
-        </div>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Portais do NeoHub</h3>
+        <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-3">
           {portals.map((portal) => (
             <button
               key={portal.id}
               onClick={() => navigate(portal.path)}
               className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
             >
-              <div className={`p-3 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
-                <portal.icon className="h-6 w-6" />
+              <div className={`p-2.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
+                <portal.icon className="h-5 w-5" />
               </div>
-              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
+              <span className="text-[10px] font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Stats Row - Métricas do Sistema - Compacto */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <div className="rounded-lg bg-slate-800/50 border border-slate-700/50 p-3 relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-blue-600 rounded-l-lg" />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] text-slate-400">Total Usuários</p>
-              <p className="text-xl font-bold text-white">{stats.totalUsers}</p>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/50 text-slate-300 inline-block">
-                {stats.activeUsers} ativos
-              </span>
-            </div>
-            <Users className="h-6 w-6 text-blue-400 opacity-80" />
-          </div>
+      {/* ====== WIDGETS DE MÉTRICAS POR PORTAL ====== */}
+      {metrics && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* Academy */}
+          <PortalWidget
+            id="academy"
+            title="Academy IBRAMEC"
+            onClick={() => navigate('/academy')}
+            metrics={[
+              { label: 'Alunos', value: formatNumber(metrics.academy.totalStudents) },
+              { label: 'Cursos Ativos', value: formatNumber(metrics.academy.activeCourses) },
+              { label: 'Matrículas/Mês', value: formatNumber(metrics.academy.enrollmentsThisMonth) },
+              { label: 'Taxa Aprovação', value: `${metrics.academy.examPassRate}%` },
+            ]}
+          />
+
+          {/* Avivar */}
+          <PortalWidget
+            id="avivar"
+            title="Avivar CRM"
+            onClick={() => navigate('/avivar')}
+            metrics={[
+              { label: 'Leads Total', value: formatNumber(metrics.avivar.totalLeads) },
+              { label: 'Leads/Mês', value: formatNumber(metrics.avivar.leadsThisMonth) },
+              { label: 'Conversão', value: `${metrics.avivar.conversionRate}%` },
+              { label: 'Agentes IA', value: formatNumber(metrics.avivar.totalAgents) },
+            ]}
+          />
+
+          {/* NeoCare */}
+          <PortalWidget
+            id="neocare"
+            title="NeoCare"
+            onClick={() => navigate('/neocare')}
+            metrics={[
+              { label: 'Pacientes', value: formatNumber(metrics.neocare.totalPatients) },
+              { label: 'Cirurgias Agendadas', value: formatNumber(metrics.neocare.scheduledSurgeries) },
+              { label: 'Realizadas', value: formatNumber(metrics.neocare.completedSurgeries) },
+              { label: 'NPS', value: String(metrics.neocare.satisfactionScore) },
+            ]}
+          />
+
+          {/* IPROMED / CPG */}
+          <PortalWidget
+            id="ipromed"
+            title="CPG Advocacia"
+            onClick={() => navigate('/cpg')}
+            metrics={[
+              { label: 'Casos Total', value: formatNumber(metrics.ipromed.totalCases) },
+              { label: 'Em Aberto', value: formatNumber(metrics.ipromed.openCases) },
+              { label: 'Encerrados', value: formatNumber(metrics.ipromed.closedCases) },
+              { label: 'Urgentes', value: formatNumber(metrics.ipromed.urgentCases), highlight: true },
+            ]}
+          />
+
+          {/* NeoTeam */}
+          <PortalWidget
+            id="neoteam"
+            title="NeoTeam"
+            onClick={() => navigate('/neoteam')}
+            metrics={[
+              { label: 'Colaboradores', value: formatNumber(metrics.neoteam.totalCollaborators) },
+              { label: 'Agendamentos', value: formatNumber(metrics.neoteam.scheduledAppointments) },
+              { label: 'Procedimentos', value: formatNumber(metrics.neoteam.completedProcedures) },
+              { label: 'Tarefas Pendentes', value: formatNumber(metrics.neoteam.pendingTasks) },
+            ]}
+          />
+
+          {/* HotLeads */}
+          <PortalWidget
+            id="hotleads"
+            title="HotLeads"
+            onClick={() => navigate('/hotleads')}
+            metrics={[
+              { label: 'Leads Total', value: formatNumber(metrics.summary.totalLeads) },
+              { label: 'Conversão', value: formatPercentage(metrics.summary.conversionRate) },
+              { label: 'Receita Total', value: formatCurrency(metrics.summary.totalRevenue) },
+              { label: 'Pacientes', value: formatNumber(metrics.summary.totalPatients) },
+            ]}
+          />
+
+          {/* NeoLicense */}
+          <PortalWidget
+            id="neolicense"
+            title="NeoLicense"
+            onClick={() => navigate('/neolicense')}
+            metrics={[
+              { label: 'Licenciados', value: formatNumber(metrics.portals.find(p => p.id === 'neolicense')?.totalUsers || 0) },
+              { label: 'Ativos', value: formatNumber(metrics.portals.find(p => p.id === 'neolicense')?.activeUsers || 0) },
+              { label: 'Trend', value: `${metrics.portals.find(p => p.id === 'neolicense')?.trend || 0}%` },
+              { label: 'Atividade', value: formatNumber(metrics.portals.find(p => p.id === 'neolicense')?.recentActivity || 0) },
+            ]}
+          />
+
+          {/* Vision */}
+          <PortalWidget
+            id="vision"
+            title="Vision"
+            onClick={() => navigate('/vision')}
+            metrics={[
+              { label: 'Usuários', value: formatNumber(metrics.portals.find(p => p.id === 'vision')?.totalUsers || 0) },
+              { label: 'Ativos', value: formatNumber(metrics.portals.find(p => p.id === 'vision')?.activeUsers || 0) },
+              { label: 'Trend', value: `${metrics.portals.find(p => p.id === 'vision')?.trend || 0}%` },
+              { label: 'Atividade', value: formatNumber(metrics.portals.find(p => p.id === 'vision')?.recentActivity || 0) },
+            ]}
+          />
+
+          {/* NeoPay */}
+          <PortalWidget
+            id="neopay"
+            title="NeoPay"
+            onClick={() => navigate('/neopay')}
+            metrics={[
+              { label: 'Usuários', value: formatNumber(metrics.portals.find(p => p.id === 'neopay')?.totalUsers || 0) },
+              { label: 'Ativos', value: formatNumber(metrics.portals.find(p => p.id === 'neopay')?.activeUsers || 0) },
+              { label: 'Trend', value: `${metrics.portals.find(p => p.id === 'neopay')?.trend || 0}%` },
+              { label: 'Atividade', value: formatNumber(metrics.portals.find(p => p.id === 'neopay')?.recentActivity || 0) },
+            ]}
+          />
         </div>
-
-        <div className="rounded-lg bg-slate-800/50 border border-slate-700/50 p-3 relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-green-600 rounded-l-lg" />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] text-slate-400">Online Agora</p>
-              <p className="text-xl font-bold text-white">{stats.onlineUsers}</p>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 inline-flex items-center gap-1">
-                <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" />
-                Ativos
-              </span>
-            </div>
-            <Activity className="h-6 w-6 text-green-400 opacity-80" />
-          </div>
-        </div>
-
-        <div className="rounded-lg bg-slate-800/50 border border-slate-700/50 p-3 relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-amber-600 rounded-l-lg" />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] text-slate-400">Licenciados</p>
-              <p className="text-xl font-bold text-white">{stats.totalLicensees}</p>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/50 text-slate-300 inline-block">
-                Ativos
-              </span>
-            </div>
-            <Award className="h-6 w-6 text-amber-400 opacity-80" />
-          </div>
-        </div>
-
-        <div className="rounded-lg bg-slate-800/50 border border-slate-700/50 p-3 relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-l-lg" />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] text-slate-400">Alunos</p>
-              <p className="text-xl font-bold text-white">{stats.totalStudents}</p>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/50 text-slate-300 inline-block">
-                Matriculados
-              </span>
-            </div>
-            <GraduationCap className="h-6 w-6 text-indigo-400 opacity-80" />
-          </div>
-        </div>
-      </div>
-
-      {/* GlobalDashboard - todas as métricas consolidadas */}
-      <GlobalDashboard />
-
-      {/* Gráficos de Tendência */}
-      <AdminTrendCharts />
+      )}
     </div>
+  );
+}
+
+// ====================================
+// PortalWidget - Widget de métricas por portal
+// ====================================
+interface PortalWidgetProps {
+  id: string;
+  title: string;
+  onClick: () => void;
+  metrics: Array<{ label: string; value: string; highlight?: boolean }>;
+}
+
+function PortalWidget({ id, title, onClick, metrics }: PortalWidgetProps) {
+  const Icon = PORTAL_ICONS[id] || Users;
+  const iconColor = PORTAL_ICON_COLORS[id] || 'text-slate-400';
+  const borderColor = PORTAL_BORDER_COLORS[id] || 'border-l-slate-500';
+
+  return (
+    <Card
+      className={`bg-slate-800/50 border-slate-700/50 border-l-4 ${borderColor} hover:border-slate-600 cursor-pointer transition-all group`}
+      onClick={onClick}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Icon className={`h-4 w-4 ${iconColor}`} />
+          <span className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">{title}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+          {metrics.map((m, i) => (
+            <div key={i}>
+              <p className="text-slate-400">{m.label}</p>
+              <p className={`font-bold ${m.highlight ? 'text-amber-400' : 'text-white'}`}>{m.value}</p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
