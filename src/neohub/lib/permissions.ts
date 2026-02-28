@@ -12,7 +12,7 @@ export type NeoHubProfile =
   | 'cliente_avivar'
   | 'ipromed';
 
-export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay';
+export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay' | 'neorh';
 
 // Mapeamento de perfis para portais
 export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
