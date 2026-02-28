@@ -179,6 +179,54 @@ function getClientSlaInfo(client: Client, phase: string) {
   return { daysInPhase, slaLimit, status, percent, startDate: enteredAt };
 }
 
+// SLA Editor inline component
+function SlaEditor({ client, phase, slaInfo, onSave }: {
+  client: Client;
+  phase: string;
+  slaInfo: { startDate: string; slaLimit: number };
+  onSave: (clientId: string, startDate: string, limitDays: number) => void;
+}) {
+  const startDateValue = slaInfo.startDate ? format(new Date(slaInfo.startDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+  const [localStart, setLocalStart] = useState(startDateValue);
+  const [localLimit, setLocalLimit] = useState(String(slaInfo.slaLimit));
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold text-foreground">Configurar SLA</p>
+      <div className="space-y-2">
+        <div>
+          <Label className="text-[11px] text-muted-foreground">Data de início</Label>
+          <Input
+            type="date"
+            value={localStart}
+            onChange={(e) => setLocalStart(e.target.value)}
+            className="h-7 text-xs mt-0.5"
+          />
+        </div>
+        <div>
+          <Label className="text-[11px] text-muted-foreground">Prazo (dias)</Label>
+          <Input
+            type="number"
+            min={1}
+            value={localLimit}
+            onChange={(e) => setLocalLimit(e.target.value)}
+            className="h-7 text-xs mt-0.5"
+          />
+        </div>
+      </div>
+      <Button
+        size="sm"
+        className="w-full h-7 text-xs"
+        onClick={() => {
+          onSave(client.id, new Date(localStart + 'T12:00:00').toISOString(), parseInt(localLimit) || slaInfo.slaLimit);
+        }}
+      >
+        Salvar
+      </Button>
+    </div>
+  );
+}
+
 // Draggable Client Card Component
 function DraggableClientCard({ 
   client, 
