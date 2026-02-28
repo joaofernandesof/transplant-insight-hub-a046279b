@@ -513,6 +513,7 @@ function NeoTeamRoutes() {
 // NeoRH Routes (Portal de RH)
 // ====================================
 function NeoRHRoutes() {
+  const { NeoRHBanner } = await import('@/neohub/components/NeoRHBanner');
   const NeoRHDashboard = lazy(() => import('@/neohub/pages/neorh/NeoRHDashboard'));
   const NeoRHColaboradores = lazy(() => import('@/neohub/pages/neorh/NeoRHColaboradores'));
   const NeoRHCargos = lazy(() => import('@/neohub/pages/neorh/NeoRHCargos'));
