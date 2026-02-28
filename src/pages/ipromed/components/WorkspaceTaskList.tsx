@@ -6,7 +6,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { invalidateAllTaskQueries } from "../utils/invalidateTaskQueries";
+import { logTaskActivity } from "../utils/logTaskActivity";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
