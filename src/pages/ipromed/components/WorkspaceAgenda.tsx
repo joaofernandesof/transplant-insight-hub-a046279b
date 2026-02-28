@@ -510,6 +510,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
           appointment_type: editType,
           meeting_url: editMeetingUrl || null,
           is_virtual: !!editMeetingUrl,
+          assigned_to: editAssignedTo || null,
         };
         const { error } = await supabase.from('ipromed_appointments').update(updates).eq('id', appointment.id);
         if (error) throw error;
