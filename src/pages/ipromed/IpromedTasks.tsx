@@ -508,13 +508,15 @@ export default function IpromedTasks() {
                       </div>
                     </ScrollArea>
 
-                    <button
-                      className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-t bg-background"
-                      onClick={() => { setEditingTask(null); setIsFormOpen(true); }}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      Adicionar Tarefa
-                    </button>
+                    {column.id !== "completed" && (
+                      <button
+                        className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-t bg-background"
+                        onClick={() => { setEditingTask(null); setIsFormOpen(true); }}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Adicionar Tarefa
+                      </button>
+                    )}
                   </div>
                 );
               })}
