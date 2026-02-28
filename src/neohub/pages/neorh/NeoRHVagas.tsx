@@ -487,7 +487,7 @@ export default function NeoRHVagas() {
               </button>
             ))}
           </div>
-          {isAdmin && <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" />Nova Vaga</Button>}
+          {isAdmin && <Button onClick={() => openNew()}><Plus className="h-4 w-4 mr-2" />Nova Vaga</Button>}
         </div>
       </div>
 
