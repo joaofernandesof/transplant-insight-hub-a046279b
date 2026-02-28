@@ -18410,20 +18410,25 @@ export type Database = {
           area_id: string | null
           candidatos_count: number | null
           cargo_id: string | null
+          checklist_onboarding: Json | null
           competencias: string | null
           created_at: string
           data_abertura: string
           data_limite: string | null
           descricao_curta: string | null
           empresa: string | null
+          etapa_history: Json | null
           etapa_kanban: string | null
+          etapa_updated_at: string | null
           formacao: string | null
           id: string
           modalidade: string | null
           modelo_contratacao: string | null
           motivo_abertura: string
+          motivos_reprovacao: Json | null
           objetivo: string | null
           observacoes: string | null
+          perguntas_eliminatorias: Json | null
           prioridade: string | null
           requisitos: string | null
           responsabilidades: string | null
@@ -18432,26 +18437,32 @@ export type Database = {
           situacao: string | null
           status: string
           tem_comissao: boolean | null
+          tipo_fluxo: string
           unidade_id: string | null
         }
         Insert: {
           area_id?: string | null
           candidatos_count?: number | null
           cargo_id?: string | null
+          checklist_onboarding?: Json | null
           competencias?: string | null
           created_at?: string
           data_abertura?: string
           data_limite?: string | null
           descricao_curta?: string | null
           empresa?: string | null
+          etapa_history?: Json | null
           etapa_kanban?: string | null
+          etapa_updated_at?: string | null
           formacao?: string | null
           id?: string
           modalidade?: string | null
           modelo_contratacao?: string | null
           motivo_abertura?: string
+          motivos_reprovacao?: Json | null
           objetivo?: string | null
           observacoes?: string | null
+          perguntas_eliminatorias?: Json | null
           prioridade?: string | null
           requisitos?: string | null
           responsabilidades?: string | null
@@ -18460,26 +18471,32 @@ export type Database = {
           situacao?: string | null
           status?: string
           tem_comissao?: boolean | null
+          tipo_fluxo?: string
           unidade_id?: string | null
         }
         Update: {
           area_id?: string | null
           candidatos_count?: number | null
           cargo_id?: string | null
+          checklist_onboarding?: Json | null
           competencias?: string | null
           created_at?: string
           data_abertura?: string
           data_limite?: string | null
           descricao_curta?: string | null
           empresa?: string | null
+          etapa_history?: Json | null
           etapa_kanban?: string | null
+          etapa_updated_at?: string | null
           formacao?: string | null
           id?: string
           modalidade?: string | null
           modelo_contratacao?: string | null
           motivo_abertura?: string
+          motivos_reprovacao?: Json | null
           objetivo?: string | null
           observacoes?: string | null
+          perguntas_eliminatorias?: Json | null
           prioridade?: string | null
           requisitos?: string | null
           responsabilidades?: string | null
@@ -18488,6 +18505,7 @@ export type Database = {
           situacao?: string | null
           status?: string
           tem_comissao?: boolean | null
+          tipo_fluxo?: string
           unidade_id?: string | null
         }
         Relationships: [
