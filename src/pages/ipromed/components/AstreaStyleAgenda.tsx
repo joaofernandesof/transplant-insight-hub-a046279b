@@ -539,6 +539,7 @@ export default function AstreaStyleAgenda() {
           client_id: formData.client_id && formData.client_id !== '__none__' ? formData.client_id : null,
           priority: formData.priority,
           deadline_type_id: deadlineTypeId,
+          assigned_to: formData.assigned_to || null,
         }])
         .select('id')
         .single();
