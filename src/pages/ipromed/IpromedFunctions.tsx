@@ -32,13 +32,13 @@ import { toast } from "sonner";
 import { ipromedTeam } from "./components/IpromedTeamProfiles";
 
 const CATEGORIES = [
-  { value: "tipos_processo", label: "Tipos de Processo", icon: Gavel, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
-  { value: "tipos_demanda", label: "Tipos de Demanda", icon: FileText, color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" },
-  { value: "administrativa", label: "Administrativa", icon: Briefcase, color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" },
-  { value: "compliance", label: "Compliance & LGPD", icon: Shield, color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" },
-  { value: "consultoria", label: "Consultoria", icon: BookOpen, color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300" },
-  { value: "contencioso", label: "Contencioso", icon: Scale, color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300" },
-  { value: "geral", label: "Geral", icon: Users, color: "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300" },
+  { value: "Contratual", label: "Contratual", icon: Gavel, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
+  { value: "Contencioso", label: "Contencioso", icon: Scale, color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300" },
+  { value: "Administrativo", label: "Administrativo", icon: Briefcase, color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" },
+  { value: "Compliance", label: "Compliance & LGPD", icon: Shield, color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" },
+  { value: "Societário", label: "Societário", icon: BookOpen, color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300" },
+  { value: "Consultoria", label: "Consultoria", icon: FileText, color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" },
+  { value: "Geral", label: "Geral", icon: Users, color: "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300" },
 ];
 
 const LAWYER_COLORS = [
