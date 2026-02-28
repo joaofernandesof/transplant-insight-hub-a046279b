@@ -756,6 +756,14 @@ export default function IpromedJourney() {
         const currentPhaseInfo = journeyPhases.find(p => p.id === currentPhase);
         toast.success(`Cliente movido de "${currentPhaseInfo?.label}" para "${targetPhase?.label}"`);
         updateClientPhase.mutate({ clientId, newPhase: targetPhaseId });
+
+        // Auto-open meeting scheduler when moving to "Agendado" (stage 2)
+        if (targetPhaseId === 'Agendado' && client) {
+          setTimeout(() => {
+            setMeetingClient(client);
+            setMeetingDialogOpen(true);
+          }, 400);
+        }
       }
     }
   };
