@@ -295,10 +295,26 @@ export default function IpromedTasks() {
   }, [filteredTasks]);
 
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    const task = tasks.find(t => t.id === taskId);
     updateTaskMutation.mutate({
       id: taskId,
       status: newStatus,
       completed_at: newStatus === "done" ? new Date().toISOString() : null,
+    }, {
+      onSuccess: () => {
+        if (task) {
+          logTaskActivity({
+            accountId: user?.authUserId || user?.id || "",
+            taskId,
+            taskTitle: task.title,
+            action: newStatus === "done" ? "completed" : "status_changed",
+            changes: { status: newStatus },
+            performedBy: user?.authUserId || user?.id,
+            performedByName: user?.nome || user?.email,
+          });
+          queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
+        }
+      }
     });
   };
 
