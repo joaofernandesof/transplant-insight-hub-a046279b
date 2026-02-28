@@ -726,9 +726,10 @@ export default function IpromedJourney() {
   // Calculate client's current phase based on contract date
   const getClientPhase = (client: Client) => {
     const meta = client.metadata as any;
-    if (meta?.journey_phase) return meta.journey_phase;
-    
-    // Fallback logic for clients without explicit phase
+    if (meta?.journey_phase) {
+      // If distratado, always return that regardless
+      return meta.journey_phase;
+    }
     const startDate = meta?.journey_start_date || client.created_at;
     const daysSinceStart = differenceInDays(new Date(), new Date(startDate));
     
