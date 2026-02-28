@@ -47,8 +47,10 @@ const portals = [
 
 // Cores dos portais para widgets
 const PORTAL_BORDER_COLORS: Record<string, string> = {
+  admin: 'border-l-slate-500',
   neocare: 'border-l-rose-500',
   neoteam: 'border-l-blue-500',
+  doctor: 'border-l-teal-500',
   academy: 'border-l-emerald-500',
   neolicense: 'border-l-amber-500',
   hotleads: 'border-l-orange-500',
@@ -59,8 +61,10 @@ const PORTAL_BORDER_COLORS: Record<string, string> = {
 };
 
 const PORTAL_ICON_COLORS: Record<string, string> = {
+  admin: 'text-slate-400',
   neocare: 'text-rose-400',
   neoteam: 'text-blue-400',
+  doctor: 'text-teal-400',
   academy: 'text-emerald-400',
   neolicense: 'text-amber-400',
   hotleads: 'text-orange-400',
@@ -71,8 +75,10 @@ const PORTAL_ICON_COLORS: Record<string, string> = {
 };
 
 const PORTAL_ICONS: Record<string, React.ElementType> = {
+  admin: Shield,
   neocare: Heart,
   neoteam: Users,
+  doctor: Stethoscope,
   academy: GraduationCap,
   neolicense: Building2,
   hotleads: Flame,
