@@ -77,6 +77,7 @@ const PORTAL_ICON_COLORS: Record<string, string> = {
   ipromed: 'text-indigo-400',
   vision: 'text-pink-400',
   neopay: 'text-green-400',
+  neorh: 'text-indigo-400',
 };
 
 const PORTAL_ICONS: Record<string, React.ElementType> = {
