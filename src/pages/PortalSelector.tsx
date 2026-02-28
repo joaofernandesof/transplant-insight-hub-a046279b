@@ -20,7 +20,8 @@ import {
   Flame,
   CreditCard,
   Scale,
-  LayoutGrid
+  LayoutGrid,
+  UserCog
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
