@@ -644,6 +644,11 @@ export default function IpromedJourney() {
       const updatedMetadata = {
         ...currentMetadata,
         journey_phase: newPhase,
+        phase_entered_at: new Date().toISOString(),
+        phase_history: [
+          ...(currentMetadata.phase_history || []),
+          { phase: currentMetadata.journey_phase || 'Novos', entered_at: currentMetadata.phase_entered_at || client?.created_at, left_at: new Date().toISOString() },
+        ],
       };
       
       const { error: updateError } = await supabase
