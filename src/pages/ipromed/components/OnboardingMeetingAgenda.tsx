@@ -75,6 +75,7 @@ import { cn } from "@/lib/utils";
 import { ProcedureVolumeSelector } from "./ProcedureVolumeSelector";
 import { YesNoSelector } from "./YesNoSelector";
 import { WeeklyScheduleInput, defaultWeeklySchedule, type WeeklySchedule } from "./WeeklyScheduleInput";
+import OnboardingPoliciesSection from "./OnboardingPoliciesSection";
 
 // Helper para destacar campos não preenchidos - aplicar no input/select
 const getInputHighlight = (value: string | number | boolean | undefined | null | unknown[], hasError?: boolean) => {
