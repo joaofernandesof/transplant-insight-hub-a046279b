@@ -666,7 +666,7 @@ export default function IpromedClientDetail() {
           phone: client.phone,
           cpf_cnpj: client.cpf_cnpj,
           client_type: client.client_type,
-          status: client.status,
+          
           risk_level: client.risk_level,
           journey_stage: client.journey_stage,
           notes: client.notes,

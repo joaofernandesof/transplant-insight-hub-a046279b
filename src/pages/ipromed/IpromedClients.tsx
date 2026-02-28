@@ -588,12 +588,6 @@ export default function IpromedClients() {
                             </div>
                           </TableCell>
 
-                          {/* Status */}
-                          <TableCell>
-                            <Badge className={cn(status.color, "text-white text-xs")}>
-                              {status.label}
-                            </Badge>
-                          </TableCell>
 
                           {/* Código */}
                           <TableCell>

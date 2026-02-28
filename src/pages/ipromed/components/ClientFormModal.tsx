@@ -295,20 +295,6 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
                         <FormMessage />
                       </FormItem>
                     )} />
-                    <FormField control={form.control} name="status" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
-                          <SelectContent>
-                            <SelectItem value="prospect">Prospecto</SelectItem>
-                            <SelectItem value="active">Ativo</SelectItem>
-                            <SelectItem value="churned">Cancelado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
                     <FormField control={form.control} name="risk_level" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nível de Risco</FormLabel>

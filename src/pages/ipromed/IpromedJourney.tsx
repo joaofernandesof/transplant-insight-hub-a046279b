@@ -667,7 +667,6 @@ export default function IpromedJourney() {
       const { data, error } = await supabase
         .from('ipromed_legal_clients')
         .select('*')
-        .in('status', ['active', 'inactive'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
