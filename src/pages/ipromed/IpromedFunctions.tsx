@@ -209,64 +209,34 @@ export default function IpromedFunctions() {
         </Button>
       </div>
 
-      {/* Single row: Insight cards + Per-Lawyer cards */}
+      {/* Single row: User cards with embedded metrics */}
       <div className="flex gap-3 overflow-x-auto pb-1">
-        <Card className="border shadow-sm shrink-0">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Hash className="h-5 w-5 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold">{functions.length}</p>
-              <p className="text-xs text-muted-foreground">Total de Funções</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border shadow-sm shrink-0">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold">{uniqueLawyers.length}</p>
-              <p className="text-xs text-muted-foreground">Responsáveis</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border shadow-sm shrink-0">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
-              <Tag className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-2xl font-bold">{uniqueCategories.length}</p>
-              <p className="text-xs text-muted-foreground">Categorias</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border shadow-sm shrink-0">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
-              <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold truncate">{topCategory.cat ? getCategoryInfo(topCategory.cat).label : "—"}</p>
-              <p className="text-xs text-muted-foreground">Top Categoria ({topCategory.count})</p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Summary card */}
+        <button
+          onClick={() => { setFilterLawyer("all"); }}
+          className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-sm shrink-0 min-w-[180px] ${filterLawyer === "all" ? 'ring-2 ring-primary bg-primary/5' : 'bg-card hover:bg-muted/40'}`}
+        >
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Briefcase className="h-5 w-5 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Todos</p>
+            <p className="text-[10px] text-muted-foreground">{functions.length} funções · {uniqueCategories.length} categorias</p>
+          </div>
+        </button>
 
         {uniqueLawyers.sort().map(name => {
           const info = getLawyerInfo(name);
           const count = functions.filter(f => f.lawyer_name === name).length;
+          const lawyerCategories = [...new Set(functions.filter(f => f.lawyer_name === name).map(f => f.category))].length;
           const isActive = filterLawyer === name;
           return (
             <button
               key={name}
               onClick={() => setFilterLawyer(isActive ? "all" : name)}
-              className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-all hover:shadow-sm shrink-0 ${isActive ? 'ring-2 ring-primary bg-primary/5' : 'bg-card hover:bg-muted/40'}`}
+              className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-sm shrink-0 min-w-[200px] ${isActive ? 'ring-2 ring-primary bg-primary/5' : 'bg-card hover:bg-muted/40'}`}
             >
-              <Avatar className="h-8 w-8 shrink-0">
+              <Avatar className="h-10 w-10 shrink-0">
                 <AvatarImage src={info?.photo} alt={name} className="object-cover" />
                 <AvatarFallback className={`text-xs ${info?.color || ''}`}>
                   {name.split(" ").map(n => n[0]).join("").slice(0, 2)}
@@ -274,7 +244,7 @@ export default function IpromedFunctions() {
               </Avatar>
               <div className="min-w-0">
                 <p className="text-xs font-semibold truncate">{name}</p>
-                <p className="text-[10px] text-muted-foreground">{count} {count === 1 ? "função" : "funções"}</p>
+                <p className="text-[10px] text-muted-foreground">{count} {count === 1 ? "função" : "funções"} · {lawyerCategories} {lawyerCategories === 1 ? "cat" : "cats"}</p>
               </div>
             </button>
           );
