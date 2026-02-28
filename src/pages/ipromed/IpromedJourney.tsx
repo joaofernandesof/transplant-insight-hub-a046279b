@@ -1447,29 +1447,6 @@ export default function IpromedJourney() {
         </div>
       )}
 
-      {/* Alerts - Fixed Position */}
-      {clients.some(c => isOverdue(c)) && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Card className="border-destructive/30 bg-destructive/10 shadow-lg max-w-sm">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-destructive/20 rounded-lg">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-destructive text-sm">
-                    Clientes Atrasados
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {clients.filter(c => isOverdue(c)).length} cliente(s) precisam de atenção
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Phase Detail Modal */}
       <JourneyPhaseDetail
         phase={selectedPhaseDetail}
