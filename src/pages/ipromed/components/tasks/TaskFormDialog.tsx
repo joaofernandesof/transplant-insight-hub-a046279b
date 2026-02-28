@@ -213,6 +213,16 @@ export function TaskFormDialog({
       }
     },
     onSuccess: () => {
+      logTaskActivity({
+        accountId: user?.authUserId || user?.id || "",
+        taskId: task?.id,
+        taskTitle: formData.title,
+        action: isEditing ? "updated" : "created",
+        changes: isEditing ? { title: formData.title, status: formData.status, priority: formData.priority } : undefined,
+        performedBy: user?.authUserId || user?.id,
+        performedByName: user?.fullName || user?.email,
+      });
+      queryClient.invalidateQueries({ queryKey: ["task-activity-log"] });
       toast.success(isEditing ? "Tarefa atualizada!" : "Tarefa criada!");
       onSuccess();
     },
