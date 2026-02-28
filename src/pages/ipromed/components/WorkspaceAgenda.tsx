@@ -537,18 +537,27 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
         className={`p-1.5 rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all cursor-pointer overflow-hidden min-w-0`}
         onClick={() => setOpen(true)}
       >
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0 shrink-0">
-            {startTime}
-          </span>
-          <Badge variant="outline" className={`text-[10px] px-1 py-0 ${config.color} border-current/20 shrink-0`}>
-            {config.label}
-          </Badge>
-          <IconComponent className={`h-3 w-3 ${config.color} shrink-0`} />
-          <span className="text-[11px] font-medium truncate min-w-0">
-            {appointment.client_name || appointment.title}
-          </span>
-        </div>
+        {compact ? (
+          <div className="flex flex-col gap-0">
+            <span className="text-[10px] font-bold text-primary">{startTime}</span>
+            <span className="text-[9px] font-medium truncate min-w-0 leading-tight">
+              {appointment.client_name || appointment.title}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0 shrink-0">
+              {startTime}
+            </span>
+            <Badge variant="outline" className={`text-[10px] px-1 py-0 ${config.color} border-current/20 shrink-0`}>
+              {config.label}
+            </Badge>
+            <IconComponent className={`h-3 w-3 ${config.color} shrink-0`} />
+            <span className="text-[11px] font-medium truncate min-w-0">
+              {appointment.client_name || appointment.title}
+            </span>
+          </div>
+        )}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
