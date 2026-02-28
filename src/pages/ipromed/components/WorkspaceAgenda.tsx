@@ -74,7 +74,9 @@ const typeConfig: Record<string, {
 };
 
 const DAYS_AHEAD = 5;
-
+const HOUR_START = 8;
+const HOUR_END = 20;
+const HOURS = Array.from({ length: HOUR_END - HOUR_START + 1 }, (_, i) => HOUR_START + i);
 function getDayLabel(date: Date, today: Date): string {
   if (isSameDay(date, today)) return 'Hoje';
   if (isSameDay(date, addDays(today, 1))) return 'Amanhã';
