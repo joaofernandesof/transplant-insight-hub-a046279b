@@ -1004,20 +1004,32 @@ export default function AstreaStyleAgenda() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <Select value={viewMode} onValueChange={(v) => setViewMode(v as 'month' | 'week')}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Por mês" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">Por semana</SelectItem>
-            <SelectItem value="month">Por mês</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* View Mode Toggle Buttons */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center bg-muted/50 rounded-lg p-1 gap-0.5">
+          {[
+            { id: 'day' as const, label: 'Dia', icon: CalendarDays },
+            { id: 'week' as const, label: 'Semana', icon: CalendarRange },
+            { id: 'month' as const, label: 'Mês', icon: Calendar },
+            { id: 'list' as const, label: 'Lista', icon: List },
+          ].map((mode) => (
+            <Button
+              key={mode.id}
+              variant={viewMode === mode.id ? 'default' : 'ghost'}
+              size="sm"
+              className={`gap-1.5 h-8 px-3 text-xs font-medium ${viewMode === mode.id ? '' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setViewMode(mode.id)}
+            >
+              <mode.icon className="h-3.5 w-3.5" />
+              {mode.label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="h-6 w-px bg-border mx-1" />
 
         <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[170px] h-8 text-xs">
             <SelectValue placeholder="Minhas atribuições" />
           </SelectTrigger>
           <SelectContent>
@@ -1028,7 +1040,7 @@ export default function AstreaStyleAgenda() {
         </Select>
 
         <Select value={activityFilter} onValueChange={setActivityFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[170px] h-8 text-xs">
             <SelectValue placeholder="Todas as atividades" />
           </SelectTrigger>
           <SelectContent>
@@ -1043,8 +1055,8 @@ export default function AstreaStyleAgenda() {
         {/* Color Legend Popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Palette className="h-4 w-4" />
+            <Button variant="outline" size="sm" className="gap-2 h-8">
+              <Palette className="h-3.5 w-3.5" />
               Cores
             </Button>
           </PopoverTrigger>
@@ -1081,11 +1093,11 @@ export default function AstreaStyleAgenda() {
           </PopoverContent>
         </Popover>
 
-        <Button variant="outline" size="icon">
-          <Tag className="h-4 w-4" />
+        <Button variant="outline" size="icon" className="h-8 w-8">
+          <Tag className="h-3.5 w-3.5" />
         </Button>
-        <Button variant="outline" size="icon">
-          <Search className="h-4 w-4" />
+        <Button variant="outline" size="icon" className="h-8 w-8">
+          <Search className="h-3.5 w-3.5" />
         </Button>
       </div>
 
