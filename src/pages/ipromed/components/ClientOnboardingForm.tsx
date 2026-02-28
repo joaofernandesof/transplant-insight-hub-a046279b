@@ -83,16 +83,16 @@ export function ClientOnboardingForm({ clientId, clientName }: ClientOnboardingF
 
       if (error) throw error;
 
-      // Create task for Larissa
-      await supabase.from('ipromed_legal_tasks').insert({
+      // Create task for Isabele
+      await supabase.from('ipromed_legal_tasks').insert([{
         title: `Enviar formulário de onboarding para ${clientName}`,
         description: `Enviar o link do formulário de onboarding para o cliente ${clientName}. Link: ${window.location.origin}/forms/onboarding/${token}`,
         assigned_to_name: 'Isabele Cartaxo',
         status: 'pending',
         priority: 'high',
         category: 'onboarding',
-        due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // tomorrow
-      });
+        due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      }]);
 
       toast.success('Formulário criado e tarefa atribuída!');
       refetch();
