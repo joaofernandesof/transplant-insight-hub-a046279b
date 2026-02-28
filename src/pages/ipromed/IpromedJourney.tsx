@@ -147,7 +147,26 @@ interface Client {
     journey_start_date?: string;
     journey_progress?: number;
     risk_level?: string;
+    phase_entered_at?: string;
+    phase_history?: { phase: string; entered_at: string; left_at: string }[];
   } | null;
+}
+
+// SLA calculation helper
+function getClientSlaInfo(client: Client, phase: string) {
+  const meta = client.metadata as any;
+  const slaLimit = PHASE_SLA[phase] || 0;
+  if (slaLimit === 0) return { daysInPhase: 0, slaLimit: 0, status: 'ok' as const, percent: 0 };
+  
+  const enteredAt = meta?.phase_entered_at || client.created_at;
+  const daysInPhase = differenceInDays(new Date(), new Date(enteredAt));
+  const percent = Math.min(100, (daysInPhase / slaLimit) * 100);
+  
+  let status: 'ok' | 'warning' | 'overdue' = 'ok';
+  if (daysInPhase > slaLimit) status = 'overdue';
+  else if (percent >= 70) status = 'warning';
+  
+  return { daysInPhase, slaLimit, status, percent };
 }
 
 // Draggable Client Card Component
