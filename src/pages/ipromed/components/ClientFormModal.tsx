@@ -209,7 +209,7 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
@@ -223,8 +223,8 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <ScrollArea className="max-h-[60vh] pr-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6 min-h-0 flex-1">
+            <ScrollArea className="flex-1 pr-4">
               <div className="space-y-6">
                 {/* ── Dados Básicos ── */}
                 <div>
