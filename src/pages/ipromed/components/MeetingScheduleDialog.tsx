@@ -414,6 +414,7 @@ export function MeetingScheduleDialog({
     });
     setParticipants([]);
     setParticipantSearch("");
+    setOnboardingFormLink(null);
   };
 
   return (
