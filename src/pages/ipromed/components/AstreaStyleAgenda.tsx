@@ -787,14 +787,20 @@ export default function AstreaStyleAgenda() {
   }, [calendarDays]);
 
   const navigatePrev = () => {
-    if (viewMode === 'week') {
+    if (viewMode === 'day') {
+      setCurrentDate(addDays(currentDate, -1));
+      setSelectedDate(addDays(currentDate, -1));
+    } else if (viewMode === 'week') {
       setCurrentDate(addDays(currentDate, -7));
     } else {
       setCurrentDate(subMonths(currentDate, 1));
     }
   };
   const navigateNext = () => {
-    if (viewMode === 'week') {
+    if (viewMode === 'day') {
+      setCurrentDate(addDays(currentDate, 1));
+      setSelectedDate(addDays(currentDate, 1));
+    } else if (viewMode === 'week') {
       setCurrentDate(addDays(currentDate, 7));
     } else {
       setCurrentDate(addMonths(currentDate, 1));
