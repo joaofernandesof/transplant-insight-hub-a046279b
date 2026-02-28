@@ -159,7 +159,7 @@ export function MeetingScheduleDialog({
   onSchedule,
 }: MeetingScheduleDialogProps) {
   const queryClient = useQueryClient();
-  const [step, setStep] = useState<"agenda" | "details">("agenda");
+  const [step, setStep] = useState<"agenda" | "details" | "form_link">("agenda");
   const [agendaType, setAgendaType] = useState<"predefined" | "custom">("predefined");
   const [selectedAgenda, setSelectedAgenda] = useState<string>("");
   const [customAgenda, setCustomAgenda] = useState({
