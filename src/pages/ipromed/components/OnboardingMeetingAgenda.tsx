@@ -3324,6 +3324,16 @@ export default function OnboardingMeetingAgenda({
                             duvidasRespostas: [],
                             ajustesSolicitados: '',
                             aceiteContrato: false,
+                            polDocEntityType: '', polCnpj: '', polClinicAddress: '',
+                            polCancelMinHours: undefined, polCancelHasFine: undefined, polCancelFineDetail: '',
+                            polNoshowFullCharge: undefined, polNoshowReschedulePolicy: '', polCancelMedicalEmergency: '',
+                            polDepositRequired: undefined, polDepositAmount: '', polDepositRefundable: undefined, polDepositConvertible: undefined,
+                            polLateToleranceMinutes: undefined, polLateLimitMinutes: undefined, polLatePolicy: '', polLateFitIn: undefined,
+                            polHasFollowup: undefined, polFollowupDays: undefined, polFollowupModality: '', polFollowupScope: '', polFollowupExpiredPolicy: '',
+                            polConfirmationAttempts: undefined, polNoResponseAutoCancel: undefined, polOfficialChannel: '', polUsesAutoMessages: undefined,
+                            polHasTeleconsultation: undefined, polTeleconsultationPlatform: '',
+                            polHasPriorInstructions: undefined, polArrivalAdvanceMinutes: undefined, polConsultationDurationMinutes: undefined,
+                            polHasConsultationRefund: undefined, polHasProcedureRefund: undefined, polAdvancePaymentCredit: undefined, polCreditValidityDays: undefined,
                           });
                           localStorage.removeItem(storageKey);
                           toast.info('Nova pauta iniciada. Preencha os campos e salve.');
