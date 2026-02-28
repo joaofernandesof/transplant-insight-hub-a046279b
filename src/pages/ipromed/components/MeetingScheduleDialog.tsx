@@ -179,6 +179,8 @@ export function MeetingScheduleDialog({
   const [participantSearch, setParticipantSearch] = useState("");
   const [isParticipantPopoverOpen, setIsParticipantPopoverOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [onboardingFormLink, setOnboardingFormLink] = useState<string | null>(null);
+  const [onboardingFormCreating, setOnboardingFormCreating] = useState(false);
 
   // Query para buscar clientes e colaboradores do sistema
   const { data: availablePeople } = useQuery({
