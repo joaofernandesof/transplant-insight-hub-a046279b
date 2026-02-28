@@ -75,6 +75,7 @@ import { cn } from "@/lib/utils";
 import { ProcedureVolumeSelector } from "./ProcedureVolumeSelector";
 import { YesNoSelector } from "./YesNoSelector";
 import { WeeklyScheduleInput, defaultWeeklySchedule, type WeeklySchedule } from "./WeeklyScheduleInput";
+import OnboardingPoliciesSection from "./OnboardingPoliciesSection";
 
 // Helper para destacar campos não preenchidos - aplicar no input/select
 const getInputHighlight = (value: string | number | boolean | undefined | null | unknown[], hasError?: boolean) => {
@@ -222,6 +223,43 @@ const onboardingMeetingSchema = z.object({
   })).default([]),
   ajustesSolicitados: z.string().optional(),
   aceiteContrato: z.boolean().optional(),
+
+  // 11. Políticas da Clínica (do formulário de onboarding)
+  polDocEntityType: z.string().optional(),
+  polCnpj: z.string().optional(),
+  polClinicAddress: z.string().optional(),
+  polCancelMinHours: z.coerce.number().optional(),
+  polCancelHasFine: z.boolean().optional(),
+  polCancelFineDetail: z.string().optional(),
+  polNoshowFullCharge: z.boolean().optional(),
+  polNoshowReschedulePolicy: z.string().optional(),
+  polCancelMedicalEmergency: z.string().optional(),
+  polDepositRequired: z.boolean().optional(),
+  polDepositAmount: z.string().optional(),
+  polDepositRefundable: z.boolean().optional(),
+  polDepositConvertible: z.boolean().optional(),
+  polLateToleranceMinutes: z.coerce.number().optional(),
+  polLateLimitMinutes: z.coerce.number().optional(),
+  polLatePolicy: z.string().optional(),
+  polLateFitIn: z.boolean().optional(),
+  polHasFollowup: z.boolean().optional(),
+  polFollowupDays: z.coerce.number().optional(),
+  polFollowupModality: z.string().optional(),
+  polFollowupScope: z.string().optional(),
+  polFollowupExpiredPolicy: z.string().optional(),
+  polConfirmationAttempts: z.coerce.number().optional(),
+  polNoResponseAutoCancel: z.boolean().optional(),
+  polOfficialChannel: z.string().optional(),
+  polUsesAutoMessages: z.boolean().optional(),
+  polHasTeleconsultation: z.boolean().optional(),
+  polTeleconsultationPlatform: z.string().optional(),
+  polHasPriorInstructions: z.boolean().optional(),
+  polArrivalAdvanceMinutes: z.coerce.number().optional(),
+  polConsultationDurationMinutes: z.coerce.number().optional(),
+  polHasConsultationRefund: z.boolean().optional(),
+  polHasProcedureRefund: z.boolean().optional(),
+  polAdvancePaymentCredit: z.boolean().optional(),
+  polCreditValidityDays: z.coerce.number().optional(),
 });
 
 type OnboardingMeetingData = z.infer<typeof onboardingMeetingSchema>;
@@ -322,6 +360,14 @@ const sections: SectionConfig[] = [
     fields: ["7.2.1", "7.2.2", "7.2.3", "7.2.4"],
     requiredFields: []
   },
+  { 
+    id: "politicas-clinica", 
+    icon: FileText, 
+    title: "Políticas da Clínica", 
+    emoji: "📋", 
+    fields: [],
+    requiredFields: []
+  },
 ];
 
 // Opções de listas suspensas
@@ -420,7 +466,26 @@ export default function OnboardingMeetingAgenda({
     return clients.find(c => c.id === selectedClientId);
   }, [clients, selectedClientId]);
 
-  // Chave única para este cliente/sessão
+  // Buscar dados do formulário de onboarding do cliente (preenchido externamente)
+  const effectiveClientId = selectedClientId || clientId || meetingData?.client_id;
+  const { data: onboardingFormData } = useQuery({
+    queryKey: ['ipromed-onboarding-form-data', effectiveClientId],
+    queryFn: async () => {
+      if (!effectiveClientId) return null;
+      const { data, error } = await supabase
+        .from('ipromed_onboarding_forms')
+        .select('*')
+        .eq('client_id', effectiveClientId)
+        .eq('status', 'submitted')
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!effectiveClientId,
+  });
+
   const storageKey = `${STORAGE_KEY_PREFIX}${selectedClientId || 'new'}`;
   
   // Tentar carregar dados salvos do localStorage
@@ -565,6 +630,42 @@ export default function OnboardingMeetingAgenda({
       duvidasRespostas: savedCheckpoint?.formData?.duvidasRespostas ?? [],
       ajustesSolicitados: savedCheckpoint?.formData?.ajustesSolicitados ?? "",
       aceiteContrato: savedCheckpoint?.formData?.aceiteContrato ?? undefined,
+      // Políticas da clínica
+      polDocEntityType: savedCheckpoint?.formData?.polDocEntityType ?? "",
+      polCnpj: savedCheckpoint?.formData?.polCnpj ?? "",
+      polClinicAddress: savedCheckpoint?.formData?.polClinicAddress ?? "",
+      polCancelMinHours: savedCheckpoint?.formData?.polCancelMinHours ?? undefined,
+      polCancelHasFine: savedCheckpoint?.formData?.polCancelHasFine ?? undefined,
+      polCancelFineDetail: savedCheckpoint?.formData?.polCancelFineDetail ?? "",
+      polNoshowFullCharge: savedCheckpoint?.formData?.polNoshowFullCharge ?? undefined,
+      polNoshowReschedulePolicy: savedCheckpoint?.formData?.polNoshowReschedulePolicy ?? "",
+      polCancelMedicalEmergency: savedCheckpoint?.formData?.polCancelMedicalEmergency ?? "",
+      polDepositRequired: savedCheckpoint?.formData?.polDepositRequired ?? undefined,
+      polDepositAmount: savedCheckpoint?.formData?.polDepositAmount ?? "",
+      polDepositRefundable: savedCheckpoint?.formData?.polDepositRefundable ?? undefined,
+      polDepositConvertible: savedCheckpoint?.formData?.polDepositConvertible ?? undefined,
+      polLateToleranceMinutes: savedCheckpoint?.formData?.polLateToleranceMinutes ?? undefined,
+      polLateLimitMinutes: savedCheckpoint?.formData?.polLateLimitMinutes ?? undefined,
+      polLatePolicy: savedCheckpoint?.formData?.polLatePolicy ?? "",
+      polLateFitIn: savedCheckpoint?.formData?.polLateFitIn ?? undefined,
+      polHasFollowup: savedCheckpoint?.formData?.polHasFollowup ?? undefined,
+      polFollowupDays: savedCheckpoint?.formData?.polFollowupDays ?? undefined,
+      polFollowupModality: savedCheckpoint?.formData?.polFollowupModality ?? "",
+      polFollowupScope: savedCheckpoint?.formData?.polFollowupScope ?? "",
+      polFollowupExpiredPolicy: savedCheckpoint?.formData?.polFollowupExpiredPolicy ?? "",
+      polConfirmationAttempts: savedCheckpoint?.formData?.polConfirmationAttempts ?? undefined,
+      polNoResponseAutoCancel: savedCheckpoint?.formData?.polNoResponseAutoCancel ?? undefined,
+      polOfficialChannel: savedCheckpoint?.formData?.polOfficialChannel ?? "",
+      polUsesAutoMessages: savedCheckpoint?.formData?.polUsesAutoMessages ?? undefined,
+      polHasTeleconsultation: savedCheckpoint?.formData?.polHasTeleconsultation ?? undefined,
+      polTeleconsultationPlatform: savedCheckpoint?.formData?.polTeleconsultationPlatform ?? "",
+      polHasPriorInstructions: savedCheckpoint?.formData?.polHasPriorInstructions ?? undefined,
+      polArrivalAdvanceMinutes: savedCheckpoint?.formData?.polArrivalAdvanceMinutes ?? undefined,
+      polConsultationDurationMinutes: savedCheckpoint?.formData?.polConsultationDurationMinutes ?? undefined,
+      polHasConsultationRefund: savedCheckpoint?.formData?.polHasConsultationRefund ?? undefined,
+      polHasProcedureRefund: savedCheckpoint?.formData?.polHasProcedureRefund ?? undefined,
+      polAdvancePaymentCredit: savedCheckpoint?.formData?.polAdvancePaymentCredit ?? undefined,
+      polCreditValidityDays: savedCheckpoint?.formData?.polCreditValidityDays ?? undefined,
       ...initialData,
     },
   });
@@ -620,6 +721,57 @@ export default function OnboardingMeetingAgenda({
       });
     }
   }, [meetingData, form, isRestored]);
+
+  // Pre-preencher campos de políticas com dados do formulário de onboarding
+  useEffect(() => {
+    if (onboardingFormData && !isRestored) {
+      const fd = onboardingFormData as any;
+      const currentValues = form.getValues();
+      // Só preencher se os campos estiverem vazios
+      const updates: Record<string, any> = {};
+      if (!currentValues.polDocEntityType && fd.doc_entity_type) updates.polDocEntityType = fd.doc_entity_type;
+      if (!currentValues.polCnpj && fd.cnpj) updates.polCnpj = fd.cnpj;
+      if (!currentValues.polClinicAddress && fd.clinic_address) updates.polClinicAddress = fd.clinic_address;
+      if (currentValues.polCancelMinHours === undefined && fd.cancel_min_hours != null) updates.polCancelMinHours = fd.cancel_min_hours;
+      if (currentValues.polCancelHasFine === undefined && fd.cancel_has_fine != null) updates.polCancelHasFine = fd.cancel_has_fine;
+      if (!currentValues.polCancelFineDetail && fd.cancel_fine_detail) updates.polCancelFineDetail = fd.cancel_fine_detail;
+      if (currentValues.polNoshowFullCharge === undefined && fd.noshow_full_charge != null) updates.polNoshowFullCharge = fd.noshow_full_charge;
+      if (!currentValues.polNoshowReschedulePolicy && fd.noshow_reschedule_policy) updates.polNoshowReschedulePolicy = fd.noshow_reschedule_policy;
+      if (!currentValues.polCancelMedicalEmergency && fd.cancel_medical_emergency) updates.polCancelMedicalEmergency = fd.cancel_medical_emergency;
+      if (currentValues.polDepositRequired === undefined && fd.deposit_required != null) updates.polDepositRequired = fd.deposit_required;
+      if (!currentValues.polDepositAmount && fd.deposit_amount) updates.polDepositAmount = fd.deposit_amount;
+      if (currentValues.polDepositRefundable === undefined && fd.deposit_refundable != null) updates.polDepositRefundable = fd.deposit_refundable;
+      if (currentValues.polDepositConvertible === undefined && fd.deposit_convertible != null) updates.polDepositConvertible = fd.deposit_convertible;
+      if (currentValues.polLateToleranceMinutes === undefined && fd.late_tolerance_minutes != null) updates.polLateToleranceMinutes = fd.late_tolerance_minutes;
+      if (currentValues.polLateLimitMinutes === undefined && fd.late_limit_minutes != null) updates.polLateLimitMinutes = fd.late_limit_minutes;
+      if (!currentValues.polLatePolicy && fd.late_policy) updates.polLatePolicy = fd.late_policy;
+      if (currentValues.polLateFitIn === undefined && fd.late_fit_in != null) updates.polLateFitIn = fd.late_fit_in;
+      if (currentValues.polHasFollowup === undefined && fd.has_followup != null) updates.polHasFollowup = fd.has_followup;
+      if (currentValues.polFollowupDays === undefined && fd.followup_days != null) updates.polFollowupDays = fd.followup_days;
+      if (!currentValues.polFollowupModality && fd.followup_modality) updates.polFollowupModality = fd.followup_modality;
+      if (!currentValues.polFollowupScope && fd.followup_scope) updates.polFollowupScope = fd.followup_scope;
+      if (!currentValues.polFollowupExpiredPolicy && fd.followup_expired_policy) updates.polFollowupExpiredPolicy = fd.followup_expired_policy;
+      if (currentValues.polConfirmationAttempts === undefined && fd.confirmation_attempts != null) updates.polConfirmationAttempts = fd.confirmation_attempts;
+      if (currentValues.polNoResponseAutoCancel === undefined && fd.no_response_auto_cancel != null) updates.polNoResponseAutoCancel = fd.no_response_auto_cancel;
+      if (!currentValues.polOfficialChannel && fd.official_channel) updates.polOfficialChannel = fd.official_channel;
+      if (currentValues.polUsesAutoMessages === undefined && fd.uses_auto_messages != null) updates.polUsesAutoMessages = fd.uses_auto_messages;
+      if (currentValues.polHasTeleconsultation === undefined && fd.has_teleconsultation != null) updates.polHasTeleconsultation = fd.has_teleconsultation;
+      if (!currentValues.polTeleconsultationPlatform && fd.teleconsultation_platform) updates.polTeleconsultationPlatform = fd.teleconsultation_platform;
+      if (currentValues.polHasPriorInstructions === undefined && fd.has_prior_instructions != null) updates.polHasPriorInstructions = fd.has_prior_instructions;
+      if (currentValues.polArrivalAdvanceMinutes === undefined && fd.arrival_advance_minutes != null) updates.polArrivalAdvanceMinutes = fd.arrival_advance_minutes;
+      if (currentValues.polConsultationDurationMinutes === undefined && fd.consultation_duration_minutes != null) updates.polConsultationDurationMinutes = fd.consultation_duration_minutes;
+      if (currentValues.polHasConsultationRefund === undefined && fd.has_consultation_refund != null) updates.polHasConsultationRefund = fd.has_consultation_refund;
+      if (currentValues.polHasProcedureRefund === undefined && fd.has_procedure_refund != null) updates.polHasProcedureRefund = fd.has_procedure_refund;
+      if (currentValues.polAdvancePaymentCredit === undefined && fd.advance_payment_credit != null) updates.polAdvancePaymentCredit = fd.advance_payment_credit;
+      if (currentValues.polCreditValidityDays === undefined && fd.credit_validity_days != null) updates.polCreditValidityDays = fd.credit_validity_days;
+      
+      if (Object.keys(updates).length > 0) {
+        Object.entries(updates).forEach(([key, value]) => {
+          form.setValue(key as any, value);
+        });
+      }
+    }
+  }, [onboardingFormData, isRestored, form]);
 
   // Mostrar notificação de restauração do localStorage (apenas se NÃO veio do banco)
   useEffect(() => {
@@ -2974,6 +3126,66 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionContent>
               </AccordionItem>
+
+              {/* 8. Políticas da Clínica (dados do formulário de onboarding) */}
+              <AccordionItem 
+                value="politicas-clinica" 
+                data-section-id="politicas-clinica"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("politicas-clinica") && "opacity-50"
+                )}
+              >
+                <AccordionTrigger 
+                  className={cn(
+                    "px-4 py-3 hover:no-underline",
+                    completedSections.includes("politicas-clinica") && "bg-emerald-50 dark:bg-emerald-950/20"
+                  )}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("politicas-clinica");
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📋</span>
+                    <div className="text-left">
+                      <p className="font-medium">8. Políticas da Clínica</p>
+                      <p className="text-xs text-muted-foreground">Cancelamento, sinal, atrasos, retorno, financeiro</p>
+                    </div>
+                    {onboardingFormData && (
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700 ml-2 text-xs">
+                        Formulário preenchido
+                      </Badge>
+                    )}
+                    {completedSections.includes("politicas-clinica") && (
+                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("politicas-clinica") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
+                      </Badge>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <OnboardingPoliciesSection onboardingFormData={onboardingFormData} />
+                  <div className="flex justify-end mt-4">
+                    <Button 
+                      type="button" 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => validateAndCompleteSection("politicas-clinica")}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Marcar como concluído
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
 
             {/* Footer Actions - simplificado no modo embedded */}
@@ -3112,6 +3324,16 @@ export default function OnboardingMeetingAgenda({
                             duvidasRespostas: [],
                             ajustesSolicitados: '',
                             aceiteContrato: false,
+                            polDocEntityType: '', polCnpj: '', polClinicAddress: '',
+                            polCancelMinHours: undefined, polCancelHasFine: undefined, polCancelFineDetail: '',
+                            polNoshowFullCharge: undefined, polNoshowReschedulePolicy: '', polCancelMedicalEmergency: '',
+                            polDepositRequired: undefined, polDepositAmount: '', polDepositRefundable: undefined, polDepositConvertible: undefined,
+                            polLateToleranceMinutes: undefined, polLateLimitMinutes: undefined, polLatePolicy: '', polLateFitIn: undefined,
+                            polHasFollowup: undefined, polFollowupDays: undefined, polFollowupModality: '', polFollowupScope: '', polFollowupExpiredPolicy: '',
+                            polConfirmationAttempts: undefined, polNoResponseAutoCancel: undefined, polOfficialChannel: '', polUsesAutoMessages: undefined,
+                            polHasTeleconsultation: undefined, polTeleconsultationPlatform: '',
+                            polHasPriorInstructions: undefined, polArrivalAdvanceMinutes: undefined, polConsultationDurationMinutes: undefined,
+                            polHasConsultationRefund: undefined, polHasProcedureRefund: undefined, polAdvancePaymentCredit: undefined, polCreditValidityDays: undefined,
                           });
                           localStorage.removeItem(storageKey);
                           toast.info('Nova pauta iniciada. Preencha os campos e salve.');
