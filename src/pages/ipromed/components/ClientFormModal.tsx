@@ -155,7 +155,7 @@ export function ClientFormModal({ open, onClose, onSuccess, client }: ClientForm
         phone: values.phone || null,
         cpf_cnpj: values.cpf_cnpj || null,
         client_type: values.client_type,
-        status: values.status,
+        
         risk_level: values.risk_level,
         journey_stage: values.journey_stage,
         notes: values.notes || null,
