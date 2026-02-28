@@ -403,13 +403,13 @@ export function WorkspaceAgenda() {
                       return (
                         <div
                           key={hour}
-                          className="flex border-b last:border-b-0 border-border/30 h-[40px] overflow-hidden"
+                          className={`flex border-b last:border-b-0 border-border/30 overflow-hidden ${hourAppts.length > 1 ? 'min-h-[40px]' : 'h-[40px]'}`}
                         >
                           <div className="w-10 shrink-0 text-[10px] text-muted-foreground font-mono py-1 text-center border-r border-border/20 bg-muted/20">
                             {String(hour).padStart(2, '0')}h
                           </div>
                           <div
-                            className={`flex-1 p-1 space-y-1 overflow-hidden min-w-0 ${hourAppts.length === 0 ? 'cursor-pointer hover:bg-primary/5 transition-colors' : ''}`}
+                            className={`flex-1 p-0.5 overflow-hidden min-w-0 flex gap-0.5 ${hourAppts.length === 0 ? 'cursor-pointer hover:bg-primary/5 transition-colors' : ''}`}
                             onClick={() => {
                               if (hourAppts.length === 0) {
                                 navigate(`/cpg/agenda?new=1&date=${key}&time=${String(hour).padStart(2, '0')}:00`);
@@ -418,7 +418,9 @@ export function WorkspaceAgenda() {
                             title={hourAppts.length === 0 ? 'Clique para criar agendamento' : undefined}
                           >
                             {hourAppts.map((apt) => (
-                              <KanbanAppointmentCard key={apt.id} appointment={apt} />
+                              <div key={apt.id} className="flex-1 min-w-0">
+                                <KanbanAppointmentCard appointment={apt} compact={hourAppts.length > 1} />
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -434,7 +436,7 @@ export function WorkspaceAgenda() {
   );
 }
 
-function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointment }) {
+function KanbanAppointmentCard({ appointment, compact = false }: { appointment: UnifiedAppointment; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(appointment.title);
@@ -532,21 +534,30 @@ function KanbanAppointmentCard({ appointment }: { appointment: UnifiedAppointmen
   return (
     <>
       <div
-        className={`p-1.5 rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all cursor-pointer overflow-hidden min-w-0`}
+        className={`${compact ? 'p-1' : 'p-1.5'} rounded-lg border text-left ${config.bgColor} hover:shadow-sm transition-all cursor-pointer overflow-hidden min-w-0 h-full`}
         onClick={() => setOpen(true)}
       >
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0 shrink-0">
-            {startTime}
-          </span>
-          <Badge variant="outline" className={`text-[10px] px-1 py-0 ${config.color} border-current/20 shrink-0`}>
-            {config.label}
-          </Badge>
-          <IconComponent className={`h-3 w-3 ${config.color} shrink-0`} />
-          <span className="text-[11px] font-medium truncate min-w-0">
-            {appointment.client_name || appointment.title}
-          </span>
-        </div>
+        {compact ? (
+          <div className="flex flex-col gap-0">
+            <span className="text-[10px] font-bold text-primary">{startTime}</span>
+            <span className="text-[9px] font-medium truncate min-w-0 leading-tight">
+              {appointment.client_name || appointment.title}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0 shrink-0">
+              {startTime}
+            </span>
+            <Badge variant="outline" className={`text-[10px] px-1 py-0 ${config.color} border-current/20 shrink-0`}>
+              {config.label}
+            </Badge>
+            <IconComponent className={`h-3 w-3 ${config.color} shrink-0`} />
+            <span className="text-[11px] font-medium truncate min-w-0">
+              {appointment.client_name || appointment.title}
+            </span>
+          </div>
+        )}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
