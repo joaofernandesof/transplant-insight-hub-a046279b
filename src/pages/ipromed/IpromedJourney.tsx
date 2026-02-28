@@ -1354,6 +1354,7 @@ export default function IpromedJourney() {
                     toast.success(`${client.name} movido para Distratados`);
                   }}
                   onViewJourney={(client) => setJourneyDetailClient(client)}
+                  onUpdateSla={handleUpdateSla}
                   onViewPhaseDetail={(phaseDetail) => {
                     setSelectedPhaseDetail(phaseDetail);
                     setPhaseDetailOpen(true);
