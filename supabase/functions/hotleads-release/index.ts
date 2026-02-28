@@ -355,11 +355,11 @@ async function processWebhookOutbox(supabase: any) {
     }
   } catch (err) {
     console.error("Webhook outbox processing error:", err);
+  }
 }
 
 async function notifyLeadArrival(supabase: any, leadId: string) {
   try {
-    // Fetch the released lead details
     const { data: lead, error: leadError } = await supabase
       .from("leads")
       .select("id, name, phone, email, city, state, source, created_at")
@@ -396,5 +396,4 @@ async function notifyLeadArrival(supabase: any, leadId: string) {
   } catch (err) {
     console.error("[notifyLeadArrival] Error:", err);
   }
-}
 }
