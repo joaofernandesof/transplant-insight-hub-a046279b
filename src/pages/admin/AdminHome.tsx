@@ -25,29 +25,31 @@ import {
   CreditCard,
   Flame,
   Building2,
-  BookOpen,
   RefreshCw,
   Stethoscope,
 } from 'lucide-react';
 
 // Portais do ecossistema
 const portals = [
+  { id: 'admin', title: 'Administrador', icon: Shield, gradient: 'from-slate-500 to-slate-700', path: '/admin-portal' },
+  { id: 'academy', title: 'Academy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
+  { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
   { id: 'neocare', title: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
   { id: 'neoteam', title: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
-  { id: 'academy', title: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
-  { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
+  { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
   { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
   { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg' },
   { id: 'vision', title: 'Vision', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
   { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
-  { id: 'neoacademy', title: 'NeoAcademy', icon: BookOpen, gradient: 'from-violet-500 to-purple-600', path: '/neoacademy' },
+  { id: 'hotleads', title: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', path: '/hotleads' },
 ];
 
 // Cores dos portais para widgets
 const PORTAL_BORDER_COLORS: Record<string, string> = {
+  admin: 'border-l-slate-500',
   neocare: 'border-l-rose-500',
   neoteam: 'border-l-blue-500',
+  doctor: 'border-l-teal-500',
   academy: 'border-l-emerald-500',
   neolicense: 'border-l-amber-500',
   hotleads: 'border-l-orange-500',
@@ -58,8 +60,10 @@ const PORTAL_BORDER_COLORS: Record<string, string> = {
 };
 
 const PORTAL_ICON_COLORS: Record<string, string> = {
+  admin: 'text-slate-400',
   neocare: 'text-rose-400',
   neoteam: 'text-blue-400',
+  doctor: 'text-teal-400',
   academy: 'text-emerald-400',
   neolicense: 'text-amber-400',
   hotleads: 'text-orange-400',
@@ -70,8 +74,10 @@ const PORTAL_ICON_COLORS: Record<string, string> = {
 };
 
 const PORTAL_ICONS: Record<string, React.ElementType> = {
+  admin: Shield,
   neocare: Heart,
   neoteam: Users,
+  doctor: Stethoscope,
   academy: GraduationCap,
   neolicense: Building2,
   hotleads: Flame,
