@@ -65,6 +65,7 @@ import {
   CalendarRange,
   List,
   MapPin,
+  User,
 } from "lucide-react";
 import {
   format,
@@ -1209,6 +1210,12 @@ export default function AstreaStyleAgenda() {
                                         <Clock className="h-3 w-3" />
                                         {format(parseISO(apt.start_datetime), 'HH:mm')}
                                         {apt.end_datetime && ` - ${format(parseISO(apt.end_datetime), 'HH:mm')}`}
+                                      </span>
+                                    )}
+                                    {apt.assigned_to && (
+                                      <span className="flex items-center gap-1 truncate">
+                                        <User className="h-3 w-3" />
+                                        {apt.assigned_to}
                                       </span>
                                     )}
                                     {apt.ipromed_legal_clients?.name && (
