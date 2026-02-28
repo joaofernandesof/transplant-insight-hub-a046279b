@@ -1123,7 +1123,6 @@ export default function IpromedJourney() {
             Total: <span className="font-medium text-foreground">{activeClients.length}</span> clientes
             {distratoClients.length > 0 && <span className="text-destructive ml-1">({distratoClients.length} distratados)</span>}
           </span>
-          </span>
           
           {/* Selected count */}
           {selectedClients.size > 0 && (
