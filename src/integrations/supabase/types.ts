@@ -10075,6 +10075,155 @@ export type Database = {
         }
         Relationships: []
       }
+      ipromed_onboarding_forms: {
+        Row: {
+          advance_payment_credit: boolean | null
+          arrival_advance_minutes: number | null
+          birth_date: string | null
+          cancel_fine_detail: string | null
+          cancel_has_fine: boolean | null
+          cancel_medical_emergency: string | null
+          cancel_min_hours: number | null
+          client_id: string
+          clinic_address: string | null
+          cnpj: string | null
+          confirmation_attempts: number | null
+          consultation_duration_minutes: number | null
+          created_at: string | null
+          credit_validity_days: number | null
+          deposit_amount: string | null
+          deposit_convertible: boolean | null
+          deposit_refundable: boolean | null
+          deposit_required: boolean | null
+          doc_entity_type: string | null
+          doctor_name: string | null
+          followup_days: number | null
+          followup_expired_policy: string | null
+          followup_modality: string | null
+          followup_scope: string | null
+          has_consultation_refund: boolean | null
+          has_followup: boolean | null
+          has_prior_instructions: boolean | null
+          has_procedure_refund: boolean | null
+          has_teleconsultation: boolean | null
+          id: string
+          late_fit_in: boolean | null
+          late_limit_minutes: number | null
+          late_policy: string | null
+          late_tolerance_minutes: number | null
+          no_response_auto_cancel: boolean | null
+          noshow_full_charge: boolean | null
+          noshow_reschedule_policy: string | null
+          official_channel: string | null
+          status: string
+          submitted_at: string | null
+          teleconsultation_platform: string | null
+          token: string
+          updated_at: string | null
+          uses_auto_messages: boolean | null
+        }
+        Insert: {
+          advance_payment_credit?: boolean | null
+          arrival_advance_minutes?: number | null
+          birth_date?: string | null
+          cancel_fine_detail?: string | null
+          cancel_has_fine?: boolean | null
+          cancel_medical_emergency?: string | null
+          cancel_min_hours?: number | null
+          client_id: string
+          clinic_address?: string | null
+          cnpj?: string | null
+          confirmation_attempts?: number | null
+          consultation_duration_minutes?: number | null
+          created_at?: string | null
+          credit_validity_days?: number | null
+          deposit_amount?: string | null
+          deposit_convertible?: boolean | null
+          deposit_refundable?: boolean | null
+          deposit_required?: boolean | null
+          doc_entity_type?: string | null
+          doctor_name?: string | null
+          followup_days?: number | null
+          followup_expired_policy?: string | null
+          followup_modality?: string | null
+          followup_scope?: string | null
+          has_consultation_refund?: boolean | null
+          has_followup?: boolean | null
+          has_prior_instructions?: boolean | null
+          has_procedure_refund?: boolean | null
+          has_teleconsultation?: boolean | null
+          id?: string
+          late_fit_in?: boolean | null
+          late_limit_minutes?: number | null
+          late_policy?: string | null
+          late_tolerance_minutes?: number | null
+          no_response_auto_cancel?: boolean | null
+          noshow_full_charge?: boolean | null
+          noshow_reschedule_policy?: string | null
+          official_channel?: string | null
+          status?: string
+          submitted_at?: string | null
+          teleconsultation_platform?: string | null
+          token: string
+          updated_at?: string | null
+          uses_auto_messages?: boolean | null
+        }
+        Update: {
+          advance_payment_credit?: boolean | null
+          arrival_advance_minutes?: number | null
+          birth_date?: string | null
+          cancel_fine_detail?: string | null
+          cancel_has_fine?: boolean | null
+          cancel_medical_emergency?: string | null
+          cancel_min_hours?: number | null
+          client_id?: string
+          clinic_address?: string | null
+          cnpj?: string | null
+          confirmation_attempts?: number | null
+          consultation_duration_minutes?: number | null
+          created_at?: string | null
+          credit_validity_days?: number | null
+          deposit_amount?: string | null
+          deposit_convertible?: boolean | null
+          deposit_refundable?: boolean | null
+          deposit_required?: boolean | null
+          doc_entity_type?: string | null
+          doctor_name?: string | null
+          followup_days?: number | null
+          followup_expired_policy?: string | null
+          followup_modality?: string | null
+          followup_scope?: string | null
+          has_consultation_refund?: boolean | null
+          has_followup?: boolean | null
+          has_prior_instructions?: boolean | null
+          has_procedure_refund?: boolean | null
+          has_teleconsultation?: boolean | null
+          id?: string
+          late_fit_in?: boolean | null
+          late_limit_minutes?: number | null
+          late_policy?: string | null
+          late_tolerance_minutes?: number | null
+          no_response_auto_cancel?: boolean | null
+          noshow_full_charge?: boolean | null
+          noshow_reschedule_policy?: string | null
+          official_channel?: string | null
+          status?: string
+          submitted_at?: string | null
+          teleconsultation_platform?: string | null
+          token?: string
+          updated_at?: string | null
+          uses_auto_messages?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_onboarding_forms_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_payables: {
         Row: {
           amount: number
