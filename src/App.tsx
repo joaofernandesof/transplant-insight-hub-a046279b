@@ -24,6 +24,7 @@ import { PROFILE_ROUTES, getDefaultRouteForProfile } from "@/neohub/lib/permissi
 import { MobileAppWrapper } from "@/components/MobileAppWrapper";
 import { useMobileEnvironment } from "@/hooks/useMobileEnvironment";
 import { Loader2 } from "lucide-react";
+import { NeoRHBanner } from "@/neohub/components/NeoRHBanner";
 
 // ====================================
 // Pages - Públicas
@@ -521,6 +522,7 @@ function NeoRHRoutes() {
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'administrador']}>
       <UnifiedSidebar>
+        <NeoRHBanner />
         <Routes>
           <Route index element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHDashboard /></Suspense>} />
           <Route path="colaboradores" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHColaboradores /></Suspense>} />
