@@ -36,6 +36,7 @@ import {
   FileSignature,
   Briefcase,
   Shield,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
