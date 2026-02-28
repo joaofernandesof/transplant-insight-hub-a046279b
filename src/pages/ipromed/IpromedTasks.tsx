@@ -221,6 +221,10 @@ export default function IpromedTasks() {
       result = result.filter((t) => String(t.priority) === priorityFilter);
     }
 
+    if (userFilter !== "all") {
+      result = result.filter((t) => t.assigned_to_name === userFilter);
+    }
+
     result.sort((a, b) => {
       if (sortBy === "priority") return (b.priority || 0) - (a.priority || 0);
       if (!a.due_date && !b.due_date) return 0;
@@ -230,7 +234,7 @@ export default function IpromedTasks() {
     });
 
     return result;
-  }, [tasks, searchQuery, priorityFilter, sortBy]);
+  }, [tasks, searchQuery, priorityFilter, userFilter, sortBy]);
 
   const stats = useMemo(() => ({
     todo: tasks.filter((t) => t.status === "todo").length,
