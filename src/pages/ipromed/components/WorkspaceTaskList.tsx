@@ -179,9 +179,7 @@ export function WorkspaceTaskList() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['workspace-tasks-completed'] });
-      queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
+      invalidateAllTaskQueries(queryClient);
     },
   });
 
