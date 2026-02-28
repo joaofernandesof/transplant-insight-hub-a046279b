@@ -264,13 +264,25 @@ export function WorkspaceAgenda() {
     },
   });
 
+  // Filter by selected user
+  const filteredAppointments = selectedUser
+    ? appointments?.filter(apt => {
+        // Tasks have assigned_to_name in client_name
+        if (apt.appointment_type === 'tarefa') {
+          return apt.client_name === selectedUser;
+        }
+        // Regular appointments/meetings show for all (no assigned_to data)
+        return true;
+      })
+    : appointments;
+
   // Group appointments by day
   const appointmentsByDay = new Map<string, UnifiedAppointment[]>();
   days.forEach(day => {
     const key = format(day, 'yyyy-MM-dd');
     appointmentsByDay.set(key, []);
   });
-  appointments?.forEach(apt => {
+  filteredAppointments?.forEach(apt => {
     if (!apt.start_datetime) return;
     const d = new Date(apt.start_datetime);
     if (isNaN(d.getTime())) return;
