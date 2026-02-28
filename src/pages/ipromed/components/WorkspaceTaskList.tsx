@@ -3,7 +3,7 @@
  * 3 colunas por advogada, tarefas agrupadas por prazo
  */
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,15 +13,24 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Plus,
   Clock,
   AlertCircle,
   ChevronRight,
+  ChevronDown,
   CalendarDays,
   AlertTriangle,
+  CheckCircle2,
+  Undo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
+import { isToday, isTomorrow, isPast, differenceInDays, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
@@ -35,6 +44,7 @@ interface Task {
   priority: number;
   due_date: string | null;
   assigned_to_name?: string;
+  completed_at?: string | null;
   case_id?: string;
   contract_id?: string;
   case?: { case_number: string; title: string };
@@ -81,12 +91,26 @@ const dateGroupConfig: Record<DateGroup, { label: string; icon: React.ReactNode;
 
 const GROUP_ORDER: DateGroup[] = ['overdue', 'today', 'tomorrow', 'upcoming', 'nodate'];
 
+interface PendingCompletion {
+  taskId: string;
+  timeoutId: ReturnType<typeof setTimeout>;
+}
+
 export function WorkspaceTaskList() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [pendingCompletions, setPendingCompletions] = useState<Map<string, PendingCompletion>>(new Map());
+  const [expandedCompleted, setExpandedCompleted] = useState<Set<string>>(new Set());
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      pendingCompletions.forEach(pc => clearTimeout(pc.timeoutId));
+    };
+  }, []);
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['workspace-tasks'],
@@ -108,6 +132,30 @@ export function WorkspaceTaskList() {
     },
   });
 
+  // Fetch recently completed tasks (last 7 days)
+  const { data: completedTasks = [] } = useQuery({
+    queryKey: ['workspace-tasks-completed'],
+    queryFn: async () => {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const { data, error } = await supabase
+        .from('ipromed_legal_tasks')
+        .select(`
+          *,
+          case:case_id(case_number, title),
+          contract:contract_id(contract_number)
+        `)
+        .eq('status', 'completed')
+        .gte('completed_at', sevenDaysAgo.toISOString())
+        .order('completed_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data as Task[];
+    },
+  });
+
   const completeMutation = useMutation({
     mutationFn: async (taskId: string) => {
       const { error } = await supabase
@@ -118,10 +166,91 @@ export function WorkspaceTaskList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-tasks-completed'] });
       queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
-      toast({ title: 'Tarefa concluída!' });
     },
   });
+
+  const undoMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error } = await supabase
+        .from('ipromed_legal_tasks')
+        .update({ status: 'todo', completed_at: null })
+        .eq('id', taskId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspace-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-tasks-completed'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-task-stats'] });
+    },
+  });
+
+  const handleComplete = useCallback((taskId: string) => {
+    // Optimistically hide the task
+    setPendingCompletions(prev => {
+      const next = new Map(prev);
+      // Clear any existing timeout for this task
+      if (next.has(taskId)) clearTimeout(next.get(taskId)!.timeoutId);
+
+      const timeoutId = setTimeout(() => {
+        // Actually complete the task after 3s
+        completeMutation.mutate(taskId);
+        setPendingCompletions(prev2 => {
+          const next2 = new Map(prev2);
+          next2.delete(taskId);
+          return next2;
+        });
+      }, 3000);
+
+      next.set(taskId, { taskId, timeoutId });
+      return next;
+    });
+
+    toast({
+      title: 'Tarefa concluída!',
+      description: 'Você tem 3 segundos para desfazer.',
+      action: (
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1 shrink-0"
+          onClick={() => handleUndo(taskId)}
+        >
+          <Undo2 className="h-3 w-3" />
+          Desfazer
+        </Button>
+      ),
+      duration: 3000,
+    });
+  }, []);
+
+  const handleUndo = useCallback((taskId: string) => {
+    setPendingCompletions(prev => {
+      const next = new Map(prev);
+      const pending = next.get(taskId);
+      if (pending) {
+        clearTimeout(pending.timeoutId);
+        next.delete(taskId);
+      }
+      return next;
+    });
+    toast({ title: 'Ação desfeita', description: 'A tarefa foi restaurada.' });
+  }, [toast]);
+
+  const handleUndoCompleted = useCallback((taskId: string) => {
+    undoMutation.mutate(taskId);
+    toast({ title: 'Tarefa restaurada' });
+  }, [undoMutation, toast]);
+
+  const toggleExpandCompleted = (lawyerName: string) => {
+    setExpandedCompleted(prev => {
+      const next = new Set(prev);
+      if (next.has(lawyerName)) next.delete(lawyerName);
+      else next.add(lawyerName);
+      return next;
+    });
+  };
 
   if (isLoading) {
     return (
@@ -142,6 +271,8 @@ export function WorkspaceTaskList() {
   }
 
   const allTasks = tasks || [];
+  // Filter out tasks that are pending completion (optimistic hide)
+  const visibleTasks = allTasks.filter(t => !pendingCompletions.has(t.id));
 
   // Group by lawyer
   const lawyerNames = [...new Set(allTasks.map(t => t.assigned_to_name || 'Sem responsável'))].sort();
@@ -183,9 +314,11 @@ export function WorkspaceTaskList() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {lawyerNames.map(name => {
-                const lawyerTasks = allTasks.filter(t => (t.assigned_to_name || 'Sem responsável') === name);
+                const lawyerTasks = visibleTasks.filter(t => (t.assigned_to_name || 'Sem responsável') === name);
                 const dateGroups = groupByDate(lawyerTasks);
                 const overdueCount = dateGroups.overdue.length;
+                const lawyerCompleted = completedTasks.filter(t => (t.assigned_to_name || 'Sem responsável') === name);
+                const isExpanded = expandedCompleted.has(name);
 
                 return (
                   <div key={name} className="border rounded-lg overflow-hidden">
@@ -224,7 +357,7 @@ export function WorkspaceTaskList() {
                                   <TaskRow
                                     key={task.id}
                                     task={task}
-                                    onComplete={(id) => completeMutation.mutate(id)}
+                                    onComplete={(id) => handleComplete(id)}
                                     onSelect={setSelectedTask}
                                   />
                                 ))}
@@ -232,6 +365,31 @@ export function WorkspaceTaskList() {
                             </div>
                           );
                         })}
+
+                        {/* Completed tasks collapsible */}
+                        {lawyerCompleted.length > 0 && (
+                          <Collapsible open={isExpanded} onOpenChange={() => toggleExpandCompleted(name)}>
+                            <CollapsibleTrigger asChild>
+                              <button className="flex items-center gap-1 w-full text-xs font-medium text-emerald-600 uppercase tracking-wide py-1 hover:text-emerald-700 transition-colors">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Concluídas
+                                <span className="opacity-60 ml-1">{lawyerCompleted.length}</span>
+                                <ChevronDown className={cn("h-3 w-3 ml-auto transition-transform", isExpanded && "rotate-180")} />
+                              </button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <div className="space-y-1 mt-1">
+                                {lawyerCompleted.map(task => (
+                                  <CompletedTaskRow
+                                    key={task.id}
+                                    task={task}
+                                    onUndo={handleUndoCompleted}
+                                  />
+                                ))}
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        )}
                       </div>
                     </ScrollArea>
                   </div>
@@ -287,6 +445,31 @@ function TaskRow({ task, onComplete, onSelect }: { task: Task; onComplete: (id: 
       <Badge className={cn("text-[10px] shrink-0 px-1.5 py-0", priority.color)}>
         {priority.label}
       </Badge>
+    </div>
+  );
+}
+
+function CompletedTaskRow({ task, onUndo }: { task: Task; onUndo: (id: string) => void }) {
+  const completedDate = task.completed_at
+    ? format(new Date(task.completed_at), "dd/MM", { locale: ptBR })
+    : '';
+
+  return (
+    <div className="flex items-center gap-2 p-2 rounded-md border border-dashed border-emerald-200 bg-emerald-50/30 dark:bg-emerald-950/10 dark:border-emerald-900/30 text-xs opacity-70 hover:opacity-100 transition-opacity group">
+      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+      <span className="flex-1 min-w-0 truncate line-through text-muted-foreground">
+        {task.title}
+      </span>
+      <span className="text-[10px] text-muted-foreground shrink-0">{completedDate}</span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+        onClick={() => onUndo(task.id)}
+        title="Desfazer conclusão"
+      >
+        <Undo2 className="h-3 w-3" />
+      </Button>
     </div>
   );
 }
