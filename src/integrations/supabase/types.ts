@@ -9130,6 +9130,48 @@ export type Database = {
           },
         ]
       }
+      ipromed_form_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+          questions: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+          questions?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+          questions?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ipromed_generated_documents: {
         Row: {
           case_id: string | null
