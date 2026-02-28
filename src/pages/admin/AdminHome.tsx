@@ -27,6 +27,9 @@ import {
   Building2,
   RefreshCw,
   Stethoscope,
+  ChevronDown,
+  ExternalLink,
+  BarChart3,
 } from 'lucide-react';
 
 // Portais do ecossistema
