@@ -638,9 +638,7 @@ export default function AstreaStyleAgenda() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointment-checks'] });
-      queryClient.invalidateQueries({ queryKey: ['workspace-agenda-unified'] });
+      invalidateAllAgendaQueries(queryClient);
       toast.success('Compromisso excluído!');
       setIsDetailOpen(false);
       setSelectedAppointment(null);
