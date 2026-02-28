@@ -353,6 +353,7 @@ export default function AstreaStyleAgenda() {
         created_at: meeting.created_at,
         ipromed_legal_clients: meeting.ipromed_legal_clients,
         deadline_type_id: null,
+        assigned_to: null,
         doc_elaborated: false,
         doc_delivered: false,
         prazo_done: false,
