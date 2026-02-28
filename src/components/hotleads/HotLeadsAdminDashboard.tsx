@@ -14,6 +14,7 @@ import {
   XCircle, ShoppingCart, Stethoscope, Eye, ArrowLeft, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Filter,
 } from 'lucide-react';
 import { SalesControlTable } from '@/components/hotleads/SalesControlTable';
+import { StateDetailTable } from '@/components/hotleads/StateDetailTable';
 import { DiscardRankingTable } from '@/components/hotleads/DiscardRankingTable';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
