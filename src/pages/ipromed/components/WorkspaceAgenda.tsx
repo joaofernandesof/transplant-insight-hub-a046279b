@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,7 @@ interface UnifiedAppointment {
   status: string;
   appointment_type: string;
   client_name?: string | null;
+  assigned_to?: string | null;
   source: 'appointment' | 'meeting';
 }
 
@@ -159,6 +161,7 @@ export function WorkspaceAgenda() {
           status: apt.status,
           appointment_type: apt.appointment_type || 'reuniao',
           client_name: apt.ipromed_legal_clients?.name,
+          assigned_to: apt.assigned_to || null,
           source: 'appointment',
         });
       });
@@ -183,6 +186,7 @@ export function WorkspaceAgenda() {
           status: meeting.status,
           appointment_type: meeting.agenda_type || 'reuniao',
           client_name: meeting.ipromed_legal_clients?.name,
+          assigned_to: null,
           source: 'meeting',
         });
       });
@@ -202,6 +206,7 @@ export function WorkspaceAgenda() {
           status: task.status,
           appointment_type: 'tarefa',
           client_name: task.assigned_to_name || null,
+          assigned_to: null,
           source: 'appointment',
         });
       });
@@ -449,6 +454,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
   const [editStatus, setEditStatus] = useState(appointment.status);
   const [editType, setEditType] = useState(appointment.appointment_type);
   const [editMeetingUrl, setEditMeetingUrl] = useState(appointment.meeting_url || '');
+  const [editAssignedTo, setEditAssignedTo] = useState(appointment.assigned_to || '');
   const queryClient = useQueryClient();
 
   const startTime = format(new Date(appointment.start_datetime), "HH:mm");
@@ -468,6 +474,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
     setEditStatus(appointment.status);
     setEditType(appointment.appointment_type);
     setEditMeetingUrl(appointment.meeting_url || '');
+    setEditAssignedTo(appointment.assigned_to || '');
     setEditing(true);
   };
 
@@ -503,6 +510,7 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
           appointment_type: editType,
           meeting_url: editMeetingUrl || null,
           is_virtual: !!editMeetingUrl,
+          assigned_to: editAssignedTo || null,
         };
         const { error } = await supabase.from('ipromed_appointments').update(updates).eq('id', appointment.id);
         if (error) throw error;
@@ -620,11 +628,22 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Responsável *</label>
+                  <Select value={editAssignedTo} onValueChange={setEditAssignedTo}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
+                    <SelectContent>
+                      {LAWYER_NAMES.map(name => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex gap-2 justify-end pt-1">
                   <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
                     <X className="h-3.5 w-3.5 mr-1" /> Cancelar
                   </Button>
-                  <Button size="sm" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+                  <Button size="sm" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending || !editAssignedTo}>
                     <Save className="h-3.5 w-3.5 mr-1" /> Salvar
                   </Button>
                 </div>
@@ -676,6 +695,20 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
                   <span className="text-xs">Status:</span>
                   <Badge variant="secondary" className="text-xs">{appointment.status}</Badge>
                 </div>
+
+                {appointment.assigned_to && (
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                        {appointment.assigned_to.split(' ').map(n => n[0]).filter(Boolean).join('').slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Responsável</span>
+                      <span className="text-sm font-medium">{appointment.assigned_to}</span>
+                    </div>
+                  </div>
+                )}
 
                 {!isSynthetic && (
                   <div className="flex justify-end pt-2">
