@@ -589,7 +589,23 @@ export default function IpromedJourney() {
     },
   });
 
-  // Update client phase mutation com atualização otimista
+  // Fetch onboarding form statuses for all clients (to gate stage 3)
+  const { data: onboardingForms = [] } = useQuery({
+    queryKey: ['ipromed-onboarding-forms-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ipromed_onboarding_forms')
+        .select('client_id, status')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as { client_id: string; status: string }[];
+    },
+  });
+
+  const isOnboardingFormSubmitted = (clientId: string) => {
+    return onboardingForms.some(f => f.client_id === clientId && f.status === 'submitted');
+  };
+
   const updateClientPhase = useMutation({
     mutationFn: async ({ clientId, newPhase }: { clientId: string; newPhase: string }) => {
       // Get current metadata
