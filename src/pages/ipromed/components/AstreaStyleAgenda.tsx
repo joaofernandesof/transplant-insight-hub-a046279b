@@ -707,6 +707,7 @@ export default function AstreaStyleAgenda() {
       meeting_url: '',
       client_id: '',
       priority: 'normal',
+      assigned_to: '',
     });
     setIsEditMode(false);
     setEditingAppointmentId(null);
