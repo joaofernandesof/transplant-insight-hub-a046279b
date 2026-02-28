@@ -212,6 +212,8 @@ function DraggableClientCard({
     opacity: isSortableDragging ? 0.5 : 1,
   };
 
+  const slaInfo = getClientSlaInfo(client, phase.id);
+
   return (
     <Card 
       ref={setNodeRef}
