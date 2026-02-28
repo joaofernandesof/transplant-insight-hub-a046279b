@@ -523,7 +523,7 @@ export default function IpromedClients() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
-                              Cada
+                              Data do Cadastro
                               <ArrowUpDown className="h-3 w-3" />
                             </Button>
                           </DropdownMenuTrigger>
