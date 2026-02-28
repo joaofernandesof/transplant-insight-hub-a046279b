@@ -136,13 +136,6 @@ export default function IpromedAccessManagement() {
     setPermLoading(true);
     setPermDialogOpen(true);
 
-    // Get user-specific module permissions
-    const { data } = await supabase
-      .from("user_module_permissions")
-      .select("id, module_code, can_read, can_write, can_delete")
-      .eq("user_id", user.user_id)
-      .like("module_code", "ipromed_%");
-
     // Get default module permissions for ipromed portal
     const { data: defaults } = await supabase
       .from("neohub_module_permissions")
@@ -150,19 +143,14 @@ export default function IpromedAccessManagement() {
       .eq("portal", "ipromed")
       .eq("profile", "ipromed");
 
-    const userPerms = new Map(data?.map(d => [d.module_code, d]) || []);
-
-    const merged: ModulePermission[] = (defaults || []).map(d => {
-      const override = userPerms.get(d.module_code);
-      return {
-        id: override?.id || "",
-        module_code: d.module_code,
-        module_name: d.module_name,
-        can_read: override ? override.can_read : d.can_read,
-        can_write: override ? override.can_write : d.can_write,
-        can_delete: override ? override.can_delete : d.can_delete,
-      };
-    });
+    const merged: ModulePermission[] = (defaults || []).map(d => ({
+      id: "",
+      module_code: d.module_code,
+      module_name: d.module_name,
+      can_read: d.can_read,
+      can_write: d.can_write,
+      can_delete: d.can_delete,
+    }));
 
     setPermissions(merged);
     setPermLoading(false);
@@ -173,25 +161,13 @@ export default function IpromedAccessManagement() {
 
     const updated = { ...perm, [field]: value };
 
-    if (perm.id) {
-      await supabase
-        .from("user_module_permissions")
-        .update({ [field]: value })
-        .eq("id", perm.id);
-    } else {
-      const { data } = await supabase
-        .from("user_module_permissions")
-        .insert({
-          user_id: selectedUser.user_id,
-          module_code: perm.module_code,
-          can_read: updated.can_read,
-          can_write: updated.can_write,
-          can_delete: updated.can_delete,
-        })
-        .select("id")
-        .single();
-      if (data) updated.id = data.id;
-    }
+    // Update the default permission for this profile/module combo
+    await supabase
+      .from("neohub_module_permissions")
+      .update({ [field]: value })
+      .eq("portal", "ipromed")
+      .eq("profile", "ipromed")
+      .eq("module_code", perm.module_code);
 
     setPermissions(prev => prev.map(p => p.module_code === perm.module_code ? updated : p));
     toast.success("Permissão atualizada");
