@@ -65,6 +65,7 @@ import {
   CalendarRange,
   List,
   MapPin,
+  User,
 } from "lucide-react";
 import {
   format,
