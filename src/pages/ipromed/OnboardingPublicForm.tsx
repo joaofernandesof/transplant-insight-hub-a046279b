@@ -539,7 +539,7 @@ export default function OnboardingPublicForm() {
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-[#1a365d] hover:bg-[#2d4a7a] text-white px-12 py-6 text-lg rounded-xl shadow-lg"
+            className="bg-[#2d4a2e] hover:bg-[#3d5e3e] text-white px-12 py-6 text-lg rounded-xl shadow-lg"
           >
             {submitting ? (
               <>
