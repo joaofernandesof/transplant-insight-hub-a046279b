@@ -83,7 +83,7 @@ interface LegalClient {
   cpf_cnpj: string | null;
   client_number: string | null;
   client_type: string;
-  status: string;
+  
   risk_level: string;
   journey_stage: string;
   health_score: number | null;
