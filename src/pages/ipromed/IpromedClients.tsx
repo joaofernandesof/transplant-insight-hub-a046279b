@@ -148,7 +148,7 @@ export default function IpromedClients() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  
   const [journeyFilter, setJourneyFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [riskFilter, setRiskFilter] = useState<string>('all');
