@@ -199,7 +199,7 @@ export default function IpromedTasks() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ipromed-tasks"] });
+      invalidateAllTaskQueries(queryClient);
       toast.success("Tarefa excluída");
     },
   });
