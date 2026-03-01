@@ -543,7 +543,7 @@ export default function AdminPanel() {
                         placeholder="Buscar por nome, email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8 w-64"
+                        className="pl-8 w-64 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                       />
                     </div>
                     <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as any)}>
