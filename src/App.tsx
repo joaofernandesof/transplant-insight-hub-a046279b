@@ -819,8 +819,8 @@ function AppRoutes() {
           Rotas Legadas - Redirects para Portais
           ==================================== */}
       {/* University -> NeoLicense */}
-      <Route path="/university" element={<Navigate to="/neolicense/university" replace />} />
-      <Route path="/university/*" element={<Navigate to="/neolicense/university" replace />} />
+      <Route path="/university" element={<Navigate to="/neoacademy" replace />} />
+      <Route path="/university/*" element={<Navigate to="/neoacademy" replace />} />
       
       {/* Materials -> NeoLicense */}
       <Route path="/materials" element={<Navigate to="/neolicense/materials" replace />} />
