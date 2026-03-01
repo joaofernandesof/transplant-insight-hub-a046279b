@@ -13,7 +13,7 @@ export type PortalType =
   | 'admin'
   | 'neoteam'
   | 'neocare'
-  | 'academy'
+  | 'neoacademy'
   | 'neolicense'
   | 'avivar'
   | 'ipromed'
