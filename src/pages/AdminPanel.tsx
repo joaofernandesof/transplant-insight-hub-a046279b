@@ -631,8 +631,8 @@ export default function AdminPanel() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm">{userProfile.email}</TableCell>
-                            <TableCell className="text-sm">{userProfile.clinic_name || '-'}</TableCell>
+                            <TableCell className="text-sm text-slate-300">{userProfile.email}</TableCell>
+                            <TableCell className="text-sm text-slate-300">{userProfile.clinic_name || '-'}</TableCell>
                             <TableCell>
                               <Badge className={roleMeta.color}>
                                 <RoleIcon className="h-3 w-3 mr-1" />
