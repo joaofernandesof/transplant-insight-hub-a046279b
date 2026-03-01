@@ -315,12 +315,12 @@ export default function ModuleOverridesAdmin() {
                       </TableCell>
                       <TableCell>
                         {override.expires_at ? (
-                          <div className="flex items-center gap-1 text-sm">
+                          <div className="flex items-center gap-1 text-sm text-slate-300">
                             <Clock className="h-3 w-3" />
                             {format(new Date(override.expires_at), "dd/MM/yyyy", { locale: ptBR })}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-sm">Permanente</span>
+                          <span className="text-slate-400 text-sm">Permanente</span>
                         )}
                       </TableCell>
                       <TableCell>
