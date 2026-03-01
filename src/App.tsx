@@ -503,6 +503,7 @@ function NeoTeamRoutes() {
           <Route path="postvenda/nps" element={<PostVendaNpsPage />} />
           {/* Distrato agora é um tipo de chamado, acessível via filtro */}
           <Route path="postvenda/distrato" element={<Navigate to="/neoteam/postvenda?tab=chamados&tipo=distrato" replace />} />
+          <Route path="pops" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPopsPage /></Suspense>} />
           <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="reports" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
