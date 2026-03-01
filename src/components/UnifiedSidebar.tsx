@@ -326,10 +326,14 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
       <aside
         className={cn(
           "fixed left-0 top-0 h-full bg-card border-r z-40 transition-all duration-300 flex flex-col",
+          "border-l-[3px]",
+          portalConfig.accentBorder,
           isCollapsed ? "w-16" : "w-64",
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
+        {/* Portal accent strip */}
+        <div className={cn("h-1 w-full shrink-0", portalConfig.accentBg, "opacity-60")} />
         {/* Collapse button */}
         <div className={cn(
           "p-2 border-b flex",
