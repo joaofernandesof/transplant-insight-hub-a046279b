@@ -33,7 +33,7 @@ import {
 // Lista de portais disponíveis
 const portals = [
   { id: 'admin', label: 'Administrador', icon: Shield, href: '/admin-portal', gradient: 'from-slate-800 to-slate-900' },
-  { id: 'academy', label: 'Aluno', icon: GraduationCap, href: '/academy', gradient: 'from-emerald-500 to-green-600' },
+  { id: 'academy', label: 'NeoAcademy', icon: GraduationCap, href: '/neoacademy', gradient: 'from-emerald-500 to-green-600' },
   { id: 'license', label: 'Licenciado', icon: Award, href: '/neolicense', gradient: 'from-amber-400 to-yellow-500' },
   { id: 'patient', label: 'Paciente', icon: Heart, href: '/neocare', gradient: 'from-rose-500 to-pink-600' },
   { id: 'staff', label: 'Colaborador', icon: Users, href: '/neoteam', gradient: 'from-blue-500 to-cyan-600' },

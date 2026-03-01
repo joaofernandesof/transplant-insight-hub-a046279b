@@ -32,7 +32,7 @@ export const PROFILE_ROUTES: Record<NeoHubProfile, string> = {
   licenciado: '/neolicense',
   colaborador: '/neoteam',
   medico: '/neoteam/doctor-view',
-  aluno: '/academy',
+  aluno: '/neoacademy',
   paciente: '/neocare',
   cliente_avivar: '/avivar',
   ipromed: '/cpg',
