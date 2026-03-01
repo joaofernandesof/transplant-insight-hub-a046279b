@@ -758,7 +758,7 @@ export default function AdminPanel() {
                           return (
                             <TableRow 
                               key={mod.code}
-                              className={cn(idx % 2 === 0 ? "bg-background" : "bg-muted/30")}
+                              className={cn("border-slate-700/50", idx % 2 === 0 ? "bg-slate-800/40" : "bg-slate-900/30")}
                             >
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
