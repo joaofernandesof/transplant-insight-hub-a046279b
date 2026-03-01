@@ -43,9 +43,9 @@ export const PORTAL_CONFIGS: Record<PortalType, PortalConfig> = {
     subtitle: 'Portal do Paciente',
     gradient: 'from-rose-600 via-rose-500 to-pink-500',
   },
-  academy: {
-    name: 'IBRAMEC',
-    subtitle: 'Portal do Aluno',
+  neoacademy: {
+    name: 'NeoAcademy',
+    subtitle: 'Cursos e Certificações',
     gradient: 'from-emerald-600 via-emerald-500 to-green-500',
   },
   neolicense: {

@@ -185,9 +185,9 @@ export default function AdminHome() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {/* Academy */}
           <PortalWidget
-            id="academy"
-            title="Academy IBRAMEC"
-            onClick={() => navigate('/academy')}
+            id="neoacademy"
+            title="NeoAcademy"
+            onClick={() => navigate('/neoacademy')}
             metrics={[
               { label: 'Alunos', value: formatNumber(metrics.academy.totalStudents) },
               { label: 'Cursos Ativos', value: formatNumber(metrics.academy.activeCourses) },

@@ -53,15 +53,15 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     portalKey: 'admin',
     adminOnly: true,
   },
-  academy: {
-    title: 'Portal do Aluno',
+  neoacademy: {
+    title: 'NeoAcademy',
     description: 'Cursos, certificados e materiais educacionais',
     icon: GraduationCap,
     gradient: 'from-emerald-500 to-green-600',
     bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
     profiles: ['aluno'],
-    route: '/academy',
-    portalKey: 'academy',
+    route: '/neoacademy',
+    portalKey: 'neoacademy',
   },
   neolicense: {
     title: 'Portal do Licenciado',
