@@ -215,6 +215,197 @@ export function ProfileUpdateGuard({ children }: { children: React.ReactNode }) 
     }
   };
 
+  const formContent = (
+    <>
+      <div className="space-y-4 mt-2">
+        {/* Nome completo */}
+        <div className="space-y-1.5">
+          <Label htmlFor="full_name">Nome Completo *</Label>
+          <Input
+            id="full_name"
+            value={form.full_name}
+            onChange={(e) => setForm(prev => ({ ...prev, full_name: e.target.value }))}
+            placeholder="Seu nome completo"
+          />
+        </div>
+
+        {/* E-mail (readonly) */}
+        <div className="space-y-1.5">
+          <Label htmlFor="email">E-mail *</Label>
+          <Input
+            id="email"
+            value={form.email}
+            disabled
+            className="opacity-60"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {/* CPF */}
+          <div className="space-y-1.5">
+            <Label htmlFor="cpf">CPF *</Label>
+            <Input
+              id="cpf"
+              value={form.cpf}
+              onChange={(e) => setForm(prev => ({ ...prev, cpf: formatCPF(e.target.value) }))}
+              placeholder="000.000.000-00"
+              maxLength={14}
+            />
+          </div>
+
+          {/* Data de Nascimento */}
+          <div className="space-y-1.5">
+            <Label htmlFor="birth_date">Nascimento *</Label>
+            <Input
+              id="birth_date"
+              type="date"
+              value={form.birth_date}
+              onChange={(e) => setForm(prev => ({ ...prev, birth_date: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        {/* Telefone */}
+        <div className="space-y-1.5">
+          <Label htmlFor="phone">Telefone / WhatsApp</Label>
+          <Input
+            id="phone"
+            value={form.phone}
+            onChange={(e) => setForm(prev => ({ ...prev, phone: formatPhone(e.target.value) }))}
+            placeholder="(00) 00000-0000"
+            maxLength={15}
+          />
+        </div>
+
+        {/* Endereço */}
+        <div className="border-t pt-4 mt-4">
+          <p className="text-sm font-semibold flex items-center gap-1.5 mb-3">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            Endereço *
+          </p>
+
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className="col-span-2 space-y-1.5">
+              <Label htmlFor="cep">CEP *</Label>
+              <Input
+                id="cep"
+                value={form.address_cep}
+                onChange={(e) => {
+                  const val = formatCEP(e.target.value);
+                  setForm(prev => ({ ...prev, address_cep: val }));
+                  if (val.replace(/\D/g, '').length === 8) handleCepLookup(val);
+                }}
+                placeholder="00000-000"
+                maxLength={9}
+              />
+            </div>
+            <div className="flex items-end">
+              {fetchingCep && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mb-3" />}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className="col-span-2 space-y-1.5">
+              <Label htmlFor="street">Rua *</Label>
+              <Input
+                id="street"
+                value={form.address_street}
+                onChange={(e) => setForm(prev => ({ ...prev, address_street: e.target.value }))}
+                placeholder="Rua / Avenida"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="number">Nº *</Label>
+              <Input
+                id="number"
+                value={form.address_number}
+                onChange={(e) => setForm(prev => ({ ...prev, address_number: e.target.value }))}
+                placeholder="123"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5 mb-3">
+            <Label htmlFor="complement">Complemento</Label>
+            <Input
+              id="complement"
+              value={form.address_complement}
+              onChange={(e) => setForm(prev => ({ ...prev, address_complement: e.target.value }))}
+              placeholder="Apto, Sala, etc."
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="neighborhood">Bairro *</Label>
+              <Input
+                id="neighborhood"
+                value={form.address_neighborhood}
+                onChange={(e) => setForm(prev => ({ ...prev, address_neighborhood: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="city">Cidade *</Label>
+              <Input
+                id="city"
+                value={form.address_city}
+                onChange={(e) => setForm(prev => ({ ...prev, address_city: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="state">UF *</Label>
+              <Input
+                id="state"
+                value={form.address_state}
+                onChange={(e) => setForm(prev => ({ ...prev, address_state: e.target.value.toUpperCase().slice(0, 2) }))}
+                placeholder="CE"
+                maxLength={2}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center mt-4 pb-2">
+        {user?.isAdmin ? (
+          <Button variant="ghost" size="sm" onClick={handleDismiss} className="text-muted-foreground text-xs">
+            Pular por agora
+          </Button>
+        ) : (
+          <div />
+        )}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+          Salvar Cadastro
+        </Button>
+      </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        {children}
+        <Drawer open={showModal} onOpenChange={(v) => { if (!v && user?.isAdmin) handleDismiss(); }}>
+          <DrawerContent className="max-h-[85vh] px-4 pb-4" onInteractOutside={(e) => { if (!user?.isAdmin) e.preventDefault(); }}>
+            <DrawerHeader className="text-left px-0">
+              <DrawerTitle className="flex items-center gap-2 text-base">
+                <UserCog className="h-5 w-5 text-primary" />
+                Atualização Cadastral
+              </DrawerTitle>
+              <DrawerDescription className="text-xs">
+                Preencha todos os campos para continuar.
+              </DrawerDescription>
+            </DrawerHeader>
+            <div className="overflow-y-auto flex-1 -mx-0">
+              {formContent}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </>
+    );
+  }
+
   return (
     <>
       {children}
@@ -229,169 +420,7 @@ export function ProfileUpdateGuard({ children }: { children: React.ReactNode }) 
               Para continuar usando o sistema, preencha todos os campos abaixo.
             </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4 mt-2">
-            {/* Nome completo */}
-            <div className="space-y-1.5">
-              <Label htmlFor="full_name">Nome Completo *</Label>
-              <Input
-                id="full_name"
-                value={form.full_name}
-                onChange={(e) => setForm(prev => ({ ...prev, full_name: e.target.value }))}
-                placeholder="Seu nome completo"
-              />
-            </div>
-
-            {/* E-mail (readonly) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="email">E-mail *</Label>
-              <Input
-                id="email"
-                value={form.email}
-                disabled
-                className="opacity-60"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {/* CPF */}
-              <div className="space-y-1.5">
-                <Label htmlFor="cpf">CPF *</Label>
-                <Input
-                  id="cpf"
-                  value={form.cpf}
-                  onChange={(e) => setForm(prev => ({ ...prev, cpf: formatCPF(e.target.value) }))}
-                  placeholder="000.000.000-00"
-                  maxLength={14}
-                />
-              </div>
-
-              {/* Data de Nascimento */}
-              <div className="space-y-1.5">
-                <Label htmlFor="birth_date">Data de Nascimento *</Label>
-                <Input
-                  id="birth_date"
-                  type="date"
-                  value={form.birth_date}
-                  onChange={(e) => setForm(prev => ({ ...prev, birth_date: e.target.value }))}
-                />
-              </div>
-            </div>
-
-            {/* Telefone */}
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">Telefone / WhatsApp</Label>
-              <Input
-                id="phone"
-                value={form.phone}
-                onChange={(e) => setForm(prev => ({ ...prev, phone: formatPhone(e.target.value) }))}
-                placeholder="(00) 00000-0000"
-                maxLength={15}
-              />
-            </div>
-
-            {/* Endereço */}
-            <div className="border-t pt-4 mt-4">
-              <p className="text-sm font-semibold flex items-center gap-1.5 mb-3">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                Endereço *
-              </p>
-
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                <div className="col-span-2 space-y-1.5">
-                  <Label htmlFor="cep">CEP *</Label>
-                  <Input
-                    id="cep"
-                    value={form.address_cep}
-                    onChange={(e) => {
-                      const val = formatCEP(e.target.value);
-                      setForm(prev => ({ ...prev, address_cep: val }));
-                      if (val.replace(/\D/g, '').length === 8) handleCepLookup(val);
-                    }}
-                    placeholder="00000-000"
-                    maxLength={9}
-                  />
-                </div>
-                <div className="flex items-end">
-                  {fetchingCep && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mb-3" />}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                <div className="col-span-2 space-y-1.5">
-                  <Label htmlFor="street">Rua *</Label>
-                  <Input
-                    id="street"
-                    value={form.address_street}
-                    onChange={(e) => setForm(prev => ({ ...prev, address_street: e.target.value }))}
-                    placeholder="Rua / Avenida"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="number">Nº *</Label>
-                  <Input
-                    id="number"
-                    value={form.address_number}
-                    onChange={(e) => setForm(prev => ({ ...prev, address_number: e.target.value }))}
-                    placeholder="123"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5 mb-3">
-                <Label htmlFor="complement">Complemento</Label>
-                <Input
-                  id="complement"
-                  value={form.address_complement}
-                  onChange={(e) => setForm(prev => ({ ...prev, address_complement: e.target.value }))}
-                  placeholder="Apto, Sala, etc."
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="neighborhood">Bairro *</Label>
-                  <Input
-                    id="neighborhood"
-                    value={form.address_neighborhood}
-                    onChange={(e) => setForm(prev => ({ ...prev, address_neighborhood: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="city">Cidade *</Label>
-                  <Input
-                    id="city"
-                    value={form.address_city}
-                    onChange={(e) => setForm(prev => ({ ...prev, address_city: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="state">UF *</Label>
-                  <Input
-                    id="state"
-                    value={form.address_state}
-                    onChange={(e) => setForm(prev => ({ ...prev, address_state: e.target.value.toUpperCase().slice(0, 2) }))}
-                    placeholder="CE"
-                    maxLength={2}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center mt-4">
-            {user?.isAdmin ? (
-              <Button variant="ghost" size="sm" onClick={handleDismiss} className="text-muted-foreground text-xs">
-                Pular por agora
-              </Button>
-            ) : (
-              <div />
-            )}
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Salvar Cadastro
-            </Button>
-          </div>
+          {formContent}
         </DialogContent>
       </Dialog>
     </>
