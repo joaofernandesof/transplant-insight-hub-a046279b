@@ -246,10 +246,10 @@ export default function ModuleOverridesAdmin() {
         </Card>
 
         {/* Table */}
-        <Card>
+        <Card className="bg-slate-800/60 border-slate-700/50">
           <CardHeader>
-            <CardTitle>Liberações Ativas</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-white">Liberações Ativas</CardTitle>
+            <CardDescription className="text-slate-400">
               {filteredOverrides.length} liberação(ões) encontrada(s)
             </CardDescription>
           </CardHeader>
