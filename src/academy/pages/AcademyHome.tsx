@@ -55,7 +55,7 @@ export function AcademyHome() {
       <main className="px-3 sm:px-4 lg:px-6 pt-16 lg:pt-6 pb-6 space-y-4 sm:space-y-6 w-full max-w-full">
         {/* Portal Banner */}
         <PortalBanner
-          portal="academy"
+          portal="neoacademy"
           userName={user?.fullName}
           icon={<GraduationCap className="h-6 w-6 text-white" />}
           rightContent={

@@ -98,7 +98,7 @@ const PORTAL_ACCENT: Record<Portal, string> = {
 };
 
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
-const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'];
+const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'];
 
 export function AccessMatrixTable({
   permissions,

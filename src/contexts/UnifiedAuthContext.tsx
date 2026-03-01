@@ -62,7 +62,7 @@ export interface UserContext {
 
 // Compatibilidade com código legado
 export type NeoHubProfile = ProfileKey;
-export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed';
+export type Portal = 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'avivar' | 'ipromed';
 
 // Mapeamento perfil -> portais
 export const PROFILE_PORTAL_MAP: Record<ProfileKey, Portal[]> = {

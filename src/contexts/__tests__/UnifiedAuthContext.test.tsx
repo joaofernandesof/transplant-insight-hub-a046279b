@@ -88,7 +88,7 @@ describe('UnifiedAuthContext', () => {
 
     describe('canAccessPortal', () => {
       it('should allow admin to access any portal', () => {
-        const portals: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'];
+        const portals: Portal[] = ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar'];
         portals.forEach(portal => {
           expect(canAccessPortal('administrador', portal)).toBe(true);
         });
