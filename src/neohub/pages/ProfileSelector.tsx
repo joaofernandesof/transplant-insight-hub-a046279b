@@ -47,13 +47,13 @@ const SYSTEM_MODULES: SystemModule[] = [
     adminOnly: true,
   },
   {
-    key: 'academy',
-    name: 'Academy IBRAMEC',
+    key: 'neoacademy',
+    name: 'NeoAcademy',
     description: 'Cursos, aulas e certificações',
     icon: GraduationCap,
-    route: '/academy',
+    route: '/neoacademy',
     color: 'bg-emerald-500',
-    portalKey: 'academy',
+    portalKey: 'neoacademy',
     requiredProfiles: ['aluno', 'administrador'],
   },
   {
