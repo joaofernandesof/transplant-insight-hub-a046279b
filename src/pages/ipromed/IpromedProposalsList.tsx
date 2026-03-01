@@ -33,16 +33,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmActionDialog } from "@/components/shared/ConfirmActionDialog";
 import { useProposals, useDeleteProposal, useSendProposal, useAcceptProposal, useRejectProposal, type Proposal } from "./hooks/useIpromedProposals";
 import { IpromedPricingTables } from "./components/IpromedPricingTables";
 import { format, isPast, formatDistanceToNow } from "date-fns";
