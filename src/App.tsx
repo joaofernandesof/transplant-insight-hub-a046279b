@@ -557,7 +557,11 @@ import Day2SurveyPage from './academy/pages/Day2SurveyPage';
 
 // Academy portal removed - all redirected to NeoAcademy
 function AcademyRoutes() {
-  return <Navigate to="/neoacademy" replace />;
+  const location = useLocation();
+  // Preserve sub-path: /academy/exams → /neoacademy/exams
+  const subPath = location.pathname.replace(/^\/academy\/?/, '');
+  const target = subPath ? `/neoacademy/${subPath}` : '/neoacademy';
+  return <Navigate to={target + location.search + location.hash} replace />;
 }
 
 // ====================================
