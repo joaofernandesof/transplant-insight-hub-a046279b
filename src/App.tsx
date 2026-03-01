@@ -869,6 +869,7 @@ function AppRoutes() {
           ==================================== */}
       <Route path="/admin-portal" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
       <Route path="/admin-portal/monitoring" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><NeoHubMonitoring /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/birthdays" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><BirthdayControlPage /></AdminLayout></Suspense></AdminRoute>} />
       <Route path="/admin-portal/*" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
       
       {/* ====================================
