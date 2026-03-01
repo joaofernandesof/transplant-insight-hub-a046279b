@@ -29,7 +29,7 @@ export type AcademyModuleCode = typeof ACADEMY_MODULES[keyof typeof ACADEMY_MODU
 // Metadados dos módulos Academy para UI
 export const ACADEMY_MODULE_INFO: Record<AcademyModuleCode, { name: string; description: string; icon: string; color: string }> = {
   academy_ibramec: {
-    name: 'Academy IBRAMEC',
+    name: 'NeoAcademy',
     description: 'Formação presencial e online em tricologia',
     icon: 'GraduationCap',
     color: 'from-blue-500 to-blue-600',

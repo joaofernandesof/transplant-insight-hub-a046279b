@@ -12,11 +12,11 @@ export type NeoHubProfile =
   | 'cliente_avivar'
   | 'ipromed';
 
-export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neoacademy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay' | 'neorh';
+export type Portal = 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay' | 'neorh';
 
 // Mapeamento de perfis para portais
 export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
-  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay', 'neorh'],
+  administrador: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay', 'neorh'],
   licenciado: ['neolicense', 'hotleads'],
   colaborador: ['neoteam', 'neorh'],
   medico: ['neoteam'],
@@ -54,7 +54,6 @@ export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
 export const PORTAL_NAMES: Record<Portal, string> = {
   neocare: 'NeoCare',
   neoteam: 'NeoTeam',
-  academy: 'IBRAMEC',
   neoacademy: 'NeoAcademy',
   neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
@@ -116,7 +115,7 @@ export function canAccessRoute(profile: NeoHubProfile | null, route: string): bo
 export function getPortalFromRoute(route: string): Portal | null {
   if (route.startsWith('/neocare')) return 'neocare';
   if (route.startsWith('/neoteam')) return 'neoteam';
-  if (route.startsWith('/academy')) return 'academy';
+  if (route.startsWith('/academy')) return 'neoacademy';
   if (route.startsWith('/hotleads')) return 'hotleads';
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/avivar')) return 'avivar';
@@ -154,13 +153,6 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neoteam_medical_records', name: 'Prontuários', route: '/neoteam/medical-records', icon: 'FileText' },
     { code: 'neoteam_documents', name: 'Documentos', route: '/neoteam/documents', icon: 'Folder' },
     { code: 'neoteam_profile', name: 'Configurações', route: '/neoteam/settings', icon: 'Settings' },
-  ],
-  academy: [
-    { code: 'academy_home', name: 'Início', route: '/neoacademy', icon: 'Home' },
-    { code: 'academy_courses', name: 'Cursos', route: '/neoacademy/catalog', icon: 'BookOpen' },
-    { code: 'academy_certificates', name: 'Certificados', route: '/neoacademy/certificates', icon: 'Award' },
-    { code: 'academy_community', name: 'Comunidade', route: '/neoacademy/community', icon: 'Users' },
-    { code: 'academy_profile', name: 'Configurações', route: '/neoacademy/profile', icon: 'Settings' },
   ],
   neoacademy: [
     { code: 'neoacademy_home', name: 'Dashboard', route: '/neoacademy', icon: 'Home' },

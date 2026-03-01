@@ -351,7 +351,7 @@ export default function AdminDashboard() {
           </h2>
           <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
             {[
-              { id: 'academy', title: 'Aluno', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
+              { id: 'neoacademy', title: 'NeoAcademy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/neoacademy' },
               { id: 'license', title: 'Licenciado', icon: Award, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
               { id: 'patient', title: 'Paciente', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
               { id: 'staff', title: 'Colaborador', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },

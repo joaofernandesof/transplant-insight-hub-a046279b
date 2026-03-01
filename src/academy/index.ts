@@ -1,4 +1,4 @@
-// Academy Module (Portal do Aluno - IBRAMEC)
+// Academy Module (NeoAcademy)
 export { ConectaCapilarCard } from './components/ConectaCapilarCard';
 export { PresentialCourseCard } from './components/PresentialCourseCard';
 export { IbramecLogo } from './components/IbramecLogo';

@@ -1,5 +1,5 @@
 /**
- * Academy Reports - Relatórios do Portal do Aluno
+ * Academy Reports - Relatórios do NeoAcademy
  */
 import { ReportsPageTemplate, ReportDefinition } from '@/components/reports/ReportsPageTemplate';
 import { BookOpen, Award, Users, GraduationCap, BarChart3, FileCheck } from 'lucide-react';

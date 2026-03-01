@@ -22,7 +22,7 @@ import { VisionIcon } from '@/components/icons/VisionIcon';
 const modules = [
   { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Portal do Paciente' },
   { id: 'neoteam', name: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-500', description: 'Portal do Colaborador' },
-  { id: 'academy', name: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Academia de Ensino' },
+  { id: 'neoacademy', name: 'NeoAcademy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Cursos e Certificações' },
   { id: 'neolicense', name: 'Licença', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Portal do Licenciado' },
   { id: 'avivar', name: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-500', description: 'CRM + IA para Vendas' },
   { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Proteção Médico-Legal' },

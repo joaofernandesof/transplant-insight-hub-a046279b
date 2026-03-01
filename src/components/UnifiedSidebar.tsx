@@ -95,7 +95,7 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
 };
 
 // Portal detection and metadata
-type PortalKey = 'admin' | 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'hotleads' | 'neorh' | 'main';
+type PortalKey = 'admin' | 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'avivar' | 'hotleads' | 'neorh' | 'main';
 
 interface PortalConfig {
   name: string;
@@ -110,7 +110,7 @@ const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
   admin: { name: 'Administração', color: 'text-purple-700', bgColor: 'bg-purple-100', headerBg: 'bg-gradient-to-r from-purple-900 to-purple-800', headerText: 'text-white', icon: Crown },
   neocare: { name: 'NeoCare', color: 'text-rose-700', bgColor: 'bg-rose-100', headerBg: 'bg-gradient-to-r from-rose-900 to-rose-800', headerText: 'text-white', icon: Heart },
   neoteam: { name: 'NeoTeam', color: 'text-blue-700', bgColor: 'bg-blue-100', headerBg: 'bg-gradient-to-r from-blue-900 to-blue-800', headerText: 'text-white', icon: Users },
-  academy: { name: 'Academy', color: 'text-emerald-700', bgColor: 'bg-emerald-100', headerBg: 'bg-gradient-to-r from-emerald-900 to-emerald-800', headerText: 'text-white', icon: GraduationCap },
+  neoacademy: { name: 'NeoAcademy', color: 'text-emerald-700', bgColor: 'bg-emerald-100', headerBg: 'bg-gradient-to-r from-emerald-900 to-emerald-800', headerText: 'text-white', icon: GraduationCap },
   neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100', headerBg: 'bg-gradient-to-r from-amber-900 to-amber-800', headerText: 'text-white', icon: Building2 },
   avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-900 to-orange-800', headerText: 'text-white', icon: Zap },
   hotleads: { name: 'HotLeads', color: 'text-orange-500', bgColor: 'bg-orange-500/10', headerBg: 'bg-gradient-to-r from-orange-600 to-red-600', headerText: 'text-white', icon: Flame },
@@ -121,7 +121,7 @@ const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
 function detectPortal(pathname: string): PortalKey {
   if (pathname.startsWith('/neocare')) return 'neocare';
   if (pathname.startsWith('/neoteam')) return 'neoteam';
-  if (pathname.startsWith('/academy')) return 'academy';
+  if (pathname.startsWith('/academy')) return 'neoacademy';
   if (pathname.startsWith('/hotleads')) return 'hotleads';
   if (pathname.startsWith('/neolicense')) return 'neolicense';
   if (pathname.startsWith('/avivar')) return 'avivar';
@@ -208,7 +208,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
   const isActive = (route: string) => {
     if (route === location.pathname) return true;
     // For portal root routes (e.g. /hotleads, /neolicense), only match exactly
-    const portalRoots = ['hotleads', 'neolicense', 'avivar', 'academy', 'neocare', 'neoteam', 'flow', 'neopay', 'vision', 'postvenda'];
+    const portalRoots = ['hotleads', 'neolicense', 'avivar', 'neoacademy', 'neocare', 'neoteam', 'flow', 'neopay', 'vision', 'postvenda'];
     const isPortalRoot = portalRoots.some(p => route === `/${p}`);
     if (isPortalRoot) return false;
     // Match parent routes for nested paths

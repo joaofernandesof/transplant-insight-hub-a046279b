@@ -50,8 +50,7 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
 const PORTAL_COLORS: Record<Portal, string> = {
   neocare: 'from-rose-500 to-pink-500',
   neoteam: 'from-blue-500 to-indigo-500',
-  academy: 'from-emerald-500 to-green-500',
-  neoacademy: 'from-violet-500 to-fuchsia-500',
+  neoacademy: 'from-emerald-500 to-green-500',
   neolicense: 'from-amber-400 to-yellow-500',
   avivar: 'from-orange-500 to-red-500',
   ipromed: 'from-[#00629B] to-[#004d7a]',
@@ -64,8 +63,7 @@ const PORTAL_COLORS: Record<Portal, string> = {
 const PORTAL_BG_COLORS: Record<Portal, string> = {
   neocare: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800',
   neoteam: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800',
-  academy: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800',
-  neoacademy: 'bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800',
+  neoacademy: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800',
   neolicense: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800',
   avivar: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800',
   ipromed: 'bg-[#00629B]/10 dark:bg-[#00629B]/20 border-[#00629B]/30 dark:border-[#00629B]/50',
@@ -76,7 +74,7 @@ const PORTAL_BG_COLORS: Record<Portal, string> = {
 };
 
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
-const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'];
+const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'];
 
 export default function AccessMatrix() {
   const { 

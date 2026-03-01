@@ -89,7 +89,7 @@ export function useFeatureFlags(): UseFeatureFlagsReturn {
     // Se não existe flag, usar lista hardcoded de bloqueio
     if (!flag) {
       // Módulos explicitamente permitidos no mobile
-      const allowedModules = ['academy', 'profile', 'notifications'];
+      const allowedModules = ['neoacademy', 'profile', 'notifications'];
       return allowedModules.some(m => moduleCode.startsWith(m));
     }
     

@@ -88,14 +88,14 @@ describe('UnifiedAuthContext', () => {
 
     describe('canAccessPortal', () => {
       it('should allow admin to access any portal', () => {
-        const portals: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'];
+        const portals: Portal[] = ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar'];
         portals.forEach(portal => {
           expect(canAccessPortal('administrador', portal)).toBe(true);
         });
       });
 
-      it('should allow aluno to access only academy', () => {
-        expect(canAccessPortal('aluno', 'academy')).toBe(true);
+      it('should allow aluno to access only neoacademy', () => {
+        expect(canAccessPortal('aluno', 'neoacademy')).toBe(true);
         expect(canAccessPortal('aluno', 'neocare')).toBe(false);
         expect(canAccessPortal('aluno', 'neoteam')).toBe(false);
       });
@@ -103,16 +103,16 @@ describe('UnifiedAuthContext', () => {
       it('should allow licenciado to access neolicense and neoteam', () => {
         expect(canAccessPortal('licenciado', 'neolicense')).toBe(true);
         expect(canAccessPortal('licenciado', 'neoteam')).toBe(true);
-        expect(canAccessPortal('licenciado', 'academy')).toBe(false);
+        expect(canAccessPortal('licenciado', 'neoacademy')).toBe(false);
       });
 
       it('should allow paciente to access only neocare', () => {
         expect(canAccessPortal('paciente', 'neocare')).toBe(true);
-        expect(canAccessPortal('paciente', 'academy')).toBe(false);
+        expect(canAccessPortal('paciente', 'neoacademy')).toBe(false);
       });
 
       it('should return false for null profile', () => {
-        expect(canAccessPortal(null, 'academy')).toBe(false);
+        expect(canAccessPortal(null, 'neoacademy')).toBe(false);
       });
     });
 
@@ -187,7 +187,7 @@ describe('UnifiedAuthContext', () => {
       expect(result.current.hasPermission('academy_ibramec:read')).toBe(false);
       expect(result.current.canAccessModule('academy_ibramec')).toBe(false);
       expect(result.current.hasModule('academy_ibramec')).toBe(false);
-      expect(result.current.canAccess('academy')).toBe(false);
+      expect(result.current.canAccess('neoacademy')).toBe(false);
     });
   });
 

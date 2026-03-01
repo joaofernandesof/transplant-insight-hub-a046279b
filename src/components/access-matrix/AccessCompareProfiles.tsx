@@ -40,7 +40,7 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
 };
 
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
-const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'];
+const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed'];
 
 export function AccessCompareProfiles({
   permissions,

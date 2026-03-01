@@ -46,7 +46,7 @@ const routeLabels: Record<string, string> = {
   '/neocare/my-invoices': 'Minhas Faturas',
   
   // ====================================
-  // Academy (Portal do Aluno - IBRAMEC)
+  // NeoAcademy
   // ====================================
   '/academy': 'Início',
   '/academy/courses': 'Cursos',

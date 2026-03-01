@@ -20,7 +20,7 @@ const PORTALS = [
   { id: 'admin', name: 'Admin', route: '/admin', color: 'bg-red-500', desc: 'Administração central do sistema', modules: ['dashboard', 'licensees', 'metrics', 'settings', 'sentinel'] },
   { id: 'neoteam', name: 'NeoTeam', route: '/neoteam', color: 'bg-blue-500', desc: 'Gestão de equipe e colaboradores', modules: ['staff', 'schedules', 'reports', 'performance'] },
   { id: 'neocare', name: 'NeoCare', route: '/portal', color: 'bg-emerald-500', desc: 'Portal do paciente', modules: ['appointments', 'exams', 'orientations', 'history'] },
-  { id: 'academy', name: 'Academy', route: '/academy', color: 'bg-purple-500', desc: 'Plataforma educacional e cursos', modules: ['courses', 'classes', 'certificates', 'exams'] },
+  { id: 'neoacademy', name: 'NeoAcademy', route: '/neoacademy', color: 'bg-purple-500', desc: 'Plataforma educacional e cursos', modules: ['courses', 'classes', 'certificates', 'exams'] },
   { id: 'neolicense', name: 'NeoLicense', route: '/neolicense', color: 'bg-amber-500', desc: 'Portal do licenciado', modules: ['metrics', 'marketing', 'financial', 'university'] },
   { id: 'avivar', name: 'Avivar', route: '/avivar', color: 'bg-pink-500', desc: 'Marketing, CRM e automação com IA', modules: ['leads', 'crm', 'campaigns', 'inbox', 'cadences', 'agenda'] },
   { id: 'ipromed', name: 'CPG Advocacia', route: '/cpg', color: 'bg-indigo-500', desc: 'Portal jurídico e compliance', modules: ['clients', 'contracts', 'exams', 'journey', 'legal-hub'] },
