@@ -468,6 +468,7 @@ function NeoTeamRoutes() {
   const ProcessLibraryPage = lazy(() => import('@/pages/neoteam/processos/ProcessLibraryPage'));
   const ProcessEditorPage = lazy(() => import('@/pages/neoteam/processos/ProcessEditorPage'));
   const NeoTeamPopsPage = lazy(() => import('@/pages/neoteam/pops/NeoTeamPopsPage'));
+  const NeoTeamDiaryPage = lazy(() => import('@/pages/neoteam/diary/NeoTeamDiaryPage'));
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
