@@ -103,7 +103,7 @@ describe('UnifiedAuthContext', () => {
       it('should allow licenciado to access neolicense and neoteam', () => {
         expect(canAccessPortal('licenciado', 'neolicense')).toBe(true);
         expect(canAccessPortal('licenciado', 'neoteam')).toBe(true);
-        expect(canAccessPortal('licenciado', 'academy')).toBe(false);
+        expect(canAccessPortal('licenciado', 'neoacademy')).toBe(false);
       });
 
       it('should allow paciente to access only neocare', () => {
