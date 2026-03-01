@@ -650,8 +650,8 @@ export default function AdminPanel() {
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                                 {!isCurrentUser && (
-                                  <Button
-                                    variant="outline"
+                                   <Button
+                                    variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700"
                                     size="sm"
                                     onClick={() => toggleUserRole(userProfile.user_id, role)}
                                   >
