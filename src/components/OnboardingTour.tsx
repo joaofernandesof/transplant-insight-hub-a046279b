@@ -57,7 +57,7 @@ const onboardingSteps: OnboardingStep[] = [
     title: "Academia ByNeofolic",
     description: "Acesse trilhas de capacitação completas, aulas gravadas e imersões exclusivas para dominar todas as técnicas.",
     icon: <Video className="h-8 w-8" />,
-    route: "/university",
+    route: "/neoacademy",
     color: "text-purple-600",
     bgColor: "bg-purple-100"
   },
