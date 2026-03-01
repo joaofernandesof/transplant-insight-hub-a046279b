@@ -30,8 +30,8 @@ export function ModuleSwitcher({
   const { isAdmin } = useUnifiedAuth();
 
   const handleClick = () => {
-    // Admin vai para o portal-selector também para escolher ver como outro perfil
-    navigate('/portal-selector');
+    // switch=1 força exibição do seletor mesmo com 1 portal
+    navigate('/portal-selector?switch=1');
   };
 
   if (variant === "icon") {
