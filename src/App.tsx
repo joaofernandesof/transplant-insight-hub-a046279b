@@ -72,6 +72,7 @@ const ClinicComparison = lazy(() => import("./pages/ClinicComparison"));
 
 // Admin Portal with dedicated layout
 const AdminPortalHome = lazy(() => import("./pages/admin/AdminHome"));
+const BirthdayControlPage = lazy(() => import("./pages/admin/BirthdayControlPage"));
 const AdminLayout = lazy(() => import("./pages/admin/components/AdminLayout"));
 const LicenseeHome = lazy(() => import("./pages/LicenseeHome"));
 const LicenseesPanel = lazy(() => import("./pages/LicenseesPanel"));
