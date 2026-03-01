@@ -629,12 +629,8 @@ function NeoLicenseRoutes() {
           <Routes>
             <Route index element={<LicenseeHome />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="university" element={<University />} />
-            <Route path="university/trilha/:trackId" element={<TrackDetail />} />
-            <Route path="university/exams" element={<ExamsList />} />
-            <Route path="university/exams/:examId/take" element={<ExamTaking />} />
-            <Route path="university/exams/:examId/results/:attemptId" element={<ExamResults />} />
-            <Route path="university/exams/admin" element={<ExamsAdmin />} />
+            <Route path="university" element={<Navigate to="/neoacademy" replace />} />
+            <Route path="university/*" element={<Navigate to="/neoacademy" replace />} />
             <Route path="materials" element={<Materials />} />
             <Route path="partners" element={<Partners />} />
             <Route path="surgery" element={<SurgerySchedule />} />
