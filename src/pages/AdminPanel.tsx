@@ -527,7 +527,7 @@ export default function AdminPanel() {
 
           {/* Users Tab */}
           <TabsContent value="users">
-            <Card>
+            <Card className="bg-slate-800/60 border-slate-700/50">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
