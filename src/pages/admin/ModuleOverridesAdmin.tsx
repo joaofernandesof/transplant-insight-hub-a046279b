@@ -265,13 +265,13 @@ export default function ModuleOverridesAdmin() {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Módulo</TableHead>
-                    <TableHead>Permissões</TableHead>
-                    <TableHead>Expiração</TableHead>
-                    <TableHead>Motivo</TableHead>
-                    <TableHead className="w-[80px]">Ações</TableHead>
+                  <TableRow className="border-slate-700/50 hover:bg-transparent">
+                    <TableHead className="text-slate-400">Usuário</TableHead>
+                    <TableHead className="text-slate-400">Módulo</TableHead>
+                    <TableHead className="text-slate-400">Permissões</TableHead>
+                    <TableHead className="text-slate-400">Expiração</TableHead>
+                    <TableHead className="text-slate-400">Motivo</TableHead>
+                    <TableHead className="w-[80px] text-slate-400">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
