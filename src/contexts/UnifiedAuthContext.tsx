@@ -70,7 +70,7 @@ export const PROFILE_PORTAL_MAP: Record<ProfileKey, Portal[]> = {
   licenciado: ['neolicense', 'neoteam'],
   colaborador: ['neoteam'],
   medico: ['neoteam'],
-  aluno: ['academy'],
+  aluno: ['neoacademy'],
   paciente: ['neocare'],
   cliente_avivar: ['avivar'],
   ipromed: ['ipromed'],

@@ -121,7 +121,7 @@ const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
 function detectPortal(pathname: string): PortalKey {
   if (pathname.startsWith('/neocare')) return 'neocare';
   if (pathname.startsWith('/neoteam')) return 'neoteam';
-  if (pathname.startsWith('/academy')) return 'academy';
+  if (pathname.startsWith('/academy')) return 'neoacademy';
   if (pathname.startsWith('/hotleads')) return 'hotleads';
   if (pathname.startsWith('/neolicense')) return 'neolicense';
   if (pathname.startsWith('/avivar')) return 'avivar';

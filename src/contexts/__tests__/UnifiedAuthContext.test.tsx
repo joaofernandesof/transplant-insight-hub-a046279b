@@ -187,7 +187,7 @@ describe('UnifiedAuthContext', () => {
       expect(result.current.hasPermission('academy_ibramec:read')).toBe(false);
       expect(result.current.canAccessModule('academy_ibramec')).toBe(false);
       expect(result.current.hasModule('academy_ibramec')).toBe(false);
-      expect(result.current.canAccess('academy')).toBe(false);
+      expect(result.current.canAccess('neoacademy')).toBe(false);
     });
   });
 

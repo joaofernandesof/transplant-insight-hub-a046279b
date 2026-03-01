@@ -85,8 +85,7 @@ const PORTAL_ROW_COLORS: Record<Portal, string> = {
 const PORTAL_ACCENT: Record<Portal, string> = {
   neocare: 'border-l-rose-500',
   neoteam: 'border-l-blue-500',
-  academy: 'border-l-emerald-500',
-  neoacademy: 'border-l-violet-500',
+  neoacademy: 'border-l-emerald-500',
   neolicense: 'border-l-amber-500',
   avivar: 'border-l-orange-500',
   ipromed: 'border-l-[#00629B]',

@@ -154,7 +154,7 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neoteam_documents', name: 'Documentos', route: '/neoteam/documents', icon: 'Folder' },
     { code: 'neoteam_profile', name: 'Configurações', route: '/neoteam/settings', icon: 'Settings' },
   ],
-  academy: [
+  neoacademy: [
     { code: 'academy_home', name: 'Início', route: '/neoacademy', icon: 'Home' },
     { code: 'academy_courses', name: 'Cursos', route: '/neoacademy/catalog', icon: 'BookOpen' },
     { code: 'academy_certificates', name: 'Certificados', route: '/neoacademy/certificates', icon: 'Award' },
