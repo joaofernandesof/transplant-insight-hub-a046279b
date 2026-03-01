@@ -72,8 +72,7 @@ const PROFILE_COLORS: Record<NeoHubProfile, string> = {
 const PORTAL_ROW_COLORS: Record<Portal, string> = {
   neocare: 'bg-rose-50/60 dark:bg-rose-950/20',
   neoteam: 'bg-blue-50/60 dark:bg-blue-950/20',
-  academy: 'bg-emerald-50/60 dark:bg-emerald-950/20',
-  neoacademy: 'bg-violet-50/60 dark:bg-violet-950/20',
+  neoacademy: 'bg-emerald-50/60 dark:bg-emerald-950/20',
   neolicense: 'bg-amber-50/60 dark:bg-amber-950/20',
   avivar: 'bg-orange-50/60 dark:bg-orange-950/20',
   ipromed: 'bg-[#00629B]/5 dark:bg-[#00629B]/10',
