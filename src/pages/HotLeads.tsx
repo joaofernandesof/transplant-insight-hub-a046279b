@@ -1081,6 +1081,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
       <SaleCelebrationPopup />
     </div>
+    </PendingSalesGate>
     </CompleteProfileGate>
   );
 }
