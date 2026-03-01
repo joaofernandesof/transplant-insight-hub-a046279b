@@ -30,6 +30,7 @@ const routeLabels: Record<string, string> = {
   '/neoteam/documents': 'Documentos',
   '/neoteam/staff-roles': 'Cargos & Funções',
   '/neoteam/pops': 'POPs',
+  '/neoteam/diario': 'Diário de Bordo',
   '/neoteam/settings': 'Configurações',
   // NeoCare routes (Portal do Paciente)
   '/neocare': 'Início',
