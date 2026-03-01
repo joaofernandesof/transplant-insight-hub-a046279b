@@ -216,17 +216,17 @@ export default function ModuleOverridesAdmin() {
         </Card>
 
         {/* Filters */}
-        <Card>
+        <Card className="bg-slate-800/60 border-slate-700/50">
           <CardContent className="pt-4">
             <div className="flex flex-wrap gap-4">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                   <Input
                     placeholder="Buscar por nome ou email..."
                     value={filterSearch}
                     onChange={(e) => setFilterSearch(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                   />
                 </div>
               </div>
