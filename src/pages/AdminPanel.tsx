@@ -686,20 +686,20 @@ export default function AdminPanel() {
 
           {/* Permissions Matrix Tab */}
           <TabsContent value="permissions">
-            <Card>
+            <Card className="bg-slate-800/60 border-slate-700/50">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-white">
                       <Grid3X3 className="h-5 w-5" />
                       Matriz de Permissões por Módulo
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-slate-400">
                       Defina quem pode Ver, Editar, Inserir e Excluir em cada módulo do sistema
                     </CardDescription>
                   </div>
                   <Select value={permissionFilter} onValueChange={setPermissionFilter}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-40 bg-slate-900/50 border-slate-700 text-white">
                       <Filter className="h-4 w-4 mr-2" />
                       <SelectValue placeholder="Categoria" />
                     </SelectTrigger>
@@ -713,18 +713,18 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Legend */}
-                <div className="flex flex-wrap items-center gap-4 mt-4 p-3 bg-muted/50 rounded-lg text-sm">
-                  <span className="font-medium text-muted-foreground">Legenda:</span>
+                <div className="flex flex-wrap items-center gap-4 mt-4 p-3 bg-slate-900/50 rounded-lg text-sm text-slate-300">
+                  <span className="font-medium text-slate-400">Legenda:</span>
                   <div className="flex items-center gap-1.5">
-                    <Eye className="h-3.5 w-3.5 text-blue-600" />
+                    <Eye className="h-3.5 w-3.5 text-blue-400" />
                     <span>Visualizar</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Pencil className="h-3.5 w-3.5 text-amber-600" />
+                    <Pencil className="h-3.5 w-3.5 text-amber-400" />
                     <span>Editar / Inserir</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                    <Trash2 className="h-3.5 w-3.5 text-red-400" />
                     <span>Excluir</span>
                   </div>
                 </div>
