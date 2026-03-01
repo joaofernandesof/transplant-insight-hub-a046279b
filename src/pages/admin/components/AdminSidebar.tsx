@@ -19,6 +19,7 @@ import {
   UserPlus,
   Lock,
   LogOut,
+  Cake,
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ const managementMenu = [
 // Menu do sistema
 const systemMenu = [
   { id: 'monitoring', label: 'Monitoramento', icon: Activity, href: '/admin-portal/monitoring' },
+  { id: 'birthdays', label: 'Aniversários', icon: Cake, href: '/admin/birthdays' },
   { id: 'announcements', label: 'Anúncios', icon: Bell, href: '/admin/announcements' },
   { id: 'travas-agenda', label: 'Travas da Agenda', icon: Lock, href: '/admin/travas-agenda' },
   { id: 'event-logs', label: 'Logs', icon: Activity, href: '/admin/event-logs' },

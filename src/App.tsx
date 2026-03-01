@@ -72,6 +72,7 @@ const ClinicComparison = lazy(() => import("./pages/ClinicComparison"));
 
 // Admin Portal with dedicated layout
 const AdminPortalHome = lazy(() => import("./pages/admin/AdminHome"));
+const BirthdayControlPage = lazy(() => import("./pages/admin/BirthdayControlPage"));
 const AdminLayout = lazy(() => import("./pages/admin/components/AdminLayout"));
 const LicenseeHome = lazy(() => import("./pages/LicenseeHome"));
 const LicenseesPanel = lazy(() => import("./pages/LicenseesPanel"));
@@ -868,6 +869,7 @@ function AppRoutes() {
           ==================================== */}
       <Route path="/admin-portal" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
       <Route path="/admin-portal/monitoring" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><NeoHubMonitoring /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/birthdays" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><BirthdayControlPage /></AdminLayout></Suspense></AdminRoute>} />
       <Route path="/admin-portal/*" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
       
       {/* ====================================

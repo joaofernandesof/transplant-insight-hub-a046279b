@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import NotificationDialog from '@/components/NotificationDialog';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { useGlobalMetrics, formatNumber, formatCurrency, formatPercentage } from '@/hooks/useGlobalMetrics';
+import { AdminBirthdayPopup } from './components/AdminBirthdayPopup';
 import {
   Users,
   Loader2,
@@ -117,6 +118,7 @@ export default function AdminHome() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 p-3 lg:p-4 overflow-x-hidden w-full space-y-4">
+      <AdminBirthdayPopup />
       <GlobalBreadcrumb />
 
       {/* Header Banner */}
