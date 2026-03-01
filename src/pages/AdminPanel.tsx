@@ -762,8 +762,8 @@ export default function AdminPanel() {
                             >
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
-                                  <span className="font-medium text-sm">{mod.name}</span>
-                                  <Badge variant="outline" className="w-fit text-[10px] px-1.5 py-0">
+                                  <span className="font-medium text-sm text-white">{mod.name}</span>
+                                  <Badge variant="outline" className="w-fit text-[10px] px-1.5 py-0 border-slate-600 text-slate-400">
                                     {mod.category}
                                   </Badge>
                                 </div>
