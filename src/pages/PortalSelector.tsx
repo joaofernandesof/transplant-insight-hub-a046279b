@@ -170,6 +170,16 @@ export default function PortalSelector() {
   const navigate = useNavigate();
   const { user, isLoading, setActiveProfile, logout } = useUnifiedAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  // Flag para forçar exibição do seletor (quando vem do ModuleSwitcher)
+  const [forceShow, setForceShow] = useState(false);
+
+  // Detectar se veio via navegação explícita (ModuleSwitcher / PortalSwitcherButton)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('switch') === '1') {
+      setForceShow(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !user) {
