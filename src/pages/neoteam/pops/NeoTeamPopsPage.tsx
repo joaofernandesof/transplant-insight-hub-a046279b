@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { ConfirmActionDialog } from "@/components/shared/ConfirmActionDialog";
 import { Plus, Search, FileText, Eye, Pencil, Trash2, BookOpen, Archive, Send } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
 const CATEGORIES = [
   { value: "clinico", label: "Clínico" },
