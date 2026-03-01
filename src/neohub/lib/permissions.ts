@@ -55,6 +55,7 @@ export const PORTAL_NAMES: Record<Portal, string> = {
   neocare: 'NeoCare',
   neoteam: 'NeoTeam',
   academy: 'IBRAMEC',
+  neoacademy: 'NeoAcademy',
   neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
   ipromed: 'CPG Advocacia',
