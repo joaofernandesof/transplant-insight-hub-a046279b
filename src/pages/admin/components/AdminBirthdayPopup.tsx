@@ -86,17 +86,17 @@ export function AdminBirthdayPopup() {
       // profiles
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, email, birth_date')
+        .select('id, name, email, birth_date')
         .not('birth_date', 'is', null);
 
       for (const u of profiles || []) {
         if (!u.birth_date) continue;
-        if (results.some(r => r.name === (u.full_name || u.email))) continue;
+        if (results.some(r => r.name === (u.name || u.email))) continue;
         const bd = new Date(u.birth_date + 'T12:00:00');
         if (bd.getMonth() === todayMonth && bd.getDate() === todayDay) {
           results.push({
             id: `profile-${u.id}`,
-            name: u.full_name || u.email || 'Sem nome',
+            name: u.name || u.email || 'Sem nome',
             age: calcAge(u.birth_date),
             source: 'profiles',
           });

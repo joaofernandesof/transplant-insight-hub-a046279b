@@ -104,7 +104,7 @@ export default function BirthdayControlPage() {
       // 3. profiles (com birth_date)
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, email, birth_date')
+        .select('id, name, email, birth_date')
         .not('birth_date', 'is', null);
 
       for (const u of profiles || []) {
@@ -115,7 +115,7 @@ export default function BirthdayControlPage() {
         const age = calcAge(u.birth_date);
         results.push({
           id: `profile-${u.id}`,
-          name: u.full_name || u.email || 'Sem nome',
+          name: u.name || u.email || 'Sem nome',
           email: u.email,
           phone: null,
           birth_date: u.birth_date,
