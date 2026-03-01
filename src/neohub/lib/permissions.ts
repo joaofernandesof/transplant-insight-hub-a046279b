@@ -176,7 +176,7 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neolicense_dashboard', name: 'Dashboard', route: '/neolicense/dashboard', icon: 'BarChart3' },
     { code: 'neolicense_hotleads', name: 'HotLeads', route: '/hotleads', icon: 'Flame' },
     { code: 'neolicense_surgery', name: 'Cirurgias', route: '/neolicense/surgery', icon: 'Calendar' },
-    { code: 'neolicense_university', name: 'Universidade', route: '/neolicense/university', icon: 'GraduationCap' },
+    { code: 'neolicense_university', name: 'NeoAcademy', route: '/neoacademy', icon: 'GraduationCap' },
     { code: 'neolicense_materials', name: 'Materiais', route: '/neolicense/materials', icon: 'FileText' },
     { code: 'neolicense_partners', name: 'Parceiros', route: '/neolicense/partners', icon: 'Handshake' },
     { code: 'neolicense_gamification', name: 'Conquistas', route: '/neolicense/achievements', icon: 'Trophy' },
