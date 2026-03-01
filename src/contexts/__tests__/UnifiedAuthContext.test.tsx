@@ -108,7 +108,7 @@ describe('UnifiedAuthContext', () => {
 
       it('should allow paciente to access only neocare', () => {
         expect(canAccessPortal('paciente', 'neocare')).toBe(true);
-        expect(canAccessPortal('paciente', 'academy')).toBe(false);
+        expect(canAccessPortal('paciente', 'neoacademy')).toBe(false);
       });
 
       it('should return false for null profile', () => {
