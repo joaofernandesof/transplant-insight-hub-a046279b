@@ -501,25 +501,25 @@ export default function AdminPanel() {
   return (
     <div className="p-6 lg:p-8 overflow-x-hidden w-full bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
         <div className="flex items-center gap-3 mb-6">
-          <Settings className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Configurações do Sistema</h1>
+          <Settings className="h-6 w-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-white">Configurações do Sistema</h1>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 mb-6">
-            <TabsTrigger value="users" className="flex items-center gap-2">
+          <TabsList className="grid grid-cols-4 mb-6 bg-slate-800/60 border border-slate-700/50">
+            <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Users className="h-4 w-4" />
               Usuários
             </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex items-center gap-2">
+            <TabsTrigger value="permissions" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Grid3X3 className="h-4 w-4" />
               Permissões
             </TabsTrigger>
-            <TabsTrigger value="visibility" className="flex items-center gap-2">
+            <TabsTrigger value="visibility" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Eye className="h-4 w-4" />
               Visibilidade
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Sliders className="h-4 w-4" />
               Geral
             </TabsTrigger>
@@ -527,12 +527,12 @@ export default function AdminPanel() {
 
           {/* Users Tab */}
           <TabsContent value="users">
-            <Card>
+            <Card className="bg-slate-800/60 border-slate-700/50">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <CardTitle>Gestão de Usuários</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-white">Gestão de Usuários</CardTitle>
+                    <CardDescription className="text-slate-400">
                       Gerencie permissões e dados dos usuários
                     </CardDescription>
                   </div>
@@ -543,11 +543,11 @@ export default function AdminPanel() {
                         placeholder="Buscar por nome, email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8 w-64"
+                        className="pl-8 w-64 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                       />
                     </div>
                     <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as any)}>
-                      <SelectTrigger className="w-36">
+                      <SelectTrigger className="w-36 bg-slate-900/50 border-slate-700 text-white">
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="Perfil" />
                       </SelectTrigger>
@@ -571,8 +571,8 @@ export default function AdminPanel() {
                 <ScrollArea className="w-full">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[250px]">
+                     <TableRow className="border-slate-700/50 hover:bg-transparent">
+                        <TableHead className="w-[250px] text-slate-400">
                           <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="gap-1">
                             Usuário
                             <SortIcon field="name" />
@@ -608,7 +608,7 @@ export default function AdminPanel() {
                         const displayName = userProfile.full_name || userProfile.name;
                         
                         return (
-                          <TableRow key={userProfile.id}>
+                          <TableRow key={userProfile.id} className="border-slate-700/50 hover:bg-slate-700/30">
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
@@ -619,11 +619,11 @@ export default function AdminPanel() {
                                 </Avatar>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium text-sm">{displayName}</span>
+                                    <span className="font-medium text-sm text-white">{displayName}</span>
                                     {isCurrentUser && <Badge variant="outline" className="text-xs">Você</Badge>}
                                   </div>
                                   {(userProfile.address_city || userProfile.city) && (
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-xs text-slate-400">
                                       {userProfile.address_city || userProfile.city}
                                       {(userProfile.address_state || userProfile.state) && `, ${userProfile.address_state || userProfile.state}`}
                                     </span>
@@ -631,8 +631,8 @@ export default function AdminPanel() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm">{userProfile.email}</TableCell>
-                            <TableCell className="text-sm">{userProfile.clinic_name || '-'}</TableCell>
+                            <TableCell className="text-sm text-slate-300">{userProfile.email}</TableCell>
+                            <TableCell className="text-sm text-slate-300">{userProfile.clinic_name || '-'}</TableCell>
                             <TableCell>
                               <Badge className={roleMeta.color}>
                                 <RoleIcon className="h-3 w-3 mr-1" />
@@ -650,8 +650,8 @@ export default function AdminPanel() {
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                                 {!isCurrentUser && (
-                                  <Button
-                                    variant="outline"
+                                   <Button
+                                    variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700"
                                     size="sm"
                                     onClick={() => toggleUserRole(userProfile.user_id, role)}
                                   >
@@ -677,7 +677,7 @@ export default function AdminPanel() {
                   </Table>
                 </ScrollArea>
                 
-                <div className="mt-4 text-sm text-muted-foreground">
+                <div className="mt-4 text-sm text-slate-400">
                   Mostrando {filteredAndSortedUsers.length} de {users.length} usuários
                 </div>
               </CardContent>
@@ -686,20 +686,20 @@ export default function AdminPanel() {
 
           {/* Permissions Matrix Tab */}
           <TabsContent value="permissions">
-            <Card>
+            <Card className="bg-slate-800/60 border-slate-700/50">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-white">
                       <Grid3X3 className="h-5 w-5" />
                       Matriz de Permissões por Módulo
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-slate-400">
                       Defina quem pode Ver, Editar, Inserir e Excluir em cada módulo do sistema
                     </CardDescription>
                   </div>
                   <Select value={permissionFilter} onValueChange={setPermissionFilter}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-40 bg-slate-900/50 border-slate-700 text-white">
                       <Filter className="h-4 w-4 mr-2" />
                       <SelectValue placeholder="Categoria" />
                     </SelectTrigger>
@@ -713,18 +713,18 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Legend */}
-                <div className="flex flex-wrap items-center gap-4 mt-4 p-3 bg-muted/50 rounded-lg text-sm">
-                  <span className="font-medium text-muted-foreground">Legenda:</span>
+                <div className="flex flex-wrap items-center gap-4 mt-4 p-3 bg-slate-900/50 rounded-lg text-sm text-slate-300">
+                  <span className="font-medium text-slate-400">Legenda:</span>
                   <div className="flex items-center gap-1.5">
-                    <Eye className="h-3.5 w-3.5 text-blue-600" />
+                    <Eye className="h-3.5 w-3.5 text-blue-400" />
                     <span>Visualizar</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Pencil className="h-3.5 w-3.5 text-amber-600" />
+                    <Pencil className="h-3.5 w-3.5 text-amber-400" />
                     <span>Editar / Inserir</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                    <Trash2 className="h-3.5 w-3.5 text-red-400" />
                     <span>Excluir</span>
                   </div>
                 </div>
@@ -735,10 +735,10 @@ export default function AdminPanel() {
                   <div className="min-w-[600px]">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-muted/50">
-                          <TableHead className="w-64">Módulo / Função</TableHead>
+                        <TableRow className="bg-slate-900/50 border-slate-700/50 hover:bg-slate-900/50">
+                          <TableHead className="w-64 text-slate-400">Módulo / Função</TableHead>
                           {ACCESS_PROFILES.map(profile => (
-                            <TableHead key={profile.id} className="text-center min-w-[120px]">
+                            <TableHead key={profile.id} className="text-center min-w-[120px] text-slate-400">
                               <div className={cn(
                                 "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium",
                                 profile.color
@@ -758,12 +758,12 @@ export default function AdminPanel() {
                           return (
                             <TableRow 
                               key={mod.code}
-                              className={cn(idx % 2 === 0 ? "bg-background" : "bg-muted/30")}
+                              className={cn("border-slate-700/50", idx % 2 === 0 ? "bg-slate-800/40" : "bg-slate-900/30")}
                             >
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
-                                  <span className="font-medium text-sm">{mod.name}</span>
-                                  <Badge variant="outline" className="w-fit text-[10px] px-1.5 py-0">
+                                  <span className="font-medium text-sm text-white">{mod.name}</span>
+                                  <Badge variant="outline" className="w-fit text-[10px] px-1.5 py-0 border-slate-600 text-slate-400">
                                     {mod.category}
                                   </Badge>
                                 </div>
@@ -857,7 +857,7 @@ export default function AdminPanel() {
                 </ScrollArea>
                 
                 {/* Info Footer */}
-                <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm text-blue-700 dark:text-blue-400">
+                <div className="flex items-center gap-2 mt-4 p-3 bg-blue-950/30 rounded-lg text-sm text-blue-400 border border-blue-500/20">
                   <Info className="h-4 w-4 shrink-0" />
                   <span>
                     As permissões de Editar e Excluir dependem da permissão de Visualizar estar ativa.
@@ -866,11 +866,11 @@ export default function AdminPanel() {
                 </div>
 
                 <div className="flex items-center justify-between mt-4">
-                  <p className="text-sm text-muted-foreground">
-                    As alterações são salvas automaticamente no banco de dados.
+                  <p className="text-sm text-slate-400">
+                    As alterações são salvas automaticamente.
                   </p>
                   {permissionsLoading && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Carregando permissões...
                     </div>
@@ -882,23 +882,23 @@ export default function AdminPanel() {
 
           {/* Page Visibility Tab */}
           <TabsContent value="visibility">
-            <Card>
+            <Card className="bg-slate-800/60 border-slate-700/50">
               <CardHeader>
-                <CardTitle>Visibilidade das Páginas</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">Visibilidade das Páginas</CardTitle>
+                <CardDescription className="text-slate-400">
                   Controle quais seções do portal estão disponíveis para os licenciados
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(Object.keys(pageLabels) as Array<keyof PageVisibility>).map((key) => (
-                  <div key={key} className="flex items-center justify-between py-3 border-b last:border-0">
+                  <div key={key} className="flex items-center justify-between py-3 border-b border-slate-700/50 last:border-0">
                     <div className="flex items-center gap-3">
                       {pageVisibility[key] ? (
-                        <Eye className="h-5 w-5 text-green-600" />
+                        <Eye className="h-5 w-5 text-green-400" />
                       ) : (
-                        <EyeOff className="h-5 w-5 text-muted-foreground" />
+                        <EyeOff className="h-5 w-5 text-slate-500" />
                       )}
-                      <Label htmlFor={key} className="font-medium cursor-pointer">
+                      <Label htmlFor={key} className="font-medium cursor-pointer text-white">
                         {pageLabels[key]}
                       </Label>
                     </div>
@@ -933,28 +933,28 @@ export default function AdminPanel() {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <Card>
+            <Card className="bg-slate-800/60 border-slate-700/50">
               <CardHeader>
-                <CardTitle>Configurações Gerais</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">Configurações Gerais</CardTitle>
+                <CardDescription className="text-slate-400">
                   Configurações avançadas do sistema
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between py-3 border-b">
+                <div className="flex items-center justify-between py-3 border-b border-slate-700/50">
                   <div>
-                    <Label className="font-medium">Permitir Novos Cadastros</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label className="font-medium text-white">Permitir Novos Cadastros</Label>
+                    <p className="text-sm text-slate-400">
                       Habilitar registro de novos usuários pelo formulário de signup
                     </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 
-                <div className="flex items-center justify-between py-3 border-b">
+                <div className="flex items-center justify-between py-3 border-b border-slate-700/50">
                   <div>
-                    <Label className="font-medium">Modo Manutenção</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label className="font-medium text-white">Modo Manutenção</Label>
+                    <p className="text-sm text-slate-400">
                       Bloquear acesso de licenciados temporariamente
                     </p>
                   </div>
@@ -963,8 +963,8 @@ export default function AdminPanel() {
 
                 <div className="flex items-center justify-between py-3">
                   <div>
-                    <Label className="font-medium">Notificações por Email</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label className="font-medium text-white">Notificações por Email</Label>
+                    <p className="text-sm text-slate-400">
                       Enviar emails para novos leads e atualizações
                     </p>
                   </div>

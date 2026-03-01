@@ -184,15 +184,15 @@ export default function ModuleOverridesAdmin() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-white">
+              <Shield className="h-6 w-6 text-cyan-400" />
               Liberações de Acesso
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-slate-400">
               Gerencie overrides manuais de permissões por usuário
             </p>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
             <Plus className="h-4 w-4 mr-2" />
             Nova Liberação
           </Button>
@@ -204,8 +204,8 @@ export default function ModuleOverridesAdmin() {
             <div className="flex items-start gap-3">
               <GraduationCap className="h-5 w-5 text-blue-500 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-blue-500">Como funciona?</p>
-                <p className="text-muted-foreground">
+                <p className="font-medium text-blue-400">Como funciona?</p>
+                <p className="text-slate-400">
                   Cada perfil acessa automaticamente apenas o Academy da sua empresa.
                   Use esta tela para liberar acesso manual a Academies adicionais.
                   Overrides têm prioridade sobre permissões de perfil.
@@ -216,22 +216,22 @@ export default function ModuleOverridesAdmin() {
         </Card>
 
         {/* Filters */}
-        <Card>
+        <Card className="bg-slate-800/60 border-slate-700/50">
           <CardContent className="pt-4">
             <div className="flex flex-wrap gap-4">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                   <Input
                     placeholder="Buscar por nome ou email..."
                     value={filterSearch}
                     onChange={(e) => setFilterSearch(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
                   />
                 </div>
               </div>
               <Select value={filterModule} onValueChange={setFilterModule}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[200px] bg-slate-900/50 border-slate-700 text-white">
                   <SelectValue placeholder="Filtrar por módulo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -246,43 +246,43 @@ export default function ModuleOverridesAdmin() {
         </Card>
 
         {/* Table */}
-        <Card>
+        <Card className="bg-slate-800/60 border-slate-700/50">
           <CardHeader>
-            <CardTitle>Liberações Ativas</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-white">Liberações Ativas</CardTitle>
+            <CardDescription className="text-slate-400">
               {filteredOverrides.length} liberação(ões) encontrada(s)
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
               </div>
             ) : filteredOverrides.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-slate-400">
                 Nenhuma liberação encontrada
               </div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Módulo</TableHead>
-                    <TableHead>Permissões</TableHead>
-                    <TableHead>Expiração</TableHead>
-                    <TableHead>Motivo</TableHead>
-                    <TableHead className="w-[80px]">Ações</TableHead>
+                  <TableRow className="border-slate-700/50 hover:bg-transparent">
+                    <TableHead className="text-slate-400">Usuário</TableHead>
+                    <TableHead className="text-slate-400">Módulo</TableHead>
+                    <TableHead className="text-slate-400">Permissões</TableHead>
+                    <TableHead className="text-slate-400">Expiração</TableHead>
+                    <TableHead className="text-slate-400">Motivo</TableHead>
+                    <TableHead className="w-[80px] text-slate-400">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredOverrides.map((override) => (
-                    <TableRow key={override.id}>
+                    <TableRow key={override.id} className="border-slate-700/50 hover:bg-slate-700/30">
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                          <User className="h-4 w-4 text-slate-400" />
                           <div>
-                            <div className="font-medium">{override.user_name || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">{override.user_email}</div>
+                            <div className="font-medium text-white">{override.user_name || 'N/A'}</div>
+                            <div className="text-xs text-slate-400">{override.user_email}</div>
                           </div>
                         </div>
                       </TableCell>
@@ -294,19 +294,19 @@ export default function ModuleOverridesAdmin() {
                       <TableCell>
                         <div className="flex gap-1">
                           {override.can_read && (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
                               <Eye className="h-3 w-3 mr-1" />
                               Ler
                             </Badge>
                           )}
                           {override.can_write && (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
                               <Pencil className="h-3 w-3 mr-1" />
                               Editar
                             </Badge>
                           )}
                           {override.can_delete && (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
                               <Trash className="h-3 w-3 mr-1" />
                               Excluir
                             </Badge>
@@ -315,16 +315,16 @@ export default function ModuleOverridesAdmin() {
                       </TableCell>
                       <TableCell>
                         {override.expires_at ? (
-                          <div className="flex items-center gap-1 text-sm">
+                          <div className="flex items-center gap-1 text-sm text-slate-300">
                             <Clock className="h-3 w-3" />
                             {format(new Date(override.expires_at), "dd/MM/yyyy", { locale: ptBR })}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-sm">Permanente</span>
+                          <span className="text-slate-400 text-sm">Permanente</span>
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground truncate max-w-[150px] block">
+                        <span className="text-sm text-slate-400 truncate max-w-[150px] block">
                           {override.reason || '-'}
                         </span>
                       </TableCell>
