@@ -324,7 +324,7 @@ export default function ModuleOverridesAdmin() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground truncate max-w-[150px] block">
+                        <span className="text-sm text-slate-400 truncate max-w-[150px] block">
                           {override.reason || '-'}
                         </span>
                       </TableCell>
