@@ -608,7 +608,7 @@ export default function AdminPanel() {
                         const displayName = userProfile.full_name || userProfile.name;
                         
                         return (
-                          <TableRow key={userProfile.id}>
+                          <TableRow key={userProfile.id} className="border-slate-700/50 hover:bg-slate-700/30">
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
