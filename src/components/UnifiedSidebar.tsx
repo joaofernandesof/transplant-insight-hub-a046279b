@@ -104,18 +104,20 @@ interface PortalConfig {
   headerBg: string;
   headerText: string;
   icon: React.ElementType;
+  accentBorder: string;
+  accentBg: string;
 }
 
 const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
-  admin: { name: 'Administração', color: 'text-purple-700', bgColor: 'bg-purple-100', headerBg: 'bg-gradient-to-r from-purple-900 to-purple-800', headerText: 'text-white', icon: Crown },
-  neocare: { name: 'NeoCare', color: 'text-rose-700', bgColor: 'bg-rose-100', headerBg: 'bg-gradient-to-r from-rose-900 to-rose-800', headerText: 'text-white', icon: Heart },
-  neoteam: { name: 'NeoTeam', color: 'text-blue-700', bgColor: 'bg-blue-100', headerBg: 'bg-gradient-to-r from-blue-900 to-blue-800', headerText: 'text-white', icon: Users },
-  neoacademy: { name: 'NeoAcademy', color: 'text-emerald-700', bgColor: 'bg-emerald-100', headerBg: 'bg-gradient-to-r from-emerald-900 to-emerald-800', headerText: 'text-white', icon: GraduationCap },
-  neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100', headerBg: 'bg-gradient-to-r from-amber-900 to-amber-800', headerText: 'text-white', icon: Building2 },
-  avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-900 to-orange-800', headerText: 'text-white', icon: Zap },
-  hotleads: { name: 'HotLeads', color: 'text-orange-500', bgColor: 'bg-orange-500/10', headerBg: 'bg-gradient-to-r from-orange-600 to-red-600', headerText: 'text-white', icon: Flame },
-  neorh: { name: 'NeoRH', color: 'text-indigo-700', bgColor: 'bg-indigo-100', headerBg: 'bg-gradient-to-r from-indigo-900 to-indigo-800', headerText: 'text-white', icon: Users },
-  main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10', headerBg: 'bg-gradient-to-r from-slate-900 to-slate-800', headerText: 'text-white', icon: LayoutGrid },
+  admin: { name: 'Administração', color: 'text-purple-700', bgColor: 'bg-purple-100', headerBg: 'bg-gradient-to-r from-purple-900 to-purple-800', headerText: 'text-white', icon: Crown, accentBorder: 'border-l-purple-500', accentBg: 'bg-purple-500' },
+  neocare: { name: 'NeoCare', color: 'text-rose-700', bgColor: 'bg-rose-100', headerBg: 'bg-gradient-to-r from-rose-900 to-rose-800', headerText: 'text-white', icon: Heart, accentBorder: 'border-l-rose-500', accentBg: 'bg-rose-500' },
+  neoteam: { name: 'NeoTeam', color: 'text-blue-700', bgColor: 'bg-blue-100', headerBg: 'bg-gradient-to-r from-blue-900 to-blue-800', headerText: 'text-white', icon: Users, accentBorder: 'border-l-blue-500', accentBg: 'bg-blue-500' },
+  neoacademy: { name: 'NeoAcademy', color: 'text-emerald-700', bgColor: 'bg-emerald-100', headerBg: 'bg-gradient-to-r from-emerald-900 to-emerald-800', headerText: 'text-white', icon: GraduationCap, accentBorder: 'border-l-emerald-500', accentBg: 'bg-emerald-500' },
+  neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100', headerBg: 'bg-gradient-to-r from-amber-900 to-amber-800', headerText: 'text-white', icon: Building2, accentBorder: 'border-l-amber-500', accentBg: 'bg-amber-500' },
+  avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-900 to-orange-800', headerText: 'text-white', icon: Zap, accentBorder: 'border-l-orange-500', accentBg: 'bg-orange-500' },
+  hotleads: { name: 'HotLeads', color: 'text-orange-500', bgColor: 'bg-orange-500/10', headerBg: 'bg-gradient-to-r from-orange-600 to-red-600', headerText: 'text-white', icon: Flame, accentBorder: 'border-l-red-500', accentBg: 'bg-red-500' },
+  neorh: { name: 'NeoRH', color: 'text-indigo-700', bgColor: 'bg-indigo-100', headerBg: 'bg-gradient-to-r from-indigo-900 to-indigo-800', headerText: 'text-white', icon: Users, accentBorder: 'border-l-indigo-500', accentBg: 'bg-indigo-500' },
+  main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10', headerBg: 'bg-gradient-to-r from-slate-900 to-slate-800', headerText: 'text-white', icon: LayoutGrid, accentBorder: 'border-l-slate-500', accentBg: 'bg-slate-500' },
 };
 
 function detectPortal(pathname: string): PortalKey {
@@ -324,10 +326,14 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
       <aside
         className={cn(
           "fixed left-0 top-0 h-full bg-card border-r z-40 transition-all duration-300 flex flex-col",
+          "border-l-[3px]",
+          portalConfig.accentBorder,
           isCollapsed ? "w-16" : "w-64",
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
+        {/* Portal accent strip */}
+        <div className={cn("h-1 w-full shrink-0", portalConfig.accentBg, "opacity-60")} />
         {/* Collapse button */}
         <div className={cn(
           "p-2 border-b flex",
