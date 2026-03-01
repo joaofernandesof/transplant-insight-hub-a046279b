@@ -259,7 +259,7 @@ export default function ModuleOverridesAdmin() {
                 <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
               </div>
             ) : filteredOverrides.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-slate-400">
                 Nenhuma liberação encontrada
               </div>
             ) : (
