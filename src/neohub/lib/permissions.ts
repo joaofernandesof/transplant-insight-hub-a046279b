@@ -115,7 +115,7 @@ export function canAccessRoute(profile: NeoHubProfile | null, route: string): bo
 export function getPortalFromRoute(route: string): Portal | null {
   if (route.startsWith('/neocare')) return 'neocare';
   if (route.startsWith('/neoteam')) return 'neoteam';
-  if (route.startsWith('/academy')) return 'academy';
+  if (route.startsWith('/academy')) return 'neoacademy';
   if (route.startsWith('/hotleads')) return 'hotleads';
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/avivar')) return 'avivar';
