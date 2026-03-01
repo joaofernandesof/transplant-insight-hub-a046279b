@@ -29,6 +29,7 @@ const routeLabels: Record<string, string> = {
   '/neoteam/medical-records': 'Prontuários',
   '/neoteam/documents': 'Documentos',
   '/neoteam/staff-roles': 'Cargos & Funções',
+  '/neoteam/pops': 'POPs',
   '/neoteam/settings': 'Configurações',
   // NeoCare routes (Portal do Paciente)
   '/neocare': 'Início',
