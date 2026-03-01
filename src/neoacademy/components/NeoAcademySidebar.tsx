@@ -3,7 +3,8 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
-  GraduationCap
+  GraduationCap, FileText, Calendar, MessageCircle,
+  ClipboardList, UserCog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -13,14 +14,20 @@ const NAV_ITEMS = [
   { label: 'Catálogo', icon: BookOpen, path: '/neoacademy/catalog' },
   { label: 'Meus Cursos', icon: GraduationCap, path: '/neoacademy/my-courses' },
   { label: 'Continuar', icon: Play, path: '/neoacademy/continue' },
+  { label: 'Agenda', icon: Calendar, path: '/neoacademy/schedule' },
+  { label: 'Provas', icon: FileText, path: '/neoacademy/exams' },
   { label: 'Certificados', icon: Award, path: '/neoacademy/certificates' },
   { label: 'Comunidade', icon: Users, path: '/neoacademy/community' },
+  { label: 'Chat', icon: MessageCircle, path: '/neoacademy/chat' },
+  { label: 'Indicações', icon: UserCog, path: '/neoacademy/referral' },
 ];
 
 const ADMIN_ITEMS = [
   { label: 'Analytics', icon: BarChart3, path: '/neoacademy/admin/analytics' },
   { label: 'Gerenciar Cursos', icon: BookOpen, path: '/neoacademy/admin/courses' },
   { label: 'Alunos', icon: Users, path: '/neoacademy/admin/students' },
+  { label: 'Matrículas', icon: ClipboardList, path: '/neoacademy/admin/enrollments' },
+  { label: 'Pesquisas', icon: ClipboardList, path: '/neoacademy/admin/surveys' },
   { label: 'Configurações', icon: Settings, path: '/neoacademy/admin/settings' },
 ];
 

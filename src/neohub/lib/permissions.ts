@@ -12,7 +12,7 @@ export type NeoHubProfile =
   | 'cliente_avivar'
   | 'ipromed';
 
-export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay' | 'neorh';
+export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neoacademy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay' | 'neorh';
 
 // Mapeamento de perfis para portais
 export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
@@ -20,7 +20,7 @@ export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
   licenciado: ['neolicense', 'hotleads'],
   colaborador: ['neoteam', 'neorh'],
   medico: ['neoteam'],
-  aluno: ['academy'],
+  aluno: ['neoacademy'],
   paciente: ['neocare', 'vision'],
   cliente_avivar: ['avivar'],
   ipromed: ['ipromed'],
@@ -32,7 +32,7 @@ export const PROFILE_ROUTES: Record<NeoHubProfile, string> = {
   licenciado: '/neolicense',
   colaborador: '/neoteam',
   medico: '/neoteam/doctor-view',
-  aluno: '/academy',
+  aluno: '/neoacademy',
   paciente: '/neocare',
   cliente_avivar: '/avivar',
   ipromed: '/cpg',
@@ -55,6 +55,7 @@ export const PORTAL_NAMES: Record<Portal, string> = {
   neocare: 'NeoCare',
   neoteam: 'NeoTeam',
   academy: 'IBRAMEC',
+  neoacademy: 'NeoAcademy',
   neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
   ipromed: 'CPG Advocacia',
@@ -155,20 +156,27 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neoteam_profile', name: 'Configurações', route: '/neoteam/settings', icon: 'Settings' },
   ],
   academy: [
-    { code: 'academy_home', name: 'Início', route: '/academy', icon: 'Home' },
-    { code: 'academy_courses', name: 'Cursos', route: '/academy/courses', icon: 'BookOpen' },
-    { code: 'academy_materials', name: 'Materiais', route: '/academy/materials', icon: 'FileText' },
-    { code: 'academy_certificates', name: 'Certificados', route: '/academy/certificates', icon: 'Award' },
-    { code: 'academy_community', name: 'Comunidade', route: '/academy/community', icon: 'Users' },
-    { code: 'academy_career', name: 'Carreira', route: '/academy/career', icon: 'TrendingUp' },
-    { code: 'academy_profile', name: 'Configurações', route: '/academy/profile', icon: 'Settings' },
+    { code: 'academy_home', name: 'Início', route: '/neoacademy', icon: 'Home' },
+    { code: 'academy_courses', name: 'Cursos', route: '/neoacademy/catalog', icon: 'BookOpen' },
+    { code: 'academy_certificates', name: 'Certificados', route: '/neoacademy/certificates', icon: 'Award' },
+    { code: 'academy_community', name: 'Comunidade', route: '/neoacademy/community', icon: 'Users' },
+    { code: 'academy_profile', name: 'Configurações', route: '/neoacademy/profile', icon: 'Settings' },
+  ],
+  neoacademy: [
+    { code: 'neoacademy_home', name: 'Dashboard', route: '/neoacademy', icon: 'Home' },
+    { code: 'neoacademy_catalog', name: 'Catálogo', route: '/neoacademy/catalog', icon: 'BookOpen' },
+    { code: 'neoacademy_courses', name: 'Meus Cursos', route: '/neoacademy/my-courses', icon: 'GraduationCap' },
+    { code: 'neoacademy_schedule', name: 'Agenda', route: '/neoacademy/schedule', icon: 'Calendar' },
+    { code: 'neoacademy_exams', name: 'Provas', route: '/neoacademy/exams', icon: 'FileText' },
+    { code: 'neoacademy_certificates', name: 'Certificados', route: '/neoacademy/certificates', icon: 'Award' },
+    { code: 'neoacademy_community', name: 'Comunidade', route: '/neoacademy/community', icon: 'Users' },
   ],
   neolicense: [
     { code: 'neolicense_home', name: 'Início', route: '/neolicense', icon: 'Home' },
     { code: 'neolicense_dashboard', name: 'Dashboard', route: '/neolicense/dashboard', icon: 'BarChart3' },
     { code: 'neolicense_hotleads', name: 'HotLeads', route: '/hotleads', icon: 'Flame' },
     { code: 'neolicense_surgery', name: 'Cirurgias', route: '/neolicense/surgery', icon: 'Calendar' },
-    { code: 'neolicense_university', name: 'Universidade', route: '/neolicense/university', icon: 'GraduationCap' },
+    { code: 'neolicense_university', name: 'NeoAcademy', route: '/neoacademy', icon: 'GraduationCap' },
     { code: 'neolicense_materials', name: 'Materiais', route: '/neolicense/materials', icon: 'FileText' },
     { code: 'neolicense_partners', name: 'Parceiros', route: '/neolicense/partners', icon: 'Handshake' },
     { code: 'neolicense_gamification', name: 'Conquistas', route: '/neolicense/achievements', icon: 'Trophy' },
