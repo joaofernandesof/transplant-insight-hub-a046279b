@@ -531,8 +531,8 @@ export default function AdminPanel() {
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <CardTitle>Gestão de Usuários</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-white">Gestão de Usuários</CardTitle>
+                    <CardDescription className="text-slate-400">
                       Gerencie permissões e dados dos usuários
                     </CardDescription>
                   </div>
