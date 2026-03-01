@@ -37,7 +37,7 @@ import {
 // Portais do ecossistema
 const portals = [
   { id: 'admin', title: 'Portal Administrador', icon: Shield, gradient: 'from-slate-500 to-slate-700', path: '/admin-portal' },
-  { id: 'academy', title: 'Academy IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
+  { id: 'neoacademy', title: 'NeoAcademy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/neoacademy' },
   { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
   { id: 'neocare', title: 'NeoCare Pacientes', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
   { id: 'neoteam', title: 'NeoTeam Operações', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
