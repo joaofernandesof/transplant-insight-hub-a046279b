@@ -19,6 +19,7 @@ import {
   UserPlus,
   Lock,
   LogOut,
+  Cake,
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
