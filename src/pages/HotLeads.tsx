@@ -41,6 +41,7 @@ import { HotLeadsAdminRadiusSettings } from '@/components/hotleads/HotLeadsAdmin
 
 import type { HotLead, LeadTab } from '@/hooks/useHotLeads';
 import { CompleteProfileGate } from '@/components/hotleads/CompleteProfileGate';
+import { PendingSalesGate } from '@/components/hotleads/PendingSalesGate';
 
 const ITEMS_PER_PAGE = 10;
 
