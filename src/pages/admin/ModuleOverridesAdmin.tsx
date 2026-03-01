@@ -231,7 +231,7 @@ export default function ModuleOverridesAdmin() {
                 </div>
               </div>
               <Select value={filterModule} onValueChange={setFilterModule}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[200px] bg-slate-900/50 border-slate-700 text-white">
                   <SelectValue placeholder="Filtrar por módulo" />
                 </SelectTrigger>
                 <SelectContent>
