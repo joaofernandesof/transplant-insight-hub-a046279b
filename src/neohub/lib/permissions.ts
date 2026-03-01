@@ -155,13 +155,6 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neoteam_profile', name: 'Configurações', route: '/neoteam/settings', icon: 'Settings' },
   ],
   neoacademy: [
-    { code: 'academy_home', name: 'Início', route: '/neoacademy', icon: 'Home' },
-    { code: 'academy_courses', name: 'Cursos', route: '/neoacademy/catalog', icon: 'BookOpen' },
-    { code: 'academy_certificates', name: 'Certificados', route: '/neoacademy/certificates', icon: 'Award' },
-    { code: 'academy_community', name: 'Comunidade', route: '/neoacademy/community', icon: 'Users' },
-    { code: 'academy_profile', name: 'Configurações', route: '/neoacademy/profile', icon: 'Settings' },
-  ],
-  neoacademy: [
     { code: 'neoacademy_home', name: 'Dashboard', route: '/neoacademy', icon: 'Home' },
     { code: 'neoacademy_catalog', name: 'Catálogo', route: '/neoacademy/catalog', icon: 'BookOpen' },
     { code: 'neoacademy_courses', name: 'Meus Cursos', route: '/neoacademy/my-courses', icon: 'GraduationCap' },
