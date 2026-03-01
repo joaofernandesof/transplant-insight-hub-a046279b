@@ -94,8 +94,8 @@ describe('UnifiedAuthContext', () => {
         });
       });
 
-      it('should allow aluno to access only academy', () => {
-        expect(canAccessPortal('aluno', 'academy')).toBe(true);
+      it('should allow aluno to access only neoacademy', () => {
+        expect(canAccessPortal('aluno', 'neoacademy')).toBe(true);
         expect(canAccessPortal('aluno', 'neocare')).toBe(false);
         expect(canAccessPortal('aluno', 'neoteam')).toBe(false);
       });
