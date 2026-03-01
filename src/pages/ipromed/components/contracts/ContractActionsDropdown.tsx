@@ -207,29 +207,17 @@ export function ContractActionsDropdown({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir "{contract.title}"? Esta ação não
-              pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Excluir documento?"
+        description={`Tem certeza que deseja excluir "${contract.title}"?`}
+        impact="O documento e todos os arquivos associados serão removidos permanentemente. Esta ação não pode ser desfeita."
+        severity="destructive"
+        confirmLabel="Excluir"
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+      />
     </>
   );
 }

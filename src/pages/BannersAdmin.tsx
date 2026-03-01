@@ -25,16 +25,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmActionDialog } from '@/components/shared/ConfirmActionDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AdminLayout } from '@/components/AdminLayout';
 import { 
