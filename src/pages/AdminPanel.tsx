@@ -933,28 +933,28 @@ export default function AdminPanel() {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <Card>
+            <Card className="bg-slate-800/60 border-slate-700/50">
               <CardHeader>
-                <CardTitle>Configurações Gerais</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">Configurações Gerais</CardTitle>
+                <CardDescription className="text-slate-400">
                   Configurações avançadas do sistema
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between py-3 border-b">
+                <div className="flex items-center justify-between py-3 border-b border-slate-700/50">
                   <div>
-                    <Label className="font-medium">Permitir Novos Cadastros</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label className="font-medium text-white">Permitir Novos Cadastros</Label>
+                    <p className="text-sm text-slate-400">
                       Habilitar registro de novos usuários pelo formulário de signup
                     </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 
-                <div className="flex items-center justify-between py-3 border-b">
+                <div className="flex items-center justify-between py-3 border-b border-slate-700/50">
                   <div>
-                    <Label className="font-medium">Modo Manutenção</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label className="font-medium text-white">Modo Manutenção</Label>
+                    <p className="text-sm text-slate-400">
                       Bloquear acesso de licenciados temporariamente
                     </p>
                   </div>
@@ -963,8 +963,8 @@ export default function AdminPanel() {
 
                 <div className="flex items-center justify-between py-3">
                   <div>
-                    <Label className="font-medium">Notificações por Email</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label className="font-medium text-white">Notificações por Email</Label>
+                    <p className="text-sm text-slate-400">
                       Enviar emails para novos leads e atualizações
                     </p>
                   </div>
