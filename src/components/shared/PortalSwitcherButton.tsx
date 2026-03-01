@@ -105,7 +105,7 @@ export function PortalSwitcherButton({
     return (
       <button
         className={cn(triggerStyles, variantStyles[variant], className)}
-        onClick={() => navigate('/portal-selector')}
+        onClick={() => navigate('/portal-selector?switch=1')}
         title={label}
       >
         <LayoutGrid className={cn(
