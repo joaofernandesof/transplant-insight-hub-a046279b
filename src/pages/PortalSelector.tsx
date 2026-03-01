@@ -260,6 +260,20 @@ export default function PortalSelector() {
     });
   };
 
+  const allPortals = getAllPortals();
+
+  // Auto-redirect: se o usuário tem acesso a apenas 1 portal, redirecionar direto
+  useEffect(() => {
+    if (isLoading || !user || isRedirecting || forceShow) return;
+    const accessiblePortals = allPortals.filter(p => p.hasAccess);
+    if (accessiblePortals.length === 1) {
+      const portal = accessiblePortals[0];
+      setIsRedirecting(true);
+      setActiveProfile(portal.matchingProfile);
+      navigate(portal.route, { replace: true });
+    }
+  }, [isLoading, user, isRedirecting, forceShow, allPortals, setActiveProfile, navigate]);
+
   if (isLoading || isRedirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
@@ -276,20 +290,6 @@ export default function PortalSelector() {
   if (!user) {
     return null;
   }
-
-  const allPortals = getAllPortals();
-
-  // Auto-redirect: se o usuário tem acesso a apenas 1 portal, redirecionar direto
-  useEffect(() => {
-    if (isLoading || !user || isRedirecting || forceShow) return;
-    const accessiblePortals = allPortals.filter(p => p.hasAccess);
-    if (accessiblePortals.length === 1) {
-      const portal = accessiblePortals[0];
-      setIsRedirecting(true);
-      setActiveProfile(portal.matchingProfile);
-      navigate(portal.route, { replace: true });
-    }
-  }, [isLoading, user, isRedirecting, forceShow, allPortals, setActiveProfile, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
