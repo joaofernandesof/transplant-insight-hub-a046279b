@@ -623,7 +623,7 @@ export default function AdminPanel() {
                                     {isCurrentUser && <Badge variant="outline" className="text-xs">Você</Badge>}
                                   </div>
                                   {(userProfile.address_city || userProfile.city) && (
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-xs text-slate-400">
                                       {userProfile.address_city || userProfile.city}
                                       {(userProfile.address_state || userProfile.state) && `, ${userProfile.address_state || userProfile.state}`}
                                     </span>
