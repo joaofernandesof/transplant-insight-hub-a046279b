@@ -506,20 +506,20 @@ export default function AdminPanel() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 mb-6">
-            <TabsTrigger value="users" className="flex items-center gap-2">
+          <TabsList className="grid grid-cols-4 mb-6 bg-slate-800/60 border border-slate-700/50">
+            <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Users className="h-4 w-4" />
               Usuários
             </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex items-center gap-2">
+            <TabsTrigger value="permissions" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Grid3X3 className="h-4 w-4" />
               Permissões
             </TabsTrigger>
-            <TabsTrigger value="visibility" className="flex items-center gap-2">
+            <TabsTrigger value="visibility" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Eye className="h-4 w-4" />
               Visibilidade
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Sliders className="h-4 w-4" />
               Geral
             </TabsTrigger>
