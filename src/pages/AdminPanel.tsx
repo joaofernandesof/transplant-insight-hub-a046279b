@@ -571,8 +571,8 @@ export default function AdminPanel() {
                 <ScrollArea className="w-full">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[250px]">
+                     <TableRow className="border-slate-700/50 hover:bg-transparent">
+                        <TableHead className="w-[250px] text-slate-400">
                           <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="gap-1">
                             Usuário
                             <SortIcon field="name" />
