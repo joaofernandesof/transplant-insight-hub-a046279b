@@ -866,8 +866,8 @@ export default function AdminPanel() {
                 </div>
 
                 <div className="flex items-center justify-between mt-4">
-                  <p className="text-sm text-muted-foreground">
-                    As alterações são salvas automaticamente no banco de dados.
+                  <p className="text-sm text-slate-400">
+                    As alterações são salvas automaticamente.
                   </p>
                   {permissionsLoading && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
