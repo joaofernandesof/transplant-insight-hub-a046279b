@@ -13643,6 +13643,7 @@ export type Database = {
           access_blocked: boolean | null
           blocked_at: string | null
           charge_id: string | null
+          collection_stage: string
           created_at: string
           customer_id: string
           days_overdue: number
@@ -13652,9 +13653,18 @@ export type Database = {
           next_retry_at: string | null
           notifications_sent: number | null
           overdue_amount: number
+          processo_at: string | null
+          processo_notes: string | null
+          processo_number: string | null
+          protesto_at: string | null
+          protesto_notes: string | null
           resolution_notes: string | null
           resolved_at: string | null
           retry_count: number | null
+          serasa_at: string | null
+          serasa_notes: string | null
+          spc_at: string | null
+          spc_notes: string | null
           status: Database["public"]["Enums"]["neopay_delinquency_status"]
           subscription_id: string | null
           updated_at: string
@@ -13663,6 +13673,7 @@ export type Database = {
           access_blocked?: boolean | null
           blocked_at?: string | null
           charge_id?: string | null
+          collection_stage?: string
           created_at?: string
           customer_id: string
           days_overdue?: number
@@ -13672,9 +13683,18 @@ export type Database = {
           next_retry_at?: string | null
           notifications_sent?: number | null
           overdue_amount: number
+          processo_at?: string | null
+          processo_notes?: string | null
+          processo_number?: string | null
+          protesto_at?: string | null
+          protesto_notes?: string | null
           resolution_notes?: string | null
           resolved_at?: string | null
           retry_count?: number | null
+          serasa_at?: string | null
+          serasa_notes?: string | null
+          spc_at?: string | null
+          spc_notes?: string | null
           status?: Database["public"]["Enums"]["neopay_delinquency_status"]
           subscription_id?: string | null
           updated_at?: string
@@ -13683,6 +13703,7 @@ export type Database = {
           access_blocked?: boolean | null
           blocked_at?: string | null
           charge_id?: string | null
+          collection_stage?: string
           created_at?: string
           customer_id?: string
           days_overdue?: number
@@ -13692,9 +13713,18 @@ export type Database = {
           next_retry_at?: string | null
           notifications_sent?: number | null
           overdue_amount?: number
+          processo_at?: string | null
+          processo_notes?: string | null
+          processo_number?: string | null
+          protesto_at?: string | null
+          protesto_notes?: string | null
           resolution_notes?: string | null
           resolved_at?: string | null
           retry_count?: number | null
+          serasa_at?: string | null
+          serasa_notes?: string | null
+          spc_at?: string | null
+          spc_notes?: string | null
           status?: Database["public"]["Enums"]["neopay_delinquency_status"]
           subscription_id?: string | null
           updated_at?: string
