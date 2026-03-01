@@ -45,8 +45,8 @@ const modules = [
     ]
   },
   { 
-    id: 'academy', 
-    name: 'IBRAMEC', 
+    id: 'neoacademy', 
+    name: 'NeoAcademy', 
     icon: GraduationCap, 
     gradient: 'from-emerald-500 to-green-500',
     description: 'Academia de Ensino',
