@@ -619,7 +619,7 @@ export default function AdminPanel() {
                                 </Avatar>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium text-sm">{displayName}</span>
+                                    <span className="font-medium text-sm text-white">{displayName}</span>
                                     {isCurrentUser && <Badge variant="outline" className="text-xs">Você</Badge>}
                                   </div>
                                   {(userProfile.address_city || userProfile.city) && (
