@@ -192,7 +192,7 @@ export default function ModuleOverridesAdmin() {
               Gerencie overrides manuais de permissões por usuário
             </p>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
             <Plus className="h-4 w-4 mr-2" />
             Nova Liberação
           </Button>
