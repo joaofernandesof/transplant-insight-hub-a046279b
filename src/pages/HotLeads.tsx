@@ -127,15 +127,22 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         .eq('neohub_user_profiles.is_active', true)
         .eq('is_active', true)
         .order('full_name');
-      setSimulatedUserList((data || []).map((u: any) => ({
-        user_id: u.user_id,
-        full_name: u.full_name || u.email,
-        email: u.email,
-        avatar_url: u.avatar_url,
-        address_state: u.address_state,
-        latitude: u.latitude,
-        longitude: u.longitude,
-      })));
+      const seen = new Set<string>();
+      const unique = (data || []).reduce((acc: any[], u: any) => {
+        if (seen.has(u.user_id)) return acc;
+        seen.add(u.user_id);
+        acc.push({
+          user_id: u.user_id,
+          full_name: u.full_name || u.email,
+          email: u.email,
+          avatar_url: u.avatar_url,
+          address_state: u.address_state,
+          latitude: u.latitude,
+          longitude: u.longitude,
+        });
+        return acc;
+      }, []);
+      setSimulatedUserList(unique);
     }
     fetchLicensees();
   }, [isAdmin]);
