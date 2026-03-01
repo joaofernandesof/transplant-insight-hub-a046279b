@@ -276,13 +276,13 @@ export default function ModuleOverridesAdmin() {
                 </TableHeader>
                 <TableBody>
                   {filteredOverrides.map((override) => (
-                    <TableRow key={override.id}>
+                    <TableRow key={override.id} className="border-slate-700/50 hover:bg-slate-700/30">
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                          <User className="h-4 w-4 text-slate-400" />
                           <div>
-                            <div className="font-medium">{override.user_name || 'N/A'}</div>
-                            <div className="text-xs text-muted-foreground">{override.user_email}</div>
+                            <div className="font-medium text-white">{override.user_name || 'N/A'}</div>
+                            <div className="text-xs text-slate-400">{override.user_email}</div>
                           </div>
                         </div>
                       </TableCell>
