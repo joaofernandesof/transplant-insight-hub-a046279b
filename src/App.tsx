@@ -1054,7 +1054,9 @@ function AppWithSupport() {
   return (
     <MobileAppWrapper>
       <EventTracker />
-      <AppRoutes />
+      <ProfileUpdateGuard>
+        <AppRoutes />
+      </ProfileUpdateGuard>
       {user && <PresenceTracker />}
       {user && <SessionManager />}
       {user && <SupportChat />}
