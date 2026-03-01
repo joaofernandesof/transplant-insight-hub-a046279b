@@ -857,7 +857,7 @@ export default function AdminPanel() {
                 </ScrollArea>
                 
                 {/* Info Footer */}
-                <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm text-blue-700 dark:text-blue-400">
+                <div className="flex items-center gap-2 mt-4 p-3 bg-blue-950/30 rounded-lg text-sm text-blue-400 border border-blue-500/20">
                   <Info className="h-4 w-4 shrink-0" />
                   <span>
                     As permissões de Editar e Excluir dependem da permissão de Visualizar estar ativa.
