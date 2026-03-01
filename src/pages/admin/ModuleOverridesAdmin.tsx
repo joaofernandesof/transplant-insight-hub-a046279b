@@ -294,19 +294,19 @@ export default function ModuleOverridesAdmin() {
                       <TableCell>
                         <div className="flex gap-1">
                           {override.can_read && (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
                               <Eye className="h-3 w-3 mr-1" />
                               Ler
                             </Badge>
                           )}
                           {override.can_write && (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
                               <Pencil className="h-3 w-3 mr-1" />
                               Editar
                             </Badge>
                           )}
                           {override.can_delete && (
-                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
                               <Trash className="h-3 w-3 mr-1" />
                               Excluir
                             </Badge>
