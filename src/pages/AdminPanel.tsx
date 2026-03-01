@@ -882,23 +882,23 @@ export default function AdminPanel() {
 
           {/* Page Visibility Tab */}
           <TabsContent value="visibility">
-            <Card>
+            <Card className="bg-slate-800/60 border-slate-700/50">
               <CardHeader>
-                <CardTitle>Visibilidade das Páginas</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">Visibilidade das Páginas</CardTitle>
+                <CardDescription className="text-slate-400">
                   Controle quais seções do portal estão disponíveis para os licenciados
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(Object.keys(pageLabels) as Array<keyof PageVisibility>).map((key) => (
-                  <div key={key} className="flex items-center justify-between py-3 border-b last:border-0">
+                  <div key={key} className="flex items-center justify-between py-3 border-b border-slate-700/50 last:border-0">
                     <div className="flex items-center gap-3">
                       {pageVisibility[key] ? (
-                        <Eye className="h-5 w-5 text-green-600" />
+                        <Eye className="h-5 w-5 text-green-400" />
                       ) : (
-                        <EyeOff className="h-5 w-5 text-muted-foreground" />
+                        <EyeOff className="h-5 w-5 text-slate-500" />
                       )}
-                      <Label htmlFor={key} className="font-medium cursor-pointer">
+                      <Label htmlFor={key} className="font-medium cursor-pointer text-white">
                         {pageLabels[key]}
                       </Label>
                     </div>
