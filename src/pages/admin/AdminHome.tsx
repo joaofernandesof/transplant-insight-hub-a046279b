@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import NotificationDialog from '@/components/NotificationDialog';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { useGlobalMetrics, formatNumber, formatCurrency, formatPercentage } from '@/hooks/useGlobalMetrics';
+import { AdminBirthdayPopup } from './components/AdminBirthdayPopup';
 import {
   Users,
   Loader2,
