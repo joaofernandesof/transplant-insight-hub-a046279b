@@ -501,8 +501,8 @@ export default function AdminPanel() {
   return (
     <div className="p-6 lg:p-8 overflow-x-hidden w-full bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
         <div className="flex items-center gap-3 mb-6">
-          <Settings className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Configurações do Sistema</h1>
+          <Settings className="h-6 w-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-white">Configurações do Sistema</h1>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
