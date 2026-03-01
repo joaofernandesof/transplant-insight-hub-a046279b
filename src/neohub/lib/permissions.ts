@@ -20,7 +20,7 @@ export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
   licenciado: ['neolicense', 'hotleads'],
   colaborador: ['neoteam', 'neorh'],
   medico: ['neoteam'],
-  aluno: ['academy'],
+  aluno: ['neoacademy'],
   paciente: ['neocare', 'vision'],
   cliente_avivar: ['avivar'],
   ipromed: ['ipromed'],
