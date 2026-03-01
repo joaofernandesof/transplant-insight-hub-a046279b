@@ -184,11 +184,11 @@ export default function ModuleOverridesAdmin() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-white">
+              <Shield className="h-6 w-6 text-cyan-400" />
               Liberações de Acesso
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-slate-400">
               Gerencie overrides manuais de permissões por usuário
             </p>
           </div>
