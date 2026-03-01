@@ -33,16 +33,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmActionDialog } from "@/components/shared/ConfirmActionDialog";
 import { useProposals, useDeleteProposal, useSendProposal, useAcceptProposal, useRejectProposal, type Proposal } from "./hooks/useIpromedProposals";
 import { IpromedPricingTables } from "./components/IpromedPricingTables";
 import { format, isPast, formatDistanceToNow } from "date-fns";
@@ -375,23 +366,16 @@ export default function IpromedProposalsList() {
         </CardContent>
       </Card>
 
-      {/* Dialog de confirmação de exclusão */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir proposta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. A proposta será permanentemente excluída.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionDialog
+        open={!!deleteId}
+        onOpenChange={() => setDeleteId(null)}
+        title="Excluir proposta?"
+        description="A proposta será permanentemente excluída."
+        impact="Todos os dados da proposta, incluindo valores e histórico, serão removidos. Esta ação não pode ser desfeita."
+        severity="destructive"
+        confirmLabel="Excluir"
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
