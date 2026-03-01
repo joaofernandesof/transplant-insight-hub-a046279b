@@ -738,7 +738,7 @@ export default function AdminPanel() {
                         <TableRow className="bg-slate-900/50 border-slate-700/50 hover:bg-slate-900/50">
                           <TableHead className="w-64 text-slate-400">Módulo / Função</TableHead>
                           {ACCESS_PROFILES.map(profile => (
-                            <TableHead key={profile.id} className="text-center min-w-[120px]">
+                            <TableHead key={profile.id} className="text-center min-w-[120px] text-slate-400">
                               <div className={cn(
                                 "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium",
                                 profile.color
