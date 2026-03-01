@@ -46,7 +46,7 @@ type Pop = {
 };
 
 export default function NeoTeamPopsPage() {
-  const { session } = useAuth();
+  const { session } = useUnifiedAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
