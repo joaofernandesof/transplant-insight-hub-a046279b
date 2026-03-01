@@ -610,23 +610,44 @@ const NeoAcademyAdminSettings = React.lazy(() => import('./neoacademy/pages/NeoA
 function NeoAcademyRoutes() {
   return (
     <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0a0f]"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>}>
-      <NeoAcademySidebar>
-        <Routes>
-          <Route index element={<NeoAcademyDashboard />} />
-          <Route path="catalog" element={<NeoAcademyCatalog />} />
-          <Route path="course/:courseId" element={<NeoAcademyCourseDetail />} />
-          <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
-          <Route path="my-courses" element={<NeoAcademyMyCourses />} />
-          <Route path="continue" element={<NeoAcademyContinue />} />
-          <Route path="community" element={<NeoAcademyCommunity />} />
-          <Route path="certificates" element={<NeoAcademyCertificates />} />
-          <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
-          <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
-          <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
-          <Route path="admin/settings" element={<NeoAcademyAdminSettings />} />
-          <Route path="*" element={<Navigate to="/neoacademy" replace />} />
-        </Routes>
-      </NeoAcademySidebar>
+      <Routes>
+        {/* Direct survey route - no sidebar wrapper */}
+        <Route path="pesquisa-dia2/:classId" element={<Day2SurveyPage />} />
+        
+        {/* All other routes with sidebar */}
+        <Route path="*" element={
+          <NeoAcademySidebar>
+            <Routes>
+              <Route index element={<NeoAcademyDashboard />} />
+              <Route path="catalog" element={<NeoAcademyCatalog />} />
+              <Route path="course/:courseId" element={<NeoAcademyCourseDetail />} />
+              <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
+              <Route path="my-courses" element={<NeoAcademyMyCourses />} />
+              <Route path="continue" element={<NeoAcademyContinue />} />
+              <Route path="community" element={<NeoAcademyCommunity />} />
+              <Route path="certificates" element={<NeoAcademyCertificates />} />
+              {/* Presential courses - migrated from Academy */}
+              <Route path="schedule" element={<AcademySchedule />} />
+              <Route path="classes/:classId" element={<AcademyClassDetail />} />
+              <Route path="exams" element={<AcademyExams />} />
+              <Route path="exams/:examId/take" element={<AcademyExamTaking />} />
+              <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
+              <Route path="chat" element={<AcademyChat />} />
+              <Route path="chat/:recipientId" element={<AcademyChat />} />
+              <Route path="referral" element={<AcademyReferral />} />
+              <Route path="profile" element={<AcademySettings />} />
+              {/* Admin */}
+              <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
+              <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
+              <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
+              <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
+              <Route path="admin/surveys" element={<SurveyManagement />} />
+              <Route path="admin/settings" element={<NeoAcademyAdminSettings />} />
+              <Route path="*" element={<Navigate to="/neoacademy" replace />} />
+            </Routes>
+          </NeoAcademySidebar>
+        } />
+      </Routes>
     </Suspense>
   );
 }
