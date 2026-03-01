@@ -547,7 +547,7 @@ export default function AdminPanel() {
                       />
                     </div>
                     <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as any)}>
-                      <SelectTrigger className="w-36">
+                      <SelectTrigger className="w-36 bg-slate-900/50 border-slate-700 text-white">
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="Perfil" />
                       </SelectTrigger>
