@@ -677,7 +677,7 @@ export default function AdminPanel() {
                   </Table>
                 </ScrollArea>
                 
-                <div className="mt-4 text-sm text-muted-foreground">
+                <div className="mt-4 text-sm text-slate-400">
                   Mostrando {filteredAndSortedUsers.length} de {users.length} usuários
                 </div>
               </CardContent>
