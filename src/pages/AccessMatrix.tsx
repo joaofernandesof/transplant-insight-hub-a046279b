@@ -65,6 +65,7 @@ const PORTAL_BG_COLORS: Record<Portal, string> = {
   neocare: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800',
   neoteam: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800',
   academy: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800',
+  neoacademy: 'bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800',
   neolicense: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800',
   avivar: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800',
   ipromed: 'bg-[#00629B]/10 dark:bg-[#00629B]/20 border-[#00629B]/30 dark:border-[#00629B]/50',
