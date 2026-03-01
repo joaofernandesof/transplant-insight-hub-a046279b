@@ -81,6 +81,7 @@ function formatPhone(value: string): string {
 
 export function ProfileUpdateGuard({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, isLoading, refreshUser } = useUnifiedAuth();
+  const isMobile = useIsMobile();
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [fetchingCep, setFetchingCep] = useState(false);
