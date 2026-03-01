@@ -50,8 +50,7 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
 const PORTAL_COLORS: Record<Portal, string> = {
   neocare: 'from-rose-500 to-pink-500',
   neoteam: 'from-blue-500 to-indigo-500',
-  academy: 'from-emerald-500 to-green-500',
-  neoacademy: 'from-violet-500 to-fuchsia-500',
+  neoacademy: 'from-emerald-500 to-green-500',
   neolicense: 'from-amber-400 to-yellow-500',
   avivar: 'from-orange-500 to-red-500',
   ipromed: 'from-[#00629B] to-[#004d7a]',
