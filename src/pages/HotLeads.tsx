@@ -555,6 +555,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
 
   return (
     <CompleteProfileGate>
+    <PendingSalesGate>
     <div className="flex-1 flex flex-col bg-background h-[calc(100dvh-52px)] lg:h-dvh overflow-y-auto">
       {/* Header */}
       <header className="border-b bg-gradient-to-r from-orange-600 to-red-600 lg:sticky lg:top-0 z-20 hidden lg:block">
