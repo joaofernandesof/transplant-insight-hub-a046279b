@@ -204,8 +204,8 @@ export default function ModuleOverridesAdmin() {
             <div className="flex items-start gap-3">
               <GraduationCap className="h-5 w-5 text-blue-500 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-blue-500">Como funciona?</p>
-                <p className="text-muted-foreground">
+                <p className="font-medium text-blue-400">Como funciona?</p>
+                <p className="text-slate-400">
                   Cada perfil acessa automaticamente apenas o Academy da sua empresa.
                   Use esta tela para liberar acesso manual a Academies adicionais.
                   Overrides têm prioridade sobre permissões de perfil.
