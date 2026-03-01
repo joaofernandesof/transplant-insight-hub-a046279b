@@ -14448,6 +14448,42 @@ export type Database = {
         }
         Relationships: []
       }
+      neoteam_diary_entries: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          entry_date: string
+          id: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       neoteam_doctor_schedules: {
         Row: {
           branch_id: string | null
