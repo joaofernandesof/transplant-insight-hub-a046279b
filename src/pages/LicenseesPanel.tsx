@@ -672,24 +672,16 @@ export default function LicenseesPanel() {
           </CardContent>
         </Card>
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Desativar Aluno</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja desativar <strong>{licenseeToDelete?.name}</strong>?
-                O aluno será marcado como inativo e não poderá acessar o sistema.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Desativar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmActionDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Desativar Aluno"
+          description={`Tem certeza que deseja desativar ${licenseeToDelete?.name}?`}
+          impact="O aluno será marcado como inativo e não poderá acessar o sistema até ser reativado."
+          severity="warning"
+          confirmLabel="Desativar"
+          onConfirm={handleConfirmDelete}
+        />
       </div>
     </AdminLayout>
   );

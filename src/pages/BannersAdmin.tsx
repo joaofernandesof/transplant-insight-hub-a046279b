@@ -574,26 +574,16 @@ export default function BannersAdmin() {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Banner?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta ação não pode ser desfeita. O banner será removido permanentemente do carrossel.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleConfirmDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Excluir
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmActionDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Excluir Banner?"
+          description="O banner será removido permanentemente do carrossel."
+          impact="Esta ação não pode ser desfeita. O banner e suas estatísticas de cliques serão perdidos."
+          severity="destructive"
+          confirmLabel="Excluir"
+          onConfirm={handleConfirmDelete}
+        />
       </div>
     </AdminLayout>
   );
