@@ -112,7 +112,7 @@ describe('UnifiedAuthContext', () => {
       });
 
       it('should return false for null profile', () => {
-        expect(canAccessPortal(null, 'academy')).toBe(false);
+        expect(canAccessPortal(null, 'neoacademy')).toBe(false);
       });
     });
 
