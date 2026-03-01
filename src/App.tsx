@@ -16,6 +16,7 @@ import { DataProvider } from "@/contexts/DataContext";
 import SupportChat from "@/components/SupportChat";
 import { EventTracker } from "@/components/EventTracker";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
+import { ProfileUpdateGuard } from "@/components/ProfileUpdateGuard";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { queryClient } from "@/lib/queryClient";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
