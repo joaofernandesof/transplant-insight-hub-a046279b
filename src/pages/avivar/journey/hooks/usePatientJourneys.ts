@@ -11,6 +11,7 @@ import {
   JourneyType,
   COMMERCIAL_STAGES,
   POST_SALE_STAGES,
+  RETENTION_STAGES,
   StageConfig,
   ChecklistItem
 } from '../types';
@@ -27,12 +28,12 @@ export function usePatientJourneys(journeyType?: JourneyType) {
         .order('created_at', { ascending: false });
       
       if (journeyType) {
-        query = query.eq('journey_type', journeyType);
+        query = query.eq('journey_type', journeyType as any);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as PatientJourney[];
+      return (data || []) as unknown as PatientJourney[];
     }
   });
 
@@ -52,13 +53,15 @@ export function usePatientJourneys(journeyType?: JourneyType) {
           account_id: memberData!.account_id,
           patient_name: journey.patient_name || 'Novo Lead',
           service_type: journey.service_type || 'capilar',
-          current_stage: journey.current_stage || 'lead_entrada',
-          journey_type: journey.journey_type || journeyType || 'comercial',
+          current_stage: (journey.current_stage || 'lead_entrada') as any,
+          journey_type: (journey.journey_type || journeyType || 'comercial') as any,
           patient_phone: journey.patient_phone,
           patient_email: journey.patient_email,
           lead_source: journey.lead_source,
           notes: journey.notes,
-        })
+          cancellation_reason: journey.cancellation_reason,
+          retention_origin_stage: journey.retention_origin_stage,
+        } as any)
         .select()
         .single();
       
@@ -78,7 +81,7 @@ export function usePatientJourneys(journeyType?: JourneyType) {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<PatientJourney> }) => {
       const { data, error } = await supabase
         .from('avivar_patient_journeys')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();
@@ -134,11 +137,14 @@ export function getStageProgress(journey: PatientJourney, stageConfig: StageConf
 
 // Get next stage in the flow
 export function getNextStage(currentStage: JourneyStage, journeyType: JourneyType): JourneyStage | null {
-  const stages = journeyType === 'comercial' ? COMMERCIAL_STAGES : POST_SALE_STAGES;
+  const stages = journeyType === 'comercial' 
+    ? COMMERCIAL_STAGES 
+    : journeyType === 'retencao' 
+      ? RETENTION_STAGES 
+      : POST_SALE_STAGES;
   const currentIndex = stages.findIndex(s => s.id === currentStage);
   
   if (currentIndex === -1 || currentIndex === stages.length - 1) {
-    // If at the end of commercial, transition to post-sale
     if (journeyType === 'comercial' && currentStage === 'paciente') {
       return 'onboarding';
     }
@@ -150,7 +156,11 @@ export function getNextStage(currentStage: JourneyStage, journeyType: JourneyTyp
 
 // Get previous stage in the flow
 export function getPreviousStage(currentStage: JourneyStage, journeyType: JourneyType): JourneyStage | null {
-  const stages = journeyType === 'comercial' ? COMMERCIAL_STAGES : POST_SALE_STAGES;
+  const stages = journeyType === 'comercial' 
+    ? COMMERCIAL_STAGES 
+    : journeyType === 'retencao' 
+      ? RETENTION_STAGES 
+      : POST_SALE_STAGES;
   const currentIndex = stages.findIndex(s => s.id === currentStage);
   
   if (currentIndex <= 0) return null;
@@ -160,7 +170,7 @@ export function getPreviousStage(currentStage: JourneyStage, journeyType: Journe
 
 // Get stage config
 export function getStageConfig(stage: JourneyStage): StageConfig | undefined {
-  return [...COMMERCIAL_STAGES, ...POST_SALE_STAGES].find(s => s.id === stage);
+  return [...COMMERCIAL_STAGES, ...POST_SALE_STAGES, ...RETENTION_STAGES].find(s => s.id === stage);
 }
 
 // Check if can advance to next stage
