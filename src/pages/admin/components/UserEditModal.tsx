@@ -319,7 +319,7 @@ export function UserEditModal({
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 pr-4">
+          <div className="flex-1 overflow-y-auto pr-4 min-h-0">
             {/* Dados Tab */}
             <TabsContent value="dados" className="space-y-4 mt-0">
               <div className="grid grid-cols-2 gap-4">
@@ -577,7 +577,7 @@ export function UserEditModal({
                 </Button>
               </div>
             </TabsContent>
-          </ScrollArea>
+          </div>
         </Tabs>
 
         <DialogFooter className="border-t pt-4">
