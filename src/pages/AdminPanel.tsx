@@ -257,10 +257,11 @@ export default function AdminPanel() {
   const fetchUsers = async () => {
     try {
       // Fetch from both tables to get complete user data
-      const [profilesRes, neohubUsersRes, rolesRes] = await Promise.all([
+      const [profilesRes, neohubUsersRes, rolesRes, portalRolesRes] = await Promise.all([
         supabase.from('profiles').select('*').order('name'),
         supabase.from('neohub_users').select('id, user_id, full_name, email, phone, clinic_name, address_city, address_state, avatar_url, is_active, allowed_portals, tier, crm, rqe, created_at'),
-        supabase.from('user_roles').select('*')
+        supabase.from('user_roles').select('*'),
+        supabase.from('user_portal_roles').select('user_id, portal_id, role_id, portals(name, slug), roles(name, display_name, hierarchy_level)').eq('is_active', true),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
