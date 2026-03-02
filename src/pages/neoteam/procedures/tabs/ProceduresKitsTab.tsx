@@ -66,7 +66,7 @@ export function ProceduresKitsTab() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [editingProcedure, setEditingProcedure] = useState<any | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', category: '', price: '' });
+  const [editForm, setEditForm] = useState({ name: '', category: '', price: '', duration_minutes: '' });
   
   const queryClient = useQueryClient();
   const { data: procedures, isLoading: loadingProcedures } = useProcedures();
@@ -136,12 +136,14 @@ export function ProceduresKitsTab() {
 
   // Edit
   const openEdit = (procedure: any) => {
+    const kit = getActiveKit(procedure.id);
     setEditForm({
       name: procedure.name || '',
       category: procedure.category || '',
       price: procedure.price?.toString() || '0',
+      duration_minutes: procedure.duration_minutes?.toString() || '30',
     });
-    setEditingProcedure(procedure);
+    setEditingProcedure({ ...procedure, _kit: kit });
   };
 
   const saveEdit = async () => {
@@ -151,6 +153,7 @@ export function ProceduresKitsTab() {
         name: editForm.name,
         category: editForm.category,
         price: parseFloat(editForm.price) || 0,
+        duration_minutes: parseInt(editForm.duration_minutes) || 30,
       }).eq('id', editingProcedure.id);
       queryClient.invalidateQueries({ queryKey: ['procedures'] });
       toast.success('Procedimento atualizado');
@@ -499,22 +502,36 @@ export function ProceduresKitsTab() {
                 placeholder="Ex: Blefaroplastia"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-category">Tipo de Procedimento</Label>
-              <Select
-                value={editForm.category}
-                onValueChange={(val) => setEditForm(prev => ({ ...prev, category: val }))}
-              >
-                <SelectTrigger id="edit-category">
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cirurgia">Cirurgia</SelectItem>
-                  <SelectItem value="consulta">Consulta</SelectItem>
-                  <SelectItem value="exame">Exame</SelectItem>
-                  <SelectItem value="procedimento">Procedimento</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Tipo de Procedimento</Label>
+                <Select
+                  value={editForm.category}
+                  onValueChange={(val) => setEditForm(prev => ({ ...prev, category: val }))}
+                >
+                  <SelectTrigger id="edit-category">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cirurgia">Cirurgia</SelectItem>
+                    <SelectItem value="consulta">Consulta</SelectItem>
+                    <SelectItem value="exame">Exame</SelectItem>
+                    <SelectItem value="procedimento">Procedimento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-duration">Duração (min)</Label>
+                <Input
+                  id="edit-duration"
+                  type="number"
+                  min="5"
+                  step="5"
+                  value={editForm.duration_minutes}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, duration_minutes: e.target.value }))}
+                  placeholder="30"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-price">Valor (R$)</Label>
@@ -528,6 +545,44 @@ export function ProceduresKitsTab() {
                 placeholder="0,00"
               />
             </div>
+
+            {/* Kit Info (read-only) */}
+            <div className="space-y-2">
+              <Label>Kit Associado</Label>
+              <div className="p-3 rounded-lg border bg-muted/50">
+                {editingProcedure?._kit ? (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Kit v{editingProcedure._kit.version}</span>
+                        <Badge variant="outline" className="text-xs">Ativo</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(editingProcedure._kit as any).kit_items?.length || 0} itens no kit
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingProcedure(null);
+                        setSelectedKitId(editingProcedure._kit.id);
+                      }}
+                    >
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />
+                      Ver Kit
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Package className="h-4 w-4" />
+                    <span className="text-sm">Nenhum kit associado</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => setEditingProcedure(null)}>
                 Cancelar
