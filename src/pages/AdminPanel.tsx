@@ -62,10 +62,23 @@ import {
   Filter,
   Info,
   Grid3X3,
-  UserPlus
+  UserPlus,
+  CheckSquare,
+  Power,
+  MoreHorizontal,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { PORTAL_MODULES, PORTAL_NAMES, Portal } from '@/neohub/lib/permissions';
 import { UserEditModal } from './admin/components/UserEditModal';
 import { AddUserDialog } from './admin/components/AddUserDialog';
@@ -197,6 +210,10 @@ export default function AdminPanel() {
   });
   const [isSavingUser, setIsSavingUser] = useState(false);
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
+  
+  // Bulk selection state
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   
   // Page visibility state
   const [pageVisibility, setPageVisibility] = useState<PageVisibility>({
@@ -465,6 +482,116 @@ export default function AdminPanel() {
     await updateDbPermission(moduleCode, profileId as any, dbField, value);
   };
 
+  // Bulk selection helpers
+  const toggleSelectUser = (userId: string) => {
+    setSelectedUsers(prev => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.size === filteredAndSortedUsers.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(filteredAndSortedUsers.map(u => u.user_id)));
+    }
+  };
+
+  const bulkToggleActive = async (activate: boolean) => {
+    if (selectedUsers.size === 0) return;
+    setIsBulkProcessing(true);
+    try {
+      for (const userId of selectedUsers) {
+        if (userId === user?.id) continue; // skip self
+        await supabase
+          .from('neohub_users')
+          .update({ is_active: activate, updated_at: new Date().toISOString() })
+          .eq('user_id', userId);
+      }
+      toast.success(`${selectedUsers.size} usuário(s) ${activate ? 'ativado(s)' : 'desativado(s)'}`);
+      setSelectedUsers(new Set());
+      fetchUsers();
+    } catch (error) {
+      toast.error('Erro ao processar ação em massa');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const bulkChangeRole = async (newRole: AppRole) => {
+    if (selectedUsers.size === 0) return;
+    setIsBulkProcessing(true);
+    try {
+      for (const userId of selectedUsers) {
+        if (userId === user?.id) continue;
+        await supabase
+          .from('user_roles')
+          .update({ role: newRole })
+          .eq('user_id', userId);
+      }
+      toast.success(`Perfil de ${selectedUsers.size} usuário(s) alterado para ${getRoleMeta(newRole).name}`);
+      setSelectedUsers(new Set());
+      fetchUsers();
+    } catch (error) {
+      toast.error('Erro ao alterar perfis em massa');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const bulkDeleteUsers = async () => {
+    if (selectedUsers.size === 0) return;
+    const confirmed = window.confirm(`Tem certeza que deseja excluir ${selectedUsers.size} usuário(s)? Esta ação não pode ser desfeita.`);
+    if (!confirmed) return;
+    setIsBulkProcessing(true);
+    try {
+      for (const userId of selectedUsers) {
+        if (userId === user?.id) continue;
+        await supabase.functions.invoke('admin-delete-user', {
+          body: { user_id: userId },
+        });
+      }
+      toast.success(`${selectedUsers.size} usuário(s) excluído(s)`);
+      setSelectedUsers(new Set());
+      fetchUsers();
+    } catch (error) {
+      toast.error('Erro ao excluir usuários');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const deleteUser = async (userId: string) => {
+    const confirmed = window.confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.');
+    if (!confirmed) return;
+    try {
+      const { error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { user_id: userId },
+      });
+      if (error) throw error;
+      toast.success('Usuário excluído com sucesso');
+      fetchUsers();
+    } catch (error) {
+      toast.error('Erro ao excluir usuário');
+    }
+  };
+
+  const toggleUserActive = async (userId: string, currentlyActive: boolean) => {
+    try {
+      await supabase
+        .from('neohub_users')
+        .update({ is_active: !currentlyActive, updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
+      toast.success(currentlyActive ? 'Usuário desativado' : 'Usuário ativado');
+      fetchUsers();
+    } catch (error) {
+      toast.error('Erro ao alterar status');
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   };
@@ -568,10 +695,84 @@ export default function AdminPanel() {
                 </div>
               </CardHeader>
               <CardContent>
+                {/* Bulk Action Bar */}
+                {selectedUsers.size > 0 && (
+                  <div className="mb-4 flex items-center gap-3 p-3 bg-blue-950/40 border border-blue-500/30 rounded-lg">
+                    <CheckSquare className="h-4 w-4 text-blue-400" />
+                    <span className="text-sm text-blue-300 font-medium">
+                      {selectedUsers.size} selecionado(s)
+                    </span>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1">
+                            <Shield className="h-3.5 w-3.5" />
+                            Alterar Perfil
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {ACCESS_PROFILES.map(p => (
+                            <DropdownMenuItem key={p.id} onClick={() => bulkChangeRole(p.id)} disabled={isBulkProcessing}>
+                              <p.icon className="h-4 w-4 mr-2" />
+                              {p.name}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-emerald-600/50 text-emerald-400 hover:bg-emerald-900/30 gap-1"
+                        onClick={() => bulkToggleActive(true)}
+                        disabled={isBulkProcessing}
+                      >
+                        <Power className="h-3.5 w-3.5" />
+                        Ativar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-amber-600/50 text-amber-400 hover:bg-amber-900/30 gap-1"
+                        onClick={() => bulkToggleActive(false)}
+                        disabled={isBulkProcessing}
+                      >
+                        <Power className="h-3.5 w-3.5" />
+                        Desativar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-600/50 text-red-400 hover:bg-red-900/30 gap-1"
+                        onClick={bulkDeleteUsers}
+                        disabled={isBulkProcessing}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Excluir
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-slate-400"
+                        onClick={() => setSelectedUsers(new Set())}
+                      >
+                        Limpar
+                      </Button>
+                    </div>
+                    {isBulkProcessing && <Loader2 className="h-4 w-4 animate-spin text-blue-400" />}
+                  </div>
+                )}
+
                 <ScrollArea className="w-full">
                   <Table>
                     <TableHeader>
                      <TableRow className="border-slate-700/50 hover:bg-transparent">
+                        <TableHead className="w-[40px]">
+                          <Checkbox
+                            checked={filteredAndSortedUsers.length > 0 && selectedUsers.size === filteredAndSortedUsers.length}
+                            onCheckedChange={toggleSelectAll}
+                            className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                          />
+                        </TableHead>
                         <TableHead className="w-[250px] text-slate-400">
                           <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="gap-1">
                             Usuário
@@ -596,6 +797,7 @@ export default function AdminPanel() {
                             <SortIcon field="role" />
                           </Button>
                         </TableHead>
+                        <TableHead className="text-center w-[80px]">Status</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -606,9 +808,21 @@ export default function AdminPanel() {
                         const RoleIcon = roleMeta.icon;
                         const isCurrentUser = userProfile.user_id === user?.id;
                         const displayName = userProfile.full_name || userProfile.name;
+                        const isSelected = selectedUsers.has(userProfile.user_id);
+                        const isUserActive = userProfile.is_active !== false;
                         
                         return (
-                          <TableRow key={userProfile.id} className="border-slate-700/50 hover:bg-slate-700/30">
+                          <TableRow key={userProfile.id} className={cn(
+                            "border-slate-700/50 hover:bg-slate-700/30",
+                            isSelected && "bg-blue-950/30"
+                          )}>
+                            <TableCell>
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleSelectUser(userProfile.user_id)}
+                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                              />
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
@@ -639,35 +853,70 @@ export default function AdminPanel() {
                                 {roleMeta.name}
                               </Badge>
                             </TableCell>
+                            <TableCell className="text-center">
+                              <Badge className={isUserActive ? 'bg-emerald-900/50 text-emerald-400 border-emerald-500/30' : 'bg-red-900/50 text-red-400 border-red-500/30'} variant="outline">
+                                {isUserActive ? 'Ativo' : 'Inativo'}
+                              </Badge>
+                            </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
+                              <div className="flex items-center justify-end gap-1">
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="text-slate-300 hover:text-white hover:bg-slate-700"
+                                  className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700"
                                   onClick={() => openEditDialog(userProfile)}
                                   title="Editar usuário"
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                                 {!isCurrentUser && (
-                                   <Button
-                                    variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                                    size="sm"
-                                    onClick={() => toggleUserRole(userProfile.user_id, role)}
-                                  >
-                                    {role === 'admin' ? (
-                                      <>
-                                        <UserX className="h-4 w-4 mr-1" />
-                                        Remover Admin
-                                      </>
-                                    ) : (
-                                      <>
-                                        <UserCheck className="h-4 w-4 mr-1" />
-                                        Tornar Admin
-                                      </>
-                                    )}
-                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => toggleUserRole(userProfile.user_id, role)}>
+                                        {role === 'admin' ? (
+                                          <><UserX className="h-4 w-4 mr-2" /> Remover Admin</>
+                                        ) : (
+                                          <><UserCheck className="h-4 w-4 mr-2" /> Tornar Admin</>
+                                        )}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSub>
+                                        <DropdownMenuSubTrigger>
+                                          <Shield className="h-4 w-4 mr-2" />
+                                          Alterar Perfil
+                                        </DropdownMenuSubTrigger>
+                                        <DropdownMenuSubContent>
+                                          {ACCESS_PROFILES.map(p => (
+                                            <DropdownMenuItem key={p.id} onClick={() => {
+                                              toggleUserRole(userProfile.user_id, role);
+                                              // Use direct role update
+                                              supabase.from('user_roles').update({ role: p.id }).eq('user_id', userProfile.user_id).then(() => {
+                                                setUserRoles(prev => prev.map(r => r.user_id === userProfile.user_id ? { ...r, role: p.id } : r));
+                                                toast.success(`Perfil alterado para ${p.name}`);
+                                              });
+                                            }}>
+                                              <p.icon className="h-4 w-4 mr-2" />
+                                              {p.name}
+                                            </DropdownMenuItem>
+                                          ))}
+                                        </DropdownMenuSubContent>
+                                      </DropdownMenuSub>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => toggleUserActive(userProfile.user_id, isUserActive)}>
+                                        <Power className="h-4 w-4 mr-2" />
+                                        {isUserActive ? 'Desativar' : 'Ativar'}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={() => deleteUser(userProfile.user_id)}>
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Excluir Usuário
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 )}
                               </div>
                             </TableCell>
