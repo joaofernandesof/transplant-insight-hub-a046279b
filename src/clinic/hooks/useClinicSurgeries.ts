@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
+import { logSurgeryChanges } from '../utils/logSurgeryChange';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 
@@ -238,7 +239,16 @@ export function useClinicSurgeries() {
       if (updates.upgradeValue !== undefined) dbUpdates.upgrade_value = updates.upgradeValue;
       if (updates.upgradeCategory !== undefined) dbUpdates.upgrade_category = updates.upgradeCategory;
       if (updates.upsellValue !== undefined) dbUpdates.upsell_value = updates.upsellValue;
-      if (updates.upsellCategory !== undefined) dbUpdates.upsell_category = updates.upsellCategory;
+      if (updates.upsellCategory !== undefined) dbUpdates.upsellCategory = updates.upsellCategory;
+
+      // Find current surgery to capture old values for audit log
+      const currentSurgery = surgeries.find(s => s.id === id);
+      const previousValues: Record<string, any> = {};
+      if (currentSurgery) {
+        for (const key of Object.keys(updates)) {
+          previousValues[key] = (currentSurgery as any)[key];
+        }
+      }
 
       const { data, error } = await supabase
         .from('clinic_surgeries')
@@ -248,6 +258,10 @@ export function useClinicSurgeries() {
         .single();
 
       if (error) throw error;
+
+      // Log changes asynchronously (don't block the update)
+      logSurgeryChanges(id, updates, previousValues);
+
       return data;
     },
     onSuccess: () => {

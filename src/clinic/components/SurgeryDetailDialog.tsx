@@ -13,12 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
   CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil,
-  ChevronDown, ChevronRight, Loader2
+  ChevronDown, ChevronRight, Loader2, History
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useSurgeryTasks } from '../hooks/useSurgeryTasks';
+import { useSurgeryAuditLog } from '../hooks/useSurgeryAuditLog';
 import { ProcedureCheckboxField } from './ProcedureCheckboxField';
 
 const UPGRADE_CATEGORIES = [
@@ -48,6 +49,7 @@ interface SurgeryDetailDialogProps {
 
 export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: SurgeryDetailDialogProps) {
   const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask } = useSurgeryTasks(surgery?.id);
+  const { logs: auditLogs, isLoading: logsLoading } = useSurgeryAuditLog(surgery?.id);
 
   if (!surgery) return null;
 
@@ -308,6 +310,45 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
                 field="notes"
                 onSave={handleFieldSave}
               />
+            </div>
+
+            {/* Histórico de Alterações */}
+            <Separator />
+            <div>
+              <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <History className="h-4 w-4 text-muted-foreground" />
+                Histórico de Alterações
+              </h4>
+              {logsLoading ? (
+                <div className="flex items-center justify-center py-4 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Carregando histórico...
+                </div>
+              ) : auditLogs.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">Nenhuma alteração registrada.</p>
+              ) : (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {auditLogs.map((log) => (
+                    <div key={log.id} className="flex items-start gap-2 text-xs border-l-2 border-muted pl-3 py-1.5">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-medium text-foreground">{log.user_name || 'Usuário'}</span>
+                          <span className="text-muted-foreground">alterou</span>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">{log.field_label || log.field_name}</Badge>
+                        </div>
+                        <div className="mt-0.5 text-muted-foreground">
+                          <span className="line-through">{log.old_value || '—'}</span>
+                          <span className="mx-1">→</span>
+                          <span className="text-foreground font-medium">{log.new_value || '—'}</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
+                        {format(parseISO(log.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </ScrollArea>
