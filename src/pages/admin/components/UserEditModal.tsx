@@ -220,7 +220,7 @@ export function UserEditModal({
             .from('neohub_user_profiles')
             .update({ is_active: false })
             .eq('neohub_user_id', neohubUser.id)
-            .eq('profile', oldProfile as any);
+            .eq('profile', userRole as any);
 
           // Upsert new profile (insert or reactivate)
           const { data: existingProfile } = await supabase
