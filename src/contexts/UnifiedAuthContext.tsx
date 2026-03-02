@@ -76,36 +76,36 @@ export type Portal = 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'aviv
 
 // Mapeamento perfil -> portais
 export const PROFILE_PORTAL_MAP: Record<ProfileKey, Portal[]> = {
+  super_administrador: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed'],
   administrador: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed'],
-  licenciado: ['neolicense', 'neoteam'],
-  colaborador: ['neoteam'],
-  medico: ['neoteam'],
-  aluno: ['neoacademy'],
-  paciente: ['neocare'],
-  cliente_avivar: ['avivar'],
-  ipromed: ['ipromed'],
+  gerente: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed'],
+  coordenador: ['neoteam', 'neocare', 'neoacademy'],
+  supervisor: ['neoteam', 'neocare'],
+  operador: ['neoteam', 'neocare', 'neoacademy', 'neolicense', 'avivar', 'ipromed'],
+  visualizador: ['neoteam', 'neocare'],
+  externo: [],
 };
 
 export const PROFILE_ROUTES: Record<ProfileKey, string> = {
+  super_administrador: '/admin-dashboard',
   administrador: '/admin-dashboard',
-  licenciado: '/home',
-  colaborador: '/neoteam',
-  medico: '/neoteam',
-  aluno: '/academy',
-  paciente: '/neocare',
-  cliente_avivar: '/avivar',
-  ipromed: '/cpg',
+  gerente: '/neoteam',
+  coordenador: '/neoteam',
+  supervisor: '/neoteam',
+  operador: '/neoteam',
+  visualizador: '/neoteam',
+  externo: '/',
 };
 
 export const PROFILE_NAMES: Record<ProfileKey, string> = {
+  super_administrador: 'Super Administrador',
   administrador: 'Administrador',
-  licenciado: 'Licenciado',
-  colaborador: 'Colaborador',
-  medico: 'Médico',
-  aluno: 'Aluno',
-  paciente: 'Paciente',
-  cliente_avivar: 'Cliente Avivar',
-  ipromed: 'CPG Advocacia',
+  gerente: 'Gerente',
+  coordenador: 'Coordenador',
+  supervisor: 'Supervisor',
+  operador: 'Operador',
+  visualizador: 'Visualizador',
+  externo: 'Externo',
 };
 
 // Helpers
