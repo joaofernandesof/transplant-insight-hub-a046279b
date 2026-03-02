@@ -472,6 +472,7 @@ function NeoTeamRoutes() {
   const SectorDashboardPage = lazy(() => import('@/neohub/pages/neoteam/SectorDashboardPage'));
   const FinancialDashboardPage = lazy(() => import('@/pages/neoteam/financeiro/FinancialDashboardPage'));
   const AccountsPage = lazy(() => import('@/pages/neoteam/financeiro/AccountsPage'));
+  const TeamRosterPage = lazy(() => import('@/pages/neoteam/rh/TeamRosterPage'));
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
