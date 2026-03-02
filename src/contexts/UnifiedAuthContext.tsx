@@ -266,7 +266,7 @@ interface UnifiedAuthContextType {
 const UnifiedAuthContext = createContext<UnifiedAuthContextType | undefined>(undefined);
 
 const VALID_PROFILES: ProfileKey[] = [
-  'administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'
+  'super_administrador', 'administrador', 'gerente', 'coordenador', 'supervisor', 'operador', 'visualizador', 'externo'
 ];
 
 // ====================================
