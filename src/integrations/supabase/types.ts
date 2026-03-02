@@ -2124,6 +2124,8 @@ export type Database = {
           account_id: string
           assigned_to: string | null
           attended: boolean | null
+          cancellation_details: string | null
+          cancellation_reason: string | null
           confirmation_sent: boolean | null
           contact_attempts: number | null
           contract_doubts_cleared: boolean | null
@@ -2137,6 +2139,8 @@ export type Database = {
           evaluation_requested: boolean | null
           exams_requested: boolean | null
           exams_verified: boolean | null
+          final_decision: string | null
+          final_decision_notes: string | null
           id: string
           initial_expectation: string | null
           initial_instructions_sent: boolean | null
@@ -2144,6 +2148,7 @@ export type Database = {
           journey_type: Database["public"]["Enums"]["avivar_journey_type"]
           lead_source: string | null
           legal_status_validated: boolean | null
+          linked_ticket_id: string | null
           next_day_contact: boolean | null
           next_step: string | null
           notes: string | null
@@ -2158,6 +2163,12 @@ export type Database = {
           procedure_done: boolean | null
           referral_program_presented: boolean | null
           reminder_active: boolean | null
+          retention_attempt_done: boolean
+          retention_attempt_notes: string | null
+          retention_offer_accepted: boolean | null
+          retention_offer_details: string | null
+          retention_offer_type: string | null
+          retention_origin_stage: string | null
           same_day_contact: boolean | null
           scheduled_date: string | null
           selected_time: string | null
@@ -2173,6 +2184,8 @@ export type Database = {
           account_id: string
           assigned_to?: string | null
           attended?: boolean | null
+          cancellation_details?: string | null
+          cancellation_reason?: string | null
           confirmation_sent?: boolean | null
           contact_attempts?: number | null
           contract_doubts_cleared?: boolean | null
@@ -2186,6 +2199,8 @@ export type Database = {
           evaluation_requested?: boolean | null
           exams_requested?: boolean | null
           exams_verified?: boolean | null
+          final_decision?: string | null
+          final_decision_notes?: string | null
           id?: string
           initial_expectation?: string | null
           initial_instructions_sent?: boolean | null
@@ -2193,6 +2208,7 @@ export type Database = {
           journey_type?: Database["public"]["Enums"]["avivar_journey_type"]
           lead_source?: string | null
           legal_status_validated?: boolean | null
+          linked_ticket_id?: string | null
           next_day_contact?: boolean | null
           next_step?: string | null
           notes?: string | null
@@ -2207,6 +2223,12 @@ export type Database = {
           procedure_done?: boolean | null
           referral_program_presented?: boolean | null
           reminder_active?: boolean | null
+          retention_attempt_done?: boolean
+          retention_attempt_notes?: string | null
+          retention_offer_accepted?: boolean | null
+          retention_offer_details?: string | null
+          retention_offer_type?: string | null
+          retention_origin_stage?: string | null
           same_day_contact?: boolean | null
           scheduled_date?: string | null
           selected_time?: string | null
@@ -2222,6 +2244,8 @@ export type Database = {
           account_id?: string
           assigned_to?: string | null
           attended?: boolean | null
+          cancellation_details?: string | null
+          cancellation_reason?: string | null
           confirmation_sent?: boolean | null
           contact_attempts?: number | null
           contract_doubts_cleared?: boolean | null
@@ -2235,6 +2259,8 @@ export type Database = {
           evaluation_requested?: boolean | null
           exams_requested?: boolean | null
           exams_verified?: boolean | null
+          final_decision?: string | null
+          final_decision_notes?: string | null
           id?: string
           initial_expectation?: string | null
           initial_instructions_sent?: boolean | null
@@ -2242,6 +2268,7 @@ export type Database = {
           journey_type?: Database["public"]["Enums"]["avivar_journey_type"]
           lead_source?: string | null
           legal_status_validated?: boolean | null
+          linked_ticket_id?: string | null
           next_day_contact?: boolean | null
           next_step?: string | null
           notes?: string | null
@@ -2256,6 +2283,12 @@ export type Database = {
           procedure_done?: boolean | null
           referral_program_presented?: boolean | null
           reminder_active?: boolean | null
+          retention_attempt_done?: boolean
+          retention_attempt_notes?: string | null
+          retention_offer_accepted?: boolean | null
+          retention_offer_details?: string | null
+          retention_offer_type?: string | null
+          retention_origin_stage?: string | null
           same_day_contact?: boolean | null
           scheduled_date?: string | null
           selected_time?: string | null
@@ -22042,7 +22075,7 @@ export type Database = {
         | "coordenador"
         | "sdr"
         | "atendente"
-      avivar_journey_type: "comercial" | "pos_venda"
+      avivar_journey_type: "comercial" | "pos_venda" | "retencao"
       avivar_service_type: "capilar" | "barba" | "sobrancelha"
       avivar_stage:
         | "lead_entrada"
@@ -22057,6 +22090,13 @@ export type Database = {
         | "procedimento"
         | "pos_operatorio"
         | "relacionamento"
+        | "solicitacao_cancelamento"
+        | "analise_motivo"
+        | "negociacao_retencao"
+        | "oferta_retencao"
+        | "decisao_final"
+        | "retido"
+        | "nao_retido"
       avivar_team_role: "admin" | "gestor" | "sdr" | "atendente"
       chamado_etapa:
         | "triagem"
@@ -22430,7 +22470,7 @@ export const Constants = {
         "sdr",
         "atendente",
       ],
-      avivar_journey_type: ["comercial", "pos_venda"],
+      avivar_journey_type: ["comercial", "pos_venda", "retencao"],
       avivar_service_type: ["capilar", "barba", "sobrancelha"],
       avivar_stage: [
         "lead_entrada",
@@ -22445,6 +22485,13 @@ export const Constants = {
         "procedimento",
         "pos_operatorio",
         "relacionamento",
+        "solicitacao_cancelamento",
+        "analise_motivo",
+        "negociacao_retencao",
+        "oferta_retencao",
+        "decisao_final",
+        "retido",
+        "nao_retido",
       ],
       avivar_team_role: ["admin", "gestor", "sdr", "atendente"],
       chamado_etapa: [
