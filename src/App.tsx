@@ -974,8 +974,8 @@ function AppRoutes() {
 {/* ====================================
           Vision - Diagnóstico Capilar IA
           ==================================== */}
-      <Route path="/vision" element={<ProfileGuard allowedProfiles={['licenciado']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
-      <Route path="/vision/*" element={<ProfileGuard allowedProfiles={['licenciado']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
+      <Route path="/vision" element={<ProfileGuard allowedProfiles={['operador']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
+      <Route path="/vision/*" element={<ProfileGuard allowedProfiles={['operador']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
       {/* Legacy redirect */}
       <Route path="/neohairscan" element={<Navigate to="/vision" replace />} />
 
