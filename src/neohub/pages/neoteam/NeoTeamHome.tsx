@@ -196,6 +196,10 @@ export default function NeoTeamHome() {
         }
       />
 
+
+      {/* Sector Quick Access */}
+      <SectorGrid navigate={navigate} />
+
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardKpiCard
