@@ -818,7 +818,7 @@ export default function AdminPanel() {
                                         <DropdownMenuSubContent>
                                           {ACCESS_PROFILES.map(p => (
                                             <DropdownMenuItem key={p.id} onClick={() => {
-                                              supabase.from('user_roles').update({ role: p.id }).eq('user_id', userProfile.user_id).then(() => {
+                                              supabase.from('user_roles').update({ role: p.id as any }).eq('user_id', userProfile.user_id).then(() => {
                                                 setUserRoles(prev => prev.map(r => r.user_id === userProfile.user_id ? { ...r, role: p.id } : r));
                                                 toast.success(`Função alterada para ${p.name}`);
                                               });
