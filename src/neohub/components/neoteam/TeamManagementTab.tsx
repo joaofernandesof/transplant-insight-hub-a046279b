@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -20,7 +21,11 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Users, Plus, Shield, Search, Loader2, UserCheck, Stethoscope, Building2,
+  ChevronDown, UserX, UserCheck2,
 } from 'lucide-react';
 import {
   useNeoTeamRBAC, NeoTeamRole, ROLE_CONFIG, AvailableUser,
@@ -50,6 +55,10 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('active');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRoleDialog, setBulkRoleDialog] = useState(false);
+  const [bulkRole, setBulkRole] = useState<NeoTeamRole>('OPERACIONAL');
+  const [bulkAction, setBulkAction] = useState<'activate' | 'deactivate' | 'role' | null>(null);
 
   useEffect(() => {
     if (addDialogOpen) {
@@ -106,6 +115,53 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
     return true;
   });
 
+  const allSelected = filteredMembers.length > 0 && filteredMembers.every(m => selectedIds.has(m.id));
+  const someSelected = filteredMembers.some(m => selectedIds.has(m.id));
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredMembers.map(m => m.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkToggleActive = async (activate: boolean) => {
+    setIsSaving(true);
+    for (const id of selectedIds) {
+      const member = members.find(m => m.id === id);
+      if (member && member.is_active !== activate) {
+        await toggleMemberActive(id);
+      }
+    }
+    setIsSaving(false);
+    setSelectedIds(new Set());
+    setBulkAction(null);
+  };
+
+  const handleBulkRoleChange = async () => {
+    setIsSaving(true);
+    for (const id of selectedIds) {
+      const member = members.find(m => m.id === id);
+      if (member && member.role !== bulkRole) {
+        await updateMemberRole(id, bulkRole);
+      }
+    }
+    setIsSaving(false);
+    setSelectedIds(new Set());
+    setBulkRoleDialog(false);
+    setBulkAction(null);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -161,118 +217,182 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                 <TableHead>Membro</TableHead>
-                   <TableHead>Papel</TableHead>
-                   <TableHead>Filial</TableHead>
-                   <TableHead>Profissional</TableHead>
-                   <TableHead>Status</TableHead>
-                  {isAdminOrAbove && <TableHead className="text-right">Ações</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMembers.map((member) => (
-                  <TableRow key={member.id} className={!member.is_active ? 'opacity-50' : ''}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarImage src={member.user_avatar || undefined} />
-                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                            {member.user_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || '?'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm leading-none">{member.user_name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{member.user_email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {isAdminOrAbove ? (
-                        <Select
-                          value={member.role}
-                          onValueChange={(newRole) => {
-                            if (newRole !== member.role) {
-                              setRoleChangeDialog({
-                                memberId: member.id,
-                                currentRole: member.role,
-                                newRole: newRole as NeoTeamRole,
-                              });
-                            }
-                          }}
+          <>
+            {/* Bulk Actions Bar */}
+            {isAdminOrAbove && someSelected && (
+              <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <span className="text-sm font-medium text-primary">
+                  {selectedIds.size} selecionado{selectedIds.size > 1 ? 's' : ''}
+                </span>
+                <div className="flex items-center gap-2 ml-auto">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-1">
+                        Alterar Papel <ChevronDown className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {Object.entries(ROLE_CONFIG).map(([key, config]) => (
+                        <DropdownMenuItem
+                          key={key}
+                          disabled={key === 'MASTER' && !isMaster}
+                          onClick={() => { setBulkRole(key as NeoTeamRole); setBulkAction('role'); setBulkRoleDialog(true); }}
                         >
-                          <SelectTrigger className="w-[160px] h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(ROLE_CONFIG).map(([key, config]) => (
-                              <SelectItem key={key} value={key} disabled={key === 'MASTER' && !isMaster}>
-                                <span className="flex items-center gap-2">
-                                  <span>{config.icon}</span>
-                                  <span>{config.label}</span>
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Badge variant="outline" className={`${ROLE_CONFIG[member.role].color} border`}>
-                          {ROLE_CONFIG[member.role].icon} {ROLE_CONFIG[member.role].label}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {member.branch_name ? (
-                        <div className="flex items-center gap-1.5 text-sm">
-                          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span>{member.branch_name}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {member.doctor_name ? (
-                        <div className="flex items-center gap-1.5 text-sm">
-                          <Stethoscope className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span>{member.doctor_name}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isAdminOrAbove ? (
-                        <Switch
-                          checked={member.is_active}
-                          onCheckedChange={() => toggleMemberActive(member.id)}
-                        />
-                      ) : (
-                        <Badge variant={member.is_active ? 'default' : 'secondary'}>
-                          {member.is_active ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                      )}
-                    </TableCell>
+                          {config.icon} {config.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => { setBulkAction('activate'); }}
+                  >
+                    <UserCheck2 className="h-3.5 w-3.5" /> Ativar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-destructive hover:text-destructive"
+                    onClick={() => { setBulkAction('deactivate'); }}
+                  >
+                    <UserX className="h-3.5 w-3.5" /> Inativar
+                  </Button>
+                </div>
+              </div>
+            )}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
                     {isAdminOrAbove && (
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onSelectMember(member.id)}
-                        >
-                          <Shield className="h-4 w-4 mr-1" />
-                          Permissões
-                        </Button>
-                      </TableCell>
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={allSelected}
+                          onCheckedChange={toggleSelectAll}
+                          aria-label="Selecionar todos"
+                        />
+                      </TableHead>
                     )}
+                    <TableHead>Membro</TableHead>
+                    <TableHead>Papel</TableHead>
+                    <TableHead>Filial</TableHead>
+                    <TableHead>Profissional</TableHead>
+                    <TableHead>Status</TableHead>
+                    {isAdminOrAbove && <TableHead className="text-right">Ações</TableHead>}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredMembers.map((member) => (
+                    <TableRow key={member.id} className={`${!member.is_active ? 'opacity-50' : ''} ${selectedIds.has(member.id) ? 'bg-primary/5' : ''}`}>
+                      {isAdminOrAbove && (
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.has(member.id)}
+                            onCheckedChange={() => toggleSelect(member.id)}
+                            aria-label={`Selecionar ${member.user_name}`}
+                          />
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarImage src={member.user_avatar || undefined} />
+                            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                              {member.user_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-sm leading-none">{member.user_name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{member.user_email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {isAdminOrAbove ? (
+                          <Select
+                            value={member.role}
+                            onValueChange={(newRole) => {
+                              if (newRole !== member.role) {
+                                setRoleChangeDialog({
+                                  memberId: member.id,
+                                  currentRole: member.role,
+                                  newRole: newRole as NeoTeamRole,
+                                });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-[160px] h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(ROLE_CONFIG).map(([key, config]) => (
+                                <SelectItem key={key} value={key} disabled={key === 'MASTER' && !isMaster}>
+                                  <span className="flex items-center gap-2">
+                                    <span>{config.icon}</span>
+                                    <span>{config.label}</span>
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge variant="outline" className={`${ROLE_CONFIG[member.role].color} border`}>
+                            {ROLE_CONFIG[member.role].icon} {ROLE_CONFIG[member.role].label}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {member.branch_name ? (
+                          <div className="flex items-center gap-1.5 text-sm">
+                            <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{member.branch_name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {member.doctor_name ? (
+                          <div className="flex items-center gap-1.5 text-sm">
+                            <Stethoscope className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{member.doctor_name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {isAdminOrAbove ? (
+                          <Switch
+                            checked={member.is_active}
+                            onCheckedChange={() => toggleMemberActive(member.id)}
+                          />
+                        ) : (
+                          <Badge variant={member.is_active ? 'default' : 'secondary'}>
+                            {member.is_active ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      {isAdminOrAbove && (
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onSelectMember(member.id)}
+                          >
+                            <Shield className="h-4 w-4 mr-1" />
+                            Permissões
+                          </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
 
@@ -427,6 +547,57 @@ export function TeamManagementTab({ onSelectMember }: TeamManagementTabProps) {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSaving}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleRoleChange} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Role Change Confirmation */}
+      <AlertDialog open={bulkRoleDialog} onOpenChange={() => { setBulkRoleDialog(false); setBulkAction(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Alterar Papel em Massa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja alterar o papel de{' '}
+              <strong>{selectedIds.size} membro{selectedIds.size > 1 ? 's' : ''}</strong> para{' '}
+              <strong>{ROLE_CONFIG[bulkRole].icon} {ROLE_CONFIG[bulkRole].label}</strong>?
+              <br />
+              <span className="text-xs mt-2 block">Esta ação será registrada na auditoria.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkRoleChange} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Activate/Deactivate Confirmation */}
+      <AlertDialog open={bulkAction === 'activate' || bulkAction === 'deactivate'} onOpenChange={() => setBulkAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {bulkAction === 'activate' ? 'Ativar' : 'Inativar'} Membros
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja {bulkAction === 'activate' ? 'ativar' : 'inativar'}{' '}
+              <strong>{selectedIds.size} membro{selectedIds.size > 1 ? 's' : ''}</strong>?
+              <br />
+              <span className="text-xs mt-2 block">Esta ação será registrada na auditoria.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleBulkToggleActive(bulkAction === 'activate')}
+              disabled={isSaving}
+              className={bulkAction === 'deactivate' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
+            >
               {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirmar
             </AlertDialogAction>
