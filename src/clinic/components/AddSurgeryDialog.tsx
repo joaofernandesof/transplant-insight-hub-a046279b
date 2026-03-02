@@ -238,15 +238,28 @@ export function AddSurgeryDialog({
                       setSelectedPatientId(patient.id);
                       if (patient.phone) setPatientPhone(patient.phone);
 
-                      // Auto-fill from latest surgery of this patient
+                      // Auto-fill from latest surgery of this patient (by ID or name fallback)
                       try {
-                        const { data: latestSurgery } = await supabase
+                        // Try by patient_id first
+                        let { data: latestSurgery } = await supabase
                           .from('clinic_surgeries')
                           .select('procedure, category, branch')
                           .eq('patient_id', patient.id)
                           .order('created_at', { ascending: false })
                           .limit(1)
                           .maybeSingle();
+
+                        // Fallback: search by patient_name (legacy records without patient_id)
+                        if (!latestSurgery) {
+                          const { data: byName } = await supabase
+                            .from('clinic_surgeries')
+                            .select('procedure, category, branch')
+                            .ilike('patient_name', patient.full_name)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .maybeSingle();
+                          latestSurgery = byName;
+                        }
 
                         if (latestSurgery) {
                           if (latestSurgery.procedure) {
