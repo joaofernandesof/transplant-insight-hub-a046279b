@@ -95,6 +95,20 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
       if (!columnId) throw new Error('Selecione uma coluna');
       if (!effectiveKanbanId) throw new Error('Selecione um funil');
 
+      // Check for duplicates by phone or email
+      if (formData.phone || formData.email) {
+        const { data: duplicate } = await supabase.rpc('check_duplicate_kanban_lead', {
+          p_account_id: accountId,
+          p_phone: formData.phone || null,
+          p_email: formData.email || null,
+        });
+        if (duplicate && duplicate.length > 0) {
+          const dup = duplicate[0];
+          const matchField = dup.phone === formData.phone ? `telefone (${dup.phone})` : `email (${dup.email})`;
+          throw new Error(`DUPLICATE:Já existe um lead "${dup.name}" com este ${matchField}`);
+        }
+      }
+
       // Generate lead_code
       const { data: leadCode, error: codeError } = await supabase.rpc('generate_lead_code');
       if (codeError) throw codeError;
@@ -134,9 +148,13 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
         columnId: '',
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error creating lead:', error);
-      toast.error('Erro ao criar lead');
+      if (error?.message?.startsWith('DUPLICATE:')) {
+        toast.error(error.message.replace('DUPLICATE:', ''));
+      } else {
+        toast.error('Erro ao criar lead');
+      }
     },
   });
 

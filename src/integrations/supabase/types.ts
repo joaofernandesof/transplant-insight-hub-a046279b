@@ -22149,6 +22149,21 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      check_duplicate_kanban_lead: {
+        Args: {
+          p_account_id: string
+          p_email?: string
+          p_exclude_lead_id?: string
+          p_phone?: string
+        }
+        Returns: {
+          email: string
+          id: string
+          kanban_id: string
+          name: string
+          phone: string
+        }[]
+      }
       claim_pending_webhooks: {
         Args: { p_limit?: number }
         Returns: {
