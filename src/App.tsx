@@ -683,7 +683,7 @@ function NeoLicenseRoutes() {
 // ====================================
 function HotLeadsRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['licenciado']}>
+    <ProfileGuard allowedProfiles={['operador']}>
       <SidebarWrapper>
         <LazyRoute>
           <Routes>
