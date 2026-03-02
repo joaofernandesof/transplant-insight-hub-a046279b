@@ -279,11 +279,11 @@ export default function AdminPanel() {
   };
 
   const getUserRole = (userId: string): AppRole => {
-    return userRoles.find(r => r.user_id === userId)?.role || 'licensee';
+    return (userRoles.find(r => r.user_id === userId)?.role as AppRole) || 'operador';
   };
 
   const getRoleMeta = (role: AppRole) => {
-    return ACCESS_PROFILES.find(p => p.id === role) || ACCESS_PROFILES[1];
+    return ACCESS_PROFILES.find(p => p.id === role) || ACCESS_PROFILES[5]; // default to operador
   };
 
   // Filter and sort users
