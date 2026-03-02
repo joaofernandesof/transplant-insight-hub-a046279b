@@ -26,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image, Video, FileText, Filter } from 'lucide-react';
 import { TEMPLATE_VARIABLES } from '@/hooks/useFollowupTemplates';
 import type { FollowupRule, CreateFollowupRuleInput } from '@/hooks/useFollowupRules';
+import { VariableAutocomplete } from '@/components/avivar/VariableAutocomplete';
 import { useKanbanBoards } from '@/hooks/useKanbanBoards';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -544,11 +545,12 @@ import { toast } from 'sonner';
  
             <div className="space-y-2">
                 <Label className="text-[hsl(var(--avivar-foreground))]">Mensagem de Texto</Label>
-                <Textarea
+                <VariableAutocomplete
                   value={formData.message_template}
-                  onChange={(e) => setFormData(prev => ({ ...prev, message_template: e.target.value }))}
-                  placeholder="Olá {{primeiro_nome}}! Vi que você demonstrou interesse..."
+                  onChange={(val) => setFormData(prev => ({ ...prev, message_template: val }))}
+                  placeholder="Olá {{primeiro_nome}}! Vi que você demonstrou interesse... (digite {{ para ver variáveis)"
                   className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] min-h-[100px]"
+                  context="follow-up"
                 />
                 <div className="flex flex-wrap gap-2">
                   {TEMPLATE_VARIABLES.map((v) => (
