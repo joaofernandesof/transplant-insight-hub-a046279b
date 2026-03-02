@@ -10,10 +10,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
   CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil,
-  ChevronDown, ChevronRight, Loader2, History
+  ChevronDown, ChevronRight, Loader2, History, CalendarClock, CalendarX2
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -45,11 +47,14 @@ interface SurgeryDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdate?: (id: string, updates: Partial<ClinicSurgery>) => void;
+  onReschedule?: (id: string, newDate: string | null) => void;
 }
 
-export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: SurgeryDetailDialogProps) {
+export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onReschedule }: SurgeryDetailDialogProps) {
   const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask } = useSurgeryTasks(surgery?.id);
   const { logs: auditLogs, isLoading: logsLoading } = useSurgeryAuditLog(surgery?.id);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState('');
 
   if (!surgery) return null;
 
@@ -75,14 +80,72 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
             <User className="h-5 w-5 text-primary" />
             {surgery.patientName}
           </DialogTitle>
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap items-center gap-2 mt-2">
             {surgery.surgeryConfirmed ? (
               <Badge className="bg-emerald-600">Confirmada</Badge>
+            ) : surgery.scheduleStatus === 'sem_data' ? (
+              <Badge variant="destructive">A Definir</Badge>
             ) : (
               <Badge variant="secondary">Pendente</Badge>
             )}
             {surgery.procedure && <Badge variant="outline">{surgery.procedure}</Badge>}
             {surgery.category && <Badge variant="outline" className="text-xs">{surgery.category}</Badge>}
+
+            <div className="ml-auto">
+              <Popover open={rescheduleOpen} onOpenChange={(o) => { setRescheduleOpen(o); if (o) setRescheduleDate(''); }}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    Reagendar
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-4" align="end">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm">Reagendar Cirurgia</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Escolha uma nova data ou mova para "A definir".
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-xs">Nova Data</Label>
+                      <Input
+                        type="date"
+                        value={rescheduleDate}
+                        onChange={(e) => setRescheduleDate(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 gap-1.5"
+                        disabled={!rescheduleDate}
+                        onClick={() => {
+                          onReschedule?.(surgery.id, rescheduleDate);
+                          setRescheduleOpen(false);
+                        }}
+                      >
+                        <Calendar className="h-3.5 w-3.5" />
+                        Reagendar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="flex-1 gap-1.5"
+                        onClick={() => {
+                          onReschedule?.(surgery.id, null);
+                          setRescheduleOpen(false);
+                        }}
+                      >
+                        <CalendarX2 className="h-3.5 w-3.5" />
+                        A Definir
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </DialogHeader>
 
