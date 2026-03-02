@@ -1,0 +1,1 @@
+ALTER TABLE public.procedures ADD COLUMN price numeric DEFAULT 0;
