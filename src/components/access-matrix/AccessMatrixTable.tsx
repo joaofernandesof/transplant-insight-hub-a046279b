@@ -2,10 +2,8 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Table,
   TableBody,
@@ -16,189 +14,191 @@ import {
 } from "@/components/ui/table";
 import { 
   Shield, 
-  Building2, 
-  Users, 
-  GraduationCap, 
-  Heart, 
-  TrendingUp,
   Eye,
-  Scale,
+  Plus,
   Pencil,
   Trash2,
   Search,
   Info,
   ChevronDown,
   ChevronRight,
-  Stethoscope,
+  Crown,
+  UserCog,
+  UserCheck,
+  Users,
+  UserMinus,
+  EyeOff,
+  UserX,
 } from "lucide-react";
-import { NeoHubProfile, Portal, PORTAL_NAMES, PROFILE_NAMES, PORTAL_MODULES } from "@/neohub/lib/permissions";
-import { ModulePermission } from "@/hooks/useAccessMatrix";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import type { RbacRole, RbacPortal, RbacModule, RbacPermission, PermissionField } from "@/hooks/useAccessMatrix";
 
 interface AccessMatrixTableProps {
-  permissions: ModulePermission[];
+  roles: RbacRole[];
+  portals: RbacPortal[];
+  modulesByPortal: Record<string, RbacModule[]>;
   isLoading: boolean;
-  onUpdatePermission: (
-    moduleCode: string,
-    profile: NeoHubProfile,
-    updates: Partial<Pick<ModulePermission, 'canRead' | 'canWrite' | 'canDelete'>>
-  ) => Promise<void>;
-  getPermissionForModule: (moduleCode: string, profile: NeoHubProfile) => ModulePermission | undefined;
+  getPermission: (roleId: string, moduleId: string) => RbacPermission | undefined;
+  updatePermission: (roleId: string, moduleId: string, updates: Partial<Pick<RbacPermission, PermissionField>>) => Promise<void>;
 }
 
-const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
-  administrador: <Shield className="h-4 w-4" />,
-  licenciado: <Building2 className="h-4 w-4" />,
-  colaborador: <Users className="h-4 w-4" />,
-  medico: <Stethoscope className="h-4 w-4" />,
-  aluno: <GraduationCap className="h-4 w-4" />,
-  paciente: <Heart className="h-4 w-4" />,
-  cliente_avivar: <TrendingUp className="h-4 w-4" />,
-  ipromed: <Scale className="h-4 w-4" />,
+const ROLE_ICONS: Record<string, React.ReactNode> = {
+  super_administrador: <Crown className="h-3.5 w-3.5" />,
+  administrador: <Shield className="h-3.5 w-3.5" />,
+  gerente: <UserCog className="h-3.5 w-3.5" />,
+  coordenador: <UserCheck className="h-3.5 w-3.5" />,
+  supervisor: <Users className="h-3.5 w-3.5" />,
+  operador: <UserMinus className="h-3.5 w-3.5" />,
+  visualizador: <EyeOff className="h-3.5 w-3.5" />,
+  externo: <UserX className="h-3.5 w-3.5" />,
 };
 
-const PROFILE_COLORS: Record<NeoHubProfile, string> = {
-  administrador: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
-  licenciado: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
-  colaborador: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
-  medico: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
-  aluno: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
-  paciente: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300',
-  cliente_avivar: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
-  ipromed: 'bg-[#00629B]/10 text-[#00629B] dark:bg-[#00629B]/30 dark:text-[#4db8e8]',
+const ROLE_COLORS: Record<string, string> = {
+  super_administrador: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+  administrador: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
+  gerente: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+  coordenador: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
+  supervisor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+  operador: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
+  visualizador: 'bg-slate-100 text-slate-700 dark:bg-slate-900/50 dark:text-slate-300',
+  externo: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300',
 };
 
-const PORTAL_ROW_COLORS: Record<Portal, string> = {
-  neocare: 'bg-rose-50/60 dark:bg-rose-900/20',
+const PORTAL_ROW_COLORS: Record<string, string> = {
+  admin: 'bg-slate-50/60 dark:bg-slate-900/20',
   neoteam: 'bg-blue-50/60 dark:bg-blue-900/20',
-  neoacademy: 'bg-emerald-50/60 dark:bg-emerald-900/20',
+  neocare: 'bg-rose-50/60 dark:bg-rose-900/20',
+  academy: 'bg-emerald-50/60 dark:bg-emerald-900/20',
   neolicense: 'bg-amber-50/60 dark:bg-amber-900/20',
   avivar: 'bg-orange-50/60 dark:bg-orange-900/20',
-  ipromed: 'bg-[#00629B]/5 dark:bg-[#00629B]/15',
-  hotleads: 'bg-orange-50/60 dark:bg-orange-900/20',
-  vision: 'bg-violet-50/60 dark:bg-violet-900/20',
-  neopay: 'bg-teal-50/60 dark:bg-teal-900/20',
+  ipromed: 'bg-sky-50/60 dark:bg-sky-900/20',
   neorh: 'bg-indigo-50/60 dark:bg-indigo-900/20',
+  neopay: 'bg-teal-50/60 dark:bg-teal-900/20',
+  hotleads: 'bg-orange-50/60 dark:bg-orange-900/20',
+  neohair: 'bg-pink-50/60 dark:bg-pink-900/20',
+  vision: 'bg-violet-50/60 dark:bg-violet-900/20',
 };
 
-const PORTAL_ACCENT: Record<Portal, string> = {
-  neocare: 'border-l-rose-500',
+const PORTAL_ACCENT: Record<string, string> = {
+  admin: 'border-l-slate-500',
   neoteam: 'border-l-blue-500',
-  neoacademy: 'border-l-emerald-500',
+  neocare: 'border-l-rose-500',
+  academy: 'border-l-emerald-500',
   neolicense: 'border-l-amber-500',
   avivar: 'border-l-orange-500',
-  ipromed: 'border-l-[#00629B]',
-  hotleads: 'border-l-orange-600',
-  vision: 'border-l-violet-500',
-  neopay: 'border-l-teal-500',
+  ipromed: 'border-l-sky-500',
   neorh: 'border-l-indigo-500',
+  neopay: 'border-l-teal-500',
+  hotleads: 'border-l-orange-600',
+  neohair: 'border-l-pink-500',
+  vision: 'border-l-violet-500',
 };
 
-const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
-const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'];
-
 export function AccessMatrixTable({
-  permissions,
+  roles,
+  portals,
+  modulesByPortal,
   isLoading,
-  onUpdatePermission,
-  getPermissionForModule,
+  getPermission,
+  updatePermission,
 }: AccessMatrixTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingCell, setUpdatingCell] = useState<string | null>(null);
-  const [expandedPortals, setExpandedPortals] = useState<Set<Portal>>(new Set());
+  const [expandedPortals, setExpandedPortals] = useState<Set<string>>(new Set());
 
-  const togglePortal = (portal: Portal) => {
+  const togglePortal = (portalId: string) => {
     setExpandedPortals(prev => {
       const next = new Set(prev);
-      if (next.has(portal)) next.delete(portal);
-      else next.add(portal);
+      if (next.has(portalId)) next.delete(portalId);
+      else next.add(portalId);
       return next;
     });
   };
 
-  const expandAll = () => setExpandedPortals(new Set(ALL_PORTALS));
+  const expandAll = () => setExpandedPortals(new Set(portals.map(p => p.id)));
   const collapseAll = () => setExpandedPortals(new Set());
 
   // Filter portals/modules by search
   const filteredPortals = useMemo(() => {
-    if (!searchTerm) return ALL_PORTALS;
-    return ALL_PORTALS.filter(portal => {
-      const portalName = PORTAL_NAMES[portal].toLowerCase();
-      const modules = PORTAL_MODULES[portal] || [];
-      const matchesPortal = portalName.includes(searchTerm.toLowerCase());
-      const matchesModule = modules.some(m => 
-        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.code.toLowerCase().includes(searchTerm.toLowerCase())
+    if (!searchTerm) return portals;
+    const term = searchTerm.toLowerCase();
+    return portals.filter(portal => {
+      const matchesPortal = portal.name.toLowerCase().includes(term);
+      const mods = modulesByPortal[portal.id] || [];
+      const matchesModule = mods.some(m =>
+        m.name.toLowerCase().includes(term) || m.code.toLowerCase().includes(term)
       );
       return matchesPortal || matchesModule;
     });
-  }, [searchTerm]);
+  }, [searchTerm, portals, modulesByPortal]);
 
-  const getFilteredModules = (portal: Portal) => {
-    const modules = PORTAL_MODULES[portal] || [];
-    if (!searchTerm) return modules;
-    const portalMatches = PORTAL_NAMES[portal].toLowerCase().includes(searchTerm.toLowerCase());
-    if (portalMatches) return modules;
-    return modules.filter(m => 
+  const getFilteredModules = (portalId: string) => {
+    const mods = modulesByPortal[portalId] || [];
+    if (!searchTerm) return mods;
+    const portal = portals.find(p => p.id === portalId);
+    if (portal?.name.toLowerCase().includes(searchTerm.toLowerCase())) return mods;
+    return mods.filter(m =>
       m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.code.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
-  // Get portal-level summary for a profile
-  const getPortalSummary = (portal: Portal, profile: NeoHubProfile) => {
-    const modules = PORTAL_MODULES[portal] || [];
-    let readCount = 0, writeCount = 0, deleteCount = 0;
-    modules.forEach(mod => {
-      const perm = getPermissionForModule(mod.code, profile);
-      if (profile === 'administrador' || perm?.canRead) readCount++;
-      if (profile === 'administrador' || perm?.canWrite) writeCount++;
-      if (profile === 'administrador' || perm?.canDelete) deleteCount++;
-    });
-    return { readCount, writeCount, deleteCount, total: modules.length };
+  // Get portal-level summary for a role
+  const getPortalSummary = (portalId: string, role: RbacRole) => {
+    const mods = modulesByPortal[portalId] || [];
+    const isSA = role.name === 'super_administrador';
+    let viewCount = 0;
+    for (const mod of mods) {
+      if (isSA || getPermission(role.id, mod.id)?.canView) viewCount++;
+    }
+    return { viewCount, total: mods.length };
   };
 
   const handlePermissionChange = async (
-    moduleCode: string,
-    profile: NeoHubProfile,
-    field: 'canRead' | 'canWrite' | 'canDelete',
+    roleId: string,
+    moduleId: string,
+    field: PermissionField,
     value: boolean
   ) => {
-    if (profile === 'administrador') {
-      toast.info("O perfil Administrador possui acesso total e não pode ser alterado.");
+    const role = roles.find(r => r.id === roleId);
+    if (role?.name === 'super_administrador') {
+      toast.info("Super Administrador possui acesso total e não pode ser alterado.");
       return;
     }
 
-    const cellKey = `${moduleCode}-${profile}-${field}`;
+    const cellKey = `${moduleId}-${roleId}-${field}`;
     setUpdatingCell(cellKey);
 
     try {
-      if (field === 'canRead' && !value) {
-        await onUpdatePermission(moduleCode, profile, {
-          canRead: false, canWrite: false, canDelete: false,
+      if (field === 'canView' && !value) {
+        // Disabling view disables everything
+        await updatePermission(roleId, moduleId, {
+          canView: false, canCreate: false, canEdit: false, canDelete: false,
         });
-      } else if ((field === 'canWrite' || field === 'canDelete') && value) {
-        await onUpdatePermission(moduleCode, profile, {
-          canRead: true, [field]: value,
+      } else if (field !== 'canView' && value) {
+        // Enabling any other field requires view
+        await updatePermission(roleId, moduleId, {
+          canView: true, [field]: value,
         });
       } else {
-        await onUpdatePermission(moduleCode, profile, { [field]: value });
+        await updatePermission(roleId, moduleId, { [field]: value });
       }
     } finally {
       setUpdatingCell(null);
     }
   };
 
-  const getCheckboxState = (moduleCode: string, profile: NeoHubProfile, field: 'canRead' | 'canWrite' | 'canDelete') => {
-    if (profile === 'administrador') return { checked: true, disabled: true };
-    const perm = getPermissionForModule(moduleCode, profile);
-    const isUpdating = updatingCell === `${moduleCode}-${profile}-${field}`;
-    const requiresRead = field === 'canWrite' || field === 'canDelete';
-    const readEnabled = perm?.canRead ?? false;
+  const getCheckboxState = (roleId: string, moduleId: string, field: PermissionField) => {
+    const role = roles.find(r => r.id === roleId);
+    if (role?.name === 'super_administrador') return { checked: true, disabled: true };
+    const perm = getPermission(roleId, moduleId);
+    const isUpdating = updatingCell === `${moduleId}-${roleId}-${field}`;
+    const requiresView = field !== 'canView';
+    const viewEnabled = perm?.canView ?? false;
     return {
       checked: perm?.[field] ?? false,
-      disabled: isUpdating || (requiresRead && !readEnabled),
+      disabled: isUpdating || (requiresView && !viewEnabled),
     };
   };
 
@@ -218,7 +218,7 @@ export function AccessMatrixTable({
           <div>
             <CardTitle className="text-lg">Matriz de Permissões</CardTitle>
             <CardDescription>
-              Portais nas linhas · Perfis de usuários nas colunas
+              Portais nas linhas · Funções nas colunas · Ações por módulo
             </CardDescription>
           </div>
           
@@ -252,6 +252,12 @@ export function AccessMatrixTable({
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-emerald-500 flex items-center justify-center">
+              <Plus className="h-2.5 w-2.5 text-white" />
+            </div>
+            <span>Criar</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded bg-emerald-500 flex items-center justify-center">
               <Pencil className="h-2.5 w-2.5 text-white" />
             </div>
             <span>Editar</span>
@@ -271,31 +277,31 @@ export function AccessMatrixTable({
       
       <CardContent>
         <div className="w-full overflow-x-auto">
-          <div className="min-w-[1100px]">
+          <div className="min-w-[1200px]">
             <Table>
               <TableHeader>
-              <TableRow className="bg-slate-100 dark:bg-slate-800/60">
+                <TableRow className="bg-slate-100 dark:bg-slate-800/60">
                   <TableHead className="w-72 sticky left-0 bg-slate-100 dark:bg-slate-800/60 z-10 font-semibold">
                     Portais / Módulos
                   </TableHead>
-                  {ALL_PROFILES.map(profile => (
-                    <TableHead key={profile} className="text-center min-w-[120px]">
+                  {roles.map(role => (
+                    <TableHead key={role.id} className="text-center min-w-[110px]">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div className={cn(
-                              "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium",
-                              PROFILE_COLORS[profile]
+                              "inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium",
+                              ROLE_COLORS[role.name] || 'bg-muted text-muted-foreground'
                             )}>
-                              {PROFILE_ICONS[profile]}
+                              {ROLE_ICONS[role.name] || <Users className="h-3.5 w-3.5" />}
                               <span className="truncate max-w-[70px]">
-                                {PROFILE_NAMES[profile]}
+                                {role.displayName}
                               </span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            {PROFILE_NAMES[profile]}
-                            {profile === 'administrador' && (
+                            {role.displayName}
+                            {role.name === 'super_administrador' && (
                               <span className="block text-xs text-muted-foreground">
                                 Acesso total (não editável)
                               </span>
@@ -311,23 +317,23 @@ export function AccessMatrixTable({
               <TableBody>
                 {filteredPortals.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={ALL_PROFILES.length + 1} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={roles.length + 1} className="text-center py-8 text-muted-foreground">
                       Nenhum portal encontrado
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredPortals.map(portal => {
-                    const isExpanded = expandedPortals.has(portal);
-                    const modules = getFilteredModules(portal);
+                    const isExpanded = expandedPortals.has(portal.id);
+                    const modules = getFilteredModules(portal.id);
                     
                     return (
                       <PortalGroup
-                        key={portal}
+                        key={portal.id}
                         portal={portal}
                         isExpanded={isExpanded}
-                        onToggle={() => togglePortal(portal)}
+                        onToggle={() => togglePortal(portal.id)}
                         modules={modules}
-                        profiles={ALL_PROFILES}
+                        roles={roles}
                         getPortalSummary={getPortalSummary}
                         getCheckboxState={getCheckboxState}
                         handlePermissionChange={handlePermissionChange}
@@ -345,7 +351,7 @@ export function AccessMatrixTable({
           <Info className="h-4 w-4 shrink-0" />
           <span>
             Clique no portal para expandir e ver os módulos individuais.
-            O perfil Administrador possui acesso total e não pode ser modificado.
+            O perfil Super Administrador possui acesso total e não pode ser modificado.
           </span>
         </div>
       </CardContent>
@@ -353,17 +359,17 @@ export function AccessMatrixTable({
   );
 }
 
-// ---- Portal Group (row header + expandable modules) ----
+// ---- Portal Group ----
 
 interface PortalGroupProps {
-  portal: Portal;
+  portal: RbacPortal;
   isExpanded: boolean;
   onToggle: () => void;
-  modules: { code: string; name: string; route: string; icon: string }[];
-  profiles: NeoHubProfile[];
-  getPortalSummary: (portal: Portal, profile: NeoHubProfile) => { readCount: number; writeCount: number; deleteCount: number; total: number };
-  getCheckboxState: (moduleCode: string, profile: NeoHubProfile, field: 'canRead' | 'canWrite' | 'canDelete') => { checked: boolean; disabled: boolean };
-  handlePermissionChange: (moduleCode: string, profile: NeoHubProfile, field: 'canRead' | 'canWrite' | 'canDelete', value: boolean) => void;
+  modules: RbacModule[];
+  roles: RbacRole[];
+  getPortalSummary: (portalId: string, role: RbacRole) => { viewCount: number; total: number };
+  getCheckboxState: (roleId: string, moduleId: string, field: PermissionField) => { checked: boolean; disabled: boolean };
+  handlePermissionChange: (roleId: string, moduleId: string, field: PermissionField, value: boolean) => void;
 }
 
 function PortalGroup({
@@ -371,20 +377,19 @@ function PortalGroup({
   isExpanded,
   onToggle,
   modules,
-  profiles,
+  roles,
   getPortalSummary,
   getCheckboxState,
   handlePermissionChange,
 }: PortalGroupProps) {
+  const rowColor = PORTAL_ROW_COLORS[portal.slug] || 'bg-muted/20';
+  const accent = PORTAL_ACCENT[portal.slug] || 'border-l-muted';
+
   return (
     <>
       {/* Portal Header Row */}
       <TableRow 
-        className={cn(
-          "cursor-pointer hover:bg-muted/60 transition-colors border-l-4",
-          PORTAL_ROW_COLORS[portal],
-          PORTAL_ACCENT[portal],
-        )}
+        className={cn("cursor-pointer hover:bg-muted/60 transition-colors border-l-4", rowColor, accent)}
         onClick={onToggle}
       >
         <TableCell className="sticky left-0 z-10 bg-inherit">
@@ -393,20 +398,20 @@ function PortalGroup({
               ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> 
               : <ChevronRight className="h-4 w-4 text-muted-foreground" />
             }
-            <span className="font-semibold text-sm">{PORTAL_NAMES[portal]}</span>
+            <span className="font-semibold text-sm">{portal.name}</span>
             <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">
               {modules.length} módulos
             </Badge>
           </div>
         </TableCell>
         
-        {profiles.map(profile => {
-          const summary = getPortalSummary(portal, profile);
-          const allRead = summary.readCount === summary.total;
-          const noneRead = summary.readCount === 0;
+        {roles.map(role => {
+          const summary = getPortalSummary(portal.id, role);
+          const allView = summary.viewCount === summary.total;
+          const noneView = summary.viewCount === 0;
           
           return (
-            <TableCell key={profile} className="text-center px-2">
+            <TableCell key={role.id} className="text-center px-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -415,21 +420,19 @@ function PortalGroup({
                         variant="outline" 
                         className={cn(
                           "text-[10px] px-2 py-0.5",
-                          allRead && "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700",
-                          noneRead && "bg-muted text-muted-foreground",
-                          !allRead && !noneRead && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700"
+                          allView && "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700",
+                          noneView && "bg-muted text-muted-foreground",
+                          !allView && !noneView && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700"
                         )}
                       >
-                        {summary.readCount}/{summary.total}
+                        {summary.viewCount}/{summary.total}
                       </Badge>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <div className="text-xs space-y-1">
-                      <p className="font-medium">{PROFILE_NAMES[profile]} → {PORTAL_NAMES[portal]}</p>
-                      <p>👁 Visualizar: {summary.readCount}/{summary.total}</p>
-                      <p>✏️ Editar: {summary.writeCount}/{summary.total}</p>
-                      <p>🗑 Excluir: {summary.deleteCount}/{summary.total}</p>
+                    <div className="text-xs">
+                      <p className="font-medium">{role.displayName} → {portal.name}</p>
+                      <p>👁 Visualizar: {summary.viewCount}/{summary.total}</p>
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -442,10 +445,10 @@ function PortalGroup({
       {/* Expanded Module Rows */}
       {isExpanded && modules.map((mod, idx) => (
         <TableRow 
-          key={mod.code}
+          key={mod.id}
           className={cn(
             "border-l-4",
-            PORTAL_ACCENT[portal],
+            accent,
             idx % 2 === 0 ? "bg-background" : "bg-muted/20"
           )}
         >
@@ -453,71 +456,87 @@ function PortalGroup({
             <span className="text-sm text-muted-foreground">{mod.name}</span>
           </TableCell>
           
-          {profiles.map(profile => {
-            const readState = getCheckboxState(mod.code, profile, 'canRead');
-            const writeState = getCheckboxState(mod.code, profile, 'canWrite');
-            const deleteState = getCheckboxState(mod.code, profile, 'canDelete');
+          {roles.map(role => {
+            const viewState = getCheckboxState(role.id, mod.id, 'canView');
+            const createState = getCheckboxState(role.id, mod.id, 'canCreate');
+            const editState = getCheckboxState(role.id, mod.id, 'canEdit');
+            const deleteState = getCheckboxState(role.id, mod.id, 'canDelete');
             
             return (
-              <TableCell key={profile} className="text-center px-2">
-                <div className="flex items-center justify-center gap-1">
+              <TableCell key={role.id} className="text-center px-1">
+                <div className="flex items-center justify-center gap-0.5">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => !readState.disabled && handlePermissionChange(mod.code, profile, 'canRead', !readState.checked)}
-                          disabled={readState.disabled}
+                          onClick={() => !viewState.disabled && handlePermissionChange(role.id, mod.id, 'canView', !viewState.checked)}
+                          disabled={viewState.disabled}
                           className={cn(
-                            "w-6 h-6 rounded flex items-center justify-center transition-all",
-                            readState.checked 
+                            "w-5 h-5 rounded flex items-center justify-center transition-all",
+                            viewState.checked 
                               ? "bg-emerald-500 text-white shadow-sm" 
                               : "bg-muted/50 text-muted-foreground hover:bg-muted",
-                            readState.disabled && "opacity-50 cursor-not-allowed"
+                            viewState.disabled && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          <Eye className="h-3 w-3" />
+                          <Eye className="h-2.5 w-2.5" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>Visualizar</TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
 
-                  <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => !writeState.disabled && handlePermissionChange(mod.code, profile, 'canWrite', !writeState.checked)}
-                          disabled={writeState.disabled}
+                          onClick={() => !createState.disabled && handlePermissionChange(role.id, mod.id, 'canCreate', !createState.checked)}
+                          disabled={createState.disabled}
                           className={cn(
-                            "w-6 h-6 rounded flex items-center justify-center transition-all",
-                            writeState.checked 
+                            "w-5 h-5 rounded flex items-center justify-center transition-all",
+                            createState.checked 
                               ? "bg-emerald-500 text-white shadow-sm" 
                               : "bg-muted/50 text-muted-foreground hover:bg-muted",
-                            writeState.disabled && "opacity-50 cursor-not-allowed"
+                            createState.disabled && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          <Pencil className="h-3 w-3" />
+                          <Plus className="h-2.5 w-2.5" />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent>Editar / Inserir</TooltipContent>
+                      <TooltipContent>Criar / Incluir</TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
 
-                  <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => !deleteState.disabled && handlePermissionChange(mod.code, profile, 'canDelete', !deleteState.checked)}
+                          onClick={() => !editState.disabled && handlePermissionChange(role.id, mod.id, 'canEdit', !editState.checked)}
+                          disabled={editState.disabled}
+                          className={cn(
+                            "w-5 h-5 rounded flex items-center justify-center transition-all",
+                            editState.checked 
+                              ? "bg-emerald-500 text-white shadow-sm" 
+                              : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                            editState.disabled && "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          <Pencil className="h-2.5 w-2.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Editar</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => !deleteState.disabled && handlePermissionChange(role.id, mod.id, 'canDelete', !deleteState.checked)}
                           disabled={deleteState.disabled}
                           className={cn(
-                            "w-6 h-6 rounded flex items-center justify-center transition-all",
+                            "w-5 h-5 rounded flex items-center justify-center transition-all",
                             deleteState.checked 
                               ? "bg-emerald-500 text-white shadow-sm" 
                               : "bg-muted/50 text-muted-foreground hover:bg-muted",
                             deleteState.disabled && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-2.5 w-2.5" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>Excluir</TooltipContent>
