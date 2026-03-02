@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Table, 
   TableBody, 
@@ -22,21 +23,42 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
   Plus, 
   Search, 
   Package, 
   Clock, 
   ChevronRight,
-  Eye
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Power,
+  Copy,
+  CheckSquare,
+  Loader2,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { useProcedures, useProcedureKits, useKitWithItems } from '../hooks/useProcedures';
 import { CATEGORY_LABELS } from '../types';
+import { cn } from '@/lib/utils';
 
 export function ProceduresKitsTab() {
   const [search, setSearch] = useState('');
   const [selectedKitId, setSelectedKitId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   
+  const queryClient = useQueryClient();
   const { data: procedures, isLoading: loadingProcedures } = useProcedures();
   const { data: kits, isLoading: loadingKits } = useProcedureKits();
   const { data: selectedKit } = useKitWithItems(selectedKitId ?? undefined);
@@ -45,9 +67,98 @@ export function ProceduresKitsTab() {
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Get active kit for each procedure
   const getActiveKit = (procedureId: string) => {
     return kits?.find(k => k.procedure_id === procedureId && k.is_active);
+  };
+
+  // Selection helpers
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!filteredProcedures) return;
+    if (selectedIds.size === filteredProcedures.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredProcedures.map(p => p.id)));
+    }
+  };
+
+  // Individual actions
+  const deactivateProcedure = async (id: string) => {
+    try {
+      await supabase.from('procedures').update({ is_active: false }).eq('id', id);
+      queryClient.invalidateQueries({ queryKey: ['procedures'] });
+      toast.success('Procedimento desativado');
+    } catch {
+      toast.error('Erro ao desativar procedimento');
+    }
+  };
+
+  const deleteProcedure = async (id: string) => {
+    const confirmed = window.confirm('Tem certeza que deseja excluir este procedimento?');
+    if (!confirmed) return;
+    try {
+      await supabase.from('procedures').delete().eq('id', id);
+      queryClient.invalidateQueries({ queryKey: ['procedures'] });
+      toast.success('Procedimento excluído');
+    } catch {
+      toast.error('Erro ao excluir procedimento');
+    }
+  };
+
+  const duplicateProcedure = async (procedure: any) => {
+    try {
+      const { id, created_at, ...rest } = procedure;
+      await supabase.from('procedures').insert({ ...rest, name: `${rest.name} (cópia)` });
+      queryClient.invalidateQueries({ queryKey: ['procedures'] });
+      toast.success('Procedimento duplicado');
+    } catch {
+      toast.error('Erro ao duplicar procedimento');
+    }
+  };
+
+  // Bulk actions
+  const bulkDeactivate = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkProcessing(true);
+    try {
+      for (const id of selectedIds) {
+        await supabase.from('procedures').update({ is_active: false }).eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['procedures'] });
+      toast.success(`${selectedIds.size} procedimento(s) desativado(s)`);
+      setSelectedIds(new Set());
+    } catch {
+      toast.error('Erro ao desativar procedimentos');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const confirmed = window.confirm(`Tem certeza que deseja excluir ${selectedIds.size} procedimento(s)?`);
+    if (!confirmed) return;
+    setIsBulkProcessing(true);
+    try {
+      for (const id of selectedIds) {
+        await supabase.from('procedures').delete().eq('id', id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['procedures'] });
+      toast.success(`${selectedIds.size} procedimento(s) excluído(s)`);
+      setSelectedIds(new Set());
+    } catch {
+      toast.error('Erro ao excluir procedimentos');
+    } finally {
+      setIsBulkProcessing(false);
+    }
   };
 
   return (
@@ -81,6 +192,47 @@ export function ProceduresKitsTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Bulk Action Bar */}
+          {selectedIds.size > 0 && (
+            <div className="mb-4 flex items-center gap-3 p-3 bg-blue-950/40 border border-blue-500/30 rounded-lg">
+              <CheckSquare className="h-4 w-4 text-blue-400" />
+              <span className="text-sm text-blue-300 font-medium">
+                {selectedIds.size} selecionado(s)
+              </span>
+              <div className="flex items-center gap-2 ml-auto">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-amber-600/50 text-amber-400 hover:bg-amber-900/30 gap-1"
+                  onClick={bulkDeactivate}
+                  disabled={isBulkProcessing}
+                >
+                  <Power className="h-3.5 w-3.5" />
+                  Desativar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-red-600/50 text-red-400 hover:bg-red-900/30 gap-1"
+                  onClick={bulkDelete}
+                  disabled={isBulkProcessing}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Excluir
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-muted-foreground"
+                  onClick={() => setSelectedIds(new Set())}
+                >
+                  Limpar
+                </Button>
+              </div>
+              {isBulkProcessing && <Loader2 className="h-4 w-4 animate-spin text-blue-400" />}
+            </div>
+          )}
+
           {loadingProcedures || loadingKits ? (
             <div className="py-8 text-center text-muted-foreground">
               Carregando...
@@ -89,6 +241,12 @@ export function ProceduresKitsTab() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={!!filteredProcedures?.length && selectedIds.size === filteredProcedures.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Procedimento</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Duração</TableHead>
@@ -100,8 +258,15 @@ export function ProceduresKitsTab() {
               <TableBody>
                 {filteredProcedures?.map((procedure) => {
                   const kit = getActiveKit(procedure.id);
+                  const isSelected = selectedIds.has(procedure.id);
                   return (
-                    <TableRow key={procedure.id}>
+                    <TableRow key={procedure.id} className={cn(isSelected && "bg-blue-950/20")}>
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelect(procedure.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         {procedure.name}
                       </TableCell>
@@ -136,14 +301,45 @@ export function ProceduresKitsTab() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              className="h-8 w-8"
                               onClick={() => setSelectedKitId(kit.id)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon">
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => {}}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => duplicateProcedure(procedure)}>
+                                <Copy className="h-4 w-4 mr-2" />
+                                Duplicar
+                              </DropdownMenuItem>
+                              {kit && (
+                                <DropdownMenuItem onClick={() => setSelectedKitId(kit.id)}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Ver Kit
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => deactivateProcedure(procedure.id)}>
+                                <Power className="h-4 w-4 mr-2" />
+                                Desativar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={() => deleteProcedure(procedure.id)}>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -151,7 +347,7 @@ export function ProceduresKitsTab() {
                 })}
                 {!filteredProcedures?.length && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       Nenhum procedimento encontrado
                     </TableCell>
                   </TableRow>
