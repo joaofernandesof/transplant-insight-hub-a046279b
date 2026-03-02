@@ -59,14 +59,14 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
 };
 
 const PROFILE_COLORS: Record<NeoHubProfile, string> = {
-  administrador: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400',
-  licenciado: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
-  colaborador: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
-  medico: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-400',
-  aluno: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400',
-  paciente: 'bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-400',
-  cliente_avivar: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400',
-  ipromed: 'bg-[#00629B]/10 text-[#00629B] dark:bg-[#00629B]/20 dark:text-[#00629B]',
+  administrador: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+  licenciado: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
+  colaborador: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+  medico: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
+  aluno: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+  paciente: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300',
+  cliente_avivar: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
+  ipromed: 'bg-[#00629B]/10 text-[#00629B] dark:bg-[#00629B]/30 dark:text-[#4db8e8]',
 };
 
 const PORTAL_ROW_COLORS: Record<Portal, string> = {
