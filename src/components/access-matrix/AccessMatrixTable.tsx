@@ -270,8 +270,8 @@ export function AccessMatrixTable({
       </CardHeader>
       
       <CardContent>
-        <ScrollArea className="w-full">
-          <div className="min-w-[1000px]">
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[1100px]">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
