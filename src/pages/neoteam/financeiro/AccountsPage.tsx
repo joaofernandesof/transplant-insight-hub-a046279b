@@ -92,7 +92,7 @@ export default function AccountsPage() {
         payload.client_name = form.supplier_or_client || null;
       }
 
-      const { error } = await supabase.from(tableName).insert(payload);
+      const { error } = await supabase.from(tableName).insert(payload as any);
       if (error) throw error;
     },
     onSuccess: () => {
