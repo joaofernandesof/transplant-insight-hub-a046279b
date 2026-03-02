@@ -171,7 +171,7 @@ export function useNeoTeamRBAC() {
       setMembers(enriched);
 
       // Set my role
-      const me = enriched.find(m => m.user_id === user.id);
+      const me = enriched.find(m => m.user_id === user.authUserId);
       setMyRole(me?.role || null);
     } catch (error) {
       console.error('Error fetching team:', error);
@@ -195,13 +195,13 @@ export function useNeoTeamRBAC() {
           role,
           doctor_id: doctorId || null,
           branch_id: branchId || null,
-          created_by: user.id,
+          created_by: user.authUserId,
         });
       if (error) throw error;
 
       // Audit log
       await supabase.from('neoteam_audit_log').insert({
-        actor_user_id: user.id,
+        actor_user_id: user.authUserId,
         action: 'member_added',
         target_user_id: userId,
         resource_type: 'neoteam_team_members',
@@ -228,7 +228,7 @@ export function useNeoTeamRBAC() {
     if (!member) return false;
 
     // Prevent demoting self
-    if (member.user_id === user.id) {
+    if (member.user_id === user.authUserId) {
       toast.error('Você não pode alterar seu próprio papel');
       return false;
     }
@@ -250,7 +250,7 @@ export function useNeoTeamRBAC() {
       if (error) throw error;
 
       await supabase.from('neoteam_audit_log').insert({
-        actor_user_id: user.id,
+        actor_user_id: user.authUserId,
         action: 'role_changed',
         target_user_id: member.user_id,
         resource_type: 'neoteam_team_members',
@@ -274,7 +274,7 @@ export function useNeoTeamRBAC() {
     const member = members.find(m => m.id === memberId);
     if (!member) return false;
 
-    if (member.user_id === user.id) {
+    if (member.user_id === user.authUserId) {
       toast.error('Você não pode inativar a si mesmo');
       return false;
     }
@@ -295,7 +295,7 @@ export function useNeoTeamRBAC() {
       if (error) throw error;
 
       await supabase.from('neoteam_audit_log').insert({
-        actor_user_id: user.id,
+        actor_user_id: user.authUserId,
         action: member.is_active ? 'member_deactivated' : 'member_reactivated',
         target_user_id: member.user_id,
         resource_type: 'neoteam_team_members',
@@ -349,7 +349,7 @@ export function useNeoTeamRBAC() {
       }
 
       await supabase.from('neoteam_audit_log').insert({
-        actor_user_id: user.id,
+        actor_user_id: user.authUserId,
         action: 'permissions_updated',
         target_user_id: members.find(m => m.id === memberId)?.user_id || null,
         resource_type: 'neoteam_module_permissions',
@@ -432,16 +432,16 @@ export function useNeoTeamRBAC() {
       const { error } = await supabase
         .from('neoteam_team_members')
         .insert({
-          user_id: user.id,
+          user_id: user.authUserId,
           role: 'MASTER' as NeoTeamRole,
-          created_by: user.id,
+          created_by: user.authUserId,
         });
       if (error) throw error;
 
       await supabase.from('neoteam_audit_log').insert({
-        actor_user_id: user.id,
+        actor_user_id: user.authUserId,
         action: 'bootstrap_master',
-        target_user_id: user.id,
+        target_user_id: user.authUserId,
         resource_type: 'neoteam_team_members',
         new_values: { role: 'MASTER' },
       });
