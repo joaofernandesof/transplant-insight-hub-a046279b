@@ -10,14 +10,23 @@ import {
   ArrowLeft, Search, Copy, Check, Hash, User, Phone, Mail,
   Building2, Calendar, Tag, MessageSquare, Briefcase, Globe,
   Clock, MapPin, Bot, Zap, FileText, DollarSign, Link2,
-  ChevronDown, ChevronRight,
+  ChevronDown, ChevronRight, Plus, Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useCustomVariables } from '@/hooks/useCustomVariables';
 
 /* ─── Variable Definition ─── */
 interface CrmVariable {
@@ -86,8 +95,14 @@ const VARIABLE_CATEGORIES = [
     color: 'from-pink-500 to-pink-600',
     badgeClass: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20',
   },
+  {
+    id: 'custom',
+    label: 'Personalizadas',
+    icon: Plus,
+    color: 'from-teal-500 to-teal-600',
+    badgeClass: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20',
+  },
 ];
-
 export const CRM_VARIABLES: CrmVariable[] = [
   // Lead / Contato
   { key: '{{nome}}', label: 'Nome completo', description: 'Nome completo do lead/contato', example: 'Maria Silva', category: 'lead', availableIn: ['automações', 'follow-up', 'chatbot', 'templates'] },
@@ -201,8 +216,25 @@ export default function AvivarVariables() {
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set(VARIABLE_CATEGORIES.map(c => c.id)));
   const [filterContext, setFilterContext] = useState<string>('all');
 
+  const { customVariables, createVariable, deleteVariable } = useCustomVariables();
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newVar, setNewVar] = useState({ key: '', label: '', description: '', default_value: '' });
+
+  // Merge built-in + custom variables
+  const allVariables = useMemo(() => {
+    const custom: CrmVariable[] = customVariables.map(cv => ({
+      key: cv.key,
+      label: cv.label,
+      description: cv.description || 'Variável personalizada',
+      example: cv.default_value || '-',
+      category: 'custom',
+      availableIn: ['automações', 'follow-up', 'chatbot', 'templates'],
+    }));
+    return [...CRM_VARIABLES, ...custom];
+  }, [customVariables]);
+
   const filtered = useMemo(() => {
-    let vars = filterContext === 'all' ? CRM_VARIABLES : getVariablesForContext(filterContext);
+    let vars = filterContext === 'all' ? allVariables : allVariables.filter(v => v.availableIn.includes(filterContext));
     if (search.trim()) {
       const q = search.toLowerCase();
       vars = vars.filter(v =>
@@ -212,7 +244,7 @@ export default function AvivarVariables() {
       );
     }
     return vars;
-  }, [search, filterContext]);
+  }, [search, filterContext, allVariables]);
 
   const groupedFiltered = useMemo(() => {
     const grouped: Record<string, CrmVariable[]> = {};
@@ -271,10 +303,16 @@ export default function AvivarVariables() {
               </div>
             </div>
           </div>
-          <Button onClick={() => navigate('/avivar/automacoes')} size="sm" variant="outline"
-            className="gap-1.5 rounded-xl h-9 px-4">
-            <Zap className="h-3.5 w-3.5" /> Automações
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setShowAddDialog(true)} size="sm"
+              className="gap-1.5 rounded-xl h-9 px-4 bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white">
+              <Plus className="h-3.5 w-3.5" /> Nova Variável
+            </Button>
+            <Button onClick={() => navigate('/avivar/automacoes')} size="sm" variant="outline"
+              className="gap-1.5 rounded-xl h-9 px-4">
+              <Zap className="h-3.5 w-3.5" /> Automações
+            </Button>
+          </div>
         </div>
 
         {/* Search + Filters */}
@@ -390,8 +428,20 @@ export default function AvivarVariables() {
                           )}
                         </div>
 
-                        {/* Copy button */}
-                        <div className="flex-shrink-0">
+                        {/* Copy / Delete buttons */}
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {v.category === 'custom' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const cv = customVariables.find(c => c.key === v.key);
+                                if (cv) deleteVariable.mutate(cv.id);
+                              }}
+                              className="p-1 rounded hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                            </button>
+                          )}
                           {copiedKey === v.key ? (
                             <Check className="h-3.5 w-3.5 text-emerald-500" />
                           ) : (
@@ -414,6 +464,77 @@ export default function AvivarVariables() {
           )}
         </div>
       </ScrollArea>
+
+      {/* Add Variable Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-md bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+          <DialogHeader>
+            <DialogTitle className="text-[hsl(var(--avivar-foreground))]">Nova Variável Personalizada</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Chave da variável</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[hsl(var(--avivar-muted-foreground))] font-mono">{'{{'}</span>
+                <Input
+                  value={newVar.key}
+                  onChange={(e) => setNewVar(prev => ({ ...prev, key: e.target.value.replace(/[^a-z0-9_]/gi, '_').toLowerCase() }))}
+                  placeholder="minha_variavel"
+                  className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] font-mono"
+                />
+                <span className="text-sm text-[hsl(var(--avivar-muted-foreground))] font-mono">{'}}'}</span>
+              </div>
+              <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+                Apenas letras minúsculas, números e underscores
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Nome / Label</Label>
+              <Input
+                value={newVar.label}
+                onChange={(e) => setNewVar(prev => ({ ...prev, label: e.target.value }))}
+                placeholder="Ex: Link do Instagram"
+                className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Descrição (opcional)</Label>
+              <Input
+                value={newVar.description}
+                onChange={(e) => setNewVar(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Para que serve essa variável"
+                className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[hsl(var(--avivar-foreground))]">Valor padrão (opcional)</Label>
+              <Input
+                value={newVar.default_value}
+                onChange={(e) => setNewVar(prev => ({ ...prev, default_value: e.target.value }))}
+                placeholder="Ex: @minha_clinica"
+                className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancelar</Button>
+            <Button
+              disabled={!newVar.key || !newVar.label || createVariable.isPending}
+              onClick={() => {
+                createVariable.mutate(newVar, {
+                  onSuccess: () => {
+                    setShowAddDialog(false);
+                    setNewVar({ key: '', label: '', description: '', default_value: '' });
+                  },
+                });
+              }}
+              className="bg-[hsl(var(--avivar-primary))] text-white"
+            >
+              {createVariable.isPending ? 'Criando...' : 'Criar Variável'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
