@@ -20,15 +20,15 @@ const SECTOR_ICONS: Record<string, LucideIcon> = {
 };
 
 const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }> = {
-  tecnico: { bg: 'bg-cyan-100 dark:bg-cyan-900/30', icon: 'text-cyan-700 dark:text-cyan-400', border: 'border-cyan-300 dark:border-cyan-700' },
-  sucesso_paciente: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', icon: 'text-yellow-700 dark:text-yellow-400', border: 'border-yellow-300 dark:border-yellow-700' },
-  operacional: { bg: 'bg-blue-100 dark:bg-blue-900/30', icon: 'text-blue-700 dark:text-blue-400', border: 'border-blue-300 dark:border-blue-700' },
-  processos: { bg: 'bg-indigo-100 dark:bg-indigo-900/30', icon: 'text-indigo-700 dark:text-indigo-400', border: 'border-indigo-300 dark:border-indigo-700' },
-  financeiro: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', icon: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-300 dark:border-emerald-700' },
-  juridico: { bg: 'bg-rose-100 dark:bg-rose-900/30', icon: 'text-rose-700 dark:text-rose-400', border: 'border-rose-300 dark:border-rose-700' },
-  marketing: { bg: 'bg-pink-100 dark:bg-pink-900/30', icon: 'text-pink-700 dark:text-pink-400', border: 'border-pink-300 dark:border-pink-700' },
-  ti: { bg: 'bg-purple-100 dark:bg-purple-900/30', icon: 'text-purple-700 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700' },
-  rh: { bg: 'bg-orange-100 dark:bg-orange-900/30', icon: 'text-orange-700 dark:text-orange-400', border: 'border-orange-300 dark:border-orange-700' },
+  tecnico: { bg: 'bg-cyan-200 dark:bg-cyan-800/40', icon: 'text-cyan-800 dark:text-cyan-300', border: 'border-cyan-400 dark:border-cyan-600' },
+  sucesso_paciente: { bg: 'bg-yellow-200 dark:bg-yellow-800/40', icon: 'text-yellow-800 dark:text-yellow-300', border: 'border-yellow-400 dark:border-yellow-600' },
+  operacional: { bg: 'bg-blue-200 dark:bg-blue-800/40', icon: 'text-blue-800 dark:text-blue-300', border: 'border-blue-400 dark:border-blue-600' },
+  processos: { bg: 'bg-indigo-200 dark:bg-indigo-800/40', icon: 'text-indigo-800 dark:text-indigo-300', border: 'border-indigo-400 dark:border-indigo-600' },
+  financeiro: { bg: 'bg-emerald-200 dark:bg-emerald-800/40', icon: 'text-emerald-800 dark:text-emerald-300', border: 'border-emerald-400 dark:border-emerald-600' },
+  juridico: { bg: 'bg-rose-200 dark:bg-rose-800/40', icon: 'text-rose-800 dark:text-rose-300', border: 'border-rose-400 dark:border-rose-600' },
+  marketing: { bg: 'bg-pink-200 dark:bg-pink-800/40', icon: 'text-pink-800 dark:text-pink-300', border: 'border-pink-400 dark:border-pink-600' },
+  ti: { bg: 'bg-purple-200 dark:bg-purple-800/40', icon: 'text-purple-800 dark:text-purple-300', border: 'border-purple-400 dark:border-purple-600' },
+  rh: { bg: 'bg-orange-200 dark:bg-orange-800/40', icon: 'text-orange-800 dark:text-orange-300', border: 'border-orange-400 dark:border-orange-600' },
 };
 
 export default function NeoTeamHome() {
