@@ -80,13 +80,13 @@ export function AddSurgeryDialog({
   const procedure = selectedProcedures.join(' + ');
 
   const categories = [
-    { value: 'Categoria A - Hygor', label: 'Categoria A - Hygor' },
-    { value: 'Categoria A - Patrick', label: 'Categoria A - Patrick' },
-    { value: 'Categoria B', label: 'Categoria B' },
-    { value: 'Categoria C', label: 'Categoria C' },
-    { value: 'Categoria D', label: 'Categoria D' },
-    { value: 'A DEFINIR', label: 'A DEFINIR' },
-    { value: 'RETOUCHING', label: 'RETOUCHING' },
+    { value: 'CATEGORIA A - DR HYGOR', label: 'Categoria A - Dr Hygor' },
+    { value: 'CATEGORIA A - DR PATRICK', label: 'Categoria A - Dr Patrick' },
+    { value: 'CATEGORIA B - MÉDICO DA EQUIPE', label: 'Categoria B - Médico da Equipe' },
+    { value: 'CATEGORIA C - PACIENTE MODELO VIP', label: 'Categoria C - Paciente Modelo VIP' },
+    { value: 'CATEGORIA D - PACIENTE MODELO NORMAL', label: 'Categoria D - Paciente Modelo Normal' },
+    { value: 'A DEFINIR', label: 'A Definir' },
+    { value: 'RETOUCHING', label: 'Retouching' },
   ];
 
   // Apply prefilled patient when dialog opens
@@ -263,10 +263,15 @@ export function AddSurgeryDialog({
 
                         if (latestSurgery) {
                           if (latestSurgery.procedure) {
-                            const procs = latestSurgery.procedure.split(' + ').map((p: string) => p.trim()).filter(Boolean);
+                            const procs = latestSurgery.procedure.split(' + ').map((p: string) => p.trim().toUpperCase()).filter(Boolean);
                             setSelectedProcedures(procs);
                           }
-                          if (latestSurgery.category) setCategory(latestSurgery.category);
+                          if (latestSurgery.category) {
+                            // Normalize category to match form options (case-insensitive)
+                            const dbCat = latestSurgery.category.toLowerCase();
+                            const matchedCat = categories.find(c => c.value.toLowerCase() === dbCat);
+                            setCategory(matchedCat ? matchedCat.value : latestSurgery.category);
+                          }
                           if (latestSurgery.branch) setBranch(latestSurgery.branch);
                         }
                       } catch (err) {
