@@ -7,7 +7,9 @@ import {
   AlertCircle, Stethoscope, FileText, 
   HeadphonesIcon, ClipboardCheck, BarChart3, 
   FolderOpen, Scissors, GraduationCap, Clock, 
-  CheckCircle2, Target, Flame
+  CheckCircle2, Target, Flame, GitCompare,
+  DollarSign, Scale, Megaphone, CircuitBoard, UsersRound,
+  type LucideIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -24,6 +26,76 @@ import {
 } from '@/neohub/components/dashboard';
 import { MeetingAgendasList } from '@/components/meetings';
 import { PortalBanner } from '@/components/shared/PortalBanner';
+
+const SECTOR_ICONS: Record<string, LucideIcon> = {
+  tecnico: Stethoscope,
+  sucesso_paciente: HeadphonesIcon,
+  operacional: ClipboardCheck,
+  processos: GitCompare,
+  financeiro: DollarSign,
+  juridico: Scale,
+  marketing: Megaphone,
+  ti: CircuitBoard,
+  rh: UsersRound,
+};
+
+const SECTOR_COLORS: Record<string, string> = {
+  tecnico: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600',
+  sucesso_paciente: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600',
+  operacional: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600',
+  processos: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600',
+  financeiro: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600',
+  juridico: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600',
+  marketing: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600',
+  ti: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600',
+  rh: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600',
+};
+
+function SectorGrid({ navigate }: { navigate: (path: string) => void }) {
+  const { data: sectors } = React.useMemo(() => ({ data: null }), []);
+  const [sectorsData, setSectorsData] = React.useState<Array<{ code: string; name: string }>>([]);
+
+  React.useEffect(() => {
+    import('@/integrations/supabase/client').then(({ supabase }) => {
+      supabase
+        .from('neoteam_sectors')
+        .select('code, name')
+        .eq('is_active', true)
+        .order('order_index')
+        .then(({ data }) => {
+          if (data) setSectorsData(data);
+        });
+    });
+  }, []);
+
+  if (sectorsData.length === 0) return null;
+
+  return (
+    <div>
+      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Setores</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
+        {sectorsData.map((sector) => {
+          const Icon = SECTOR_ICONS[sector.code] ?? BarChart3;
+          const colors = SECTOR_COLORS[sector.code] ?? 'bg-muted text-muted-foreground';
+          return (
+            <button
+              key={sector.code}
+              onClick={() => navigate(`/neoteam/setor/${sector.code}`)}
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-sm transition-all group"
+            >
+              <div className={`p-2 rounded-lg ${colors}`}>
+                <Icon className="h-5 w-5" />
+              </div>
+              <span className="text-xs font-medium text-foreground truncate w-full text-center">
+                {sector.name.replace('Setor ', '').replace('de ', '')}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function NeoTeamHome() {
   const { user } = useUnifiedAuth();
@@ -193,6 +265,10 @@ export default function NeoTeamHome() {
           </div>
         }
       />
+
+
+      {/* Sector Quick Access */}
+      <SectorGrid navigate={navigate} />
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
