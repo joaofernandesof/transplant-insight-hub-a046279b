@@ -510,6 +510,8 @@ function NeoTeamRoutes() {
           <Route path="pops" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPopsPage /></Suspense>} />
           <Route path="diario" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamDiaryPage /></Suspense>} />
           <Route path="setor/:code" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
+          <Route path="financeiro" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><FinancialDashboardPage /></Suspense>} />
+          <Route path="contas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><AccountsPage /></Suspense>} />
           <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="reports" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
