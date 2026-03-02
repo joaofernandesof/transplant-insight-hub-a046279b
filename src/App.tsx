@@ -1009,7 +1009,7 @@ function AppRoutes() {
       {/* ====================================
           Flow.do - Gestão Operacional (Work OS)
           ==================================== */}
-      <Route path="/flow" element={<ProfileGuard allowedProfiles={['colaborador']}><LazyRoute><FlowPortal /></LazyRoute></ProfileGuard>}>
+      <Route path="/flow" element={<ProfileGuard allowedProfiles={['operador']}><LazyRoute><FlowPortal /></LazyRoute></ProfileGuard>}>
         <Route index element={<FlowDashboard />} />
         <Route path="projects" element={<FlowProjects />} />
         <Route path="projects/:projectId" element={<FlowProjectDetail />} />
