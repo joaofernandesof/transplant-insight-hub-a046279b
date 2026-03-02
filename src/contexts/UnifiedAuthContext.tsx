@@ -386,7 +386,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             activeProfileData: ctx.profiles?.[0],
             isAdmin,
             allowedPortals: allowedPortalsFromRoles,
-            legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
+            legacyRole: isAdmin ? 'admin' : profiles.includes('gerente') ? 'licensee' : undefined,
             addressCity: portalData?.address_city || undefined,
             addressState: portalData?.address_state || undefined,
             clinicName: portalData?.clinic_name || undefined,
