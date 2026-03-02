@@ -704,7 +704,7 @@ function HotLeadsRoutes() {
 // ====================================
 function AvivarRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['cliente_avivar', 'administrador']}>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
       <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0612]"><Loader2 className="h-8 w-8 animate-spin text-purple-400" /></div>}>
           <AvivarSidebar>
             <Routes>
