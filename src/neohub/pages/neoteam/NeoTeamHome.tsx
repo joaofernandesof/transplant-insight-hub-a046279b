@@ -1,31 +1,11 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
-  Users, Calendar, ArrowRight, ListTodo,
-  AlertCircle, Stethoscope, FileText, 
-  HeadphonesIcon, ClipboardCheck, BarChart3, 
-  FolderOpen, Scissors, GraduationCap, Clock, 
-  CheckCircle2, Target, Flame, GitCompare,
-  DollarSign, Scale, Megaphone, CircuitBoard, UsersRound,
+  BarChart3, Stethoscope, HeadphonesIcon, ClipboardCheck, 
+  GitCompare, DollarSign, Scale, Megaphone, CircuitBoard, UsersRound,
   type LucideIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { useNeoTeamTasks } from '@/neohub/hooks/useNeoTeamTasks';
-import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import {
-  DashboardKpiCard,
-  DashboardProgressCard,
-  DashboardPriorityList,
-  DashboardDeadlineList,
-  DashboardPerformanceCard,
-} from '@/neohub/components/dashboard';
-import { MeetingAgendasList } from '@/components/meetings';
-import { PortalBanner } from '@/components/shared/PortalBanner';
+import { supabase } from '@/integrations/supabase/client';
 
 const SECTOR_ICONS: Record<string, LucideIcon> = {
   tecnico: Stethoscope,
@@ -39,360 +19,61 @@ const SECTOR_ICONS: Record<string, LucideIcon> = {
   rh: UsersRound,
 };
 
-const SECTOR_COLORS: Record<string, string> = {
-  tecnico: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600',
-  sucesso_paciente: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600',
-  operacional: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600',
-  processos: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600',
-  financeiro: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600',
-  juridico: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600',
-  marketing: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600',
-  ti: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600',
-  rh: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600',
+const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }> = {
+  tecnico: { bg: 'bg-cyan-50 dark:bg-cyan-900/20', icon: 'text-cyan-600', border: 'border-cyan-200 dark:border-cyan-800' },
+  sucesso_paciente: { bg: 'bg-yellow-50 dark:bg-yellow-900/20', icon: 'text-yellow-600', border: 'border-yellow-200 dark:border-yellow-800' },
+  operacional: { bg: 'bg-blue-50 dark:bg-blue-900/20', icon: 'text-blue-600', border: 'border-blue-200 dark:border-blue-800' },
+  processos: { bg: 'bg-indigo-50 dark:bg-indigo-900/20', icon: 'text-indigo-600', border: 'border-indigo-200 dark:border-indigo-800' },
+  financeiro: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', icon: 'text-emerald-600', border: 'border-emerald-200 dark:border-emerald-800' },
+  juridico: { bg: 'bg-rose-50 dark:bg-rose-900/20', icon: 'text-rose-600', border: 'border-rose-200 dark:border-rose-800' },
+  marketing: { bg: 'bg-pink-50 dark:bg-pink-900/20', icon: 'text-pink-600', border: 'border-pink-200 dark:border-pink-800' },
+  ti: { bg: 'bg-purple-50 dark:bg-purple-900/20', icon: 'text-purple-600', border: 'border-purple-200 dark:border-purple-800' },
+  rh: { bg: 'bg-orange-50 dark:bg-orange-900/20', icon: 'text-orange-600', border: 'border-orange-200 dark:border-orange-800' },
 };
 
-function SectorGrid({ navigate }: { navigate: (path: string) => void }) {
-  const { data: sectors } = React.useMemo(() => ({ data: null }), []);
-  const [sectorsData, setSectorsData] = React.useState<Array<{ code: string; name: string }>>([]);
+export default function NeoTeamHome() {
+  const navigate = useNavigate();
+  const [sectors, setSectors] = React.useState<Array<{ code: string; name: string }>>([]);
 
   React.useEffect(() => {
-    import('@/integrations/supabase/client').then(({ supabase }) => {
-      supabase
-        .from('neoteam_sectors')
-        .select('code, name')
-        .eq('is_active', true)
-        .order('order_index')
-        .then(({ data }) => {
-          if (data) setSectorsData(data);
-        });
-    });
+    supabase
+      .from('neoteam_sectors')
+      .select('code, name')
+      .eq('is_active', true)
+      .order('order_index')
+      .then(({ data }) => {
+        if (data) setSectors(data);
+      });
   }, []);
 
-  if (sectorsData.length === 0) return null;
-
   return (
-    <div>
-      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Setores</h2>
-      <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
-        {sectorsData.map((sector) => {
-          const Icon = SECTOR_ICONS[sector.code] ?? BarChart3;
-          const colors = SECTOR_COLORS[sector.code] ?? 'bg-muted text-muted-foreground';
-          return (
-            <button
-              key={sector.code}
-              onClick={() => navigate(`/neoteam/setor/${sector.code}`)}
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-sm transition-all group"
-            >
-              <div className={`p-2 rounded-lg ${colors}`}>
-                <Icon className="h-5 w-5" />
-              </div>
-              <span className="text-xs font-medium text-foreground truncate w-full text-center">
-                {sector.name.replace('Setor ', '').replace('de ', '')}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-export default function NeoTeamHome() {
-  const { user } = useUnifiedAuth();
-  const navigate = useNavigate();
-  const today = new Date();
-  const { tasks: allTasks } = useNeoTeamTasks();
-
-  // Filter tasks for the current user (by assignee_name matching user's name, or assignee_id matching user's id)
-  const userName = user?.fullName || '';
-  const myTasks = allTasks.filter(t => {
-    if (t.assignee_id && user?.id && t.assignee_id === user.id) return true;
-    if (t.assignee_name && userName && t.assignee_name.toLowerCase() === userName.toLowerCase()) return true;
-    // If task has no assignee, don't count as mine
-    return false;
-  });
-
-  // Task stats based on MY tasks
-  const todoTasks = myTasks.filter(t => t.status === 'todo').length;
-  const inProgressTasks = myTasks.filter(t => t.status === 'in_progress').length;
-  const doneTasks = myTasks.filter(t => t.status === 'done').length;
-  const cancelledTasks = myTasks.filter(t => t.status === 'cancelled').length;
-  const totalTasks = myTasks.length;
-  
-  const pendingTasks = myTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled').length;
-  const urgentTasks = myTasks.filter(t => t.priority === 'urgent' && t.status !== 'done').length;
-  const highPriorityTasks = myTasks.filter(t => t.priority === 'high' && t.status !== 'done').length;
-  const normalTasks = myTasks.filter(t => (t.priority === 'medium' || t.priority === undefined) && t.status !== 'done').length;
-  const lowTasks = myTasks.filter(t => t.priority === 'low' && t.status !== 'done').length;
-  
-  const dueTodayTasks = myTasks.filter(t => {
-    if (t.status === 'done' || !t.due_date) return false;
-    const dueDate = new Date(t.due_date);
-    const todayDate = new Date();
-    return dueDate.toDateString() === todayDate.toDateString();
-  }).length;
-
-  const overdueTasks = myTasks.filter(t => {
-    if (t.status === 'done' || !t.due_date) return false;
-    return new Date(t.due_date) < new Date();
-  }).length;
-
-  // Get overdue tasks for deadline list (show ALL overdue for visibility)
-  const overdueTasksList = allTasks
-    .filter(t => {
-      if (t.status === 'done' || !t.due_date) return false;
-      return new Date(t.due_date) < new Date();
-    })
-    .slice(0, 5)
-    .map(t => ({
-      id: t.id,
-      title: `${t.assignee_name ? t.assignee_name + ': ' : ''}${t.title}`,
-      status: 'overdue' as const,
-      dueDate: t.due_date,
-      onClick: () => navigate('/neoteam/tasks'),
-    }));
-
-  // Performance by assignee (uses ALL tasks for team overview)
-  const performanceByAssignee = React.useMemo(() => {
-    const assigneeMap: Record<string, { done: number; total: number; overdue: number }> = {};
-    
-    allTasks.forEach(t => {
-      const assignee = t.assignee_name || 'Não atribuído';
-      if (!assigneeMap[assignee]) {
-        assigneeMap[assignee] = { done: 0, total: 0, overdue: 0 };
-      }
-      assigneeMap[assignee].total++;
-      if (t.status === 'done') {
-        assigneeMap[assignee].done++;
-      }
-      if (t.status !== 'done' && t.due_date && new Date(t.due_date) < new Date()) {
-        assigneeMap[assignee].overdue++;
-      }
-    });
-
-    return Object.entries(assigneeMap).map(([name, stats]) => ({
-      id: name,
-      name,
-      current: stats.done,
-      total: stats.total,
-      overdueCount: stats.overdue,
-    }));
-  }, [allTasks]);
-
-  // Main modules for quick access
-  const mainModules = [
-    { 
-      icon: Users, 
-      label: 'Pacientes', 
-      path: '/neoteam/patients', 
-      description: 'Cadastro e busca',
-      color: 'bg-purple-100 dark:bg-purple-900/30', 
-      iconColor: 'text-purple-600' 
-    },
-    { 
-      icon: Calendar, 
-      label: 'Agenda', 
-      path: '/neoteam/schedule', 
-      description: 'Agendamentos',
-      color: 'bg-blue-100 dark:bg-blue-900/30', 
-      iconColor: 'text-blue-600' 
-    },
-    { 
-      icon: Scissors, 
-      label: 'Cirurgias', 
-      path: '/neoteam/surgeries', 
-      description: 'Gestão cirúrgica',
-      color: 'bg-rose-100 dark:bg-rose-900/30', 
-      iconColor: 'text-rose-600' 
-    },
-    { 
-      icon: HeadphonesIcon, 
-      label: 'Pós-Venda', 
-      path: '/neoteam/postvenda', 
-      description: 'Chamados e suporte',
-      color: 'bg-teal-100 dark:bg-teal-900/30', 
-      iconColor: 'text-teal-600' 
-    },
-    { 
-      icon: FileText, 
-      label: 'Prontuários', 
-      path: '/neoteam/medical-records', 
-      description: 'Histórico médico',
-      color: 'bg-amber-100 dark:bg-amber-900/30', 
-      iconColor: 'text-amber-600' 
-    },
-    { 
-      icon: Stethoscope, 
-      label: 'Visão Médico', 
-      path: '/neoteam/doctor-view', 
-      description: 'Painel clínico',
-      color: 'bg-green-100 dark:bg-green-900/30', 
-      iconColor: 'text-green-600' 
-    },
-  ];
-
-  // Secondary modules  
-  const secondaryModules = [
-    { icon: ListTodo, label: 'Tarefas', path: '/neoteam/tasks' },
-    { icon: FolderOpen, label: 'Documentos', path: '/neoteam/documents' },
-    { icon: GraduationCap, label: 'Educação', path: '/neoteam/education' },
-    { icon: BarChart3, label: 'Relatórios', path: '/neoteam/reports' },
-  ];
-
-  const completionPercent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-
-  return (
-    <div className="p-4 lg:p-6 space-y-6">
-      {/* Breadcrumb */}
-      <NeoTeamBreadcrumb />
-
-      {/* Portal Banner */}
-      <PortalBanner
-        portal="neoteam"
-        userName={user?.fullName}
-        icon={<Users className="h-6 w-6 text-white" />}
-        rightContent={
-          <div className="hidden md:flex items-center gap-3">
-            {overdueTasks > 0 && (
-              <Badge variant="destructive" className="text-sm px-3 py-1">
-                {overdueTasks} atrasada{overdueTasks !== 1 ? 's' : ''}
-              </Badge>
-            )}
-            <div className="bg-white/20 rounded-lg px-4 py-2 flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5 text-white" />
-              <span className="font-medium text-white">{pendingTasks} tarefas</span>
-            </div>
-          </div>
-        }
-      />
-
-
-      {/* Sector Quick Access */}
-      <SectorGrid navigate={navigate} />
-
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardKpiCard
-          icon={ListTodo}
-          value={todoTasks}
-          label="Tarefas a fazer"
-          badge={String(totalTasks)}
-          onClick={() => navigate('/neoteam/tasks')}
-        />
-        <DashboardKpiCard
-          icon={Clock}
-          value={dueTodayTasks}
-          label="Vencem hoje"
-          badge={String(inProgressTasks)}
-          badgeVariant="info"
-          onClick={() => navigate('/neoteam/tasks?due=today')}
-        />
-        <DashboardKpiCard
-          icon={AlertCircle}
-          value={overdueTasks}
-          label="Em atraso"
-          badge="Atenção"
-          badgeVariant="warning"
-          variant={overdueTasks > 0 ? 'warning' : 'default'}
-          onClick={() => navigate('/neoteam/tasks?overdue=true')}
-        />
-        <DashboardKpiCard
-          icon={CheckCircle2}
-          value={doneTasks}
-          label="Concluídas"
-          badge={`${completionPercent}%`}
-          badgeVariant="success"
-          variant="success"
-          onClick={() => navigate('/neoteam/tasks?status=done')}
-        />
-      </div>
-
-      {/* Progress and Priority Row */}
-      <div className="grid lg:grid-cols-2 gap-4">
-        <DashboardProgressCard
-          icon={Target}
-          title="Progresso Geral"
-          subtitle="Taxa de conclusão das tarefas"
-          current={doneTasks}
-          total={totalTasks}
-          metrics={[
-            { value: todoTasks, label: 'A Fazer', color: 'default' },
-            { value: inProgressTasks, label: 'Em Andamento', color: 'primary' },
-            { value: doneTasks, label: 'Concluído', color: 'success' },
-            { value: cancelledTasks, label: 'Cancelados', color: 'default' },
-          ]}
-        />
-        <DashboardPriorityList
-          icon={Flame}
-          title="Prioridades Pendentes"
-          subtitle="Distribuição por nível de urgência"
-          items={[
-            { level: 'urgent', count: urgentTasks },
-            { level: 'high', count: highPriorityTasks },
-            { level: 'normal', count: normalTasks },
-            { level: 'low', count: lowTasks },
-          ]}
-        />
-      </div>
-
-      {/* Deadlines and Performance Row */}
-      <div className="grid lg:grid-cols-2 gap-4">
-        <DashboardDeadlineList
-          icon={Calendar}
-          title="Próximos Prazos"
-          subtitle="Tarefas com vencimento próximo"
-          items={overdueTasksList}
-          emptyMessage="Nenhuma tarefa atrasada 🎉"
-        />
-        <DashboardPerformanceCard
-          icon={BarChart3}
-          title="Performance da Equipe"
-          subtitle="Desempenho por colaborador"
-          items={performanceByAssignee}
-        />
-      </div>
-
-      {/* Meeting Agendas */}
-      <MeetingAgendasList />
-
-      {/* Main Modules Grid */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Acesso Rápido</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {mainModules.map((module) => (
-            <Card 
-              key={module.label} 
-              className="hover:shadow-md transition-all cursor-pointer group"
-              onClick={() => navigate(module.path)}
-            >
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className={`${module.color} p-3 rounded-lg`}>
-                  <module.icon className={`h-6 w-6 ${module.iconColor}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium">{module.label}</p>
-                  <p className="text-xs text-muted-foreground truncate">{module.description}</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-              </CardContent>
-            </Card>
-          ))}
+    <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-6">
+      <div className="w-full max-w-3xl space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">NeoTeam</h1>
+          <p className="text-muted-foreground">Selecione um setor para acessar</p>
         </div>
-      </div>
 
-      {/* Secondary Modules */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {secondaryModules.map((module) => (
-          <Button
-            key={module.label}
-            variant="outline"
-            className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-accent"
-            onClick={() => navigate(module.path)}
-          >
-            <module.icon className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm font-medium">{module.label}</span>
-          </Button>
-        ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {sectors.map((sector) => {
+            const Icon = SECTOR_ICONS[sector.code] ?? BarChart3;
+            const colors = SECTOR_COLORS[sector.code] ?? { bg: 'bg-muted', icon: 'text-muted-foreground', border: 'border-border' };
+            return (
+              <button
+                key={sector.code}
+                onClick={() => navigate(`/neoteam/setor/${sector.code}`)}
+                className={`flex flex-col items-center gap-3 p-6 rounded-2xl border ${colors.border} ${colors.bg} hover:shadow-lg hover:scale-[1.02] transition-all duration-200 group`}
+              >
+                <div className="p-3 rounded-xl bg-background/80 shadow-sm">
+                  <Icon className={`h-7 w-7 ${colors.icon}`} />
+                </div>
+                <span className="text-sm font-semibold text-foreground">
+                  {sector.name.replace('Setor ', '').replace('de ', '')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
