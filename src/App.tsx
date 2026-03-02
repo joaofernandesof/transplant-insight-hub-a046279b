@@ -651,7 +651,7 @@ function NeoAcademyRoutes() {
 // ====================================
 function NeoLicenseRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['licenciado']}>
+    <ProfileGuard allowedProfiles={['operador']}>
       <SidebarWrapper>
         <LazyRoute>
           <Routes>
