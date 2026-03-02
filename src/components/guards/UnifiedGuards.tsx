@@ -134,87 +134,36 @@ export function ProfileGuard({
     return <>{children}</>;
   }
 
-  // Verificar allowed_portals - se o usuário tem acesso via allowedPortals, permitir
-  // MAS também verificar se tem pelo menos um módulo legível nesse portal
-  const userPortals = user.allowedPortals;
-  if (userPortals && userPortals.length > 0) {
-    const currentPath = location.pathname;
-    const portalKeyFromRoute = getPortalKeyFromRoute(currentPath);
+  // NOVO: Verificar acesso via portalRoles (fonte de verdade)
+  const currentPath = location.pathname;
+  const portalKeyFromRoute = getPortalKeyFromRoute(currentPath);
+  
+  if (portalKeyFromRoute) {
     // Para CPG/IPROMED, aceitar ambas as chaves legadas
     const portalKeysToCheck = portalKeyFromRoute === 'ipromed' 
       ? ['ipromed', 'cpg'] 
-      : portalKeyFromRoute ? [portalKeyFromRoute] : [];
-    const hasPortalAccess = portalKeysToCheck.some(key => userPortals.includes(key));
-    if (hasPortalAccess && portalKeyFromRoute) {
-      // Verificar permissões de módulo - se existirem, exigir ao menos uma legível
-      // Se NÃO existirem permissões de módulo, liberar acesso ao portal (allowed_portals é suficiente)
-      const permissions = user.permissions || [];
-      const portalPrefix = portalKeyFromRoute + '_';
-      
-      // HotLeads: verificado via neolicense_hotleads
-      if (portalKeyFromRoute === 'hotleads') {
-        if (permissions.some(p => p.startsWith('neolicense_hotleads') && p.endsWith(':read'))) {
-          return <>{children}</>;
-        }
-      } else {
-        // Verificar se existem permissões de módulo para este portal
-        const portalModulePermissions = permissions.filter(p => 
-          p.startsWith(portalPrefix) && !p.startsWith('neolicense_hotleads')
-        );
-        
-        // Se não há permissões de módulo configuradas, liberar via allowed_portals
-        // Se há permissões configuradas, exigir ao menos uma com read
-        if (portalModulePermissions.length === 0) {
-          return <>{children}</>;
-        }
-        
-        const hasAnyReadableModule = portalModulePermissions.some(p => p.endsWith(':read'));
-        if (hasAnyReadableModule) {
-          return <>{children}</>;
-        }
-      }
-      // Se tem permissões de módulo mas nenhuma com read, NÃO liberar
+      : [portalKeyFromRoute];
+    
+    const hasPortalAccess = portalKeysToCheck.some(key => 
+      user.allowedPortals.includes(key)
+    );
+    
+    if (hasPortalAccess) {
+      return <>{children}</>;
     }
   }
 
-  // Verificar se tem perfil ativo
+  // Fallback: verificar via perfis (compatibilidade)
   if (!activeProfile) {
     return <Navigate to="/select-profile" replace />;
   }
 
-  // Verificar se perfil ativo está na lista permitida
   if (!allowedProfiles.includes(activeProfile)) {
-    // Verificar se o usuário tem algum dos perfis permitidos
     const hasAllowedProfile = allowedProfiles.some(p => hasProfile(p));
     if (hasAllowedProfile) {
-      // Usuário tem o perfil mas não está ativo, redirecionar para seleção
       return <Navigate to="/select-profile" replace />;
     }
-    // Usuário não tem nenhum dos perfis permitidos
     return <Navigate to="/unauthorized" replace />;
-  }
-
-  // Verificação adicional: mesmo com perfil correto, checar permissões de módulo
-  const currentPath = location.pathname;
-  const portalKeyFromRoute = getPortalKeyFromRoute(currentPath);
-  if (portalKeyFromRoute) {
-    const permissions = user.permissions || [];
-    const portalPrefix = portalKeyFromRoute + '_';
-    
-    if (portalKeyFromRoute === 'hotleads') {
-      if (!permissions.some(p => p.startsWith('neolicense_hotleads') && p.endsWith(':read'))) {
-        return <Navigate to="/unauthorized" replace />;
-      }
-    } else {
-      // Para neolicense, excluir neolicense_hotleads do check
-      const hasAnyReadableModule = permissions.some(p => 
-        p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads')
-      );
-      if (!hasAnyReadableModule) {
-        console.warn(`[ProfileGuard] Access denied: no readable modules in portal ${portalKeyFromRoute}`);
-        return <Navigate to="/unauthorized" replace />;
-      }
-    }
   }
 
   return <>{children}</>;

@@ -43,6 +43,15 @@ export interface ModuleOverride {
   expires_at?: string;
 }
 
+export interface PortalRole {
+  portal_id: string;
+  portal_slug: string;
+  portal_name: string;
+  role_id: string;
+  role_name: string;
+  role_display_name: string;
+}
+
 export interface UserContext {
   user: {
     id: string;
@@ -58,6 +67,7 @@ export interface UserContext {
   modules: Module[];
   overrides: ModuleOverride[];
   tenants: Tenant[];
+  portals: PortalRole[];
 }
 
 // Compatibilidade com código legado
@@ -186,13 +196,16 @@ export interface UnifiedUser {
   overrides: ModuleOverride[];
   tenants: Tenant[];
   
+  // NOVO: Portais com roles (fonte de verdade)
+  portalRoles: PortalRole[];
+  
   // Perfil ativo com escopo
   activeProfileData?: UserProfile;
   
   // Atalhos
   isAdmin: boolean;
   
-  // Portais habilitados
+  // Portais habilitados (derivado de portalRoles)
   allowedPortals: string[];
   
   // Legado
@@ -341,10 +354,16 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           // Permissões no formato "module_code:action"
           const permissions = Array.isArray(ctx.permissions) ? ctx.permissions : [];
 
-          // Buscar allowed_portals e endereço do neohub_users
+          // Portal roles do novo modelo
+          const portalRoles: PortalRole[] = Array.isArray(ctx.portals) ? ctx.portals : [];
+          
+          // Derivar allowedPortals dos portal roles (fonte de verdade)
+          const allowedPortalsFromRoles = [...new Set(portalRoles.map(pr => pr.portal_slug))];
+
+          // Buscar dados extras do neohub_users
           const { data: portalData } = await supabase
             .from('neohub_users')
-            .select('allowed_portals, address_city, address_state, clinic_name, clinic_logo_url, tier')
+            .select('address_city, address_state, clinic_name, clinic_logo_url, tier')
             .eq('user_id', ctx.user.auth_id)
             .single();
 
@@ -361,9 +380,10 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             modules: ctx.modules || [],
             overrides: ctx.overrides || [],
             tenants: ctx.tenants || [],
+            portalRoles,
             activeProfileData: ctx.profiles?.[0],
             isAdmin,
-            allowedPortals: portalData?.allowed_portals || [],
+            allowedPortals: allowedPortalsFromRoles,
             legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
             addressCity: portalData?.address_city || undefined,
             addressState: portalData?.address_state || undefined,
@@ -424,6 +444,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           modules: [],
           overrides: [],
           tenants: [],
+          portalRoles: [],
           isAdmin,
           allowedPortals: neoHubData.allowed_portals || [],
           legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
@@ -479,6 +500,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           modules: [],
           overrides: [],
           tenants: [],
+          portalRoles: [],
           isAdmin,
           allowedPortals: [],
           legacyRole,

@@ -9,7 +9,7 @@
 // TIPOS
 // ============================================
 
-export type PermissionAction = 'read' | 'write' | 'delete';
+export type PermissionAction = 'read' | 'write' | 'delete' | 'view' | 'create' | 'edit' | 'approve' | 'export' | 'configure';
 
 export interface ModulePermission {
   moduleCode: string;
