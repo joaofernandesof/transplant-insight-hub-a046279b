@@ -383,24 +383,7 @@ export default function AdminPanel() {
   };
 
   const toggleUserRole = async (userId: string, currentRole: AppRole) => {
-    const newRole: AppRole = currentRole === 'admin' ? 'licensee' : 'admin';
-    
-    try {
-      const { error } = await supabase
-        .from('user_roles')
-        .update({ role: newRole })
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      
-      setUserRoles(prev => prev.map(r => 
-        r.user_id === userId ? { ...r, role: newRole } : r
-      ));
-      toast.success(`Usuário ${newRole === 'admin' ? 'promovido a administrador' : 'definido como licenciado'}`);
-    } catch (error) {
-      console.error('Error updating role:', error);
-      toast.error('Erro ao atualizar permissão');
-    }
+    // No longer toggle — use the dropdown to pick a specific role
   };
 
   const openEditDialog = (userProfile: UserProfile) => {
