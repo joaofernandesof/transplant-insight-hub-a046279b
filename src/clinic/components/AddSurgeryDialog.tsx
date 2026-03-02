@@ -233,10 +233,32 @@ export function AddSurgeryDialog({
                       // Clear selected patient if user types manually
                       setSelectedPatientId(null);
                     }}
-                    onSelectPatient={(patient) => {
+                    onSelectPatient={async (patient) => {
                       setPatientName(patient.full_name);
                       setSelectedPatientId(patient.id);
                       if (patient.phone) setPatientPhone(patient.phone);
+
+                      // Auto-fill from latest surgery of this patient
+                      try {
+                        const { data: latestSurgery } = await supabase
+                          .from('clinic_surgeries')
+                          .select('procedure, category, branch')
+                          .eq('patient_id', patient.id)
+                          .order('created_at', { ascending: false })
+                          .limit(1)
+                          .maybeSingle();
+
+                        if (latestSurgery) {
+                          if (latestSurgery.procedure) {
+                            const procs = latestSurgery.procedure.split(' + ').map((p: string) => p.trim()).filter(Boolean);
+                            setSelectedProcedures(procs);
+                          }
+                          if (latestSurgery.category) setCategory(latestSurgery.category);
+                          if (latestSurgery.branch) setBranch(latestSurgery.branch);
+                        }
+                      } catch (err) {
+                        console.error('Error fetching patient surgery data:', err);
+                      }
                     }}
                     placeholder="Buscar paciente cadastrado..."
                   />
