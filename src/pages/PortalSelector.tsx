@@ -110,7 +110,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: Sparkles,
     gradient: 'from-purple-500 to-violet-600',
     bgColor: 'bg-purple-50 dark:bg-purple-950/30',
-    profiles: ['cliente_avivar'],
+    profiles: ['operador'],
     route: '/avivar',
     portalKey: 'avivar',
   },
