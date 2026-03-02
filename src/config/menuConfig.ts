@@ -63,6 +63,7 @@ import {
   UsersRound,
   Landmark,
   Zap,
+  Hash,
 } from 'lucide-react';
 
 // Tipos base
@@ -411,6 +412,7 @@ export const AVIVAR_MENU_ITEMS: MenuItem[] = [
   { id: 'avivar_marketing', code: 'avivar_marketing', title: 'Marketing', icon: Megaphone, route: '/avivar/marketing' },
   { id: 'avivar_tutorials', code: 'avivar_tutorials', title: 'Tutoriais', icon: Users, route: '/avivar/tutorials' },
   { id: 'avivar_automacoes', code: 'avivar_automacoes', title: 'Automações', icon: Zap, route: '/avivar/automacoes' },
+  { id: 'avivar_variaveis', code: 'avivar_variaveis', title: 'Variáveis', icon: Hash, route: '/avivar/variaveis' },
   { id: 'avivar_reports', code: 'avivar_reports', title: 'Relatórios', icon: FileBarChart, route: '/avivar/reports' },
   { id: 'avivar_settings', code: 'avivar_settings', title: 'Configurações', icon: Settings, route: '/avivar/settings' },
 ];
