@@ -60,7 +60,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: Building2,
     gradient: 'from-amber-400 to-yellow-500',
     bgColor: 'bg-amber-50 dark:bg-amber-950/30',
-    profiles: ['licenciado'],
+    profiles: ['operador'],
     route: '/home',
     portalKey: 'neolicense',
   },
