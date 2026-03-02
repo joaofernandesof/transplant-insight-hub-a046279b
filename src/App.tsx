@@ -544,7 +544,7 @@ function NeoRHRoutes() {
   const NeoRHVagas = lazy(() => import('@/neohub/pages/neorh/NeoRHVagas'));
 
   return (
-    <ProfileGuard allowedProfiles={['colaborador', 'administrador']}>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
       <UnifiedSidebar>
         <NeoRHBanner />
         <Routes>
