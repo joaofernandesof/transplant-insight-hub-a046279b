@@ -6,14 +6,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Shield, 
   Eye,
-  Users,
+  
   Download,
   Sparkles,
   Table as TableIcon,
 } from "lucide-react";
 import { useAccessMatrix } from "@/hooks/useAccessMatrix";
 import { AccessPermissionEditor } from "@/components/access-matrix/AccessPermissionEditor";
-import { AccessCompareProfiles } from "@/components/access-matrix/AccessCompareProfiles";
+
 import { AccessSmartTrails } from "@/components/access-matrix/AccessSmartTrails";
 import { AccessMatrixTable } from "@/components/access-matrix/AccessMatrixTable";
 
@@ -30,7 +30,7 @@ export default function AccessMatrix() {
     exportAsCSV,
   } = useAccessMatrix();
   
-  const [activeTab, setActiveTab] = useState<'matrix' | 'compare' | 'trails'>('matrix');
+  const [activeTab, setActiveTab] = useState<'matrix' | 'trails'>('matrix');
   const [selectedEditor, setSelectedEditor] = useState<{ portalId: string; moduleId: string } | null>(null);
 
   const selectedPortal = selectedEditor ? portals.find(p => p.id === selectedEditor.portalId) : null;
@@ -68,14 +68,10 @@ export default function AccessMatrix() {
       <main className="px-4 py-6 w-full overflow-x-auto">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
+          <TabsList className="grid w-full max-w-lg grid-cols-2">
             <TabsTrigger value="matrix" className="gap-2">
               <TableIcon className="h-4 w-4" />
               Matriz
-            </TabsTrigger>
-            <TabsTrigger value="compare" className="gap-2">
-              <Users className="h-4 w-4" />
-              Comparar
             </TabsTrigger>
             <TabsTrigger value="trails" className="gap-2">
               <Sparkles className="h-4 w-4" />
@@ -93,16 +89,6 @@ export default function AccessMatrix() {
             isLoading={isLoading}
             getPermission={getPermission}
             updatePermission={updatePermission}
-          />
-        )}
-
-        {/* Compare Tab */}
-        {activeTab === 'compare' && (
-          <AccessCompareProfiles 
-            roles={roles}
-            portals={portals}
-            modulesByPortal={modulesByPortal}
-            getPermission={getPermission}
           />
         )}
 
