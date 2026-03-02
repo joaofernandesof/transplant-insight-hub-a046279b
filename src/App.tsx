@@ -901,7 +901,7 @@ function AppRoutes() {
           Rotas Admin Legado (mantidas para compatibilidade)
           ==================================== */}
       <Route path="/admin-dashboard" element={<Navigate to="/admin-portal" replace />} />
-      <Route path="/dashboard" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/dashboard" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/alunos" element={<AdminRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/comparison" element={<AdminRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/regularization" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProfileGuard>} />
