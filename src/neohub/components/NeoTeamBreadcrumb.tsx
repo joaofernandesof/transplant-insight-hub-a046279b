@@ -16,22 +16,45 @@ interface BreadcrumbRoute {
 // Hierarquia do Sistema:
 // Módulo (NeoTeam, NeoCare, Academy, etc.) > Aba (Início, Pacientes, Agenda, etc.) > Sub-aba (se houver)
 const routeLabels: Record<string, string> = {
-  // NeoTeam routes (Portal do Colaborador)
+  // NeoTeam - Início
   '/neoteam': 'Início',
+  // Setor Técnico
   '/neoteam/schedule': 'Agenda',
   '/neoteam/agenda-cirurgica': 'Agenda Cirúrgica',
-  
   '/neoteam/waiting-room': 'Sala de Espera',
   '/neoteam/waiting-room/reports': 'Relatórios de Tempo de Espera',
-  '/neoteam/doctor-view': 'Visão do Médico',
-  '/neoteam/tasks': 'Tarefas',
   '/neoteam/patients': 'Pacientes',
   '/neoteam/medical-records': 'Prontuários',
-  '/neoteam/documents': 'Documentos',
-  '/neoteam/staff-roles': 'Cargos & Funções',
-  '/neoteam/pops': 'POPs',
+  '/neoteam/anamnesis': 'Anamnese',
+  '/neoteam/doctor-view': 'Visão do Médico',
+  '/neoteam/procedures': 'Procedimentos',
+  // Setor de Sucesso do Paciente
+  '/neoteam/postvenda': 'Pós-Venda',
+  '/neoteam/postvenda/chamados': 'Chamados',
+  '/neoteam/postvenda/sla': 'SLA',
+  '/neoteam/postvenda/nps': 'NPS',
+  // Setor Operacional
+  '/neoteam/tasks': 'Tarefas',
+  '/neoteam/limpeza': 'Limpeza',
+  '/neoteam/inventory': 'Inventário',
   '/neoteam/diario': 'Diário de Bordo',
+  // Setor de Processos
+  '/neoteam/processos': 'Fluxos de Processo',
+  '/neoteam/pops': 'POPs',
+  '/neoteam/documents': 'Documentos',
+  // Setor Financeiro
+  '/neoteam/contract-review': 'Revisão de Contratos',
+  '/neoteam/contracts-import': 'Importar Contratos',
+  // Setor Jurídico
+  '/neoteam/legal-dashboard': 'Dashboard Jurídico',
+  // Setor de Marketing
+  '/neoteam/events': 'Gestão de Eventos',
+  '/neoteam/galleries': 'Galerias de Fotos',
+  // Setor de RH
+  '/neoteam/staff-roles': 'Cargos & Funções',
+  // Administração
   '/neoteam/settings': 'Configurações',
+  '/neoteam/reports': 'Relatórios',
   // NeoCare routes (Portal do Paciente)
   '/neocare': 'Início',
   '/neocare/appointments': 'Meus Agendamentos',
