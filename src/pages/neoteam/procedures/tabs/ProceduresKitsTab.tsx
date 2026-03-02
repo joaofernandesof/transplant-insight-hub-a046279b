@@ -7,7 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   Table, 
   TableBody, 
@@ -57,6 +65,8 @@ export function ProceduresKitsTab() {
   const [selectedKitId, setSelectedKitId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const [editingProcedure, setEditingProcedure] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', category: '', price: '' });
   
   const queryClient = useQueryClient();
   const { data: procedures, isLoading: loadingProcedures } = useProcedures();
@@ -121,6 +131,32 @@ export function ProceduresKitsTab() {
       toast.success('Procedimento duplicado');
     } catch {
       toast.error('Erro ao duplicar procedimento');
+    }
+  };
+
+  // Edit
+  const openEdit = (procedure: any) => {
+    setEditForm({
+      name: procedure.name || '',
+      category: procedure.category || '',
+      price: procedure.price?.toString() || '0',
+    });
+    setEditingProcedure(procedure);
+  };
+
+  const saveEdit = async () => {
+    if (!editingProcedure) return;
+    try {
+      await supabase.from('procedures').update({
+        name: editForm.name,
+        category: editForm.category,
+        price: parseFloat(editForm.price) || 0,
+      }).eq('id', editingProcedure.id);
+      queryClient.invalidateQueries({ queryKey: ['procedures'] });
+      toast.success('Procedimento atualizado');
+      setEditingProcedure(null);
+    } catch {
+      toast.error('Erro ao atualizar procedimento');
     }
   };
 
@@ -314,7 +350,7 @@ export function ProceduresKitsTab() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => {}}>
+                              <DropdownMenuItem onClick={() => openEdit(procedure)}>
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
@@ -437,6 +473,69 @@ export function ProceduresKitsTab() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Procedure Dialog */}
+      <Dialog open={!!editingProcedure} onOpenChange={(open) => !open && setEditingProcedure(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              Editar Procedimento
+            </DialogTitle>
+            <DialogDescription>
+              Altere os dados do procedimento
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Nome do Procedimento</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name}
+                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Ex: Blefaroplastia"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-category">Tipo de Procedimento</Label>
+              <Select
+                value={editForm.category}
+                onValueChange={(val) => setEditForm(prev => ({ ...prev, category: val }))}
+              >
+                <SelectTrigger id="edit-category">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cirurgia">Cirurgia</SelectItem>
+                  <SelectItem value="consulta">Consulta</SelectItem>
+                  <SelectItem value="exame">Exame</SelectItem>
+                  <SelectItem value="procedimento">Procedimento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-price">Valor (R$)</Label>
+              <Input
+                id="edit-price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={editForm.price}
+                onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
+                placeholder="0,00"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setEditingProcedure(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={saveEdit} disabled={!editForm.name.trim()}>
+                Salvar
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
