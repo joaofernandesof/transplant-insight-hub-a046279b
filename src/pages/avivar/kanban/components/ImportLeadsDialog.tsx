@@ -152,8 +152,24 @@ export function ImportLeadsDialog({
       if (!accountId) throw new Error('Conta não encontrada');
 
       const leadsToInsert = [];
+      const skippedDuplicates: string[] = [];
+
       for (let i = 0; i < parsedLeads.length; i++) {
         const lead = parsedLeads[i];
+
+        // Check for duplicates by phone or email
+        if (lead.phone || lead.email) {
+          const { data: duplicate } = await supabase.rpc('check_duplicate_kanban_lead', {
+            p_account_id: accountId,
+            p_phone: lead.phone || null,
+            p_email: lead.email || null,
+          });
+          if (duplicate && duplicate.length > 0) {
+            skippedDuplicates.push(lead.name || lead.phone || lead.email || `Linha ${i + 1}`);
+            continue;
+          }
+        }
+
         const { data: leadCode } = await supabase.rpc('generate_lead_code');
         leadsToInsert.push({
           kanban_id: kanbanId,
@@ -170,16 +186,23 @@ export function ImportLeadsDialog({
         });
       }
 
-      const { error } = await supabase
-        .from('avivar_kanban_leads')
-        .insert(leadsToInsert as any);
+      if (leadsToInsert.length > 0) {
+        const { error } = await supabase
+          .from('avivar_kanban_leads')
+          .insert(leadsToInsert as any);
 
-      if (error) throw error;
-      return leadsToInsert.length;
+        if (error) throw error;
+      }
+
+      return { imported: leadsToInsert.length, skipped: skippedDuplicates };
     },
-    onSuccess: (count) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
-      toast.success(`${count} leads importados com sucesso!`);
+      if (result.skipped.length > 0) {
+        toast.success(`${result.imported} leads importados! ${result.skipped.length} duplicados ignorados.`);
+      } else {
+        toast.success(`${result.imported} leads importados com sucesso!`);
+      }
       resetState();
       onOpenChange(false);
     },
