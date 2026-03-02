@@ -177,7 +177,7 @@ export function UserEditModal({
         const [portalsRes, rolesRes, assignmentsRes] = await Promise.all([
           supabase.from('portals').select('id, slug, name').eq('is_active', true).order('order_index'),
           supabase.from('roles').select('id, name').order('hierarchy_level'),
-          supabase.from('user_portal_roles').select('portal_id, role_id').eq('user_id', user.user_id).eq('is_active', true),
+          supabase.from('user_portal_roles').select('portal_id, role_id').eq('user_id', user.id).eq('is_active', true),
         ]);
 
         if (portalsRes.data) setDbPortals(portalsRes.data);
