@@ -695,7 +695,7 @@ export default function AdminPanel() {
                   </div>
                 )}
 
-                <ScrollArea className="w-full">
+                <div className="w-full overflow-x-auto">
                   <Table>
                     <TableHeader>
                      <TableRow className="border-slate-700/50 hover:bg-transparent">
