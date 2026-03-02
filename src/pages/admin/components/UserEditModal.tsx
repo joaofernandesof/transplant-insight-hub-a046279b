@@ -439,10 +439,10 @@ export function UserEditModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedRole === 'admin' && (
+                {selectedRole === 'super_administrador' && (
                   <div className="flex items-center gap-2 p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-700 dark:text-amber-300 text-sm">
                     <Crown className="h-4 w-4" />
-                    Administradores têm acesso total a todos os portais
+                    Super Administradores têm acesso total a todos os portais
                   </div>
                 )}
               </div>
