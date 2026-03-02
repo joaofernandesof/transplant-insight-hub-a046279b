@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -59,27 +59,27 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
 };
 
 const PROFILE_COLORS: Record<NeoHubProfile, string> = {
-  administrador: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400',
-  licenciado: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400',
-  colaborador: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
-  medico: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-400',
-  aluno: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400',
-  paciente: 'bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-400',
-  cliente_avivar: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400',
-  ipromed: 'bg-[#00629B]/10 text-[#00629B] dark:bg-[#00629B]/20 dark:text-[#00629B]',
+  administrador: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+  licenciado: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
+  colaborador: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+  medico: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
+  aluno: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+  paciente: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300',
+  cliente_avivar: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
+  ipromed: 'bg-[#00629B]/10 text-[#00629B] dark:bg-[#00629B]/30 dark:text-[#4db8e8]',
 };
 
 const PORTAL_ROW_COLORS: Record<Portal, string> = {
-  neocare: 'bg-rose-50/60 dark:bg-rose-950/20',
-  neoteam: 'bg-blue-50/60 dark:bg-blue-950/20',
-  neoacademy: 'bg-emerald-50/60 dark:bg-emerald-950/20',
-  neolicense: 'bg-amber-50/60 dark:bg-amber-950/20',
-  avivar: 'bg-orange-50/60 dark:bg-orange-950/20',
-  ipromed: 'bg-[#00629B]/5 dark:bg-[#00629B]/10',
-  hotleads: 'bg-orange-50/60 dark:bg-orange-950/20',
-  vision: 'bg-violet-50/60 dark:bg-violet-950/20',
-  neopay: 'bg-teal-50/60 dark:bg-teal-950/20',
-  neorh: 'bg-indigo-50/60 dark:bg-indigo-950/20',
+  neocare: 'bg-rose-50/60 dark:bg-rose-900/20',
+  neoteam: 'bg-blue-50/60 dark:bg-blue-900/20',
+  neoacademy: 'bg-emerald-50/60 dark:bg-emerald-900/20',
+  neolicense: 'bg-amber-50/60 dark:bg-amber-900/20',
+  avivar: 'bg-orange-50/60 dark:bg-orange-900/20',
+  ipromed: 'bg-[#00629B]/5 dark:bg-[#00629B]/15',
+  hotleads: 'bg-orange-50/60 dark:bg-orange-900/20',
+  vision: 'bg-violet-50/60 dark:bg-violet-900/20',
+  neopay: 'bg-teal-50/60 dark:bg-teal-900/20',
+  neorh: 'bg-indigo-50/60 dark:bg-indigo-900/20',
 };
 
 const PORTAL_ACCENT: Record<Portal, string> = {
@@ -270,12 +270,12 @@ export function AccessMatrixTable({
       </CardHeader>
       
       <CardContent>
-        <ScrollArea className="w-full">
-          <div className="min-w-[1000px]">
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[1100px]">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-72 sticky left-0 bg-muted/50 z-10 font-semibold">
+              <TableRow className="bg-slate-100 dark:bg-slate-800/60">
+                  <TableHead className="w-72 sticky left-0 bg-slate-100 dark:bg-slate-800/60 z-10 font-semibold">
                     Portais / Módulos
                   </TableHead>
                   {ALL_PROFILES.map(profile => (
@@ -338,10 +338,10 @@ export function AccessMatrixTable({
               </TableBody>
             </Table>
           </div>
-        </ScrollArea>
+        </div>
         
         {/* Info Footer */}
-        <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm text-blue-700 dark:text-blue-400">
+        <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-sm text-blue-700 dark:text-blue-300">
           <Info className="h-4 w-4 shrink-0" />
           <span>
             Clique no portal para expandir e ver os módulos individuais.
@@ -415,9 +415,9 @@ function PortalGroup({
                         variant="outline" 
                         className={cn(
                           "text-[10px] px-2 py-0.5",
-                          allRead && "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
+                          allRead && "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700",
                           noneRead && "bg-muted text-muted-foreground",
-                          !allRead && !noneRead && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800"
+                          !allRead && !noneRead && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700"
                         )}
                       >
                         {summary.readCount}/{summary.total}

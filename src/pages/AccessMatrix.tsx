@@ -144,7 +144,7 @@ export default function AccessMatrix() {
         </div>
       </header>
 
-      <main className="px-4 py-6 w-full overflow-x-hidden">
+      <main className="px-4 py-6 w-full overflow-x-auto">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
           <TabsList className="grid w-full max-w-2xl grid-cols-4">
