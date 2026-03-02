@@ -1023,15 +1023,15 @@ function AppRoutes() {
       {/* ====================================
           Marketplace
           ==================================== */}
-      <Route path="/marketplace" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceHome /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/professionals" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceProfessionals /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/units" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceUnits /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/leads" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceLeads /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/schedule" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceSchedule /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/reviews" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceReviews /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/campaigns" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceCampaigns /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/dashboard" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceDashboard /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/discovery" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceDiscovery /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceHome /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/professionals" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceProfessionals /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/units" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceUnits /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/leads" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceLeads /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/schedule" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceSchedule /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/reviews" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceReviews /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/campaigns" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceCampaigns /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/dashboard" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceDashboard /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/discovery" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceDiscovery /></SidebarWrapper></ProfileGuard>} />
 
       {/* ====================================
           Pós-Venda (Redirect para NeoTeam)
