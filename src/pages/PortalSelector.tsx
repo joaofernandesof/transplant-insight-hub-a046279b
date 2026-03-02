@@ -160,7 +160,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: UserCog,
     gradient: 'from-indigo-500 to-blue-600',
     bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
-    profiles: ['administrador', 'colaborador'],
+    profiles: ['administrador', 'operador'],
     route: '/neorh',
     portalKey: 'neorh',
   },

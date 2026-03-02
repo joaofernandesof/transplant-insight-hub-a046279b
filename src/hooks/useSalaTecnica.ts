@@ -29,7 +29,7 @@ export function useCanAccessSalaTecnica() {
   if (isAdmin) return true;
   
   // Licensees have access
-  if (activeProfile === 'licenciado') return true;
+  if (activeProfile === 'operador') return true;
   
   return !isAdmin;
 }
