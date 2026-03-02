@@ -126,6 +126,15 @@ interface UserRole {
   role: AppRole;
 }
 
+interface UserPortalRole {
+  user_id: string;
+  portal_name: string;
+  portal_slug: string;
+  role_name: string;
+  role_display_name: string;
+  hierarchy_level: number;
+}
+
 type SortField = 'name' | 'email' | 'clinic_name' | 'created_at' | 'role';
 type SortOrder = 'asc' | 'desc';
 
@@ -165,6 +174,7 @@ export default function AdminPanel() {
   // User management state
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [userPortalRoles, setUserPortalRoles] = useState<UserPortalRole[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
@@ -247,10 +257,11 @@ export default function AdminPanel() {
   const fetchUsers = async () => {
     try {
       // Fetch from both tables to get complete user data
-      const [profilesRes, neohubUsersRes, rolesRes] = await Promise.all([
+      const [profilesRes, neohubUsersRes, rolesRes, portalRolesRes] = await Promise.all([
         supabase.from('profiles').select('*').order('name'),
         supabase.from('neohub_users').select('id, user_id, full_name, email, phone, clinic_name, address_city, address_state, avatar_url, is_active, allowed_portals, tier, crm, rqe, created_at'),
-        supabase.from('user_roles').select('*')
+        supabase.from('user_roles').select('*'),
+        supabase.from('user_portal_roles').select('user_id, portal_id, role_id, portals(name, slug), roles(name, display_name, hierarchy_level)').eq('is_active', true),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
@@ -273,6 +284,14 @@ export default function AdminPanel() {
 
       setUsers(mergedUsers);
       setUserRoles((rolesRes.data || []).map(r => ({ ...r, role: r.role as AppRole })));
+      setUserPortalRoles((portalRolesRes.data || []).map((pr: any) => ({
+        user_id: pr.user_id,
+        portal_name: pr.portals?.name || '',
+        portal_slug: pr.portals?.slug || '',
+        role_name: pr.roles?.name || '',
+        role_display_name: pr.roles?.display_name || '',
+        hierarchy_level: pr.roles?.hierarchy_level ?? 99,
+      })));
     } catch (error) {
       console.error('Error fetching users:', error);
     }
@@ -284,6 +303,25 @@ export default function AdminPanel() {
 
   const getRoleMeta = (role: AppRole) => {
     return ACCESS_PROFILES.find(p => p.id === role) || ACCESS_PROFILES[5]; // default to operador
+  };
+
+  // Get portal roles for a user (new RBAC)
+  const getUserPortalRoles = (userId: string): UserPortalRole[] => {
+    return userPortalRoles.filter(pr => pr.user_id === userId).sort((a, b) => a.hierarchy_level - b.hierarchy_level);
+  };
+
+  const getRoleColor = (roleName: string): string => {
+    const map: Record<string, string> = {
+      super_administrador: 'text-amber-600 bg-amber-100',
+      administrador: 'text-blue-600 bg-blue-100',
+      gerente: 'text-green-600 bg-green-100',
+      coordenador: 'text-purple-600 bg-purple-100',
+      supervisor: 'text-cyan-600 bg-cyan-100',
+      operador: 'text-slate-600 bg-slate-100',
+      visualizador: 'text-gray-600 bg-gray-100',
+      externo: 'text-rose-600 bg-rose-100',
+    };
+    return map[roleName] || 'text-slate-600 bg-slate-100';
   };
 
   // Filter and sort users
@@ -781,10 +819,27 @@ export default function AdminPanel() {
                             <TableCell className="text-sm text-slate-300">{userProfile.email}</TableCell>
                             <TableCell className="text-sm text-slate-300">{userProfile.clinic_name || '-'}</TableCell>
                             <TableCell>
-                              <Badge className={roleMeta.color}>
-                                <RoleIcon className="h-3 w-3 mr-1" />
-                                {roleMeta.name}
-                              </Badge>
+                              {(() => {
+                                const portalRoles = getUserPortalRoles(userProfile.user_id);
+                                if (portalRoles.length > 0) {
+                                  return (
+                                    <div className="flex flex-col gap-1">
+                                      {portalRoles.map((pr, idx) => (
+                                        <Badge key={idx} className={`${getRoleColor(pr.role_name)} text-xs`}>
+                                          {pr.role_display_name} - {pr.portal_name}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                                // Fallback legado
+                                return (
+                                  <Badge className={roleMeta.color}>
+                                    <RoleIcon className="h-3 w-3 mr-1" />
+                                    {roleMeta.name}
+                                  </Badge>
+                                );
+                              })()}
                             </TableCell>
                             <TableCell className="text-center">
                               <Badge className={isUserActive ? 'bg-emerald-900/50 text-emerald-400 border-emerald-500/30' : 'bg-red-900/50 text-red-400 border-red-500/30'} variant="outline">
