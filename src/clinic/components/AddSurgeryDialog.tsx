@@ -254,7 +254,7 @@ export function AddSurgeryDialog({
                           const { data: byName } = await supabase
                             .from('clinic_surgeries')
                             .select('procedure, category, branch')
-                            .ilike('patient_name', patient.full_name)
+                            .ilike('patient_name', `%${patient.full_name}%`)
                             .order('created_at', { ascending: false })
                             .limit(1)
                             .maybeSingle();
