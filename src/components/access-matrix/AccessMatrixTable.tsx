@@ -338,7 +338,7 @@ export function AccessMatrixTable({
               </TableBody>
             </Table>
           </div>
-        </ScrollArea>
+        </div>
         
         {/* Info Footer */}
         <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm text-blue-700 dark:text-blue-400">
