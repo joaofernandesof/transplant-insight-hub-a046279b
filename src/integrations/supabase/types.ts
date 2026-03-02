@@ -1303,6 +1303,56 @@ export type Database = {
           },
         ]
       }
+      avivar_custom_variables: {
+        Row: {
+          account_id: string
+          category: string
+          created_at: string
+          default_value: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          key: string
+          label: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          category?: string
+          created_at?: string
+          default_value?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          label: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          category?: string
+          created_at?: string
+          default_value?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          label?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_custom_variables_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_followup_executions: {
         Row: {
           account_id: string
