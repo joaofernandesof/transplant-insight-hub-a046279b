@@ -70,7 +70,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: Flame,
     gradient: 'from-orange-500 to-red-500',
     bgColor: 'bg-orange-50 dark:bg-orange-950/30',
-    profiles: ['licenciado'],
+    profiles: ['operador'],
     route: '/hotleads',
     portalKey: 'hotleads',
   },
