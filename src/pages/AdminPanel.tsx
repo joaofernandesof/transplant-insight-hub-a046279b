@@ -305,8 +305,24 @@ export default function AdminPanel() {
     return ACCESS_PROFILES.find(p => p.id === role) || ACCESS_PROFILES[5]; // default to operador
   };
 
-  // Filter and sort users
-  const filteredAndSortedUsers = useMemo(() => {
+  // Get portal roles for a user (new RBAC)
+  const getUserPortalRoles = (userId: string): UserPortalRole[] => {
+    return userPortalRoles.filter(pr => pr.user_id === userId).sort((a, b) => a.hierarchy_level - b.hierarchy_level);
+  };
+
+  const getRoleColor = (roleName: string): string => {
+    const map: Record<string, string> = {
+      super_administrador: 'text-amber-600 bg-amber-100',
+      administrador: 'text-blue-600 bg-blue-100',
+      gerente: 'text-green-600 bg-green-100',
+      coordenador: 'text-purple-600 bg-purple-100',
+      supervisor: 'text-cyan-600 bg-cyan-100',
+      operador: 'text-slate-600 bg-slate-100',
+      visualizador: 'text-gray-600 bg-gray-100',
+      externo: 'text-rose-600 bg-rose-100',
+    };
+    return map[roleName] || 'text-slate-600 bg-slate-100';
+  };
     let result = [...users];
     
     // Filter by search term
