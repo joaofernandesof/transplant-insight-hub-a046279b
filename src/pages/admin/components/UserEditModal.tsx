@@ -199,23 +199,13 @@ export function UserEditModal({
         // 1. Update user_roles table
         const { error: roleError } = await supabase
           .from('user_roles')
-          .update({ role: selectedRole as 'admin' | 'licensee' | 'colaborador' | 'aluno' | 'paciente' })
+          .update({ role: selectedRole as any })
           .eq('user_id', user.user_id);
 
         if (roleError) throw roleError;
 
-        // 2. Update neohub_user_profiles (the actual permission system)
-        // Map app_role to neohub_profile
-        const roleToProfileMap: Record<string, string> = {
-          admin: 'administrador',
-          licensee: 'licenciado',
-          colaborador: 'colaborador',
-          aluno: 'aluno',
-          paciente: 'paciente',
-        };
-
-        const oldProfile = roleToProfileMap[userRole] || userRole;
-        const newProfile = roleToProfileMap[selectedRole] || selectedRole;
+        // Update neohub_user_profiles
+        const newProfile = selectedRole;
 
         // Get neohub_user_id
         const { data: neohubUser } = await supabase
