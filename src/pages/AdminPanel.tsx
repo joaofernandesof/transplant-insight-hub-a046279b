@@ -551,26 +551,6 @@ export default function AdminPanel() {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   };
 
-  // Group modules by category
-  const modulesByCategory = useMemo(() => {
-    const grouped: Record<string, typeof SYSTEM_MODULES> = {};
-    SYSTEM_MODULES.forEach(mod => {
-      if (!grouped[mod.category]) {
-        grouped[mod.category] = [];
-      }
-      grouped[mod.category].push(mod);
-    });
-    return grouped;
-  }, []);
-
-  const filteredModules = useMemo(() => {
-    if (permissionFilter === 'all') return SYSTEM_MODULES;
-    return SYSTEM_MODULES.filter(m => m.category === permissionFilter);
-  }, [permissionFilter]);
-
-  const categories = useMemo(() => {
-    return [...new Set(SYSTEM_MODULES.map(m => m.category))];
-  }, []);
 
   if (isLoading) {
     return (
