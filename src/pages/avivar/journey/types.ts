@@ -9,9 +9,11 @@ export type CommercialStage = 'lead_entrada' | 'triagem' | 'agendamento' | 'foll
 
 export type PostSaleStage = 'onboarding' | 'contrato' | 'contrato_assinado' | 'pre_operatorio' | 'procedimento' | 'pos_operatorio' | 'relacionamento';
 
-export type JourneyStage = CommercialStage | PostSaleStage;
+export type RetentionStage = 'solicitacao_cancelamento' | 'analise_motivo' | 'negociacao_retencao' | 'oferta_retencao' | 'decisao_final' | 'retido' | 'nao_retido';
 
-export type JourneyType = 'comercial' | 'pos_venda';
+export type JourneyStage = CommercialStage | PostSaleStage | RetentionStage;
+
+export type JourneyType = 'comercial' | 'pos_venda' | 'retencao';
 
 export interface PatientJourney {
   id: string;
