@@ -281,6 +281,10 @@ export default function AvivarAutomationBuilderPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/avivar/variaveis')}
+              className="gap-1.5 rounded-xl h-9 px-3">
+              <Hash className="h-3.5 w-3.5" /> Variáveis
+            </Button>
             <Badge variant="secondary" className="text-xs px-2.5 py-1">
               {automations.length} automação{automations.length !== 1 ? 'ões' : ''}
             </Badge>
@@ -810,7 +814,7 @@ function ActionConfigFields({
 
   const set = (key: string, value: any) => onChange({ ...config, [key]: value });
 
-  const variableButtons = ['{{nome}}', '{{telefone}}', '{{email}}', '{{procedimento}}', '{{funil}}', '{{etapa}}'];
+  const variableButtons = ['{{nome}}', '{{primeiro_nome}}', '{{telefone}}', '{{email}}', '{{procedimento}}', '{{funil}}', '{{etapa}}', '{{empresa}}', '{{profissional}}', '{{data_consulta}}', '{{horario_consulta}}', '{{utm_source}}', '{{link_agendamento}}'];
   const insertVar = (field: string, v: string) => set(field, (config[field] || '') + ' ' + v);
 
   switch (actionType) {

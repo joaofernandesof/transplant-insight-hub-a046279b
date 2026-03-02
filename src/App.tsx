@@ -183,6 +183,7 @@ const AvivarLeadsSelector = lazy(() => import("./pages/avivar/AvivarLeadsSelecto
 const AvivarKanbanPage = lazy(() => import("./pages/avivar/kanban/AvivarKanbanPage"));
 const AvivarAutomationsPage = lazy(() => import("./pages/avivar/automations/AvivarAutomationsPage"));
 const AvivarAutomationBuilderPage = lazy(() => import("./pages/avivar/automations/AvivarAutomationBuilderPage"));
+const AvivarVariables = lazy(() => import("./pages/avivar/AvivarVariables"));
 const AvivarAnalytics = lazy(() => import("./pages/avivar/AvivarAnalytics"));
 const AvivarSettings = lazy(() => import("./pages/avivar/AvivarSettings"));
 const AvivarFollowUp = lazy(() => import("./pages/avivar/AvivarFollowUp"));
@@ -719,6 +720,7 @@ function AvivarRoutes() {
               <Route path="kanban/:kanbanId" element={<AvivarKanbanPage />} />
               <Route path="automations/:kanbanId" element={<AvivarAutomationsPage />} />
               <Route path="automacoes" element={<AvivarAutomationBuilderPage />} />
+              <Route path="variaveis" element={<AvivarVariables />} />
               <Route path="lead/:kanbanLeadId" element={<AvivarLeadPage />} />
               <Route path="analytics" element={<AvivarAnalytics />} />
               <Route path="followup" element={<AvivarFollowUp />} />
