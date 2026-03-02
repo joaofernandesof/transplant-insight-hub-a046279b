@@ -912,8 +912,8 @@ function AppRoutes() {
       <Route path="/systems" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/admin" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/access-matrix" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/certificates" element={<ProfileGuard allowedProfiles={['licenciado', 'aluno']}><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/license-payments" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/certificates" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/license-payments" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/monitoring" element={<AdminRoute><SidebarWrapper><LazyRoute><UserMonitoring /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/system-metrics" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemMetrics /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/sentinel" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemSentinel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
