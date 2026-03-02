@@ -85,6 +85,19 @@ export interface PatientJourney {
   testimonial_invited: boolean;
   referral_program_presented: boolean;
   
+  // Retention flow
+  cancellation_reason?: string;
+  cancellation_details?: string;
+  retention_attempt_done: boolean;
+  retention_attempt_notes?: string;
+  retention_offer_type?: string;
+  retention_offer_details?: string;
+  retention_offer_accepted?: boolean;
+  final_decision?: 'retido' | 'nao_retido';
+  final_decision_notes?: string;
+  retention_origin_stage?: JourneyStage;
+  linked_ticket_id?: string;
+  
   // Metadata
   assigned_to?: string;
   notes?: string;
