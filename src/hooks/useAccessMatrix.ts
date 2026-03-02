@@ -1,217 +1,242 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { NeoHubProfile, Portal, PORTAL_MODULES } from '@/neohub/lib/permissions';
 import { toast } from 'sonner';
 
-export type OperationType = 'clinica' | 'academy' | 'consultoria';
+// ====================================
+// Types
+// ====================================
 
-export interface ModulePermission {
+export interface RbacRole {
   id: string;
-  moduleCode: string;
-  moduleName: string;
-  portal: Portal;
-  profile: NeoHubProfile;
-  canRead: boolean;
-  canWrite: boolean;
-  canDelete: boolean;
-  blockReason?: string;
+  name: string;
+  displayName: string;
+  hierarchyLevel: number;
 }
 
-export interface ModuleInfo {
+export interface RbacPortal {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  orderIndex: number;
+}
+
+export interface RbacModule {
+  id: string;
+  portalId: string;
+  portalSlug: string;
   code: string;
   name: string;
-  route: string;
-  icon: string;
+  icon: string | null;
+  orderIndex: number;
 }
 
-// Standard block reasons
-export const BLOCK_REASONS: Record<string, string> = {
-  patient_data: 'Evita exposição indevida de dados clínicos.',
-  financial_sensitive: 'Dados financeiros restritos por política de segurança.',
-  admin_only: 'Funcionalidade exclusiva para administradores.',
-  role_mismatch: 'Perfil não possui responsabilidades neste módulo.',
-  compliance: 'Restrição por conformidade regulatória.',
-  data_integrity: 'Proteção contra alterações não autorizadas.',
-};
+export interface RbacPermission {
+  id: string;
+  roleId: string;
+  moduleId: string;
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canApprove: boolean;
+  canExport: boolean;
+  canConfigure: boolean;
+}
+
+export type PermissionField = 'canView' | 'canCreate' | 'canEdit' | 'canDelete' | 'canApprove' | 'canExport' | 'canConfigure';
+
+// ====================================
+// Hook
+// ====================================
 
 export function useAccessMatrix() {
-  const [permissions, setPermissions] = useState<ModulePermission[]>([]);
+  const [roles, setRoles] = useState<RbacRole[]>([]);
+  const [portals, setPortals] = useState<RbacPortal[]>([]);
+  const [modules, setModules] = useState<RbacModule[]>([]);
+  const [permissions, setPermissions] = useState<RbacPermission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch permissions from database
-  const fetchPermissions = useCallback(async () => {
+  // Fetch all data in parallel
+  const fetchAll = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('neohub_module_permissions')
-        .select('*')
-        .order('portal')
-        .order('module_code');
+      const [rolesRes, portalsRes, modulesRes, permsRes] = await Promise.all([
+        supabase.from('roles').select('*').order('hierarchy_level'),
+        supabase.from('portals').select('*').eq('is_active', true).order('order_index'),
+        supabase.from('modules').select('*, portals!inner(slug)').eq('is_active', true).order('order_index'),
+        supabase.from('role_module_permissions').select('*'),
+      ]);
 
-      if (error) throw error;
+      if (rolesRes.error) throw rolesRes.error;
+      if (portalsRes.error) throw portalsRes.error;
+      if (modulesRes.error) throw modulesRes.error;
+      if (permsRes.error) throw permsRes.error;
 
-      const formattedPermissions: ModulePermission[] = data.map(p => ({
+      setRoles((rolesRes.data || []).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        displayName: r.display_name || r.name,
+        hierarchyLevel: r.hierarchy_level ?? 99,
+      })));
+
+      setPortals((portalsRes.data || []).map((p: any) => ({
         id: p.id,
-        moduleCode: p.module_code,
-        moduleName: p.module_name,
-        portal: p.portal as Portal,
-        profile: p.profile as NeoHubProfile,
-        canRead: p.can_read ?? false,
-        canWrite: p.can_write ?? false,
-        canDelete: p.can_delete ?? false,
-      }));
+        name: p.name,
+        slug: p.slug,
+        icon: p.icon,
+        orderIndex: p.order_index ?? 0,
+      })));
 
-      setPermissions(formattedPermissions);
+      setModules((modulesRes.data || []).map((m: any) => ({
+        id: m.id,
+        portalId: m.portal_id,
+        portalSlug: (m as any).portals?.slug || '',
+        code: m.code,
+        name: m.name,
+        icon: m.icon,
+        orderIndex: m.order_index ?? 0,
+      })));
+
+      setPermissions((permsRes.data || []).map((p: any) => ({
+        id: p.id,
+        roleId: p.role_id,
+        moduleId: p.module_id,
+        canView: p.can_view ?? false,
+        canCreate: p.can_create ?? false,
+        canEdit: p.can_edit ?? false,
+        canDelete: p.can_delete ?? false,
+        canApprove: p.can_approve ?? false,
+        canExport: p.can_export ?? false,
+        canConfigure: p.can_configure ?? false,
+      })));
     } catch (error) {
-      console.error('Error fetching permissions:', error);
-      toast.error('Erro ao carregar permissões');
+      console.error('Error fetching access matrix:', error);
+      toast.error('Erro ao carregar matriz de acesso');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchPermissions();
-  }, [fetchPermissions]);
+    fetchAll();
+  }, [fetchAll]);
 
-  // Get modules by portal
-  const getModulesByPortal = useCallback((portal: Portal): ModuleInfo[] => {
-    return PORTAL_MODULES[portal] || [];
-  }, []);
+  // Get modules grouped by portal
+  const modulesByPortal = useMemo(() => {
+    const map: Record<string, RbacModule[]> = {};
+    for (const mod of modules) {
+      if (!map[mod.portalId]) map[mod.portalId] = [];
+      map[mod.portalId].push(mod);
+    }
+    return map;
+  }, [modules]);
 
-  // Get permission for a specific module and profile
-  const getPermissionForModule = useCallback((
-    moduleCode: string, 
-    profile: NeoHubProfile
-  ): ModulePermission | undefined => {
-    return permissions.find(p => p.moduleCode === moduleCode && p.profile === profile);
+  // Get permission for a specific role + module
+  const getPermission = useCallback((roleId: string, moduleId: string): RbacPermission | undefined => {
+    return permissions.find(p => p.roleId === roleId && p.moduleId === moduleId);
   }, [permissions]);
 
-  // Update a permission
+  // Update or create permission
   const updatePermission = useCallback(async (
-    moduleCode: string,
-    profile: NeoHubProfile,
-    updates: Partial<Pick<ModulePermission, 'canRead' | 'canWrite' | 'canDelete'>>
+    roleId: string,
+    moduleId: string,
+    updates: Partial<Pick<RbacPermission, PermissionField>>
   ) => {
     try {
-      const existing = getPermissionForModule(moduleCode, profile);
-      
-      if (existing) {
-        // Update existing
-        const { error } = await supabase
-          .from('neohub_module_permissions')
-          .update({
-            can_read: updates.canRead ?? existing.canRead,
-            can_write: updates.canWrite ?? existing.canWrite,
-            can_delete: updates.canDelete ?? existing.canDelete,
-          })
-          .eq('id', existing.id);
+      // Super admin can't be edited
+      const role = roles.find(r => r.id === roleId);
+      if (role?.name === 'super_administrador') {
+        toast.info('Super Administrador possui acesso total e não pode ser alterado.');
+        return;
+      }
 
+      const existing = getPermission(roleId, moduleId);
+
+      const dbUpdates: Record<string, boolean> = {};
+      if (updates.canView !== undefined) dbUpdates.can_view = updates.canView;
+      if (updates.canCreate !== undefined) dbUpdates.can_create = updates.canCreate;
+      if (updates.canEdit !== undefined) dbUpdates.can_edit = updates.canEdit;
+      if (updates.canDelete !== undefined) dbUpdates.can_delete = updates.canDelete;
+      if (updates.canApprove !== undefined) dbUpdates.can_approve = updates.canApprove;
+      if (updates.canExport !== undefined) dbUpdates.can_export = updates.canExport;
+      if (updates.canConfigure !== undefined) dbUpdates.can_configure = updates.canConfigure;
+
+      if (existing) {
+        const { error } = await supabase
+          .from('role_module_permissions')
+          .update(dbUpdates)
+          .eq('id', existing.id);
         if (error) throw error;
       } else {
-        // Find module info
-        let moduleInfo: { name: string; portal: Portal } | null = null;
-        for (const [portalKey, modules] of Object.entries(PORTAL_MODULES)) {
-          const mod = modules.find(m => m.code === moduleCode);
-          if (mod) {
-            moduleInfo = { name: mod.name, portal: portalKey as Portal };
-            break;
-          }
-        }
-
-        if (!moduleInfo) {
-          throw new Error('Module not found');
-        }
-
-        // Create new permission
         const { error } = await supabase
-          .from('neohub_module_permissions')
+          .from('role_module_permissions')
           .insert({
-            module_code: moduleCode,
-            module_name: moduleInfo.name,
-            portal: moduleInfo.portal,
-            profile: profile,
-            can_read: updates.canRead ?? false,
-            can_write: updates.canWrite ?? false,
+            role_id: roleId,
+            module_id: moduleId,
+            can_view: updates.canView ?? false,
+            can_create: updates.canCreate ?? false,
+            can_edit: updates.canEdit ?? false,
             can_delete: updates.canDelete ?? false,
+            can_approve: updates.canApprove ?? false,
+            can_export: updates.canExport ?? false,
+            can_configure: updates.canConfigure ?? false,
           });
-
         if (error) throw error;
       }
 
-      // Refetch permissions
-      await fetchPermissions();
-      toast.success('Permissão atualizada com sucesso');
+      // Refetch
+      await fetchAll();
     } catch (error) {
       console.error('Error updating permission:', error);
       toast.error('Erro ao atualizar permissão');
     }
-  }, [getPermissionForModule, fetchPermissions]);
+  }, [roles, getPermission, fetchAll]);
 
-  // Apply a smart trail (preset configuration)
-  const applySmartTrail = useCallback(async (
-    trailId: string,
-    targetProfiles: NeoHubProfile[]
-  ) => {
-    // Trail configurations
-    const trails: Record<string, Record<string, { read: boolean; write: boolean; delete: boolean }>> = {
-      clinica_padrao: {
-        // Standard clinic configuration
-        neocare_appointments: { read: true, write: true, delete: true },
-        neocare_history: { read: true, write: false, delete: false },
-        neoteam_schedule: { read: true, write: true, delete: false },
-        neoteam_patients: { read: true, write: true, delete: false },
-      },
-      academy_licenciamento: {
-        // Academy with licensing
-        academy_courses: { read: true, write: false, delete: false },
-        academy_materials: { read: true, write: false, delete: false },
-        academy_certificates: { read: true, write: false, delete: false },
-        neolicense_dashboard: { read: true, write: false, delete: false },
-      },
-      consultoria_avivar: {
-        // Avivar consulting unit
-        avivar_dashboard: { read: true, write: true, delete: false },
-        avivar_hotleads: { read: true, write: true, delete: true },
-        avivar_marketing: { read: true, write: true, delete: false },
-      },
-    };
+  // Portal summary: how many modules a role can view in a portal
+  const getPortalSummary = useCallback((portalId: string, roleId: string) => {
+    const portalModules = modulesByPortal[portalId] || [];
+    const role = roles.find(r => r.id === roleId);
+    const isSuperAdmin = role?.name === 'super_administrador';
 
-    const trailConfig = trails[trailId];
-    if (!trailConfig) {
-      toast.error('Trilha não encontrada');
-      return;
+    let viewCount = 0, createCount = 0, editCount = 0, deleteCount = 0;
+    for (const mod of portalModules) {
+      if (isSuperAdmin) {
+        viewCount++; createCount++; editCount++; deleteCount++;
+      } else {
+        const perm = getPermission(roleId, mod.id);
+        if (perm?.canView) viewCount++;
+        if (perm?.canCreate) createCount++;
+        if (perm?.canEdit) editCount++;
+        if (perm?.canDelete) deleteCount++;
+      }
     }
+    return { viewCount, createCount, editCount, deleteCount, total: portalModules.length };
+  }, [modulesByPortal, roles, getPermission]);
 
-    try {
-      for (const [moduleCode, perms] of Object.entries(trailConfig)) {
-        for (const profile of targetProfiles) {
-          await updatePermission(moduleCode, profile, {
-            canRead: perms.read,
-            canWrite: perms.write,
-            canDelete: perms.delete,
-          });
+  // Export as CSV
+  const exportAsCSV = useCallback(() => {
+    const headers = ['Portal', 'Módulo', 'Função', 'Visualizar', 'Criar', 'Editar', 'Excluir'];
+    const rows: string[][] = [];
+
+    for (const portal of portals) {
+      const portalMods = modulesByPortal[portal.id] || [];
+      for (const mod of portalMods) {
+        for (const role of roles) {
+          const perm = getPermission(role.id, mod.id);
+          const isSA = role.name === 'super_administrador';
+          rows.push([
+            portal.name,
+            mod.name,
+            role.displayName,
+            isSA || perm?.canView ? 'Sim' : 'Não',
+            isSA || perm?.canCreate ? 'Sim' : 'Não',
+            isSA || perm?.canEdit ? 'Sim' : 'Não',
+            isSA || perm?.canDelete ? 'Sim' : 'Não',
+          ]);
         }
       }
-      
-      toast.success('Trilha aplicada com sucesso!');
-    } catch (error) {
-      console.error('Error applying trail:', error);
-      toast.error('Erro ao aplicar trilha');
     }
-  }, [updatePermission]);
-
-  // Export permissions as CSV
-  const exportAsCSV = useCallback(() => {
-    const headers = ['Portal', 'Módulo', 'Perfil', 'Leitura', 'Escrita', 'Exclusão'];
-    const rows = permissions.map(p => [
-      p.portal,
-      p.moduleName,
-      p.profile,
-      p.canRead ? 'Sim' : 'Não',
-      p.canWrite ? 'Sim' : 'Não',
-      p.canDelete ? 'Sim' : 'Não',
-    ]);
 
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -221,18 +246,20 @@ export function useAccessMatrix() {
     link.download = `access-matrix-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-    
     toast.success('Arquivo exportado com sucesso');
-  }, [permissions]);
+  }, [portals, roles, modulesByPortal, getPermission]);
 
   return {
+    roles,
+    portals,
+    modules,
     permissions,
+    modulesByPortal,
     isLoading,
-    getModulesByPortal,
-    getPermissionForModule,
+    getPermission,
     updatePermission,
-    applySmartTrail,
+    getPortalSummary,
     exportAsCSV,
-    refetch: fetchPermissions,
+    refetch: fetchAll,
   };
 }
