@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Tipos da Nova Arquitetura
 // ====================================
 
-export type ProfileKey = 'administrador' | 'licenciado' | 'colaborador' | 'medico' | 'aluno' | 'paciente' | 'cliente_avivar' | 'ipromed';
+export type ProfileKey = 'super_administrador' | 'administrador' | 'gerente' | 'coordenador' | 'supervisor' | 'operador' | 'visualizador' | 'externo';
 
 export interface UserProfile {
   key: ProfileKey;
