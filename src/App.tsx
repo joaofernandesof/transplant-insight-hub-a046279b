@@ -434,7 +434,7 @@ function HomeRouter() {
 // ====================================
 function NeoCareRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['paciente', 'administrador']}>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
       <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoCareHome />} />
