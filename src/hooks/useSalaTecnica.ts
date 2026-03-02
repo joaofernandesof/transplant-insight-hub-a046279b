@@ -11,7 +11,7 @@ export function useIsLicensee() {
   const { activeProfile } = useUnifiedAuth();
   
   // Admin simulating licensee view should see licensee content
-  if (isAdmin && activeProfile === 'licenciado') {
+  if (isAdmin && activeProfile === 'operador') {
     return true;
   }
   
