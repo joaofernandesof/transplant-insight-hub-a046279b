@@ -481,7 +481,7 @@ function NeoTeamRoutes() {
   const CampaignsPage = lazy(() => import('@/pages/neoteam/marketing/CampaignsPage'));
   
   return (
-    <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
       <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoTeamHome />} />
