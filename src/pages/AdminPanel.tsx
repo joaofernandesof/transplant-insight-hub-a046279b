@@ -284,6 +284,14 @@ export default function AdminPanel() {
 
       setUsers(mergedUsers);
       setUserRoles((rolesRes.data || []).map(r => ({ ...r, role: r.role as AppRole })));
+      setUserPortalRoles((portalRolesRes.data || []).map((pr: any) => ({
+        user_id: pr.user_id,
+        portal_name: pr.portals?.name || '',
+        portal_slug: pr.portals?.slug || '',
+        role_name: pr.roles?.name || '',
+        role_display_name: pr.roles?.display_name || '',
+        hierarchy_level: pr.roles?.hierarchy_level ?? 99,
+      })));
     } catch (error) {
       console.error('Error fetching users:', error);
     }
