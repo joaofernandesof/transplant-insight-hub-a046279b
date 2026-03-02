@@ -449,7 +449,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           portalRoles: [],
           isAdmin,
           allowedPortals: neoHubData.allowed_portals || [],
-          legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
+          legacyRole: isAdmin ? 'admin' : profiles.includes('operador') ? 'licensee' : undefined,
           clinicName: neoHubData.clinic_name,
           clinicLogoUrl: neoHubData.clinic_logo_url,
           addressCity: neoHubData.address_city || undefined,
