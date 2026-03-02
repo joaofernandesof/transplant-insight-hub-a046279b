@@ -484,9 +484,9 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         if (isAdmin) {
           profiles = ['administrador'];
         } else if (isStudent) {
-          profiles = ['aluno'];
+          profiles = ['operador'];
         } else {
-          profiles = ['licenciado'];
+          profiles = ['operador'];
         }
 
         return {
