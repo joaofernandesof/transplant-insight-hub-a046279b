@@ -100,7 +100,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: Stethoscope,
     gradient: 'from-teal-500 to-cyan-600',
     bgColor: 'bg-teal-50 dark:bg-teal-950/30',
-    profiles: ['medico'],
+    profiles: ['operador'],
     route: '/neoteam/doctor-view',
     portalKey: 'medico',
   },
