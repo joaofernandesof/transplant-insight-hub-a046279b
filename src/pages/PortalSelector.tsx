@@ -90,7 +90,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: Briefcase,
     gradient: 'from-blue-500 to-cyan-600',
     bgColor: 'bg-blue-50 dark:bg-blue-950/30',
-    profiles: ['colaborador'],
+    profiles: ['operador'],
     route: '/neoteam',
     portalKey: 'neoteam',
   },
