@@ -14415,9 +14415,12 @@ export type Database = {
       neoteam_audit_log: {
         Row: {
           action: string
+          actor_role: string | null
           actor_user_id: string
+          branch_id: string | null
           created_at: string
           id: string
+          ip_address: string | null
           new_values: Json | null
           old_values: Json | null
           resource_id: string | null
@@ -14426,9 +14429,12 @@ export type Database = {
         }
         Insert: {
           action: string
+          actor_role?: string | null
           actor_user_id: string
+          branch_id?: string | null
           created_at?: string
           id?: string
+          ip_address?: string | null
           new_values?: Json | null
           old_values?: Json | null
           resource_id?: string | null
@@ -14437,9 +14443,12 @@ export type Database = {
         }
         Update: {
           action?: string
+          actor_role?: string | null
           actor_user_id?: string
+          branch_id?: string | null
           created_at?: string
           id?: string
+          ip_address?: string | null
           new_values?: Json | null
           old_values?: Json | null
           resource_id?: string | null
@@ -21985,6 +21994,7 @@ export type Database = {
       }
       is_neoteam_master: { Args: { _user_id: string }; Returns: boolean }
       is_neoteam_member: { Args: { _user_id: string }; Returns: boolean }
+      is_neoteam_member_safe: { Args: { p_user_id: string }; Returns: boolean }
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
       is_test_lead_creator: { Args: { uid: string }; Returns: boolean }
       neoteam_is_empty: { Args: never; Returns: boolean }
