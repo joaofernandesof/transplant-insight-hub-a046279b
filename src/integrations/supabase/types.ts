@@ -15022,6 +15022,119 @@ export type Database = {
           },
         ]
       }
+      neoteam_sector_modules: {
+        Row: {
+          created_at: string
+          id: string
+          module_code: string
+          order_index: number
+          sector_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module_code: string
+          order_index?: number
+          sector_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module_code?: string
+          order_index?: number
+          sector_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_sector_modules_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_sector_roles: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          is_active: boolean
+          role_level: string
+          sector_id: string
+          team_member_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean
+          role_level?: string
+          sector_id: string
+          team_member_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean
+          role_level?: string
+          sector_id?: string
+          team_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_sector_roles_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_sectors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoteam_sector_roles_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_sectors: {
+        Row: {
+          code: string
+          color: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          order_index: number
+        }
+        Insert: {
+          code: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          order_index?: number
+        }
+        Update: {
+          code?: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
       neoteam_settings: {
         Row: {
           created_at: string
@@ -22144,6 +22257,15 @@ export type Database = {
         | "admin_equipe"
         | "admin_relatorios"
         | "admin_configuracoes"
+        | "tecnico_anamnese"
+        | "tecnico_procedimentos"
+        | "operacional_inventario"
+        | "operacional_diario"
+        | "processos_fluxos"
+        | "processos_pops"
+        | "financeiro_contratos"
+        | "financeiro_importacao"
+        | "juridico_dashboard"
       neoteam_role: "MASTER" | "ADMIN" | "PROFISSIONAL" | "OPERACIONAL"
       portal_role:
         | "patient"
@@ -22547,6 +22669,15 @@ export const Constants = {
         "admin_equipe",
         "admin_relatorios",
         "admin_configuracoes",
+        "tecnico_anamnese",
+        "tecnico_procedimentos",
+        "operacional_inventario",
+        "operacional_diario",
+        "processos_fluxos",
+        "processos_pops",
+        "financeiro_contratos",
+        "financeiro_importacao",
+        "juridico_dashboard",
       ],
       neoteam_role: ["MASTER", "ADMIN", "PROFISSIONAL", "OPERACIONAL"],
       portal_role: [
