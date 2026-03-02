@@ -5,6 +5,7 @@
 
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { VariableAutocomplete } from '@/components/avivar/VariableAutocomplete';
 import {
   ArrowLeft, Search, Copy, Check, Hash, User, Phone, Mail,
   Building2, Calendar, Tag, MessageSquare, Briefcase, Globe,
@@ -165,6 +166,31 @@ export function getVariablesByCategory(context?: string): Record<string, CrmVari
   return grouped;
 }
 
+/* ─── Inline compose component ─── */
+function VariableAutocompleteInline({ copyVariable, copiedKey }: { copyVariable: (key: string) => void; copiedKey: string | null }) {
+  const [composeText, setComposeText] = useState('');
+  return (
+    <div className="space-y-2">
+      <VariableAutocomplete
+        value={composeText}
+        onChange={setComposeText}
+        placeholder='Olá {{primeiro_nome}}, tudo bem? Digite {{ para inserir variáveis...'
+        className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] min-h-[80px] text-sm"
+      />
+      {composeText && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => { navigator.clipboard.writeText(composeText); copyVariable(composeText); }}
+            className="text-[11px] px-3 py-1 rounded-full bg-[hsl(var(--avivar-primary))] text-white hover:opacity-90 transition-opacity"
+          >
+            Copiar texto completo
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════ */
 /*  MAIN PAGE                      */
 /* ═══════════════════════════════ */
@@ -277,6 +303,25 @@ export default function AvivarVariables() {
       {/* Body */}
       <ScrollArea className="flex-1">
         <div className="p-5 space-y-4">
+          {/* Compose / Test Area */}
+          <div className="rounded-2xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-md">
+                <MessageSquare className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-[hsl(var(--avivar-foreground))]">Testar Variáveis</h3>
+                <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+                  Digite <code className="px-1 py-0.5 rounded bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-primary))] border border-[hsl(var(--avivar-border))]">{'{{'}</code> para inserir variáveis ou clique abaixo
+                </p>
+              </div>
+            </div>
+            <VariableAutocompleteInline
+              copyVariable={copyVariable}
+              copiedKey={copiedKey}
+            />
+          </div>
+
           {VARIABLE_CATEGORIES.filter(cat => groupedFiltered[cat.id]?.length).map(cat => {
             const vars = groupedFiltered[cat.id];
             const isExpanded = expandedCats.has(cat.id);
