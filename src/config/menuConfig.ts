@@ -272,6 +272,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: false,
     items: [
       { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/postvenda' },
+      { id: 'neoteam_retention', code: 'neoteam_retention', title: 'Retenção & Churn', icon: Heart, route: '/neoteam/retencao' },
     ],
   },
   {
@@ -320,6 +321,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: false,
     items: [
       { id: 'neoteam_legal_dashboard', code: 'neoteam_legal_dashboard', title: 'Dashboard Jurídico', icon: Scale, route: '/neoteam/legal-dashboard', adminOnly: true },
+      { id: 'neoteam_legal_contracts', code: 'neoteam_legal_contracts', title: 'Gestão de Contratos', icon: Gavel, route: '/neoteam/contratos', adminOnly: true },
     ],
   },
   {
@@ -329,6 +331,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
+      { id: 'neoteam_campaigns', code: 'neoteam_campaigns', title: 'Campanhas', icon: Megaphone, route: '/neoteam/campanhas', adminOnly: true },
       { id: 'neoteam_event_organization', code: 'neoteam_event_organization', title: 'Gestão de Eventos', icon: ClipboardList, route: '/neoteam/events', adminOnly: true },
       { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/galleries', adminOnly: true },
     ],
@@ -340,6 +343,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
+      { id: 'neoteam_tickets', code: 'neoteam_tickets_ti', title: 'Chamados', icon: CircuitBoard, route: '/neoteam/chamados', adminOnly: true },
       { id: 'neoteam_reports_cat', code: 'neoteam_reports', title: 'Relatórios', icon: FileBarChart, route: '/neoteam/reports' },
     ],
   },

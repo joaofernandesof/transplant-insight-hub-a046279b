@@ -14606,6 +14606,149 @@ export type Database = {
         }
         Relationships: []
       }
+      neoteam_campaigns: {
+        Row: {
+          branch_id: string | null
+          budget: number | null
+          campaign_type: string
+          channel: string | null
+          conversions: number | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          leads_generated: number | null
+          name: string
+          notes: string | null
+          reach: number | null
+          spent: number | null
+          start_date: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          budget?: number | null
+          campaign_type?: string
+          channel?: string | null
+          conversions?: number | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          leads_generated?: number | null
+          name: string
+          notes?: string | null
+          reach?: number | null
+          spent?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          budget?: number | null
+          campaign_type?: string
+          channel?: string | null
+          conversions?: number | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          leads_generated?: number | null
+          name?: string
+          notes?: string | null
+          reach?: number | null
+          spent?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_campaigns_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_churn_alerts: {
+        Row: {
+          assigned_to: string | null
+          branch_id: string | null
+          created_at: string | null
+          days_inactive: number | null
+          id: string
+          last_visit_at: string | null
+          notes: string | null
+          patient_id: string | null
+          patient_name: string
+          patient_phone: string | null
+          protocol_id: string | null
+          reason: string | null
+          resolved_at: string | null
+          risk_level: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          days_inactive?: number | null
+          id?: string
+          last_visit_at?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          patient_name: string
+          patient_phone?: string | null
+          protocol_id?: string | null
+          reason?: string | null
+          resolved_at?: string | null
+          risk_level?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          branch_id?: string | null
+          created_at?: string | null
+          days_inactive?: number | null
+          id?: string
+          last_visit_at?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          patient_name?: string
+          patient_phone?: string | null
+          protocol_id?: string | null
+          reason?: string | null
+          resolved_at?: string | null
+          risk_level?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_churn_alerts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoteam_churn_alerts_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_retention_protocols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoteam_diary_entries: {
         Row: {
           category: string
@@ -14775,6 +14918,77 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      neoteam_legal_contracts: {
+        Row: {
+          alert_days_before: number | null
+          branch_id: string | null
+          contract_type: string
+          created_at: string | null
+          created_by: string
+          end_date: string | null
+          file_url: string | null
+          id: string
+          notes: string | null
+          party_document: string | null
+          party_name: string
+          recurrence: string | null
+          renewal_date: string | null
+          start_date: string
+          status: string
+          title: string
+          updated_at: string | null
+          value: number | null
+        }
+        Insert: {
+          alert_days_before?: number | null
+          branch_id?: string | null
+          contract_type?: string
+          created_at?: string | null
+          created_by: string
+          end_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          party_document?: string | null
+          party_name: string
+          recurrence?: string | null
+          renewal_date?: string | null
+          start_date: string
+          status?: string
+          title: string
+          updated_at?: string | null
+          value?: number | null
+        }
+        Update: {
+          alert_days_before?: number | null
+          branch_id?: string | null
+          contract_type?: string
+          created_at?: string | null
+          created_by?: string
+          end_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          party_document?: string | null
+          party_name?: string
+          recurrence?: string | null
+          renewal_date?: string | null
+          start_date?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_legal_contracts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       neoteam_module_permissions: {
         Row: {
@@ -15169,6 +15383,56 @@ export type Database = {
         }
         Relationships: []
       }
+      neoteam_retention_protocols: {
+        Row: {
+          actions: Json | null
+          branch_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          trigger_days_inactive: number | null
+          trigger_event: string
+          updated_at: string | null
+        }
+        Insert: {
+          actions?: Json | null
+          branch_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          trigger_days_inactive?: number | null
+          trigger_event?: string
+          updated_at?: string | null
+        }
+        Update: {
+          actions?: Json | null
+          branch_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          trigger_days_inactive?: number | null
+          trigger_event?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_retention_protocols_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoteam_schedule_blocks: {
         Row: {
           created_at: string
@@ -15462,6 +15726,74 @@ export type Database = {
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "neoteam_doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_tickets: {
+        Row: {
+          assigned_name: string | null
+          assigned_to: string | null
+          branch_id: string | null
+          category: string
+          closed_at: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          priority: string
+          requester_id: string
+          requester_name: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          status: string
+          ticket_number: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_name?: string | null
+          assigned_to?: string | null
+          branch_id?: string | null
+          category?: string
+          closed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          priority?: string
+          requester_id: string
+          requester_name: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          ticket_number: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_name?: string | null
+          assigned_to?: string | null
+          branch_id?: string | null
+          category?: string
+          closed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          priority?: string
+          requester_id?: string
+          requester_name?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          ticket_number?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_tickets_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
             referencedColumns: ["id"]
           },
         ]
