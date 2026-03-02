@@ -14,11 +14,12 @@ import { SurgeryTaskChips } from './SurgeryTaskChips';
 interface SurgeryWeekTableProps {
   surgeries: ClinicSurgery[];
   onUpdate?: (id: string, updates: Partial<ClinicSurgery>) => void;
+  onReschedule?: (id: string, newDate: string | null) => void;
   title?: string;
   violatedIds?: Set<string>;
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate, title, violatedIds }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, title, violatedIds }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
@@ -211,6 +212,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, title, violatedIds }: Su
         open={!!selectedSurgery}
         onOpenChange={(open) => !open && setSelectedSurgery(null)}
         onUpdate={onUpdate}
+        onReschedule={onReschedule}
       />
     </>
   );

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { logSurgeryChanges } from '../utils/logSurgeryChange';
 import { toast } from 'sonner';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, addDays, format } from 'date-fns';
 
 export type ScheduleStatus = 'sem_data' | 'agendado' | 'confirmado' | 'realizado' | 'cancelado';
 
@@ -274,6 +274,96 @@ export function useClinicSurgeries() {
     },
   });
 
+  // Reschedule surgery: new date or "a definir"
+  const rescheduleSurgery = useMutation({
+    mutationFn: async ({ id, newDate }: { id: string; newDate: string | null }) => {
+      const currentSurgery = surgeries.find(s => s.id === id);
+      const oldDate = currentSurgery?.surgeryDate || null;
+
+      // 1. Update surgery date & status
+      const dbUpdates: Record<string, any> = {
+        surgery_date: newDate,
+        schedule_status: newDate ? 'agendado' : 'sem_data',
+        surgery_confirmed: false, // Reset confirmation on reschedule
+      };
+
+      const { error: updateError } = await supabase
+        .from('clinic_surgeries')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      if (newDate) {
+        // PATH A: New date → delete non-completed tasks and regenerate from definitions
+        // Delete all non-completed tasks
+        await supabase
+          .from('surgery_tasks')
+          .delete()
+          .eq('surgery_id', id)
+          .neq('status', 'completed');
+
+        // Fetch active definitions to create new tasks
+        const { data: definitions } = await supabase
+          .from('surgery_task_definitions')
+          .select('*')
+          .eq('is_active', true)
+          .order('order_index');
+
+        if (definitions && definitions.length > 0) {
+          const surgeryDate = new Date(newDate + 'T12:00:00');
+          const newTasks = definitions
+            .filter((def: any) => def.d_offset !== null)
+            .map((def: any) => {
+              const scheduledDate = addDays(surgeryDate, def.d_offset);
+              return {
+                surgery_id: id,
+                definition_id: def.id,
+                d_offset: def.d_offset,
+                title: def.title,
+                scheduled_date: format(scheduledDate, 'yyyy-MM-dd'),
+                responsible_name: def.responsible_name,
+                responsible_email: def.responsible_email,
+                is_required: def.is_required,
+                status: 'pending',
+                phase_label: def.phase_label,
+                phase_color: def.phase_color,
+              };
+            });
+
+          if (newTasks.length > 0) {
+            const { error: insertError } = await supabase
+              .from('surgery_tasks')
+              .insert(newTasks);
+            if (insertError) console.error('Error creating tasks:', insertError);
+          }
+        }
+      } else {
+        // PATH B: "A definir" → cancel all non-completed tasks
+        await supabase
+          .from('surgery_tasks')
+          .delete()
+          .eq('surgery_id', id)
+          .neq('status', 'completed');
+      }
+
+      // Log the change
+      logSurgeryChanges(id, { surgeryDate: newDate }, { surgeryDate: oldDate });
+
+      return { newDate };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['surgery-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['surgery-tasks-all'] });
+      toast.success(data.newDate ? 'Cirurgia reagendada! Tarefas recalculadas.' : 'Cirurgia movida para "A definir". Tarefas removidas.');
+    },
+    onError: () => {
+      toast.error('Erro ao reagendar cirurgia');
+    },
+  });
+
   // Filter helpers
   const scheduledSurgeries = surgeries.filter(s => s.scheduleStatus !== 'sem_data');
   const noDateSurgeries = surgeries.filter(s => s.scheduleStatus === 'sem_data');
@@ -320,5 +410,6 @@ export function useClinicSurgeries() {
     stats,
     createSurgery,
     updateSurgery,
+    rescheduleSurgery,
   };
 }
