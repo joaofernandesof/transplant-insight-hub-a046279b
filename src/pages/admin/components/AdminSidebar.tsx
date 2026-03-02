@@ -70,9 +70,11 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
     window.location.href = '/login';
   };
 
-  const isActive = (href: string) =>
-    location.pathname === href || 
-    (href !== '/admin-portal' && location.pathname.startsWith(href));
+  const isActive = (href: string) => {
+    if (location.pathname === href) return true;
+    if (href === '/admin-portal' || href === '/admin') return false;
+    return location.pathname.startsWith(href);
+  };
 
   const MenuItem = ({ item }: { item: { id: string; label: string; icon: React.ElementType; href: string } }) => {
     const Icon = item.icon;
