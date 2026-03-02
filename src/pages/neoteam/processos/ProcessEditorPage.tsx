@@ -271,6 +271,8 @@ export default function ProcessEditorPage() {
 
   const [showStepDialog, setShowStepDialog] = useState(false);
   const [editingStep, setEditingStep] = useState<ProcessStep | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
   const [stepForm, setStepForm] = useState({
     name: '', description: '', step_type: 'manual' as string,
     responsible_role: '', responsible_user_id: '', relative_day: '' as string, duration_hours: '24',
@@ -366,7 +368,39 @@ export default function ProcessEditorPage() {
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <Workflow className="h-5 w-5 text-primary" />
-              <h1 className="text-xl font-bold text-foreground">{template.name}</h1>
+              {editingName ? (
+                <form
+                  className="flex items-center gap-2"
+                  onSubmit={e => {
+                    e.preventDefault();
+                    if (nameValue.trim() && id) {
+                      updateTemplate.mutate({ id, name: nameValue.trim() });
+                      setEditingName(false);
+                    }
+                  }}
+                >
+                  <Input
+                    value={nameValue}
+                    onChange={e => setNameValue(e.target.value)}
+                    className="h-8 text-lg font-bold w-[260px]"
+                    autoFocus
+                    onBlur={() => {
+                      if (nameValue.trim() && id) {
+                        updateTemplate.mutate({ id, name: nameValue.trim() });
+                      }
+                      setEditingName(false);
+                    }}
+                  />
+                </form>
+              ) : (
+                <button
+                  className="flex items-center gap-1.5 group/name hover:bg-muted/50 px-2 py-1 rounded-lg transition-colors"
+                  onClick={() => { setNameValue(template.name); setEditingName(true); }}
+                >
+                  <h1 className="text-xl font-bold text-foreground">{template.name}</h1>
+                  <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover/name:opacity-100 transition-opacity" />
+                </button>
+              )}
               <Badge variant="outline" className="text-xs">
                 {template.status === 'active' ? 'Ativo' : template.status === 'draft' ? 'Rascunho' : 'Arquivado'}
               </Badge>
