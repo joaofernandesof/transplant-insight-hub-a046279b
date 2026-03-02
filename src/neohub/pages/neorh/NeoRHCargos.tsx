@@ -33,7 +33,7 @@ const emptyForm = {
   faixa_salarial_min: null as number | null, faixa_salarial_max: null as number | null,
 };
 
-const NIVEIS = ['diretor', 'gerente', 'coordenador', 'supervisor', 'operacional', 'estagio'];
+const NIVEIS = ['Diretor', 'Gerente', 'Coordenador', 'Supervisor', 'Operacional', 'Estagio', 'Externo'];
 const MODELOS = [
   { value: 'clt', label: 'CLT' },
   { value: 'cnpj', label: 'CNPJ' },
