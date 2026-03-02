@@ -14212,6 +14212,122 @@ export type Database = {
           },
         ]
       }
+      neoteam_accounts_payable: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          branch: string | null
+          category: string
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          paid_date: string | null
+          payment_method: string | null
+          status: string
+          supplier: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          attachment_url?: string | null
+          branch?: string | null
+          category?: string
+          created_at?: string
+          created_by: string
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          branch?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      neoteam_accounts_receivable: {
+        Row: {
+          amount: number
+          branch: string | null
+          category: string
+          client_name: string | null
+          contract_id: string | null
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          received_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          branch?: string | null
+          category?: string
+          client_name?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by: string
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          received_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          branch?: string | null
+          category?: string
+          client_name?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          received_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_accounts_receivable_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoteam_anamnesis: {
         Row: {
           additional_info: string | null
@@ -14632,6 +14748,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      neoteam_financial_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          type: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          type: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          type?: string
+        }
+        Relationships: []
       }
       neoteam_module_permissions: {
         Row: {
