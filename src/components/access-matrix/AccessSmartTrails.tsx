@@ -14,13 +14,13 @@ import {
   ArrowRight,
   Lightbulb,
   Shield,
-  Users
 } from "lucide-react";
-import { NeoHubProfile, PROFILE_NAMES } from "@/neohub/lib/permissions";
 import { cn } from "@/lib/utils";
+import type { RbacRole } from "@/hooks/useAccessMatrix";
 
 interface AccessSmartTrailsProps {
-  onApplyTrail: (trailId: string, profiles: NeoHubProfile[]) => void;
+  roles: RbacRole[];
+  onApplyTrail: (trailId: string, roleIds: string[]) => void;
 }
 
 interface Trail {
@@ -29,7 +29,7 @@ interface Trail {
   description: string;
   icon: React.ReactNode;
   color: string;
-  recommendedProfiles: NeoHubProfile[];
+  recommendedRoleNames: string[];
   modules: string[];
 }
 
@@ -40,16 +40,16 @@ const SMART_TRAILS: Trail[] = [
     description: 'Configuração padrão para operação de clínica com equipe médica e recepção.',
     icon: <Building2 className="h-5 w-5" />,
     color: 'from-blue-500 to-indigo-500',
-    recommendedProfiles: ['colaborador', 'paciente'],
+    recommendedRoleNames: ['operador', 'coordenador'],
     modules: ['neocare_appointments', 'neocare_history', 'neoteam_schedule', 'neoteam_patients'],
   },
   {
     id: 'academy_licenciamento',
     name: 'Academy com Licenciamento',
-    description: 'Configuração para unidades que operam cursos e são licenciadas da franquia.',
+    description: 'Configuração para unidades que operam cursos e são licenciadas.',
     icon: <GraduationCap className="h-5 w-5" />,
     color: 'from-emerald-500 to-green-500',
-    recommendedProfiles: ['aluno', 'licenciado'],
+    recommendedRoleNames: ['gerente', 'operador'],
     modules: ['academy_courses', 'academy_materials', 'academy_certificates', 'neolicense_dashboard'],
   },
   {
@@ -58,39 +58,39 @@ const SMART_TRAILS: Trail[] = [
     description: 'Configuração para unidades focadas em marketing e captação de leads.',
     icon: <TrendingUp className="h-5 w-5" />,
     color: 'from-orange-500 to-red-500',
-    recommendedProfiles: ['cliente_avivar'],
+    recommendedRoleNames: ['gerente', 'operador'],
     modules: ['avivar_dashboard', 'avivar_hotleads', 'avivar_marketing'],
   },
 ];
 
-const ALL_PROFILES: NeoHubProfile[] = ['licenciado', 'colaborador', 'aluno', 'paciente', 'cliente_avivar'];
-
-export function AccessSmartTrails({ onApplyTrail }: AccessSmartTrailsProps) {
+export function AccessSmartTrails({ roles, onApplyTrail }: AccessSmartTrailsProps) {
   const [selectedTrail, setSelectedTrail] = useState<Trail | null>(null);
-  const [selectedProfiles, setSelectedProfiles] = useState<NeoHubProfile[]>([]);
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [isApplying, setIsApplying] = useState(false);
+
+  // Exclude super_admin from selectable roles
+  const selectableRoles = roles.filter(r => r.name !== 'super_administrador');
 
   const handleSelectTrail = (trail: Trail) => {
     setSelectedTrail(trail);
-    setSelectedProfiles(trail.recommendedProfiles);
+    // Auto-select recommended roles
+    const recommended = roles.filter(r => trail.recommendedRoleNames.includes(r.name)).map(r => r.id);
+    setSelectedRoleIds(recommended);
   };
 
-  const handleProfileToggle = (profile: NeoHubProfile) => {
-    setSelectedProfiles(prev => 
-      prev.includes(profile)
-        ? prev.filter(p => p !== profile)
-        : [...prev, profile]
+  const handleRoleToggle = (roleId: string) => {
+    setSelectedRoleIds(prev => 
+      prev.includes(roleId) ? prev.filter(id => id !== roleId) : [...prev, roleId]
     );
   };
 
   const handleApply = async () => {
     if (!selectedTrail) return;
-    
     setIsApplying(true);
     try {
-      await onApplyTrail(selectedTrail.id, selectedProfiles);
+      await onApplyTrail(selectedTrail.id, selectedRoleIds);
       setSelectedTrail(null);
-      setSelectedProfiles([]);
+      setSelectedRoleIds([]);
     } finally {
       setIsApplying(false);
     }
@@ -106,12 +106,9 @@ export function AccessSmartTrails({ onApplyTrail }: AccessSmartTrailsProps) {
               <Lightbulb className="h-5 w-5 text-violet-600 dark:text-violet-400" />
             </div>
             <div>
-              <p className="font-medium text-violet-900 dark:text-violet-100 mb-1">
-                Trilhas Inteligentes
-              </p>
+              <p className="font-medium text-violet-900 dark:text-violet-100 mb-1">Trilhas Inteligentes</p>
               <p className="text-sm text-violet-700 dark:text-violet-300">
-                Selecione uma trilha pré-configurada para aplicar permissões de forma rápida e segura. 
-                Você pode revisar e personalizar antes de aplicar.
+                Selecione uma trilha pré-configurada para aplicar permissões rapidamente. Você pode personalizar antes de aplicar.
               </p>
             </div>
           </div>
@@ -123,38 +120,25 @@ export function AccessSmartTrails({ onApplyTrail }: AccessSmartTrailsProps) {
         {SMART_TRAILS.map(trail => (
           <Card 
             key={trail.id}
-            className={cn(
-              "cursor-pointer transition-all hover:shadow-md",
-              selectedTrail?.id === trail.id && "ring-2 ring-primary"
-            )}
+            className={cn("cursor-pointer transition-all hover:shadow-md", selectedTrail?.id === trail.id && "ring-2 ring-primary")}
             onClick={() => handleSelectTrail(trail)}
           >
-            {/* Gradient Header */}
             <div className={cn("h-2 bg-gradient-to-r rounded-t-lg", trail.color)} />
-            
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
-                <div className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center text-white bg-gradient-to-r",
-                  trail.color
-                )}>
+                <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center text-white bg-gradient-to-r", trail.color)}>
                   {trail.icon}
                 </div>
-                <div>
-                  <CardTitle className="text-base">{trail.name}</CardTitle>
-                </div>
+                <CardTitle className="text-base">{trail.name}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-3">
-                {trail.description}
-              </p>
+              <p className="text-sm text-muted-foreground mb-3">{trail.description}</p>
               <div className="flex flex-wrap gap-1">
-                {trail.recommendedProfiles.map(profile => (
-                  <Badge key={profile} variant="secondary" className="text-xs">
-                    {PROFILE_NAMES[profile]}
-                  </Badge>
-                ))}
+                {trail.recommendedRoleNames.map(name => {
+                  const role = roles.find(r => r.name === name);
+                  return role ? <Badge key={name} variant="secondary" className="text-xs">{role.displayName}</Badge> : null;
+                })}
               </div>
             </CardContent>
           </Card>
@@ -171,51 +155,36 @@ export function AccessSmartTrails({ onApplyTrail }: AccessSmartTrailsProps) {
                   <Sparkles className="h-4 w-4 text-primary" />
                   Configurar Trilha: {selectedTrail.name}
                 </CardTitle>
-                <CardDescription>
-                  Selecione os perfis que receberão as permissões desta trilha
-                </CardDescription>
+                <CardDescription>Selecione as funções que receberão as permissões</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedTrail(null)}>
-                Cancelar
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedTrail(null)}>Cancelar</Button>
             </div>
           </CardHeader>
           <CardContent>
-            {/* Profile Selection */}
             <div className="mb-6">
-              <p className="text-sm font-medium mb-3">Aplicar para os perfis:</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {ALL_PROFILES.map(profile => (
+              <p className="text-sm font-medium mb-3">Aplicar para as funções:</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {selectableRoles.map(role => (
                   <div
-                    key={profile}
+                    key={role.id}
                     className={cn(
                       "flex items-center gap-2 p-3 rounded-lg border transition-colors cursor-pointer",
-                      selectedProfiles.includes(profile)
-                        ? "border-primary bg-primary/5"
-                        : "hover:bg-muted"
+                      selectedRoleIds.includes(role.id) ? "border-primary bg-primary/5" : "hover:bg-muted"
                     )}
-                    onClick={() => handleProfileToggle(profile)}
+                    onClick={() => handleRoleToggle(role.id)}
                   >
-                    <Checkbox
-                      checked={selectedProfiles.includes(profile)}
-                      onCheckedChange={() => handleProfileToggle(profile)}
-                    />
-                    <Label className="cursor-pointer text-sm">
-                      {PROFILE_NAMES[profile]}
-                    </Label>
-                    {selectedTrail.recommendedProfiles.includes(profile) && (
-                      <Badge variant="outline" className="text-[10px] ml-auto">
-                        Recomendado
-                      </Badge>
+                    <Checkbox checked={selectedRoleIds.includes(role.id)} onCheckedChange={() => handleRoleToggle(role.id)} />
+                    <Label className="cursor-pointer text-sm">{role.displayName}</Label>
+                    {selectedTrail.recommendedRoleNames.includes(role.name) && (
+                      <Badge variant="outline" className="text-[10px] ml-auto">Rec.</Badge>
                     )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Modules Preview */}
             <div className="mb-6">
-              <p className="text-sm font-medium mb-3">Módulos que serão configurados:</p>
+              <p className="text-sm font-medium mb-3">Módulos configurados:</p>
               <div className="flex flex-wrap gap-2">
                 {selectedTrail.modules.map(mod => (
                   <Badge key={mod} variant="secondary" className="text-xs">
@@ -226,13 +195,9 @@ export function AccessSmartTrails({ onApplyTrail }: AccessSmartTrailsProps) {
               </div>
             </div>
 
-            {/* Apply Button */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button 
-                  className="w-full" 
-                  disabled={selectedProfiles.length === 0 || isApplying}
-                >
+                <Button className="w-full" disabled={selectedRoleIds.length === 0 || isApplying}>
                   <Sparkles className="h-4 w-4 mr-2" />
                   Aplicar Trilha
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -242,8 +207,7 @@ export function AccessSmartTrails({ onApplyTrail }: AccessSmartTrailsProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Aplicar Trilha Inteligente?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Isso irá atualizar as permissões de {selectedProfiles.length} perfil(is) 
-                    em {selectedTrail.modules.length} módulo(s). Esta ação pode ser revertida manualmente.
+                    Isso irá atualizar as permissões de {selectedRoleIds.length} função(ões) em {selectedTrail.modules.length} módulo(s).
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -257,25 +221,6 @@ export function AccessSmartTrails({ onApplyTrail }: AccessSmartTrailsProps) {
           </CardContent>
         </Card>
       )}
-
-      {/* AI Suggestion Card */}
-      <Card className="bg-muted/30 border-dashed">
-        <CardContent className="py-6">
-          <div className="flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
-              <Shield className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">
-              Sugestões Baseadas em Aprendizado
-            </p>
-            <p className="text-xs text-muted-foreground max-w-md">
-              Outras clínicas similares geralmente não ativam determinados módulos para colaboradores. 
-              <br />
-              <span className="text-primary">Em breve, sugestões personalizadas.</span>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
