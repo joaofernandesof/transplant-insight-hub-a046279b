@@ -350,6 +350,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
+      { id: 'neoteam_team_roster', code: 'neoteam_team_roster', title: 'Equipe', icon: Users, route: '/neoteam/equipe', adminOnly: true },
       { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/staff-roles', adminOnly: true },
     ],
   },
