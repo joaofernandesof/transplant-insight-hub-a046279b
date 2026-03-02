@@ -274,8 +274,8 @@ export function AccessMatrixTable({
           <div className="min-w-[1100px]">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-72 sticky left-0 bg-muted/50 z-10 font-semibold">
+              <TableRow className="bg-slate-100 dark:bg-slate-800/60">
+                  <TableHead className="w-72 sticky left-0 bg-slate-100 dark:bg-slate-800/60 z-10 font-semibold">
                     Portais / Módulos
                   </TableHead>
                   {ALL_PROFILES.map(profile => (
