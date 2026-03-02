@@ -422,22 +422,19 @@ export function useAvivarAutomationExecutions(automationId?: string) {
 }
 
 export function useAvivarAutomationExecutionsByConversation(conversationId?: string) {
-  const { accountId } = useAvivarAccount();
-
   return useQuery({
     queryKey: ['avivar-automation-executions-conv', conversationId],
     queryFn: async () => {
-      if (!accountId || !conversationId) return [];
+      if (!conversationId) return [];
       const { data, error } = await supabase
         .from('avivar_automation_executions')
         .select('*')
-        .eq('account_id', accountId)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true })
         .limit(100);
       if (error) throw error;
       return data as AvivarAutomationExecution[];
     },
-    enabled: !!accountId && !!conversationId,
+    enabled: !!conversationId,
   });
 }
