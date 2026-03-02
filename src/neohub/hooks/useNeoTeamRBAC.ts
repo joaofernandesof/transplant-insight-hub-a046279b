@@ -371,19 +371,32 @@ export function useNeoTeamRBAC() {
     if (query.length < 2) return [];
     const existingUserIds = members.map(m => m.user_id);
 
-    const { data, error } = await supabase
+    // Search by name
+    const nameSearch = supabase
       .from('neohub_users')
       .select('id, user_id, full_name, email, avatar_url')
-      .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+      .ilike('full_name', `%${query}%`)
       .eq('is_active', true)
       .limit(10);
 
-    if (error) {
-      console.error(error);
-      return [];
-    }
+    // Search by email
+    const emailSearch = supabase
+      .from('neohub_users')
+      .select('id, user_id, full_name, email, avatar_url')
+      .ilike('email', `%${query}%`)
+      .eq('is_active', true)
+      .limit(10);
 
-    return (data || [])
+    const [nameResult, emailResult] = await Promise.all([nameSearch, emailSearch]);
+
+    if (nameResult.error) console.error(nameResult.error);
+    if (emailResult.error) console.error(emailResult.error);
+
+    // Merge and deduplicate
+    const allResults = [...(nameResult.data || []), ...(emailResult.data || [])];
+    const uniqueMap = new Map(allResults.map(u => [u.user_id, u]));
+
+    return Array.from(uniqueMap.values())
       .filter(u => !existingUserIds.includes(u.user_id))
       .map(u => ({
         id: u.id,
