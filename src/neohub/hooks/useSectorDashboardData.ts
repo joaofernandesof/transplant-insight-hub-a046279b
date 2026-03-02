@@ -87,7 +87,7 @@ async function fetchFinanceiro(): Promise<SectorKpi[]> {
 async function fetchJuridico(): Promise<SectorKpi[]> {
   const [reviews, pending] = await Promise.all([
     supabase.from('contract_review_requests').select('id', { count: 'exact', head: true }),
-    supabase.from('contract_review_requests').select('id', { count: 'exact', head: true }).eq('status', 'pendente'),
+    supabase.from('contract_review_requests').select('id', { count: 'exact', head: true }).eq('status', 'em_analise'),
   ]);
   return [
     { label: 'Revisões Solicitadas', value: reviews.count ?? 0 },
