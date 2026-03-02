@@ -687,6 +687,10 @@ export default function AdminPanel() {
                       <UserPlus className="h-4 w-4" />
                       Adicionar
                     </Button>
+                    <Button variant="outline" onClick={() => navigate('/access-matrix')} className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-700">
+                      <Grid3X3 className="h-4 w-4" />
+                      Matriz de Acesso
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
