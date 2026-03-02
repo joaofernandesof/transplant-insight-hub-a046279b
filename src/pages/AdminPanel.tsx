@@ -830,26 +830,17 @@ export default function AdminPanel() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => toggleUserRole(userProfile.user_id, role)}>
-                                        {role === 'admin' ? (
-                                          <><UserX className="h-4 w-4 mr-2" /> Remover Admin</>
-                                        ) : (
-                                          <><UserCheck className="h-4 w-4 mr-2" /> Tornar Admin</>
-                                        )}
-                                      </DropdownMenuItem>
                                       <DropdownMenuSub>
                                         <DropdownMenuSubTrigger>
                                           <Shield className="h-4 w-4 mr-2" />
-                                          Alterar Perfil
+                                          Alterar Função
                                         </DropdownMenuSubTrigger>
                                         <DropdownMenuSubContent>
                                           {ACCESS_PROFILES.map(p => (
                                             <DropdownMenuItem key={p.id} onClick={() => {
-                                              toggleUserRole(userProfile.user_id, role);
-                                              // Use direct role update
                                               supabase.from('user_roles').update({ role: p.id }).eq('user_id', userProfile.user_id).then(() => {
                                                 setUserRoles(prev => prev.map(r => r.user_id === userProfile.user_id ? { ...r, role: p.id } : r));
-                                                toast.success(`Perfil alterado para ${p.name}`);
+                                                toast.success(`Função alterada para ${p.name}`);
                                               });
                                             }}>
                                               <p.icon className="h-4 w-4 mr-2" />
