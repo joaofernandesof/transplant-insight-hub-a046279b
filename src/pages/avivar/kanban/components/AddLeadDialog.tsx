@@ -6,6 +6,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAccountSettings } from '@/hooks/useAccountSettings';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -51,6 +52,7 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
   const queryClient = useQueryClient();
   const { accountId } = useAvivarAccount();
   const { boards, columns: allColumns } = useKanbanBoards();
+  const { duplicateSettings } = useAccountSettings();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -95,23 +97,74 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
       if (!columnId) throw new Error('Selecione uma coluna');
       if (!effectiveKanbanId) throw new Error('Selecione um funil');
 
-      // Check for duplicates by phone or email
-      if (formData.phone || formData.email) {
-        const { data: duplicate } = await supabase.rpc('check_duplicate_kanban_lead', {
-          p_account_id: accountId,
-          p_phone: formData.phone || null,
-          p_email: formData.email || null,
-        });
-        if (duplicate && duplicate.length > 0) {
-          const dup = duplicate[0];
-          const matchField = dup.phone === formData.phone ? `telefone (${dup.phone})` : `email (${dup.email})`;
-          throw new Error(`DUPLICATE:Já existe um lead "${dup.name}" com este ${matchField}`);
+      // Check for duplicates based on settings
+      if (duplicateSettings.enabled && (formData.phone || formData.email)) {
+        const checkPhone = duplicateSettings.check_field !== 'email' ? formData.phone || null : null;
+        const checkEmail = duplicateSettings.check_field !== 'phone' ? formData.email || null : null;
+
+        if (checkPhone || checkEmail) {
+          const { data: duplicate } = await supabase.rpc('check_duplicate_kanban_lead', {
+            p_account_id: accountId,
+            p_phone: checkPhone,
+            p_email: checkEmail,
+          });
+
+          if (duplicate && duplicate.length > 0) {
+            const dup = duplicate[0];
+            const matchField = dup.phone === formData.phone ? `telefone (${dup.phone})` : `email (${dup.email})`;
+
+            if (duplicateSettings.action === 'block') {
+              throw new Error(`DUPLICATE:Já existe um lead "${dup.name}" com este ${matchField}`);
+            }
+
+            if (duplicateSettings.action === 'merge') {
+              // Update empty fields of existing lead
+              const updates: Record<string, string | null> = {};
+              if (!dup.name && formData.name) updates.name = formData.name;
+              if (!dup.phone && formData.phone) updates.phone = formData.phone;
+              if (!dup.email && formData.email) updates.email = formData.email;
+              
+              // Always update notes if provided
+              if (formData.notes) {
+                updates.notes = formData.notes;
+              }
+              
+              if (Object.keys(updates).length > 0) {
+                await supabase
+                  .from('avivar_kanban_leads')
+                  .update({ ...updates, updated_at: new Date().toISOString() })
+                  .eq('id', dup.id);
+              }
+              
+              throw new Error(`MERGED:Lead "${dup.name}" atualizado com os novos dados (${matchField} já existia)`);
+            }
+
+            // allow_tagged: continue creating but add tag
+            // Will be handled below by adding 'duplicado' tag
+          }
         }
       }
 
       // Generate lead_code
       const { data: leadCode, error: codeError } = await supabase.rpc('generate_lead_code');
       if (codeError) throw codeError;
+
+      // Check if we should tag as duplicate (allow_tagged mode)
+      let tags: string[] | null = null;
+      if (duplicateSettings.enabled && duplicateSettings.action === 'allow_tagged' && (formData.phone || formData.email)) {
+        const checkPhone = duplicateSettings.check_field !== 'email' ? formData.phone || null : null;
+        const checkEmail = duplicateSettings.check_field !== 'phone' ? formData.email || null : null;
+        if (checkPhone || checkEmail) {
+          const { data: dup } = await supabase.rpc('check_duplicate_kanban_lead', {
+            p_account_id: accountId,
+            p_phone: checkPhone,
+            p_email: checkEmail,
+          });
+          if (dup && dup.length > 0) {
+            tags = ['duplicado'];
+          }
+        }
+      }
 
       const { data, error } = await supabase
         .from('avivar_kanban_leads')
@@ -126,6 +179,7 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
           email: formData.email || null,
           source: formData.source,
           notes: formData.notes || null,
+          ...(tags ? { tags } : {}),
         }])
         .select()
         .single();
@@ -150,7 +204,16 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
     },
     onError: (error: any) => {
       console.error('Error creating lead:', error);
-      if (error?.message?.startsWith('DUPLICATE:')) {
+      if (error?.message?.startsWith('MERGED:')) {
+        toast.success(error.message.replace('MERGED:', ''));
+        queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads'] });
+        onOpenChange(false);
+        setFormData({
+          name: '', phone: '', email: '', source: 'manual', notes: '',
+          selectedKanbanId: isStandalone && boards.length === 1 ? boards[0]?.id || '' : '',
+          columnId: '',
+        });
+      } else if (error?.message?.startsWith('DUPLICATE:')) {
         toast.error(error.message.replace('DUPLICATE:', ''));
       } else {
         toast.error('Erro ao criar lead');
