@@ -74,7 +74,7 @@ export default function TicketsPage() {
         category: form.category,
         priority: form.priority,
         requester_id: user?.id,
-        requester_name: user?.name || user?.email || "Usuário",
+        requester_name: (user as any)?.name || user?.email || "Usuário",
         status: "open",
       });
       if (error) throw error;
