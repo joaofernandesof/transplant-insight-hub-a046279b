@@ -82,8 +82,8 @@ export function useModulePermissions() {
     value: boolean
   ) => {
     // Don't allow changing admin permissions
-    if (profile === 'admin') {
-      toast.info('O perfil Administrador possui acesso total e não pode ser alterado.');
+    if (profile === 'super_administrador') {
+      toast.info('O Super Administrador possui acesso total e não pode ser alterado.');
       return;
     }
 
