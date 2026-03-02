@@ -150,7 +150,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: Scale,
     gradient: 'from-blue-600 to-indigo-700',
     bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
-    profiles: ['ipromed'],
+    profiles: ['operador'],
     route: '/cpg',
     portalKey: 'ipromed',
   },
