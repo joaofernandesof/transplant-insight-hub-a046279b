@@ -13,7 +13,7 @@ export type RetentionStage = 'solicitacao_cancelamento' | 'analise_motivo' | 'ne
 
 export type JourneyStage = CommercialStage | PostSaleStage | RetentionStage;
 
-export type JourneyType = 'comercial' | 'pos_venda' | 'retencao';
+export type JourneyType = 'comercial' | 'pos_venda';
 
 export interface PatientJourney {
   id: string;
@@ -282,85 +282,8 @@ export const POST_SALE_STAGES: StageConfig[] = [
       { id: 'testimonial', label: 'Depoimento convidado', field: 'testimonial_invited', required: false },
       { id: 'referral', label: 'Programa de indicação apresentado', field: 'referral_program_presented', required: false },
     ]
-  }
-];
-
-// Dynamic checklists by service type
-export const SERVICE_SPECIFIC_CHECKLISTS: Record<ServiceType, { stage: JourneyStage; items: ChecklistItem[] }[]> = {
-  capilar: [
-    {
-      stage: 'pre_operatorio',
-      items: [
-        { id: 'scalp_exams', label: 'Exames específicos de couro cabeludo', field: 'exams_requested', required: true },
-      ]
-    },
-    {
-      stage: 'pos_operatorio',
-      items: [
-        { id: 'wash_meds', label: 'Orientações de lavagem e medicação capilar', field: 'same_day_contact', required: true },
-      ]
-    }
-  ],
-  barba: [
-    {
-      stage: 'pre_operatorio',
-      items: [
-        { id: 'donor_area', label: 'Orientações de área doadora alternativa', field: 'exams_requested', required: true },
-      ]
-    },
-    {
-      stage: 'pos_operatorio',
-      items: [
-        { id: 'face_care', label: 'Cuidados específicos com face', field: 'same_day_contact', required: true },
-      ]
-    }
-  ],
-  sobrancelha: [
-    {
-      stage: 'pre_operatorio',
-      items: [
-        { id: 'aesthetic', label: 'Orientações estéticas específicas', field: 'exams_requested', required: true },
-      ]
-    },
-    {
-      stage: 'pos_operatorio',
-      items: [
-        { id: 'symmetry', label: 'Cuidados de simetria e crescimento', field: 'same_day_contact', required: true },
-      ]
-    }
-  ]
-};
-
-export const SERVICE_LABELS: Record<ServiceType, string> = {
-  capilar: 'Transplante Capilar',
-  barba: 'Transplante de Barba',
-  sobrancelha: 'Transplante de Sobrancelha'
-};
-
-export const STAGE_LABELS: Record<JourneyStage, string> = {
-  lead_entrada: 'Lead Entrada',
-  triagem: 'Triagem',
-  agendamento: 'Agendamento',
-  follow_up: 'Follow Up',
-  paciente: 'Paciente',
-  onboarding: 'Onboarding',
-  contrato: 'Contrato',
-  contrato_assinado: 'Contrato Assinado',
-  pre_operatorio: 'Pré-Operatório',
-  procedimento: 'Procedimento',
-  pos_operatorio: 'Pós-Operatório',
-  relacionamento: 'Relacionamento',
-  solicitacao_cancelamento: 'Solicitação de Cancelamento',
-  analise_motivo: 'Análise do Motivo',
-  negociacao_retencao: 'Negociação',
-  oferta_retencao: 'Oferta de Retenção',
-  decisao_final: 'Decisão Final',
-  retido: 'Retido',
-  nao_retido: 'Não Retido',
-};
-
-// Retention Stages Configuration
-export const RETENTION_STAGES: StageConfig[] = [
+  },
+  // Retention stages merged into post-sale flow
   {
     id: 'solicitacao_cancelamento',
     label: 'Solicitação',
@@ -439,3 +362,82 @@ export const RETENTION_STAGES: StageConfig[] = [
     checklist: []
   },
 ];
+
+// Dynamic checklists by service type
+export const SERVICE_SPECIFIC_CHECKLISTS: Record<ServiceType, { stage: JourneyStage; items: ChecklistItem[] }[]> = {
+  capilar: [
+    {
+      stage: 'pre_operatorio',
+      items: [
+        { id: 'scalp_exams', label: 'Exames específicos de couro cabeludo', field: 'exams_requested', required: true },
+      ]
+    },
+    {
+      stage: 'pos_operatorio',
+      items: [
+        { id: 'wash_meds', label: 'Orientações de lavagem e medicação capilar', field: 'same_day_contact', required: true },
+      ]
+    }
+  ],
+  barba: [
+    {
+      stage: 'pre_operatorio',
+      items: [
+        { id: 'donor_area', label: 'Orientações de área doadora alternativa', field: 'exams_requested', required: true },
+      ]
+    },
+    {
+      stage: 'pos_operatorio',
+      items: [
+        { id: 'face_care', label: 'Cuidados específicos com face', field: 'same_day_contact', required: true },
+      ]
+    }
+  ],
+  sobrancelha: [
+    {
+      stage: 'pre_operatorio',
+      items: [
+        { id: 'aesthetic', label: 'Orientações estéticas específicas', field: 'exams_requested', required: true },
+      ]
+    },
+    {
+      stage: 'pos_operatorio',
+      items: [
+        { id: 'symmetry', label: 'Cuidados de simetria e crescimento', field: 'same_day_contact', required: true },
+      ]
+    }
+  ]
+};
+
+export const SERVICE_LABELS: Record<ServiceType, string> = {
+  capilar: 'Transplante Capilar',
+  barba: 'Transplante de Barba',
+  sobrancelha: 'Transplante de Sobrancelha'
+};
+
+export const STAGE_LABELS: Record<JourneyStage, string> = {
+  lead_entrada: 'Lead Entrada',
+  triagem: 'Triagem',
+  agendamento: 'Agendamento',
+  follow_up: 'Follow Up',
+  paciente: 'Paciente',
+  onboarding: 'Onboarding',
+  contrato: 'Contrato',
+  contrato_assinado: 'Contrato Assinado',
+  pre_operatorio: 'Pré-Operatório',
+  procedimento: 'Procedimento',
+  pos_operatorio: 'Pós-Operatório',
+  relacionamento: 'Relacionamento',
+  solicitacao_cancelamento: 'Solicitação de Cancelamento',
+  analise_motivo: 'Análise do Motivo',
+  negociacao_retencao: 'Negociação',
+  oferta_retencao: 'Oferta de Retenção',
+  decisao_final: 'Decisão Final',
+  retido: 'Retido',
+  nao_retido: 'Não Retido',
+};
+
+// RETENTION_STAGES kept as alias for backward compatibility (points to post-sale retention subset)
+export const RETENTION_STAGES: StageConfig[] = POST_SALE_STAGES.filter(s => 
+  ['solicitacao_cancelamento', 'analise_motivo', 'negociacao_retencao', 'oferta_retencao', 'decisao_final', 'retido', 'nao_retido'].includes(s.id)
+);

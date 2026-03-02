@@ -11,7 +11,6 @@ import {
   JourneyType,
   COMMERCIAL_STAGES,
   POST_SALE_STAGES,
-  RETENTION_STAGES,
   StageConfig,
   ChecklistItem
 } from '../types';
@@ -139,9 +138,7 @@ export function getStageProgress(journey: PatientJourney, stageConfig: StageConf
 export function getNextStage(currentStage: JourneyStage, journeyType: JourneyType): JourneyStage | null {
   const stages = journeyType === 'comercial' 
     ? COMMERCIAL_STAGES 
-    : journeyType === 'retencao' 
-      ? RETENTION_STAGES 
-      : POST_SALE_STAGES;
+    : POST_SALE_STAGES;
   const currentIndex = stages.findIndex(s => s.id === currentStage);
   
   if (currentIndex === -1 || currentIndex === stages.length - 1) {
@@ -158,9 +155,7 @@ export function getNextStage(currentStage: JourneyStage, journeyType: JourneyTyp
 export function getPreviousStage(currentStage: JourneyStage, journeyType: JourneyType): JourneyStage | null {
   const stages = journeyType === 'comercial' 
     ? COMMERCIAL_STAGES 
-    : journeyType === 'retencao' 
-      ? RETENTION_STAGES 
-      : POST_SALE_STAGES;
+    : POST_SALE_STAGES;
   const currentIndex = stages.findIndex(s => s.id === currentStage);
   
   if (currentIndex <= 0) return null;
@@ -170,7 +165,7 @@ export function getPreviousStage(currentStage: JourneyStage, journeyType: Journe
 
 // Get stage config
 export function getStageConfig(stage: JourneyStage): StageConfig | undefined {
-  return [...COMMERCIAL_STAGES, ...POST_SALE_STAGES, ...RETENTION_STAGES].find(s => s.id === stage);
+  return [...COMMERCIAL_STAGES, ...POST_SALE_STAGES].find(s => s.id === stage);
 }
 
 // Check if can advance to next stage
