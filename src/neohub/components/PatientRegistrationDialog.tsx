@@ -325,6 +325,14 @@ export function PatientRegistrationDialog({
                       </Select>
                     </div>
 
+                    <div className="md:col-span-2">
+                      <ProcedureCheckboxField
+                        value={formData.service_type}
+                        onChange={(val) => setFormData({ ...formData, service_type: val })}
+                        label="Procedimento/Serviço"
+                      />
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="category">Categoria</Label>
                       <Select
@@ -340,14 +348,6 @@ export function PatientRegistrationDialog({
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <ProcedureCheckboxField
-                        value={formData.service_type}
-                        onChange={(val) => setFormData({ ...formData, service_type: val })}
-                        label="Procedimento/Serviço"
-                      />
                     </div>
 
                     <div className="space-y-2">
