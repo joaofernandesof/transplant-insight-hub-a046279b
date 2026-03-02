@@ -80,7 +80,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: Heart,
     gradient: 'from-rose-500 to-pink-600',
     bgColor: 'bg-rose-50 dark:bg-rose-950/30',
-    profiles: ['paciente'],
+    profiles: ['operador'],
     route: '/neocare',
     portalKey: 'neocare',
   },
