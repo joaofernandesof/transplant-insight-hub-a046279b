@@ -239,15 +239,45 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     );
   }, [currentPortal, isAdmin]);
 
+  // Detect active sector from route (e.g. /neoteam/setor/tecnico)
+  const activeSectorCode = useMemo(() => {
+    const match = location.pathname.match(/\/neoteam\/setor\/([^/]+)/);
+    return match ? match[1] : null;
+  }, [location.pathname]);
+
+  // Map sector codes to category IDs
+  const SECTOR_TO_CATEGORY: Record<string, string> = {
+    tecnico: 'setor_clinico',
+    sucesso_paciente: 'setor_sucesso_paciente',
+    operacional: 'setor_operacional',
+    processos: 'setor_processos',
+    financeiro: 'setor_financeiro',
+    juridico: 'setor_juridico',
+    marketing: 'setor_marketing',
+    ti: 'setor_ti',
+    rh: 'setor_rh',
+    administracao: 'setor_admin',
+  };
+
   // Group menu items by category - use categorized menu if available
   const groupedMenuItems = useMemo((): MenuCategory[] => {
     // Check if portal has categorized menu
     const categorizedMenu = PORTAL_MENU_CATEGORIES[currentPortal];
     if (categorizedMenu) {
-      return categorizedMenu.map(category => ({
+      let filtered = categorizedMenu.map(category => ({
         ...category,
         items: filterMenuByPermissions(category.items, hasPermission, isAdmin),
       })).filter(category => category.items.length > 0);
+
+      // If inside a sector, show only that sector's items + home
+      if (activeSectorCode && currentPortal === 'neoteam') {
+        const targetCategoryId = SECTOR_TO_CATEGORY[activeSectorCode];
+        filtered = filtered.filter(cat => 
+          cat.id === 'neoteam_main' || cat.id === targetCategoryId
+        ).map(cat => cat.id === targetCategoryId ? { ...cat, collapsible: false, defaultOpen: true } : cat);
+      }
+
+      return filtered;
     }
     
     // For portals without categorized menu, use flat list
