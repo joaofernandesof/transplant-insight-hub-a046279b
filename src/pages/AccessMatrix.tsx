@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useAccessMatrix } from "@/hooks/useAccessMatrix";
 import { AccessPermissionEditor } from "@/components/access-matrix/AccessPermissionEditor";
-import { AccessCompareProfiles } from "@/components/access-matrix/AccessCompareProfiles";
+
 import { AccessSmartTrails } from "@/components/access-matrix/AccessSmartTrails";
 import { AccessMatrixTable } from "@/components/access-matrix/AccessMatrixTable";
 
