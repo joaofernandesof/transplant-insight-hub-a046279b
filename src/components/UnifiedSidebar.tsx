@@ -293,7 +293,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
         return true;
       })
     })).filter(category => category.items.length > 0);
-  }, [currentPortal, menuItems, isAdmin]);
+  }, [currentPortal, menuItems, isAdmin, activeSectorCode]);
 
   // Track open state of collapsible categories
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
