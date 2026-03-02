@@ -53,13 +53,15 @@ export function usePatientJourneys(journeyType?: JourneyType) {
           account_id: memberData!.account_id,
           patient_name: journey.patient_name || 'Novo Lead',
           service_type: journey.service_type || 'capilar',
-          current_stage: journey.current_stage || 'lead_entrada',
-          journey_type: journey.journey_type || journeyType || 'comercial',
+          current_stage: (journey.current_stage || 'lead_entrada') as any,
+          journey_type: (journey.journey_type || journeyType || 'comercial') as any,
           patient_phone: journey.patient_phone,
           patient_email: journey.patient_email,
           lead_source: journey.lead_source,
           notes: journey.notes,
-        })
+          cancellation_reason: journey.cancellation_reason,
+          retention_origin_stage: journey.retention_origin_stage,
+        } as any)
         .select()
         .single();
       
