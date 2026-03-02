@@ -798,9 +798,6 @@ export default function AdminPanel() {
                     </TableHeader>
                     <TableBody>
                       {filteredAndSortedUsers.map((userProfile) => {
-                        const role = getUserRole(userProfile.user_id);
-                        const roleMeta = getRoleMeta(role);
-                        const RoleIcon = roleMeta.icon;
                         const isCurrentUser = userProfile.user_id === user?.id;
                         const displayName = userProfile.full_name || userProfile.name;
                         const isSelected = selectedUsers.has(userProfile.user_id);
