@@ -70,16 +70,16 @@ const PROFILE_COLORS: Record<NeoHubProfile, string> = {
 };
 
 const PORTAL_ROW_COLORS: Record<Portal, string> = {
-  neocare: 'bg-rose-50/60 dark:bg-rose-950/20',
-  neoteam: 'bg-blue-50/60 dark:bg-blue-950/20',
-  neoacademy: 'bg-emerald-50/60 dark:bg-emerald-950/20',
-  neolicense: 'bg-amber-50/60 dark:bg-amber-950/20',
-  avivar: 'bg-orange-50/60 dark:bg-orange-950/20',
-  ipromed: 'bg-[#00629B]/5 dark:bg-[#00629B]/10',
-  hotleads: 'bg-orange-50/60 dark:bg-orange-950/20',
-  vision: 'bg-violet-50/60 dark:bg-violet-950/20',
-  neopay: 'bg-teal-50/60 dark:bg-teal-950/20',
-  neorh: 'bg-indigo-50/60 dark:bg-indigo-950/20',
+  neocare: 'bg-rose-50/60 dark:bg-rose-900/20',
+  neoteam: 'bg-blue-50/60 dark:bg-blue-900/20',
+  neoacademy: 'bg-emerald-50/60 dark:bg-emerald-900/20',
+  neolicense: 'bg-amber-50/60 dark:bg-amber-900/20',
+  avivar: 'bg-orange-50/60 dark:bg-orange-900/20',
+  ipromed: 'bg-[#00629B]/5 dark:bg-[#00629B]/15',
+  hotleads: 'bg-orange-50/60 dark:bg-orange-900/20',
+  vision: 'bg-violet-50/60 dark:bg-violet-900/20',
+  neopay: 'bg-teal-50/60 dark:bg-teal-900/20',
+  neorh: 'bg-indigo-50/60 dark:bg-indigo-900/20',
 };
 
 const PORTAL_ACCENT: Record<Portal, string> = {
