@@ -120,7 +120,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: VisionIcon,
     gradient: 'from-pink-500 via-rose-500 to-orange-500',
     bgColor: 'bg-pink-50 dark:bg-pink-950/30',
-    profiles: ['medico', 'colaborador'],
+    profiles: ['operador'],
     route: '/vision',
     portalKey: 'vision',
   },
