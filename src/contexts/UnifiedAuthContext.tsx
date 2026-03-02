@@ -109,10 +109,11 @@ export const PROFILE_NAMES: Record<ProfileKey, string> = {
 };
 
 // Helpers
-export const isAdminProfile = (profile: ProfileKey | null): boolean => profile === 'administrador';
+export const isAdminProfile = (profile: ProfileKey | null): boolean => 
+  profile === 'administrador' || profile === 'super_administrador';
 export const canAccessPortal = (profile: ProfileKey | null, portal: Portal): boolean => {
   if (!profile) return false;
-  if (profile === 'administrador') return true;
+  if (profile === 'administrador' || profile === 'super_administrador') return true;
   return PROFILE_PORTAL_MAP[profile]?.includes(portal) || false;
 };
 // Mapeamento rota-prefixo → perfis permitidos
