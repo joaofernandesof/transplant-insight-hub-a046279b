@@ -30,7 +30,7 @@ export default function AccessMatrix() {
     exportAsCSV,
   } = useAccessMatrix();
   
-  const [activeTab, setActiveTab] = useState<'matrix' | 'compare' | 'trails'>('matrix');
+  const [activeTab, setActiveTab] = useState<'matrix' | 'trails'>('matrix');
   const [selectedEditor, setSelectedEditor] = useState<{ portalId: string; moduleId: string } | null>(null);
 
   const selectedPortal = selectedEditor ? portals.find(p => p.id === selectedEditor.portalId) : null;
