@@ -130,7 +130,7 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     icon: GraduationCap,
     gradient: 'from-violet-500 to-fuchsia-500',
     bgColor: 'bg-violet-50 dark:bg-violet-950/30',
-    profiles: ['administrador', 'aluno'],
+    profiles: ['administrador', 'operador'],
     route: '/neoacademy',
     portalKey: 'neoacademy',
   },
