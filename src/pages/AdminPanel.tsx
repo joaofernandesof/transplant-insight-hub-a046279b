@@ -314,9 +314,25 @@ export default function AdminPanel() {
     return ACCESS_PROFILES.find(p => p.id === role) || ACCESS_PROFILES[5]; // default to operador
   };
 
-  // Get portal roles for a user (new RBAC)
-  const getUserPortalRoles = (userId: string): UserPortalRole[] => {
-    return userPortalRoles.filter(pr => pr.user_id === userId).sort((a, b) => a.hierarchy_level - b.hierarchy_level);
+  // Get the role display name for a user in a specific portal
+  const getUserRoleInPortal = (authUserId: string, portalId: string): string | null => {
+    const neohubId = neohubIdMap[authUserId];
+    if (!neohubId) return null;
+    const match = userPortalRoles.find(pr => pr.user_id === neohubId && pr.portal_name === activePortals.find(p => p.id === portalId)?.name);
+    // Match by portal_id via portal_name lookup
+    const portalInfo = activePortals.find(p => p.id === portalId);
+    if (!portalInfo) return null;
+    const role = userPortalRoles.find(pr => pr.user_id === neohubId && pr.portal_slug === portalInfo.slug);
+    return role?.role_display_name || null;
+  };
+
+  const getUserRoleCodeInPortal = (authUserId: string, portalId: string): string | null => {
+    const neohubId = neohubIdMap[authUserId];
+    if (!neohubId) return null;
+    const portalInfo = activePortals.find(p => p.id === portalId);
+    if (!portalInfo) return null;
+    const role = userPortalRoles.find(pr => pr.user_id === neohubId && pr.portal_slug === portalInfo.slug);
+    return role?.role_name || null;
   };
 
   const getRoleColor = (roleName: string): string => {
