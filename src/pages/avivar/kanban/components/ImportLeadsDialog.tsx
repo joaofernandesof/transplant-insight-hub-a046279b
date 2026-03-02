@@ -193,6 +193,38 @@ export function ImportLeadsDialog({
                     .update({ ...updates, updated_at: new Date().toISOString() })
                     .eq('id', dup.id);
                 }
+
+                // Log merge + create task
+                const matchField = dup.phone === lead.phone ? 'phone' : 'email';
+                const { data: taskData } = await supabase
+                  .from('lead_tasks')
+                  .insert({
+                    lead_id: dup.id,
+                    title: `Lead duplicado mesclado: ${dup.name}`,
+                    description: `Lead duplicado detectado na importação.\nNome recebido: ${lead.name || '—'}\nTelefone: ${lead.phone || '—'}\nEmail: ${lead.email || '—'}`,
+                    priority: 'medium',
+                    assigned_to: user.id,
+                    created_by: user.id,
+                  })
+                  .select('id')
+                  .single();
+
+                await supabase
+                  .from('avivar_duplicate_logs' as any)
+                  .insert({
+                    account_id: accountId,
+                    existing_lead_id: dup.id,
+                    existing_lead_name: dup.name,
+                    incoming_lead_name: lead.name || null,
+                    incoming_phone: lead.phone || null,
+                    incoming_email: lead.email || null,
+                    match_field: matchField,
+                    action: 'merge',
+                    merged_fields: updates,
+                    task_id: taskData?.id || null,
+                    created_by: user.id,
+                  });
+
                 mergedCount++;
                 continue;
               }

@@ -1388,6 +1388,69 @@ export type Database = {
           },
         ]
       }
+      avivar_duplicate_logs: {
+        Row: {
+          account_id: string
+          action: string
+          created_at: string
+          created_by: string
+          existing_lead_id: string
+          existing_lead_name: string
+          id: string
+          incoming_email: string | null
+          incoming_lead_name: string | null
+          incoming_phone: string | null
+          match_field: string
+          merged_fields: Json | null
+          task_id: string | null
+        }
+        Insert: {
+          account_id: string
+          action?: string
+          created_at?: string
+          created_by: string
+          existing_lead_id: string
+          existing_lead_name: string
+          id?: string
+          incoming_email?: string | null
+          incoming_lead_name?: string | null
+          incoming_phone?: string | null
+          match_field: string
+          merged_fields?: Json | null
+          task_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          action?: string
+          created_at?: string
+          created_by?: string
+          existing_lead_id?: string
+          existing_lead_name?: string
+          id?: string
+          incoming_email?: string | null
+          incoming_lead_name?: string | null
+          incoming_phone?: string | null
+          match_field?: string
+          merged_fields?: Json | null
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_duplicate_logs_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_duplicate_logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "lead_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_followup_executions: {
         Row: {
           account_id: string

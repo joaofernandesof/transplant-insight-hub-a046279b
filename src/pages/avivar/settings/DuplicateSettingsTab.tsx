@@ -4,9 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Save, Loader2, Users, GitMerge, ShieldAlert, Tag } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Save, Loader2, Users, GitMerge, ShieldAlert, Tag, History, ExternalLink, ListTodo } from 'lucide-react';
 import { useAccountSettings, type DuplicateAction, type DuplicateField } from '@/hooks/useAccountSettings';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const DUPLICATE_FIELDS: { value: DuplicateField; label: string; description: string }[] = [
   { value: 'phone', label: 'Telefone', description: 'Verifica apenas o número de telefone' },
@@ -20,8 +26,23 @@ const DUPLICATE_ACTIONS: { value: DuplicateAction; label: string; description: s
   { value: 'allow_tagged', label: 'Permitir com tag', description: 'Criar o lead mesmo assim, mas marcar como "duplicado"', icon: Tag },
 ];
 
+interface DuplicateLog {
+  id: string;
+  existing_lead_id: string;
+  existing_lead_name: string;
+  incoming_lead_name: string | null;
+  incoming_phone: string | null;
+  incoming_email: string | null;
+  match_field: string;
+  action: string;
+  merged_fields: Record<string, any> | null;
+  task_id: string | null;
+  created_at: string;
+}
+
 export function DuplicateSettingsTab() {
   const { duplicateSettings, isLoading, saveDuplicateSettings } = useAccountSettings();
+  const { accountId } = useAvivarAccount();
   
   const [enabled, setEnabled] = useState(true);
   const [checkField, setCheckField] = useState<DuplicateField>('phone_or_email');
@@ -34,6 +55,23 @@ export function DuplicateSettingsTab() {
       setAction(duplicateSettings.action);
     }
   }, [duplicateSettings]);
+
+  // Fetch duplicate logs
+  const { data: logs = [], isLoading: isLoadingLogs } = useQuery({
+    queryKey: ['avivar-duplicate-logs', accountId],
+    queryFn: async () => {
+      if (!accountId) return [];
+      const { data, error } = await supabase
+        .from('avivar_duplicate_logs' as any)
+        .select('*')
+        .eq('account_id', accountId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data || []) as unknown as DuplicateLog[];
+    },
+    enabled: !!accountId,
+  });
 
   const hasChanges =
     enabled !== duplicateSettings.enabled ||
@@ -193,6 +231,84 @@ export function DuplicateSettingsTab() {
             )}
           </CardContent>
         )}
+      </Card>
+
+      {/* Duplicate Merge Log */}
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/20 flex items-center justify-center">
+              <History className="h-5 w-5 text-purple-400" />
+            </div>
+            <div>
+              <CardTitle className="text-[hsl(var(--avivar-foreground))]">Histórico de Duplicatas</CardTitle>
+              <CardDescription>Leads que foram detectados como duplicados e mesclados</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoadingLogs ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--avivar-muted-foreground))]" />
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="text-center py-8 text-[hsl(var(--avivar-muted-foreground))]">
+              <GitMerge className="h-10 w-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm">Nenhum registro de duplicata ainda</p>
+            </div>
+          ) : (
+            <ScrollArea className="max-h-[400px]">
+              <div className="space-y-3">
+                {logs.map(log => (
+                  <div
+                    key={log.id}
+                    className="flex items-start gap-3 p-3 rounded-lg border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <GitMerge className="h-4 w-4 text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
+                          {log.existing_lead_name}
+                        </p>
+                        <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-purple-500/30 text-purple-400">
+                          {log.match_field === 'phone' ? 'Telefone' : 'Email'}
+                        </Badge>
+                        {log.task_id && (
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-blue-500/30 text-blue-400 gap-0.5">
+                            <ListTodo className="h-2.5 w-2.5" />
+                            Tarefa criada
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-[hsl(var(--avivar-muted-foreground))] mt-0.5">
+                        Duplicata recebida: {log.incoming_lead_name || '—'} 
+                        {log.incoming_phone && ` • ${log.incoming_phone}`}
+                        {log.incoming_email && ` • ${log.incoming_email}`}
+                      </p>
+                      {log.merged_fields && Object.keys(log.merged_fields).length > 0 && (
+                        <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] mt-0.5">
+                          Campos mesclados: {Object.keys(log.merged_fields).join(', ')}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] mt-1">
+                        {format(new Date(log.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                    <a
+                      href={`/avivar/kanban?lead=${log.existing_lead_id}`}
+                      className="flex items-center gap-1 text-[11px] text-[hsl(var(--avivar-primary))] hover:underline flex-shrink-0 mt-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Ver lead
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </CardContent>
       </Card>
     </div>
   );
