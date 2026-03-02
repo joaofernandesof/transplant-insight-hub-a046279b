@@ -904,12 +904,12 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/alunos" element={<AdminRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/comparison" element={<AdminRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/regularization" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketing" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Marketing /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/store" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Store /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/financial" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/mentorship" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/systems" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/regularization" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketing" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Marketing /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/store" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Store /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/financial" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/mentorship" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/systems" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/admin" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/access-matrix" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/certificates" element={<ProfileGuard allowedProfiles={['licenciado', 'aluno']}><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProfileGuard>} />
