@@ -787,12 +787,11 @@ export default function AdminPanel() {
                             <SortIcon field="clinic_name" />
                           </Button>
                         </TableHead>
-                        <TableHead>
-                          <Button variant="ghost" size="sm" onClick={() => handleSort('role')} className="gap-1">
-                            Perfil
-                            <SortIcon field="role" />
-                          </Button>
-                        </TableHead>
+                        {activePortals.map(portal => (
+                          <TableHead key={portal.id} className="text-center min-w-[100px]">
+                            <span className="text-xs">{portal.name}</span>
+                          </TableHead>
+                        ))}
                         <TableHead className="text-center w-[80px]">Status</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
