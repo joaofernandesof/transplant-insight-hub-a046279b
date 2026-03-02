@@ -257,16 +257,26 @@ export function UserEditModal({
 
       if (profileError) console.warn('Profiles update warning:', profileError);
 
-      // 3. Sync user_portal_roles: delete all, then insert active ones
+      // 3. Get neohub_users.id (FK target for user_portal_roles)
+      const { data: neohubUser } = await supabase
+        .from('neohub_users')
+        .select('id')
+        .eq('user_id', user.user_id)
+        .maybeSingle();
+
+      const neohubUserId = neohubUser?.id;
+      if (!neohubUserId) throw new Error('Registro do usuário não encontrado');
+
+      // 4. Sync user_portal_roles: delete all, then insert active ones
       await supabase
         .from('user_portal_roles')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', neohubUserId);
 
       const newAssignments = Object.entries(portalRoles)
         .filter(([_, roleId]) => roleId !== null)
         .map(([portalId, roleId]) => ({
-          user_id: user.id,
+          user_id: neohubUserId,
           portal_id: portalId,
           role_id: roleId!,
           is_active: true,
