@@ -272,6 +272,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: false,
     items: [
       { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/postvenda' },
+      { id: 'neoteam_retention', code: 'neoteam_retention', title: 'Retenção & Churn', icon: Heart, route: '/neoteam/retencao' },
     ],
   },
   {
