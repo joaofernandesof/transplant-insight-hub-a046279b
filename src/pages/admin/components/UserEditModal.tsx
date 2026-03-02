@@ -70,11 +70,14 @@ const AVAILABLE_PORTALS = [
 ];
 
 const ROLES = [
-  { id: 'admin', name: 'Administrador', icon: Crown, description: 'Acesso total ao sistema' },
-  { id: 'licensee', name: 'Licenciado', icon: Shield, description: 'Acesso ao portal de licenciados' },
-  { id: 'colaborador', name: 'Colaborador', icon: Users, description: 'Membro de equipe' },
-  { id: 'aluno', name: 'Aluno', icon: GraduationCap, description: 'Acesso à Academy' },
-  { id: 'paciente', name: 'Paciente', icon: Heart, description: 'Acesso ao NeoCare' },
+  { id: 'super_administrador', name: 'Super Administrador', icon: Crown, description: 'Acesso total irrestrito' },
+  { id: 'administrador', name: 'Administrador', icon: Shield, description: 'Gestão de portais e configurações' },
+  { id: 'gerente', name: 'Gerente', icon: Building2, description: 'Gestão operacional' },
+  { id: 'coordenador', name: 'Coordenador', icon: Users, description: 'Coordenação de equipes' },
+  { id: 'supervisor', name: 'Supervisor', icon: Eye, description: 'Supervisão e acompanhamento' },
+  { id: 'operador', name: 'Operador', icon: Settings, description: 'Operações do dia a dia' },
+  { id: 'visualizador', name: 'Visualizador', icon: Eye, description: 'Acesso somente leitura' },
+  { id: 'externo', name: 'Externo', icon: AlertTriangle, description: 'Acesso externo limitado' },
 ];
 
 interface UserData {
