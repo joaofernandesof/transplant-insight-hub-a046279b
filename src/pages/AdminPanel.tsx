@@ -174,6 +174,7 @@ export default function AdminPanel() {
   // User management state
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [userPortalRoles, setUserPortalRoles] = useState<UserPortalRole[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
