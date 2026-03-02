@@ -135,6 +135,42 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
                   .update({ ...updates, updated_at: new Date().toISOString() })
                   .eq('id', dup.id);
               }
+
+              // Log the merge
+              const { data: { user: currentUser } } = await supabase.auth.getUser();
+              if (currentUser) {
+                // Create task for the responsible person
+                const assignee = currentUser.id;
+                const { data: taskData } = await supabase
+                  .from('lead_tasks')
+                  .insert({
+                    lead_id: dup.id,
+                    title: `Lead duplicado mesclado: ${dup.name}`,
+                    description: `Um lead duplicado foi detectado e mesclado automaticamente.\nCampo correspondente: ${matchField}\nNome recebido: ${formData.name || '—'}\nTelefone recebido: ${formData.phone || '—'}\nEmail recebido: ${formData.email || '—'}\n\nVerifique se os dados estão corretos.`,
+                    priority: 'medium',
+                    assigned_to: assignee,
+                    created_by: currentUser.id,
+                  })
+                  .select('id')
+                  .single();
+
+                // Insert duplicate log
+                await supabase
+                  .from('avivar_duplicate_logs' as any)
+                  .insert({
+                    account_id: accountId,
+                    existing_lead_id: dup.id,
+                    existing_lead_name: dup.name,
+                    incoming_lead_name: formData.name || null,
+                    incoming_phone: formData.phone || null,
+                    incoming_email: formData.email || null,
+                    match_field: dup.phone === formData.phone ? 'phone' : 'email',
+                    action: 'merge',
+                    merged_fields: updates,
+                    task_id: taskData?.id || null,
+                    created_by: currentUser.id,
+                  });
+              }
               
               throw new Error(`MERGED:Lead "${dup.name}" atualizado com os novos dados (${matchField} já existia)`);
             }
