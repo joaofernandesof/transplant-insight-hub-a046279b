@@ -6,6 +6,7 @@ import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { useAvivarAccount } from '@/hooks/useAvivarAccount';
+import { useAccountSettings } from '@/hooks/useAccountSettings';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,7 @@ export function ImportLeadsDialog({
 }: ImportLeadsDialogProps) {
   const queryClient = useQueryClient();
   const { accountId } = useAvivarAccount();
+  const { duplicateSettings } = useAccountSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [step, setStep] = useState<'upload' | 'preview' | 'importing'>('upload');
@@ -153,24 +155,70 @@ export function ImportLeadsDialog({
 
       const leadsToInsert = [];
       const skippedDuplicates: string[] = [];
+      let mergedCount = 0;
 
       for (let i = 0; i < parsedLeads.length; i++) {
         const lead = parsedLeads[i];
 
-        // Check for duplicates by phone or email
-        if (lead.phone || lead.email) {
-          const { data: duplicate } = await supabase.rpc('check_duplicate_kanban_lead', {
-            p_account_id: accountId,
-            p_phone: lead.phone || null,
-            p_email: lead.email || null,
-          });
-          if (duplicate && duplicate.length > 0) {
-            skippedDuplicates.push(lead.name || lead.phone || lead.email || `Linha ${i + 1}`);
-            continue;
+        // Check for duplicates based on settings
+        if (duplicateSettings.enabled && (lead.phone || lead.email)) {
+          const checkPhone = duplicateSettings.check_field !== 'email' ? lead.phone || null : null;
+          const checkEmail = duplicateSettings.check_field !== 'phone' ? lead.email || null : null;
+
+          if (checkPhone || checkEmail) {
+            const { data: duplicate } = await supabase.rpc('check_duplicate_kanban_lead', {
+              p_account_id: accountId,
+              p_phone: checkPhone,
+              p_email: checkEmail,
+            });
+
+            if (duplicate && duplicate.length > 0) {
+              const dup = duplicate[0];
+
+              if (duplicateSettings.action === 'block') {
+                skippedDuplicates.push(lead.name || lead.phone || lead.email || `Linha ${i + 1}`);
+                continue;
+              }
+
+              if (duplicateSettings.action === 'merge') {
+                const updates: Record<string, string | null> = {};
+                if (!dup.name && lead.name) updates.name = lead.name;
+                if (!dup.phone && lead.phone) updates.phone = lead.phone;
+                if (!dup.email && lead.email) updates.email = lead.email;
+                if (lead.notes) updates.notes = lead.notes;
+                
+                if (Object.keys(updates).length > 0) {
+                  await supabase
+                    .from('avivar_kanban_leads')
+                    .update({ ...updates, updated_at: new Date().toISOString() })
+                    .eq('id', dup.id);
+                }
+                mergedCount++;
+                continue;
+              }
+
+              // allow_tagged: create with tag
+            }
           }
         }
 
         const { data: leadCode } = await supabase.rpc('generate_lead_code');
+        
+        // Check if should be tagged as duplicate
+        let tags: string[] | null = null;
+        if (duplicateSettings.enabled && duplicateSettings.action === 'allow_tagged' && (lead.phone || lead.email)) {
+          const checkPhone = duplicateSettings.check_field !== 'email' ? lead.phone || null : null;
+          const checkEmail = duplicateSettings.check_field !== 'phone' ? lead.email || null : null;
+          if (checkPhone || checkEmail) {
+            const { data: dup } = await supabase.rpc('check_duplicate_kanban_lead', {
+              p_account_id: accountId,
+              p_phone: checkPhone,
+              p_email: checkEmail,
+            });
+            if (dup && dup.length > 0) tags = ['duplicado'];
+          }
+        }
+
         leadsToInsert.push({
           kanban_id: kanbanId,
           column_id: selectedColumnId,
@@ -183,6 +231,7 @@ export function ImportLeadsDialog({
           notes: lead.notes || null,
           source: lead.source || 'Importação',
           order_index: i,
+          ...(tags ? { tags } : {}),
         });
       }
 
@@ -194,15 +243,15 @@ export function ImportLeadsDialog({
         if (error) throw error;
       }
 
-      return { imported: leadsToInsert.length, skipped: skippedDuplicates };
+      return { imported: leadsToInsert.length, skipped: skippedDuplicates, merged: mergedCount };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
-      if (result.skipped.length > 0) {
-        toast.success(`${result.imported} leads importados! ${result.skipped.length} duplicados ignorados.`);
-      } else {
-        toast.success(`${result.imported} leads importados com sucesso!`);
-      }
+      const parts: string[] = [];
+      if (result.imported > 0) parts.push(`${result.imported} importados`);
+      if (result.merged > 0) parts.push(`${result.merged} mesclados`);
+      if (result.skipped.length > 0) parts.push(`${result.skipped.length} bloqueados`);
+      toast.success(`Leads: ${parts.join(', ')}`);
       resetState();
       onOpenChange(false);
     },
