@@ -116,11 +116,15 @@ export function FunnelColumnSelector({
         if (findError) throw findError;
 
         if (currentLead) {
+          // Generate a new lead code
+          const leadCode = `L${Date.now().toString().slice(-6)}`;
+          
           // Create new lead in the target kanban/column
           const { error: insertError } = await supabase
             .from('avivar_kanban_leads')
             .insert([{
               user_id: currentLead.user_id,
+              account_id: currentLead.account_id,
               kanban_id: kanbanId,
               column_id: columnId,
               contact_id: currentLead.contact_id,
@@ -130,6 +134,7 @@ export function FunnelColumnSelector({
               notes: currentLead.notes,
               source: currentLead.source,
               tags: currentLead.tags,
+              lead_code: leadCode,
             }] as any);
 
           if (insertError) throw insertError;
