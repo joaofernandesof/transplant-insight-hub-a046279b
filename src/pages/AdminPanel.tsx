@@ -272,7 +272,7 @@ export default function AdminPanel() {
       });
 
       setUsers(mergedUsers);
-      setUserRoles(rolesRes.data || []);
+      setUserRoles((rolesRes.data || []).map(r => ({ ...r, role: r.role as AppRole })));
     } catch (error) {
       console.error('Error fetching users:', error);
     }
