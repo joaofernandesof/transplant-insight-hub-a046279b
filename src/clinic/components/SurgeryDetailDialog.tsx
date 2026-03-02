@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
   CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil,
@@ -191,7 +192,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
 
             <Separator />
 
-            {/* Task Checklist por Fase D-X */}
+            {/* Task Checklist por Fase D-X em Abas */}
             <div>
               <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary" />
@@ -205,15 +206,55 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
               ) : phases.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-2">Nenhuma tarefa gerada para esta cirurgia.</p>
               ) : (
-                <div className="space-y-2">
+                <Tabs defaultValue={phases[0]?.label} className="w-full">
+                  <TabsList className="w-full flex-wrap h-auto gap-1 bg-muted/50 p-1">
+                    {phases.map((phase) => {
+                      const allDone = phase.completedCount === phase.totalCount;
+                      return (
+                        <TabsTrigger
+                          key={phase.label}
+                          value={phase.label}
+                          className="text-xs px-2.5 py-1.5 data-[state=active]:bg-background relative gap-1"
+                        >
+                          {phase.label}
+                          {(phase.hasOverdue || phase.hasProblem) && (
+                            <AlertCircle className="h-3 w-3 text-destructive" />
+                          )}
+                          <Badge
+                            variant={allDone ? 'default' : 'secondary'}
+                            className="text-[9px] px-1 py-0 ml-0.5 leading-tight"
+                          >
+                            {phase.completedCount}/{phase.totalCount}
+                          </Badge>
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
                   {phases.map((phase) => (
-                    <PhaseChecklistGroup
-                      key={phase.label}
-                      phase={phase}
-                      onComplete={(taskId) => completeTask.mutate({ taskId })}
-                    />
+                    <TabsContent key={phase.label} value={phase.label} className="mt-2">
+                      <div className="bg-muted/50 rounded-lg p-3 space-y-1.5">
+                        {phase.tasks.map((task) => (
+                          <div key={task.id} className="flex items-center gap-2 py-1">
+                            <Checkbox
+                              checked={task.status === 'completed'}
+                              disabled={task.status === 'completed'}
+                              onCheckedChange={() => completeTask.mutate({ taskId: task.id })}
+                              className="h-4 w-4"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <span className={`text-sm ${task.status === 'completed' ? 'line-through text-muted-foreground' : task.status === 'overdue' ? 'text-destructive font-medium' : ''}`}>
+                                {task.title}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground ml-1.5">({task.responsible_name})</span>
+                            </div>
+                            {task.status === 'completed' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
+                            {task.status === 'overdue' && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
                   ))}
-                </div>
+                </Tabs>
               )}
             </div>
 
