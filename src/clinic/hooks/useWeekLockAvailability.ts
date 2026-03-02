@@ -66,8 +66,13 @@ export function useWeekLockAvailability(date: Date | undefined, branch: string) 
     const normalized = category.trim().toLowerCase();
 
     if (normalized.startsWith('categoria a')) {
+      // Extract doctor name, handling both "DR HYGOR" and "Hygor" formats
       const categoryDoctor = category.split(' - ')[1]?.trim();
-      const resolvedDoctor = categoryDoctor || doctor;
+      let resolvedDoctor = categoryDoctor || doctor || '';
+      // Normalize "DR HYGOR" -> "Hygor", "DR PATRICK" -> "Patrick"
+      resolvedDoctor = resolvedDoctor.replace(/^DR\s+/i, '');
+      // Capitalize first letter
+      resolvedDoctor = resolvedDoctor.charAt(0).toUpperCase() + resolvedDoctor.slice(1).toLowerCase();
       if (!resolvedDoctor) return false;
       return isBlocked(`Categoria A - ${resolvedDoctor}`);
     }
