@@ -2,20 +2,27 @@
  * MessageThread - Painel central de mensagens
  * Exibe histórico da mais antiga para mais recente
  * Com scroll independente e botão "ver mais" para mensagens antigas
+ * Inclui eventos de automação inline na timeline
  */
 
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { format, isToday, isYesterday, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageCircle, ChevronUp } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
+import { AutomationEventBadge } from './AutomationEventBadge';
 import { CrmMessage } from '@/hooks/useCrmConversations';
+import { useAvivarAutomationExecutionsByConversation, type AvivarAutomationExecution } from '@/hooks/useAvivarAutomations';
 import { Button } from '@/components/ui/button';
 
 interface MessageThreadProps {
   messages: CrmMessage[];
   isLoading: boolean;
 }
+
+type TimelineItem =
+  | { type: 'message'; data: CrmMessage; timestamp: string }
+  | { type: 'automation'; data: AvivarAutomationExecution; timestamp: string };
 
 function formatDateDivider(date: Date): string {
   if (isToday(date)) return 'Hoje';
@@ -34,9 +41,22 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const prevMessagesLengthRef = useRef(messages.length);
 
-  // Mensagens visíveis (as mais recentes)
-  const visibleMessages = messages.slice(-visibleCount);
-  const hasMoreMessages = messages.length > visibleCount;
+  // Get conversation_id from the first message
+  const conversationId = messages[0]?.conversation_id;
+  const { data: automationExecutions = [] } = useAvivarAutomationExecutionsByConversation(conversationId);
+
+  // Merge messages + automation events into a single sorted timeline
+  const timeline = useMemo<TimelineItem[]>(() => {
+    const items: TimelineItem[] = [];
+    messages.forEach(m => items.push({ type: 'message', data: m, timestamp: m.sent_at }));
+    automationExecutions.forEach(e => items.push({ type: 'automation', data: e, timestamp: e.created_at }));
+    items.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return items;
+  }, [messages, automationExecutions]);
+
+  // Visible items (most recent)
+  const visibleItems = timeline.slice(-visibleCount);
+  const hasMoreItems = timeline.length > visibleCount;
 
   // Scroll to bottom within container only (not affecting page)
   const scrollToBottomInternal = (behavior: ScrollBehavior = 'auto') => {
@@ -48,17 +68,15 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
-    // Only auto-scroll if new messages were added
     if (messages.length > prevMessagesLengthRef.current) {
       scrollToBottomInternal('smooth');
     }
     prevMessagesLengthRef.current = messages.length;
   }, [messages.length]);
 
-  // Initial scroll to bottom (only affects container, not page)
+  // Initial scroll to bottom
   useEffect(() => {
     if (!isLoading && messages.length > 0) {
-      // Small delay to ensure content is rendered
       requestAnimationFrame(() => {
         scrollToBottomInternal('auto');
       });
@@ -68,20 +86,19 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
   // Reset visible count when conversation changes
   useEffect(() => {
     setVisibleCount(INITIAL_MESSAGES_COUNT);
-  }, [messages[0]?.conversation_id]);
+  }, [conversationId]);
 
-  // Handle scroll position to show/hide scroll-to-bottom button
+  // Handle scroll position
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    
     const { scrollTop, scrollHeight, clientHeight } = container;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
     setShowScrollToBottom(distanceFromBottom > 200);
   }, []);
 
   const loadMoreMessages = () => {
-    setVisibleCount(prev => Math.min(prev + LOAD_MORE_COUNT, messages.length));
+    setVisibleCount(prev => Math.min(prev + LOAD_MORE_COUNT, timeline.length));
   };
 
   const scrollToBottom = () => {
@@ -106,31 +123,29 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
     );
   }
 
-  // Group messages by date
-  const groupedMessages: { date: Date; messages: CrmMessage[] }[] = [];
+  // Group timeline items by date
+  const groupedItems: { date: Date; items: TimelineItem[] }[] = [];
   
-  visibleMessages.forEach(message => {
-    const messageDate = new Date(message.sent_at);
-    const lastGroup = groupedMessages[groupedMessages.length - 1];
+  visibleItems.forEach(item => {
+    const itemDate = new Date(item.timestamp);
+    const lastGroup = groupedItems[groupedItems.length - 1];
     
-    if (lastGroup && isSameDay(lastGroup.date, messageDate)) {
-      lastGroup.messages.push(message);
+    if (lastGroup && isSameDay(lastGroup.date, itemDate)) {
+      lastGroup.items.push(item);
     } else {
-      groupedMessages.push({ date: messageDate, messages: [message] });
+      groupedItems.push({ date: itemDate, items: [item] });
     }
   });
 
   return (
     <div className="flex-1 flex flex-col min-h-0 max-h-full relative overflow-hidden">
-      {/* Scrollable messages area with visible scrollbar */}
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto min-h-0 px-4 scrollbar-avivar"
       >
         <div className="space-y-4 py-4">
-          {/* Load more button */}
-          {hasMoreMessages && (
+          {hasMoreItems && (
             <div className="flex justify-center py-2">
               <Button
                 variant="ghost"
@@ -139,12 +154,12 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
                 className="text-xs text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
               >
                 <ChevronUp className="h-3 w-3 mr-1" />
-                Ver mais ({messages.length - visibleCount} anteriores)
+                Ver mais ({timeline.length - visibleCount} anteriores)
               </Button>
             </div>
           )}
 
-          {groupedMessages.map((group, groupIndex) => (
+          {groupedItems.map((group, groupIndex) => (
             <div key={groupIndex}>
               {/* Date divider */}
               <div className="flex items-center justify-center my-4">
@@ -153,11 +168,14 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
                 </div>
               </div>
 
-              {/* Messages for this date */}
+              {/* Items for this date */}
               <div className="space-y-3">
-                {group.messages.map(message => (
-                  <MessageBubble key={message.id} message={message} />
-                ))}
+                {group.items.map(item => {
+                  if (item.type === 'message') {
+                    return <MessageBubble key={item.data.id} message={item.data as CrmMessage} />;
+                  }
+                  return <AutomationEventBadge key={`auto-${(item.data as AvivarAutomationExecution).id}`} execution={item.data as AvivarAutomationExecution} />;
+                })}
               </div>
             </div>
           ))}

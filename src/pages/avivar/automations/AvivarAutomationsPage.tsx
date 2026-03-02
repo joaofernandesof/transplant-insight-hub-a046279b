@@ -1038,7 +1038,26 @@ function ListView({ automations, columns, searchQuery, onSearchChange, onEdit, o
 /*  HISTORY VIEW                              */
 /* ═══════════════════════════════════════════ */
 function HistoryView() {
-  const { data: executions = [] } = useAvivarAutomationExecutions();
+  const { data: executions = [], isLoading } = useAvivarAutomationExecutions();
+  const { automations } = useAvivarAutomations();
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [searchLog, setSearchLog] = useState('');
+
+  const automationMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    automations.forEach(a => { map[a.id] = a.name; });
+    return map;
+  }, [automations]);
+
+  const triggerLabels: Record<string, string> = {
+    'lead.created': 'Lead criado',
+    'lead.moved_to': 'Lead movido',
+    'message.received': 'Mensagem recebida',
+    'message.sent': 'Mensagem enviada',
+    'lead.tag_added': 'Tag adicionada',
+    'lead.field_changed': 'Campo alterado',
+  };
 
   const statusStyles: Record<string, string> = {
     completed: 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20',
@@ -1048,34 +1067,184 @@ function HistoryView() {
     skipped: 'text-gray-500 bg-gray-500/10 border-gray-500/20',
   };
 
+  const statusLabels: Record<string, string> = {
+    completed: 'Executada', failed: 'Falhou', running: 'Executando', pending: 'Pendente', skipped: 'Ignorada',
+  };
+
+  const filtered = useMemo(() => {
+    let list = executions;
+    if (statusFilter !== 'all') list = list.filter(e => e.status === statusFilter);
+    if (searchLog.trim()) {
+      const q = searchLog.toLowerCase();
+      list = list.filter(e =>
+        (automationMap[e.automation_id] || '').toLowerCase().includes(q) ||
+        (e.trigger_event || '').toLowerCase().includes(q) ||
+        (e.error_message || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [executions, statusFilter, searchLog, automationMap]);
+
+  // Status counts
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: executions.length };
+    executions.forEach(e => { c[e.status] = (c[e.status] || 0) + 1; });
+    return c;
+  }, [executions]);
+
+  const getActionLabel = (actionType: string) => {
+    const map: Record<string, string> = {
+      send_message: 'Enviar mensagem', change_stage: 'Mudar etapa', create_task: 'Criar tarefa',
+      add_tag: 'Adicionar tag', create_note: 'Criar nota', dispatch_webhook: 'Webhook', change_field: 'Alterar campo',
+    };
+    return map[actionType] || actionType;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[hsl(var(--avivar-primary))]" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-5 space-y-4">
-      <h3 className="font-semibold text-sm text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
-        <History className="h-4 w-4" /> Histórico de Execuções
-      </h3>
-      {executions.length === 0 ? (
+      {/* Header & Filters */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h3 className="font-semibold text-sm text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+          <History className="h-4 w-4" /> Log de Execuções
+          <Badge variant="secondary" className="text-[10px]">{executions.length}</Badge>
+        </h3>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--avivar-muted-foreground))]" />
+            <Input
+              placeholder="Buscar..."
+              value={searchLog}
+              onChange={e => setSearchLog(e.target.value)}
+              className="pl-8 h-8 text-xs w-48 bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Status filter pills */}
+      <div className="flex flex-wrap gap-1.5">
+        {['all', 'completed', 'failed', 'running', 'pending', 'skipped'].map(s => (
+          <button
+            key={s}
+            onClick={() => setStatusFilter(s)}
+            className={`text-[11px] px-2.5 py-1 rounded-full border transition-all font-medium ${
+              statusFilter === s
+                ? 'bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-primary))] border-[hsl(var(--avivar-primary)/0.3)]'
+                : 'bg-[hsl(var(--avivar-card))] text-[hsl(var(--avivar-muted-foreground))] border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-muted))]'
+            }`}
+          >
+            {s === 'all' ? 'Todas' : statusLabels[s] || s} ({counts[s] || 0})
+          </button>
+        ))}
+      </div>
+
+      {/* Execution list */}
+      {filtered.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] flex items-center justify-center mx-auto mb-4">
             <History className="h-8 w-8 text-[hsl(var(--avivar-muted-foreground))]" />
           </div>
-          <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Nenhuma execução registrada</p>
+          <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+            {executions.length === 0 ? 'Nenhuma execução registrada' : 'Nenhum resultado para o filtro atual'}
+          </p>
         </div>
       ) : (
         <div className="space-y-1.5">
-          {executions.map(e => (
-            <div key={e.id} className="rounded-xl border border-[hsl(var(--avivar-border))] p-3 bg-[hsl(var(--avivar-card))]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge className={`text-[10px] border ${statusStyles[e.status] || statusStyles.skipped}`}>{e.status}</Badge>
-                  <span className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">{e.trigger_event}</span>
-                </div>
-                <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                  {new Date(e.created_at).toLocaleString('pt-BR')}
-                </span>
+          {filtered.map(e => {
+            const isExpanded = expanded === e.id;
+            const automationName = automationMap[e.automation_id] || 'Automação removida';
+            const actionsLog = Array.isArray(e.actions_log) ? e.actions_log : [];
+            const triggerLabel = triggerLabels[e.trigger_event] || e.trigger_event;
+            const duration = e.started_at && e.completed_at
+              ? Math.round((new Date(e.completed_at).getTime() - new Date(e.started_at).getTime()) / 1000)
+              : null;
+
+            return (
+              <div key={e.id} className="rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] overflow-hidden">
+                <button
+                  onClick={() => setExpanded(isExpanded ? null : e.id)}
+                  className="w-full p-3 flex items-center justify-between text-left hover:bg-[hsl(var(--avivar-muted)/0.3)] transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Badge className={`text-[10px] border flex-shrink-0 ${statusStyles[e.status] || statusStyles.skipped}`}>
+                      {statusLabels[e.status] || e.status}
+                    </Badge>
+                    <span className="text-sm font-medium text-[hsl(var(--avivar-foreground))] truncate">
+                      {automationName}
+                    </span>
+                    <span className="text-[11px] text-[hsl(var(--avivar-muted-foreground))] flex-shrink-0">
+                      {triggerLabel}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    {duration !== null && (
+                      <span className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">{duration}s</span>
+                    )}
+                    <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                      {new Date(e.created_at).toLocaleString('pt-BR')}
+                    </span>
+                    <ChevronRight className={`h-3.5 w-3.5 text-[hsl(var(--avivar-muted-foreground))] transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="px-3 pb-3 border-t border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-muted)/0.15)]">
+                    <div className="pt-3 space-y-2">
+                      {/* Error */}
+                      {e.error_message && (
+                        <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/5 border border-red-500/15">
+                          <AlertCircle className="h-3.5 w-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-red-500">{e.error_message}</p>
+                        </div>
+                      )}
+
+                      {/* Actions log */}
+                      {actionsLog.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-[11px] font-medium text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wider">Ações executadas</p>
+                          {actionsLog.map((action: any, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs text-[hsl(var(--avivar-foreground))] pl-2">
+                              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${action.status === 'error' ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                              <span>{getActionLabel(action.action_type || action.type || 'unknown')}</span>
+                              {action.error && (
+                                <span className="text-red-500 text-[10px]">({action.error})</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Trigger data */}
+                      {e.trigger_data && Object.keys(e.trigger_data).length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-[11px] font-medium text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wider">Dados do gatilho</p>
+                          <pre className="text-[10px] bg-[hsl(var(--avivar-card))] p-2 rounded-lg border border-[hsl(var(--avivar-border))] overflow-x-auto text-[hsl(var(--avivar-muted-foreground))]">
+                            {JSON.stringify(e.trigger_data, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+
+                      {/* Meta info */}
+                      <div className="flex flex-wrap gap-3 text-[10px] text-[hsl(var(--avivar-muted-foreground))] pt-1">
+                        <span>ID: {e.id.substring(0, 8)}...</span>
+                        {e.retry_count > 0 && <span>Retentativas: {e.retry_count}/{e.max_retries}</span>}
+                        {e.lead_id && <span>Lead: {e.lead_id.substring(0, 8)}...</span>}
+                        {e.conversation_id && <span>Conv: {e.conversation_id.substring(0, 8)}...</span>}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              {e.error_message && <p className="text-xs text-red-500 mt-1.5">{e.error_message}</p>}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
