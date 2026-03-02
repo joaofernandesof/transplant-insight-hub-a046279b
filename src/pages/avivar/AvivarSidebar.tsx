@@ -59,6 +59,8 @@ const getMenuItems = (counts: { unreadChats: number; overdueTasks: number }) => 
   { id: 'reports', label: 'Relatórios', icon: FileBarChart, href: '/avivar/reports' },
   { id: 'team', label: 'Equipe', icon: Users, href: '/avivar/team' },
   { id: 'integrations', label: 'Integrações', icon: Link2, href: '/avivar/integrations' },
+  { id: 'automacoes', label: 'Automações', icon: Zap, href: '/avivar/automacoes' },
+  { id: 'variaveis', label: 'Variáveis', icon: Activity, href: '/avivar/variaveis' },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/avivar/settings' },
 ];
 
