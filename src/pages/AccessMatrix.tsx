@@ -92,16 +92,6 @@ export default function AccessMatrix() {
           />
         )}
 
-        {/* Compare Tab */}
-        {activeTab === 'compare' && (
-          <AccessCompareProfiles 
-            roles={roles}
-            portals={portals}
-            modulesByPortal={modulesByPortal}
-            getPermission={getPermission}
-          />
-        )}
-
         {/* Smart Trails Tab */}
         {activeTab === 'trails' && (
           <AccessSmartTrails 
