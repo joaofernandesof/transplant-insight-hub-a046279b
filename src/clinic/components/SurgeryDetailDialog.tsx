@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
   CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil,
@@ -19,6 +20,24 @@ import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useSurgeryTasks } from '../hooks/useSurgeryTasks';
 import { ProcedureCheckboxField } from './ProcedureCheckboxField';
+
+const UPGRADE_CATEGORIES = [
+  { value: 'CATEGORIA A - DR HYGOR', label: 'Categoria A - Dr Hygor' },
+  { value: 'CATEGORIA A - DR PATRICK', label: 'Categoria A - Dr Patrick' },
+  { value: 'CATEGORIA B - MÉDICO DA EQUIPE', label: 'Categoria B - Médico da Equipe' },
+  { value: 'CATEGORIA C - PACIENTE MODELO VIP', label: 'Categoria C - Paciente Modelo VIP' },
+  { value: 'CATEGORIA D - PACIENTE MODELO NORMAL', label: 'Categoria D - Paciente Modelo Normal' },
+  { value: 'A DEFINIR', label: 'A Definir' },
+  { value: 'RETOUCHING', label: 'Retouching' },
+];
+
+const UPSELL_PROCEDURES = [
+  'CABELO',
+  'BARBA',
+  'SOBRANCELHA',
+  'BODY HAIR BARBA',
+  'BODY HAIR PEITO',
+];
 
 interface SurgeryDetailDialogProps {
   surgery: ClinicSurgery | null;
@@ -132,13 +151,24 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
               <div className="grid grid-cols-2 gap-3">
                 <div className={`rounded-lg p-4 border ${surgery.upgradeValue > 0 ? 'bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800' : 'bg-muted/30 border-muted'}`}>
                   <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-2">Upgrade</p>
-                  <EditableField
-                    icon={FileText}
-                    label="Categoria"
-                    value={surgery.upgradeCategory || ''}
-                    field="upgradeCategory"
-                    onSave={handleFieldSave}
-                  />
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <FileText className="h-3 w-3" /> Categoria
+                    </Label>
+                    <Select
+                      value={surgery.upgradeCategory || ''}
+                      onValueChange={(val) => handleFieldSave('upgradeCategory', val)}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {UPGRADE_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="mt-2">
                     <EditableField
                       icon={FileText}
@@ -152,13 +182,24 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate }: S
                 </div>
                 <div className={`rounded-lg p-4 border ${surgery.upsellValue > 0 ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800' : 'bg-muted/30 border-muted'}`}>
                   <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">Upsell</p>
-                  <EditableField
-                    icon={FileText}
-                    label="Categoria"
-                    value={surgery.upsellCategory || ''}
-                    field="upsellCategory"
-                    onSave={handleFieldSave}
-                  />
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <FileText className="h-3 w-3" /> Procedimento
+                    </Label>
+                    <Select
+                      value={surgery.upsellCategory || ''}
+                      onValueChange={(val) => handleFieldSave('upsellCategory', val)}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {UPSELL_PROCEDURES.map((proc) => (
+                          <SelectItem key={proc} value={proc}>{proc}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="mt-2">
                     <EditableField
                       icon={FileText}
