@@ -929,9 +929,9 @@ function AppRoutes() {
       <Route path="/admin/licensee-onboarding" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/sales-urgency" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SalesUrgencyPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/approvals" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><UserApprovals /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/weekly-reports" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/sala-tecnica" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/consolidated-results" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/weekly-reports" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/sala-tecnica" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/consolidated-results" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProfileGuard>} />
 
       {/* ====================================
           CPG Advocacia Médica
