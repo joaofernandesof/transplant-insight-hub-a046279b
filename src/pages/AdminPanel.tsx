@@ -561,7 +561,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="p-6 lg:p-8 overflow-x-hidden w-full bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
+    <div className="p-6 lg:p-8 w-full bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
         <div className="flex items-center gap-3 mb-6">
           <Settings className="h-6 w-6 text-cyan-400" />
           <h1 className="text-2xl font-bold text-white">Configurações do Sistema</h1>
@@ -695,7 +695,7 @@ export default function AdminPanel() {
                   </div>
                 )}
 
-                <ScrollArea className="w-full">
+                <div className="w-full overflow-x-auto">
                   <Table>
                     <TableHeader>
                      <TableRow className="border-slate-700/50 hover:bg-transparent">
@@ -849,7 +849,7 @@ export default function AdminPanel() {
                       })}
                     </TableBody>
                   </Table>
-                </ScrollArea>
+                </div>
                 
                 <div className="mt-4 text-sm text-slate-400">
                   Mostrando {filteredAndSortedUsers.length} de {users.length} usuários
