@@ -156,7 +156,11 @@ export function getNextStage(currentStage: JourneyStage, journeyType: JourneyTyp
 
 // Get previous stage in the flow
 export function getPreviousStage(currentStage: JourneyStage, journeyType: JourneyType): JourneyStage | null {
-  const stages = journeyType === 'comercial' ? COMMERCIAL_STAGES : POST_SALE_STAGES;
+  const stages = journeyType === 'comercial' 
+    ? COMMERCIAL_STAGES 
+    : journeyType === 'retencao' 
+      ? RETENTION_STAGES 
+      : POST_SALE_STAGES;
   const currentIndex = stages.findIndex(s => s.id === currentStage);
   
   if (currentIndex <= 0) return null;
