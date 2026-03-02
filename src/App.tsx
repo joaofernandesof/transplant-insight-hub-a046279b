@@ -473,6 +473,10 @@ function NeoTeamRoutes() {
   const FinancialDashboardPage = lazy(() => import('@/pages/neoteam/financeiro/FinancialDashboardPage'));
   const AccountsPage = lazy(() => import('@/pages/neoteam/financeiro/AccountsPage'));
   const TeamRosterPage = lazy(() => import('@/pages/neoteam/rh/TeamRosterPage'));
+  const RetentionPage = lazy(() => import('@/pages/neoteam/sucesso/RetentionPage'));
+  const LegalContractsPage = lazy(() => import('@/pages/neoteam/juridico/LegalContractsPage'));
+  const TicketsPage = lazy(() => import('@/pages/neoteam/ti/TicketsPage'));
+  const CampaignsPage = lazy(() => import('@/pages/neoteam/marketing/CampaignsPage'));
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
