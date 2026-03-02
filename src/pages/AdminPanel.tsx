@@ -625,17 +625,15 @@ export default function AdminPanel() {
                       />
                     </div>
                     <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as any)}>
-                      <SelectTrigger className="w-36 bg-slate-900/50 border-slate-700 text-white">
+                      <SelectTrigger className="w-44 bg-slate-900/50 border-slate-700 text-white">
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="Perfil" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="licensee">Licenciado</SelectItem>
-                        <SelectItem value="colaborador">Colaborador</SelectItem>
-                        <SelectItem value="aluno">Aluno</SelectItem>
-                        <SelectItem value="paciente">Paciente</SelectItem>
+                        {ACCESS_PROFILES.map(p => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <Button onClick={() => setShowAddUserDialog(true)} className="gap-2">
