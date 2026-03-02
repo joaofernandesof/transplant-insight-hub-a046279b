@@ -23208,6 +23208,13 @@ export type Database = {
         | "cliente_avivar"
         | "medico"
         | "ipromed"
+        | "super_administrador"
+        | "gerente"
+        | "coordenador"
+        | "supervisor"
+        | "operador"
+        | "visualizador"
+        | "externo"
       neopay_delinquency_status:
         | "current"
         | "late"
@@ -23623,6 +23630,13 @@ export const Constants = {
         "cliente_avivar",
         "medico",
         "ipromed",
+        "super_administrador",
+        "gerente",
+        "coordenador",
+        "supervisor",
+        "operador",
+        "visualizador",
+        "externo",
       ],
       neopay_delinquency_status: [
         "current",
