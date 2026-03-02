@@ -842,29 +842,21 @@ export default function AdminPanel() {
                             </TableCell>
                             <TableCell className="text-sm text-slate-300">{userProfile.email}</TableCell>
                             <TableCell className="text-sm text-slate-300">{userProfile.clinic_name || '-'}</TableCell>
-                            <TableCell>
-                              {(() => {
-                                const portalRoles = getUserPortalRoles(userProfile.user_id);
-                                if (portalRoles.length > 0) {
-                                  return (
-                                    <div className="flex flex-col gap-1">
-                                      {portalRoles.map((pr, idx) => (
-                                        <Badge key={idx} className={`${getRoleColor(pr.role_name)} text-xs`}>
-                                          {pr.role_display_name} - {pr.portal_name}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  );
-                                }
-                                // Fallback legado
-                                return (
-                                  <Badge className={roleMeta.color}>
-                                    <RoleIcon className="h-3 w-3 mr-1" />
-                                    {roleMeta.name}
-                                  </Badge>
-                                );
-                              })()}
-                            </TableCell>
+                            {activePortals.map(portal => {
+                              const roleDisplay = getUserRoleInPortal(userProfile.user_id, portal.id);
+                              const roleCode = getUserRoleCodeInPortal(userProfile.user_id, portal.id);
+                              return (
+                                <TableCell key={portal.id} className="text-center">
+                                  {roleDisplay ? (
+                                    <Badge className={`${getRoleColor(roleCode || '')} text-xs`}>
+                                      {roleDisplay}
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-xs text-slate-500">-</span>
+                                  )}
+                                </TableCell>
+                              );
+                            })}
                             <TableCell className="text-center">
                               <Badge className={isUserActive ? 'bg-emerald-900/50 text-emerald-400 border-emerald-500/30' : 'bg-red-900/50 text-red-400 border-red-500/30'} variant="outline">
                                 {isUserActive ? 'Ativo' : 'Inativo'}
