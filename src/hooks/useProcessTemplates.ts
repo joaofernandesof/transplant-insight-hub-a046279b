@@ -11,6 +11,7 @@ export interface ProcessTemplate {
   category: string | null;
   icon: string;
   color: string;
+  branch_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -130,7 +131,7 @@ export function useProcessTemplates() {
   });
 
   const createTemplate = useMutation({
-    mutationFn: async (data: { name: string; description?: string; category?: string; color?: string }) => {
+    mutationFn: async (data: { name: string; description?: string; category?: string; color?: string; branch_id?: string }) => {
       const { data: result, error } = await supabase
         .from('neoteam_process_templates')
         .insert({
@@ -138,6 +139,7 @@ export function useProcessTemplates() {
           description: data.description || null,
           category: data.category || null,
           color: data.color || '#3B82F6',
+          branch_id: data.branch_id || null,
           status: 'draft',
           created_by: user?.authUserId || '',
         })
@@ -154,7 +156,7 @@ export function useProcessTemplates() {
   });
 
   const updateTemplate = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; name?: string; description?: string; status?: string; category?: string; color?: string }) => {
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; description?: string; status?: string; category?: string; color?: string; branch_id?: string | null }) => {
       const { error } = await supabase
         .from('neoteam_process_templates')
         .update({ ...data, updated_by: user?.authUserId || '' })
