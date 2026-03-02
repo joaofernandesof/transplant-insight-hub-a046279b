@@ -218,7 +218,7 @@ export const NEOTEAM_MENU_ITEMS: MenuItem[] = [
   { id: 'neoteam_settings', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
 ];
 
-// Menu NeoTeam organizado por categorias colapsáveis
+// Menu NeoTeam organizado por setores (Escritório Virtual)
 export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
   {
     id: 'neoteam_main',
@@ -228,8 +228,8 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     ],
   },
   {
-    id: 'neoteam_clinical',
-    title: 'Clínico',
+    id: 'setor_clinico',
+    title: 'Setor Técnico',
     icon: Stethoscope,
     collapsible: true,
     defaultOpen: true,
@@ -239,44 +239,105 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_waiting_room', code: 'neoteam_waiting_room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
       { id: 'neoteam_patients', code: 'neoteam_patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
       { id: 'neoteam_medical_records', code: 'neoteam_medical_records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
+      { id: 'neoteam_anamnesis', code: 'neoteam_anamnesis', title: 'Anamnese', icon: ClipboardList, route: '/neoteam/anamnesis' },
       { id: 'neoteam_doctor_view', code: 'neoteam_doctor_view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view', requiredProfiles: ['medico', 'administrador'] },
+      { id: 'neoteam_procedures', code: 'neoteam_procedures', title: 'Procedimentos', icon: Syringe, route: '/neoteam/procedures' },
     ],
   },
   {
-    id: 'neoteam_operations',
-    title: 'Operações',
+    id: 'setor_sucesso_paciente',
+    title: 'Setor de Sucesso do Paciente',
+    icon: HeadphonesIcon,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/postvenda' },
+    ],
+  },
+  {
+    id: 'setor_operacional',
+    title: 'Setor Operacional',
     icon: ClipboardList,
     collapsible: true,
-    defaultOpen: true,
+    defaultOpen: false,
     items: [
       { id: 'neoteam_tasks', code: 'neoteam_tasks', title: 'Tarefas', icon: ListTodo, route: '/neoteam/tasks' },
-      { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos', adminOnly: true },
-      { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
-      { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/postvenda' },
       { id: 'neoteam_cleaning', code: 'neoteam_cleaning', title: 'Limpeza', icon: Sparkles, route: '/neoteam/limpeza' },
+      { id: 'neoteam_inventory', code: 'neoteam_inventory', title: 'Inventário', icon: Package, route: '/neoteam/inventory' },
+      { id: 'neoteam_diary', code: 'neoteam_diary', title: 'Diário de Bordo', icon: NotebookPen, route: '/neoteam/diario' },
     ],
   },
   {
-    id: 'neoteam_education',
-    title: 'Educação',
-    icon: GraduationCap,
+    id: 'setor_processos',
+    title: 'Setor de Processos',
+    icon: GitCompare,
     collapsible: true,
-    defaultOpen: true,
+    defaultOpen: false,
     items: [
-      { id: 'neoteam_event_organization', code: 'neoteam_event_organization', title: 'Gestão de Eventos', icon: ClipboardList, route: '/neoteam/events', adminOnly: true },
-      { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/galleries', adminOnly: true },
+      { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos', adminOnly: true },
+      { id: 'neoteam_pops', code: 'neoteam_pops', title: 'POPs', icon: BookMarked, route: '/neoteam/pops' },
+      { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
+    ],
+  },
+  {
+    id: 'setor_financeiro',
+    title: 'Setor Financeiro',
+    icon: DollarSign,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_contract_review', code: 'neoteam_contract_review', title: 'Revisão de Contratos', icon: FileCheck, route: '/neoteam/contract-review', adminOnly: true },
+      { id: 'neoteam_contracts_import', code: 'neoteam_contracts_import', title: 'Importar Contratos', icon: FileText, route: '/neoteam/contracts-import', adminOnly: true },
+    ],
+  },
+  {
+    id: 'setor_juridico',
+    title: 'Setor Jurídico',
+    icon: Scale,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
       { id: 'neoteam_legal_dashboard', code: 'neoteam_legal_dashboard', title: 'Dashboard Jurídico', icon: Scale, route: '/neoteam/legal-dashboard', adminOnly: true },
     ],
   },
   {
-    id: 'neoteam_admin',
+    id: 'setor_marketing',
+    title: 'Setor de Marketing',
+    icon: MegaphoneIcon,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_event_organization', code: 'neoteam_event_organization', title: 'Gestão de Eventos', icon: ClipboardList, route: '/neoteam/events', adminOnly: true },
+      { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/galleries', adminOnly: true },
+    ],
+  },
+  {
+    id: 'setor_ti',
+    title: 'Setor de TI',
+    icon: CircuitBoard,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_reports_cat', code: 'neoteam_reports', title: 'Relatórios', icon: FileBarChart, route: '/neoteam/reports' },
+    ],
+  },
+  {
+    id: 'setor_rh',
+    title: 'Setor de RH',
+    icon: UsersRound,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/staff-roles', adminOnly: true },
+    ],
+  },
+  {
+    id: 'setor_admin',
     title: 'Administração',
     icon: Settings,
     collapsible: true,
     defaultOpen: false,
     items: [
-      { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Equipe', icon: UserCog, route: '/neoteam/staff', adminOnly: true },
-      { id: 'neoteam_reports_cat', code: 'neoteam_reports', title: 'Relatórios', icon: FileBarChart, route: '/neoteam/reports' },
       { id: 'neoteam_settings_cat', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
     ],
   },
