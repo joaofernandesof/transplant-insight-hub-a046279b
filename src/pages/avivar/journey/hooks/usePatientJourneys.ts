@@ -165,7 +165,7 @@ export function getPreviousStage(currentStage: JourneyStage, journeyType: Journe
 
 // Get stage config
 export function getStageConfig(stage: JourneyStage): StageConfig | undefined {
-  return [...COMMERCIAL_STAGES, ...POST_SALE_STAGES, ...RETENTION_STAGES].find(s => s.id === stage);
+  return [...COMMERCIAL_STAGES, ...POST_SALE_STAGES].find(s => s.id === stage);
 }
 
 // Check if can advance to next stage
