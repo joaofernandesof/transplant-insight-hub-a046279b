@@ -1,6 +1,6 @@
 /**
  * Modal completo de edição de usuário
- * Permite editar dados, acessos a portais, status ativo/inativo
+ * Permite editar dados, acessos (Portal × Perfil), status ativo/inativo
  */
 
 import { useState, useEffect } from "react";
@@ -20,7 +20,6 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -52,33 +51,47 @@ import {
   Trash2,
   CreditCard,
   Settings,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// Definição dos portais disponíveis
-const AVAILABLE_PORTALS = [
-  { id: 'admin', name: 'Portal do Administrador', icon: Crown, color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/50 dark:text-slate-300' },
-  { id: 'neolicense', name: 'Portal do Licenciado', icon: Building2, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
-  { id: 'avivar', name: 'Portal Avivar', icon: TrendingUp, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300' },
-  { id: 'ipromed', name: 'Portal CPG Advocacia', icon: Scale, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
-  { id: 'neoacademy', name: 'NeoAcademy', icon: GraduationCap, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' },
-  { id: 'neoteam', name: 'Portal do Colaborador', icon: Users, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
-  { id: 'neocare', name: 'Portal do Paciente', icon: Heart, color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300' },
-  { id: 'vision', name: 'Portal Vision', icon: Eye, color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300' },
-  { id: 'neopay', name: 'Portal NeoPay', icon: CreditCard, color: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' },
+// Roles hierarchy
+const ROLES = [
+  { id: 'super_administrador', name: 'Super Admin', icon: Crown },
+  { id: 'administrador', name: 'Administrador', icon: Shield },
+  { id: 'gerente', name: 'Gerente', icon: Building2 },
+  { id: 'coordenador', name: 'Coordenador', icon: Users },
+  { id: 'supervisor', name: 'Supervisor', icon: Eye },
+  { id: 'operador', name: 'Operador', icon: Settings },
+  { id: 'visualizador', name: 'Visualizador', icon: Eye },
+  { id: 'externo', name: 'Externo', icon: AlertTriangle },
 ];
 
-const ROLES = [
-  { id: 'super_administrador', name: 'Super Administrador', icon: Crown, description: 'Acesso total irrestrito' },
-  { id: 'administrador', name: 'Administrador', icon: Shield, description: 'Gestão de portais e configurações' },
-  { id: 'gerente', name: 'Gerente', icon: Building2, description: 'Gestão operacional' },
-  { id: 'coordenador', name: 'Coordenador', icon: Users, description: 'Coordenação de equipes' },
-  { id: 'supervisor', name: 'Supervisor', icon: Eye, description: 'Supervisão e acompanhamento' },
-  { id: 'operador', name: 'Operador', icon: Settings, description: 'Operações do dia a dia' },
-  { id: 'visualizador', name: 'Visualizador', icon: Eye, description: 'Acesso somente leitura' },
-  { id: 'externo', name: 'Externo', icon: AlertTriangle, description: 'Acesso externo limitado' },
-];
+// Portal definitions with icons
+const PORTAL_CONFIG: Record<string, { name: string; icon: any; color: string }> = {
+  'admin': { name: 'Administrador', icon: Crown, color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/50 dark:text-slate-300' },
+  'neoteam': { name: 'NeoTeam', icon: Users, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
+  'neocare': { name: 'NeoCare', icon: Heart, color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300' },
+  'academy': { name: 'NeoAcademy', icon: GraduationCap, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' },
+  'neolicense': { name: 'NeoLicense', icon: Building2, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
+  'avivar': { name: 'Avivar', icon: TrendingUp, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300' },
+  'ipromed': { name: 'CPG Advocacia', icon: Scale, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
+  'neorh': { name: 'NeoRH', icon: Users, color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' },
+  'neopay': { name: 'NeoPay', icon: CreditCard, color: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' },
+  'vision': { name: 'Vision', icon: Eye, color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300' },
+  'hotleads': { name: 'HotLeads', icon: TrendingUp, color: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' },
+  'neohair': { name: 'NeoHair', icon: Heart, color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300' },
+};
+
+// Portal role assignment for this user
+interface PortalRoleAssignment {
+  portalId: string;
+  portalSlug: string;
+  portalName: string;
+  roleId: string | null; // null = no access
+  roleName: string | null;
+}
 
 interface UserData {
   id: string;
@@ -115,7 +128,7 @@ export function UserEditModal({
 }: UserEditModalProps) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('dados');
-  
+
   // Form state
   const [formData, setFormData] = useState({
     full_name: '',
@@ -129,8 +142,12 @@ export function UserEditModal({
     tier: 'basic',
   });
   const [isActive, setIsActive] = useState(true);
-  const [allowedPortals, setAllowedPortals] = useState<string[]>([]);
-  const [selectedRole, setSelectedRole] = useState(userRole);
+
+  // Portal × Role state
+  const [dbPortals, setDbPortals] = useState<{ id: string; slug: string; name: string }[]>([]);
+  const [dbRoles, setDbRoles] = useState<{ id: string; name: string }[]>([]);
+  const [portalRoles, setPortalRoles] = useState<Record<string, string | null>>({}); // portalId -> roleId | null
+  const [loadingAccess, setLoadingAccess] = useState(false);
 
   // Reset form when user changes
   useEffect(() => {
@@ -147,17 +164,46 @@ export function UserEditModal({
         tier: user.tier || 'basic',
       });
       setIsActive(user.is_active ?? true);
-      setAllowedPortals(user.allowed_portals || []);
-      setSelectedRole(userRole);
     }
-  }, [user, userRole]);
+  }, [user]);
+
+  // Load portals, roles, and user assignments
+  useEffect(() => {
+    if (!user || !open) return;
+    
+    const loadAccessData = async () => {
+      setLoadingAccess(true);
+      try {
+        const [portalsRes, rolesRes, assignmentsRes] = await Promise.all([
+          supabase.from('portals').select('id, slug, name').eq('is_active', true).order('order_index'),
+          supabase.from('roles').select('id, name').order('hierarchy_level'),
+          supabase.from('user_portal_roles').select('portal_id, role_id').eq('user_id', user.user_id).eq('is_active', true),
+        ]);
+
+        if (portalsRes.data) setDbPortals(portalsRes.data);
+        if (rolesRes.data) setDbRoles(rolesRes.data);
+
+        // Build portal -> role map
+        const roleMap: Record<string, string | null> = {};
+        (portalsRes.data || []).forEach(p => { roleMap[p.id] = null; });
+        (assignmentsRes.data || []).forEach(a => { roleMap[a.portal_id] = a.role_id; });
+        setPortalRoles(roleMap);
+      } catch (err) {
+        console.error('Error loading access data:', err);
+      } finally {
+        setLoadingAccess(false);
+      }
+    };
+
+    loadAccessData();
+  }, [user, open]);
 
   // Update user mutation
   const updateUser = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Usuário não encontrado');
 
-      // Upsert neohub_users (some users may only exist in profiles table)
+      // 1. Update neohub_users
       const neohubPayload = {
         user_id: user.user_id,
         full_name: formData.full_name,
@@ -170,7 +216,13 @@ export function UserEditModal({
         rqe: formData.rqe || null,
         tier: formData.tier,
         is_active: isActive,
-        allowed_portals: allowedPortals,
+        allowed_portals: Object.entries(portalRoles)
+          .filter(([_, roleId]) => roleId !== null)
+          .map(([portalId]) => {
+            const p = dbPortals.find(dp => dp.id === portalId);
+            return p?.slug || '';
+          })
+          .filter(Boolean),
         updated_at: new Date().toISOString(),
       };
 
@@ -180,7 +232,7 @@ export function UserEditModal({
 
       if (userError) throw userError;
 
-      // Update profiles table for compatibility
+      // 2. Update profiles table for compatibility
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -194,57 +246,26 @@ export function UserEditModal({
 
       if (profileError) console.warn('Profiles update warning:', profileError);
 
-      // Update user role if changed
-      if (selectedRole !== userRole) {
-        // 1. Update user_roles table
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .update({ role: selectedRole as any })
-          .eq('user_id', user.user_id);
+      // 3. Sync user_portal_roles: delete all, then insert active ones
+      await supabase
+        .from('user_portal_roles')
+        .delete()
+        .eq('user_id', user.user_id);
 
-        if (roleError) throw roleError;
+      const newAssignments = Object.entries(portalRoles)
+        .filter(([_, roleId]) => roleId !== null)
+        .map(([portalId, roleId]) => ({
+          user_id: user.user_id,
+          portal_id: portalId,
+          role_id: roleId!,
+          is_active: true,
+        }));
 
-        // Update neohub_user_profiles
-        const newProfile = selectedRole;
-
-        // Get neohub_user_id
-        const { data: neohubUser } = await supabase
-          .from('neohub_users')
-          .select('id')
-          .eq('user_id', user.user_id)
-          .single();
-
-        if (neohubUser) {
-          // Deactivate old profile
-          await supabase
-            .from('neohub_user_profiles')
-            .update({ is_active: false })
-            .eq('neohub_user_id', neohubUser.id)
-            .eq('profile', userRole as any);
-
-          // Upsert new profile (insert or reactivate)
-          const { data: existingProfile } = await supabase
-            .from('neohub_user_profiles')
-            .select('id')
-            .eq('neohub_user_id', neohubUser.id)
-            .eq('profile', newProfile as any)
-            .maybeSingle();
-
-          if (existingProfile) {
-            await supabase
-              .from('neohub_user_profiles')
-              .update({ is_active: true })
-              .eq('id', existingProfile.id);
-          } else {
-            await supabase
-              .from('neohub_user_profiles')
-              .insert({
-                neohub_user_id: neohubUser.id,
-                profile: newProfile as any,
-                is_active: true,
-              });
-          }
-        }
+      if (newAssignments.length > 0) {
+        const { error: insertError } = await supabase
+          .from('user_portal_roles')
+          .insert(newAssignments);
+        if (insertError) throw insertError;
       }
     },
     onSuccess: () => {
@@ -258,17 +279,21 @@ export function UserEditModal({
     },
   });
 
-  const togglePortal = (portalId: string) => {
-    setAllowedPortals(prev => 
-      prev.includes(portalId)
-        ? prev.filter(p => p !== portalId)
-        : [...prev, portalId]
-    );
+  const setPortalRole = (portalId: string, roleId: string | null) => {
+    setPortalRoles(prev => ({ ...prev, [portalId]: roleId }));
   };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   };
+
+  const getRoleName = (roleId: string | null) => {
+    if (!roleId) return null;
+    const r = dbRoles.find(r => r.id === roleId);
+    return r ? ROLES.find(rl => rl.id === r.name)?.name || r.name : null;
+  };
+
+  const activePortalCount = Object.values(portalRoles).filter(r => r !== null).length;
 
   if (!user) return null;
 
@@ -337,12 +362,7 @@ export function UserEditModal({
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     Email
                   </Label>
-                  <Input
-                    id="email"
-                    value={formData.email}
-                    disabled
-                    className="bg-muted"
-                  />
+                  <Input id="email" value={formData.email} disabled className="bg-muted" />
                   <p className="text-xs text-muted-foreground">Email não pode ser alterado</p>
                 </div>
 
@@ -418,81 +438,92 @@ export function UserEditModal({
               </div>
             </TabsContent>
 
-            {/* Acessos Tab */}
-            <TabsContent value="acessos" className="space-y-6 mt-0">
-              {/* Perfil do Usuário */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Perfil de Acesso</Label>
-                <Select value={selectedRole} onValueChange={setSelectedRole}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o perfil" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ROLES.map(role => (
-                      <SelectItem key={role.id} value={role.id}>
-                        <div className="flex items-center gap-2">
-                          <role.icon className="h-4 w-4" />
-                          <span>{role.name}</span>
-                          <span className="text-xs text-muted-foreground">- {role.description}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedRole === 'super_administrador' && (
-                  <div className="flex items-center gap-2 p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-700 dark:text-amber-300 text-sm">
-                    <Crown className="h-4 w-4" />
-                    Super Administradores têm acesso total a todos os portais
-                  </div>
-                )}
+            {/* Acessos Tab - Portal × Perfil */}
+            <TabsContent value="acessos" className="space-y-4 mt-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium">Portal × Perfil de Acesso</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Defina o perfil de acesso para cada portal. Deixe "Sem Acesso" para bloquear.
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {activePortalCount} portais ativos
+                </Badge>
               </div>
 
-              <Separator />
+              {loadingAccess ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {dbPortals.map(portal => {
+                    const config = PORTAL_CONFIG[portal.slug] || { name: portal.name, icon: LayoutDashboard, color: 'bg-muted text-muted-foreground' };
+                    const currentRoleId = portalRoles[portal.id];
+                    const roleName = getRoleName(currentRoleId);
+                    const hasAccess = currentRoleId !== null;
+                    const Icon = config.icon;
 
-              {/* Portais Permitidos */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Portais com Acesso</Label>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Selecione quais portais este usuário pode acessar
-                </p>
-                
-                <div className="grid gap-3">
-                  {AVAILABLE_PORTALS.map(portal => {
-                    const isEnabled = selectedRole === 'super_administrador' || allowedPortals.includes(portal.id);
-                    const isAdminOverride = selectedRole === 'super_administrador';
-                    
                     return (
                       <div
                         key={portal.id}
                         className={cn(
-                          "flex items-center justify-between p-3 rounded-lg border transition-all",
-                          isEnabled ? "bg-primary/5 border-primary/20" : "bg-muted/30 border-border"
+                          "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                          hasAccess ? "bg-primary/5 border-primary/20" : "bg-muted/20 border-border/50"
                         )}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={cn("p-2 rounded-lg", portal.color)}>
-                            <portal.icon className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{portal.name}</p>
-                            <p className="text-xs text-muted-foreground">Portal {portal.id}</p>
-                          </div>
+                        <div className={cn("p-2 rounded-lg shrink-0", config.color)}>
+                          <Icon className="h-4 w-4" />
                         </div>
-                        <Switch
-                          checked={isEnabled}
-                          disabled={isAdminOverride}
-                          onCheckedChange={() => togglePortal(portal.id)}
-                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">{config.name}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Select
+                            value={currentRoleId || 'none'}
+                            onValueChange={(v) => setPortalRole(portal.id, v === 'none' ? null : v)}
+                          >
+                            <SelectTrigger className="w-[180px] h-8 text-xs">
+                              <SelectValue placeholder="Sem Acesso" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">
+                                <span className="text-muted-foreground">Sem Acesso</span>
+                              </SelectItem>
+                              {dbRoles.map(role => {
+                                const roleDef = ROLES.find(r => r.id === role.name);
+                                return (
+                                  <SelectItem key={role.id} value={role.id}>
+                                    <div className="flex items-center gap-2">
+                                      {roleDef && <roleDef.icon className="h-3 w-3" />}
+                                      <span>{roleDef?.name || role.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          {hasAccess && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => setPortalRole(portal.id, null)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              )}
             </TabsContent>
 
             {/* Status Tab */}
             <TabsContent value="status" className="space-y-6 mt-0">
-              {/* Status Ativo/Inativo */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Status da Conta</Label>
                 <div className={cn(
@@ -510,22 +541,16 @@ export function UserEditModal({
                         {isActive ? 'Conta Ativa' : 'Conta Inativa'}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {isActive 
-                          ? 'O usuário pode acessar o sistema normalmente'
-                          : 'O usuário não conseguirá fazer login'}
+                        {isActive ? 'O usuário pode acessar o sistema normalmente' : 'O usuário não conseguirá fazer login'}
                       </p>
                     </div>
                   </div>
-                  <Switch
-                    checked={isActive}
-                    onCheckedChange={setIsActive}
-                  />
+                  <Switch checked={isActive} onCheckedChange={setIsActive} />
                 </div>
               </div>
 
               <Separator />
 
-              {/* Tier do Usuário */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Plano/Tier</Label>
                 <Select value={formData.tier} onValueChange={(v) => setFormData(prev => ({ ...prev, tier: v }))}>
@@ -543,7 +568,6 @@ export function UserEditModal({
 
               <Separator />
 
-              {/* Informações do Sistema */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-muted-foreground">Informações do Sistema</Label>
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -558,7 +582,6 @@ export function UserEditModal({
                 </div>
               </div>
 
-              {/* Zona de Perigo */}
               <div className="mt-6 p-4 border border-destructive/30 rounded-lg bg-destructive/5">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle className="h-5 w-5 text-destructive" />
