@@ -42,9 +42,9 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Delete auth user
+    // Delete auth user (treat "not found" as success - already deleted)
     const { error } = await supabaseAdmin.auth.admin.deleteUser(user_id)
-    if (error) {
+    if (error && !error.message.toLowerCase().includes('not found')) {
       return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: corsHeaders })
     }
 
