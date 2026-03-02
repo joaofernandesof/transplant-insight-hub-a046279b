@@ -258,18 +258,25 @@ export default function AdminPanel() {
 
   const fetchUsers = async () => {
     try {
-      // Fetch from both tables to get complete user data
-      const [profilesRes, neohubUsersRes, rolesRes, portalRolesRes] = await Promise.all([
+      const [profilesRes, neohubUsersRes, rolesRes, portalRolesRes, portalsRes] = await Promise.all([
         supabase.from('profiles').select('*').order('name'),
         supabase.from('neohub_users').select('id, user_id, full_name, email, phone, clinic_name, address_city, address_state, avatar_url, is_active, allowed_portals, tier, crm, rqe, created_at'),
         supabase.from('user_roles').select('*'),
         supabase.from('user_portal_roles').select('user_id, portal_id, role_id, portals(name, slug), roles(name, display_name, hierarchy_level)').eq('is_active', true),
+        supabase.from('portals').select('id, slug, name').eq('is_active', true).order('order_index'),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
       if (rolesRes.error) throw rolesRes.error;
 
-      // Merge data from both tables, prioritizing neohub_users for newer fields
+      // Build neohub_users.id -> auth user_id map
+      const idMap: Record<string, string> = {};
+      (neohubUsersRes.data || []).forEach(nu => { idMap[nu.user_id] = nu.id; });
+      setNeohubIdMap(idMap);
+
+      // Set active portals for column headers
+      if (portalsRes.data) setActivePortals(portalsRes.data);
+
       const mergedUsers = (profilesRes.data || []).map(profile => {
         const neohubUser = neohubUsersRes.data?.find(nu => nu.user_id === profile.user_id);
         return {
@@ -287,7 +294,7 @@ export default function AdminPanel() {
       setUsers(mergedUsers);
       setUserRoles((rolesRes.data || []).map(r => ({ ...r, role: r.role as AppRole })));
       setUserPortalRoles((portalRolesRes.data || []).map((pr: any) => ({
-        user_id: pr.user_id,
+        user_id: pr.user_id, // This is neohub_users.id
         portal_name: pr.portals?.name || '',
         portal_slug: pr.portals?.slug || '',
         role_name: pr.roles?.name || '',
