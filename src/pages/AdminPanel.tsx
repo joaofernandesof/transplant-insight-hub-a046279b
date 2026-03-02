@@ -633,14 +633,10 @@ export default function AdminPanel() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 mb-6 bg-slate-800/60 border border-slate-700/50">
+          <TabsList className="grid grid-cols-3 mb-6 bg-slate-800/60 border border-slate-700/50">
             <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Users className="h-4 w-4" />
               Usuários
-            </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
-              <Grid3X3 className="h-4 w-4" />
-              Permissões
             </TabsTrigger>
             <TabsTrigger value="visibility" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400">
               <Eye className="h-4 w-4" />
@@ -690,6 +686,10 @@ export default function AdminPanel() {
                     <Button onClick={() => setShowAddUserDialog(true)} className="gap-2">
                       <UserPlus className="h-4 w-4" />
                       Adicionar
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate('/access-matrix')} className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-700">
+                      <Grid3X3 className="h-4 w-4" />
+                      Matriz de Acesso
                     </Button>
                   </div>
                 </div>
@@ -934,201 +934,6 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
 
-          {/* Permissions Matrix Tab */}
-          <TabsContent value="permissions">
-            <Card className="bg-slate-800/60 border-slate-700/50">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 text-white">
-                      <Grid3X3 className="h-5 w-5" />
-                      Matriz de Permissões por Módulo
-                    </CardTitle>
-                    <CardDescription className="text-slate-400">
-                      Defina quem pode Ver, Editar, Inserir e Excluir em cada módulo do sistema
-                    </CardDescription>
-                  </div>
-                  <Select value={permissionFilter} onValueChange={setPermissionFilter}>
-                    <SelectTrigger className="w-40 bg-slate-900/50 border-slate-700 text-white">
-                      <Filter className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      {categories.map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Legend */}
-                <div className="flex flex-wrap items-center gap-4 mt-4 p-3 bg-slate-900/50 rounded-lg text-sm text-slate-300">
-                  <span className="font-medium text-slate-400">Legenda:</span>
-                  <div className="flex items-center gap-1.5">
-                    <Eye className="h-3.5 w-3.5 text-blue-400" />
-                    <span>Visualizar</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Pencil className="h-3.5 w-3.5 text-amber-400" />
-                    <span>Editar / Inserir</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Trash2 className="h-3.5 w-3.5 text-red-400" />
-                    <span>Excluir</span>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                <ScrollArea className="w-full">
-                  <div className="min-w-[600px]">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-slate-900/50 border-slate-700/50 hover:bg-slate-900/50">
-                          <TableHead className="w-64 text-slate-400">Módulo / Função</TableHead>
-                          {ACCESS_PROFILES.map(profile => (
-                            <TableHead key={profile.id} className="text-center min-w-[120px] text-slate-400">
-                              <div className={cn(
-                                "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium",
-                                profile.color
-                              )}>
-                                <profile.icon className="h-3 w-3" />
-                                {profile.name}
-                              </div>
-                            </TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      
-                      <TableBody>
-                        {filteredModules.map((mod, idx) => {
-                          const perms = modulePermissions[mod.code] || {};
-                          
-                          return (
-                            <TableRow 
-                              key={mod.code}
-                              className={cn("border-slate-700/50", idx % 2 === 0 ? "bg-slate-800/40" : "bg-slate-900/30")}
-                            >
-                              <TableCell>
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="font-medium text-sm text-white">{mod.name}</span>
-                                  <Badge variant="outline" className="w-fit text-[10px] px-1.5 py-0 border-slate-600 text-slate-400">
-                                    {mod.category}
-                                  </Badge>
-                                </div>
-                              </TableCell>
-                              
-                              {ACCESS_PROFILES.map(profile => {
-                                const profilePerms = perms[profile.id] || { read: false, write: false, delete: false };
-                                const isAdmin = profile.id === 'admin';
-                                
-                                return (
-                                  <TableCell key={profile.id} className="text-center">
-                                    <div className="flex items-center justify-center gap-2">
-                                      {/* Visualizar (Read) */}
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <div className="flex flex-col items-center gap-0.5">
-                                              <Checkbox
-                                                checked={isAdmin || profilePerms.read}
-                                                disabled={isAdmin}
-                                                onCheckedChange={(checked) => 
-                                                  handlePermissionChange(mod.code, profile.id, 'read', !!checked)
-                                                }
-                                                className={cn(
-                                                  "data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600",
-                                                  isAdmin && "opacity-50"
-                                                )}
-                                              />
-                                              <Eye className="h-3 w-3 text-blue-600" />
-                                            </div>
-                                          </TooltipTrigger>
-                                          <TooltipContent>Visualizar</TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-
-                                      {/* Editar/Inserir (Write) */}
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <div className="flex flex-col items-center gap-0.5">
-                                              <Checkbox
-                                                checked={isAdmin || profilePerms.write}
-                                                disabled={isAdmin || !profilePerms.read}
-                                                onCheckedChange={(checked) => 
-                                                  handlePermissionChange(mod.code, profile.id, 'write', !!checked)
-                                                }
-                                                className={cn(
-                                                  "data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600",
-                                                  (isAdmin || !profilePerms.read) && "opacity-50"
-                                                )}
-                                              />
-                                              <Pencil className="h-3 w-3 text-amber-600" />
-                                            </div>
-                                          </TooltipTrigger>
-                                          <TooltipContent>Editar / Inserir</TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-
-                                      {/* Excluir (Delete) */}
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <div className="flex flex-col items-center gap-0.5">
-                                              <Checkbox
-                                                checked={isAdmin || profilePerms.delete}
-                                                disabled={isAdmin || !profilePerms.read}
-                                                onCheckedChange={(checked) => 
-                                                  handlePermissionChange(mod.code, profile.id, 'delete', !!checked)
-                                                }
-                                                className={cn(
-                                                  "data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600",
-                                                  (isAdmin || !profilePerms.read) && "opacity-50"
-                                                )}
-                                              />
-                                              <Trash2 className="h-3 w-3 text-red-600" />
-                                            </div>
-                                          </TooltipTrigger>
-                                          <TooltipContent>Excluir</TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    </div>
-                                  </TableCell>
-                                );
-                              })}
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </ScrollArea>
-                
-                {/* Info Footer */}
-                <div className="flex items-center gap-2 mt-4 p-3 bg-blue-950/30 rounded-lg text-sm text-blue-400 border border-blue-500/20">
-                  <Info className="h-4 w-4 shrink-0" />
-                  <span>
-                    As permissões de Editar e Excluir dependem da permissão de Visualizar estar ativa.
-                    O perfil Administrador possui acesso total e não pode ser modificado.
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between mt-4">
-                  <p className="text-sm text-slate-400">
-                    As alterações são salvas automaticamente.
-                  </p>
-                  {permissionsLoading && (
-                    <div className="flex items-center gap-2 text-sm text-slate-400">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Carregando permissões...
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Page Visibility Tab */}
           <TabsContent value="visibility">
