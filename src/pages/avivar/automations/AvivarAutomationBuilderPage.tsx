@@ -550,7 +550,7 @@ function AutomationBuilderDialog({
                 {/* Trigger Selection */}
                 <div className="rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] p-4 space-y-3">
                   <Label className="text-xs font-medium">Gatilho</Label>
-                  <Select value={draft.trigger_type} onValueChange={v => setDraft(prev => ({ ...prev, trigger_type: v }))}>
+                  <Select value={draft.trigger_type} onValueChange={v => setDraft(prev => ({ ...prev, trigger_type: v, trigger_config: {} }))}>
                     <SelectTrigger className="rounded-xl">
                       <SelectValue placeholder="Selecione um gatilho..." />
                     </SelectTrigger>
@@ -565,6 +565,15 @@ function AutomationBuilderDialog({
                       ))}
                     </SelectContent>
                   </Select>
+
+                  {/* Trigger Config Fields */}
+                  <TriggerConfigFields
+                    triggerType={draft.trigger_type}
+                    config={draft.trigger_config}
+                    onChange={cfg => setDraft(prev => ({ ...prev, trigger_config: cfg }))}
+                    kanbans={kanbans}
+                    columns={columnsForKanban}
+                  />
 
                   {/* Kanban scope */}
                   <div className="space-y-2">
@@ -801,6 +810,9 @@ function ActionConfigFields({
 
   const set = (key: string, value: any) => onChange({ ...config, [key]: value });
 
+  const variableButtons = ['{{nome}}', '{{telefone}}', '{{email}}', '{{procedimento}}', '{{funil}}', '{{etapa}}'];
+  const insertVar = (field: string, v: string) => set(field, (config[field] || '') + ' ' + v);
+
   switch (actionType) {
     case 'send_message':
       return (
@@ -813,13 +825,22 @@ function ActionConfigFields({
             className="rounded-xl text-xs min-h-[80px] resize-none"
           />
           <div className="flex flex-wrap gap-1">
-            {['{{nome}}', '{{telefone}}', '{{email}}', '{{procedimento}}', '{{funil}}', '{{etapa}}'].map(v => (
-              <button key={v} onClick={() => set('message', (config.message || '') + ' ' + v)}
+            {variableButtons.map(v => (
+              <button key={v} onClick={() => insertVar('message', v)}
                 className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-colors">
                 {v}
               </button>
             ))}
           </div>
+          <Label className="text-xs">Canal</Label>
+          <Select value={config.channel || 'whatsapp'} onValueChange={v => set('channel', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="whatsapp">WhatsApp</SelectItem>
+              <SelectItem value="email">Email</SelectItem>
+              <SelectItem value="sms">SMS</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       );
 
@@ -828,9 +849,7 @@ function ActionConfigFields({
         <div className="space-y-2">
           <Label className="text-xs">Mover para etapa</Label>
           <Select value={config.target_column_id || ''} onValueChange={v => set('target_column_id', v)}>
-            <SelectTrigger className="rounded-xl text-xs">
-              <SelectValue placeholder="Selecionar etapa..." />
-            </SelectTrigger>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="Selecionar etapa..." /></SelectTrigger>
             <SelectContent>
               {columns.map(c => (
                 <SelectItem key={c.id} value={c.id}>
@@ -845,6 +864,29 @@ function ActionConfigFields({
         </div>
       );
 
+    case 'change_responsible':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Modo de atribuição</Label>
+          <Select value={config.assignment_mode || 'specific'} onValueChange={v => set('assignment_mode', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="specific">Responsável específico</SelectItem>
+              <SelectItem value="round_robin">Rodízio automático</SelectItem>
+              <SelectItem value="least_busy">Menos ocupado</SelectItem>
+              <SelectItem value="remove">Remover responsável</SelectItem>
+            </SelectContent>
+          </Select>
+          {config.assignment_mode === 'specific' && (
+            <>
+              <Label className="text-xs">ID do responsável</Label>
+              <Input placeholder="ID do membro..." value={config.responsible_id || ''} onChange={e => set('responsible_id', e.target.value)}
+                className="rounded-xl text-xs" />
+            </>
+          )}
+        </div>
+      );
+
     case 'create_task':
       return (
         <div className="space-y-2">
@@ -854,6 +896,9 @@ function ActionConfigFields({
           <Label className="text-xs">Descrição</Label>
           <Textarea placeholder="Descrição..." value={config.task_description || ''} onChange={e => set('task_description', e.target.value)}
             className="rounded-xl text-xs min-h-[60px] resize-none" />
+          <Label className="text-xs">Prazo (dias)</Label>
+          <Input type="number" placeholder="7" value={config.due_days || ''} onChange={e => set('due_days', e.target.value)}
+            className="rounded-xl text-xs" />
         </div>
       );
 
@@ -871,8 +916,16 @@ function ActionConfigFields({
       return (
         <div className="space-y-2">
           <Label className="text-xs">Conteúdo da nota</Label>
-          <Textarea placeholder="Nota..." value={config.note_content || ''} onChange={e => set('note_content', e.target.value)}
+          <Textarea placeholder="Nota... Use {{nome}} para variáveis" value={config.note_content || ''} onChange={e => set('note_content', e.target.value)}
             className="rounded-xl text-xs min-h-[60px] resize-none" />
+          <div className="flex flex-wrap gap-1">
+            {variableButtons.map(v => (
+              <button key={v} onClick={() => insertVar('note_content', v)}
+                className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-colors">
+                {v}
+              </button>
+            ))}
+          </div>
         </div>
       );
 
@@ -880,8 +933,24 @@ function ActionConfigFields({
       return (
         <div className="space-y-2">
           <Label className="text-xs">Campo</Label>
-          <Input placeholder="Nome do campo..." value={config.field_name || ''} onChange={e => set('field_name', e.target.value)}
-            className="rounded-xl text-xs" />
+          <Select value={config.field_name || ''} onValueChange={v => set('field_name', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="Selecionar campo..." /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Nome</SelectItem>
+              <SelectItem value="email">Email</SelectItem>
+              <SelectItem value="phone">Telefone</SelectItem>
+              <SelectItem value="source">Origem</SelectItem>
+              <SelectItem value="notes">Notas</SelectItem>
+              <SelectItem value="custom_field">Campo personalizado</SelectItem>
+            </SelectContent>
+          </Select>
+          {config.field_name === 'custom_field' && (
+            <>
+              <Label className="text-xs">Chave do campo</Label>
+              <Input placeholder="custom_key" value={config.custom_key || ''} onChange={e => set('custom_key', e.target.value)}
+                className="rounded-xl text-xs" />
+            </>
+          )}
           <Label className="text-xs">Novo valor</Label>
           <Input placeholder="Valor..." value={config.field_value || ''} onChange={e => set('field_value', e.target.value)}
             className="rounded-xl text-xs" />
@@ -896,25 +965,107 @@ function ActionConfigFields({
             className="rounded-xl text-xs" />
           <Label className="text-xs">Método</Label>
           <Select value={config.method || 'POST'} onValueChange={v => set('method', v)}>
-            <SelectTrigger className="rounded-xl text-xs">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="POST">POST</SelectItem>
               <SelectItem value="GET">GET</SelectItem>
               <SelectItem value="PUT">PUT</SelectItem>
+              <SelectItem value="PATCH">PATCH</SelectItem>
             </SelectContent>
           </Select>
+          <Label className="text-xs">Headers (JSON, opcional)</Label>
+          <Textarea placeholder='{"Authorization": "Bearer ..."}' value={config.headers || ''} onChange={e => set('headers', e.target.value)}
+            className="rounded-xl text-xs min-h-[40px] resize-none font-mono" />
+          <Label className="text-xs">Payload (JSON, opcional)</Label>
+          <Textarea placeholder='{"lead_id": "{{lead_id}}"}' value={config.payload || ''} onChange={e => set('payload', e.target.value)}
+            className="rounded-xl text-xs min-h-[40px] resize-none font-mono" />
         </div>
       );
 
     case 'trigger_chatbot':
       return (
         <div className="space-y-2">
-          <Label className="text-xs">Mensagem inicial do chatbot</Label>
-          <Textarea placeholder="Mensagem para iniciar o chatbot..." value={config.initial_message || ''}
-            onChange={e => set('initial_message', e.target.value)}
-            className="rounded-xl text-xs min-h-[60px] resize-none" />
+          <Label className="text-xs">Comportamento</Label>
+          <Select value={config.bot_action || 'activate'} onValueChange={v => set('bot_action', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="activate">Ativar IA para a conversa</SelectItem>
+              <SelectItem value="deactivate">Desativar IA para a conversa</SelectItem>
+              <SelectItem value="send_prompt">Enviar prompt específico</SelectItem>
+            </SelectContent>
+          </Select>
+          {config.bot_action === 'send_prompt' && (
+            <>
+              <Label className="text-xs">Prompt / mensagem inicial</Label>
+              <Textarea placeholder="Instrução para o chatbot..." value={config.initial_message || ''}
+                onChange={e => set('initial_message', e.target.value)}
+                className="rounded-xl text-xs min-h-[60px] resize-none" />
+            </>
+          )}
+        </div>
+      );
+
+    case 'create_lead':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Nome do lead</Label>
+          <Input placeholder="{{nome}} ou texto fixo" value={config.lead_name || ''} onChange={e => set('lead_name', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Telefone</Label>
+          <Input placeholder="{{telefone}}" value={config.lead_phone || ''} onChange={e => set('lead_phone', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Mover para etapa</Label>
+          <Select value={config.target_column_id || ''} onValueChange={v => set('target_column_id', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="Selecionar etapa..." /></SelectTrigger>
+            <SelectContent>
+              {columns.map(c => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Label className="text-xs">Origem</Label>
+          <Input placeholder="automação" value={config.source || 'automação'} onChange={e => set('source', e.target.value)}
+            className="rounded-xl text-xs" />
+        </div>
+      );
+
+    case 'create_contact':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Nome</Label>
+          <Input placeholder="{{nome}}" value={config.contact_name || ''} onChange={e => set('contact_name', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Telefone</Label>
+          <Input placeholder="{{telefone}}" value={config.contact_phone || ''} onChange={e => set('contact_phone', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Email</Label>
+          <Input placeholder="{{email}}" value={config.contact_email || ''} onChange={e => set('contact_email', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Tags (separar por vírgula)</Label>
+          <Input placeholder="vip, automação" value={config.tags || ''} onChange={e => set('tags', e.target.value)}
+            className="rounded-xl text-xs" />
+        </div>
+      );
+
+    case 'execute_integration':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Integração</Label>
+          <Select value={config.integration_type || ''} onValueChange={v => set('integration_type', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="n8n">n8n</SelectItem>
+              <SelectItem value="zapier">Zapier</SelectItem>
+              <SelectItem value="make">Make (Integromat)</SelectItem>
+              <SelectItem value="custom_api">API personalizada</SelectItem>
+            </SelectContent>
+          </Select>
+          <Label className="text-xs">URL do endpoint</Label>
+          <Input placeholder="https://..." value={config.endpoint_url || ''} onChange={e => set('endpoint_url', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Payload (JSON)</Label>
+          <Textarea placeholder='{"lead_id": "{{lead_id}}"}' value={config.payload || ''} onChange={e => set('payload', e.target.value)}
+            className="rounded-xl text-xs min-h-[40px] resize-none font-mono" />
         </div>
       );
 
@@ -924,5 +1075,181 @@ function ActionConfigFields({
           Configure os detalhes desta ação após selecioná-la.
         </p>
       );
+  }
+}
+
+/* ═════════════════════════════════════════════ */
+/*  TRIGGER CONFIG FIELDS                        */
+/* ═════════════════════════════════════════════ */
+function TriggerConfigFields({
+  triggerType, config, onChange, kanbans, columns,
+}: {
+  triggerType: string;
+  config: Record<string, any>;
+  onChange: (cfg: Record<string, any>) => void;
+  kanbans: { id: string; name: string }[];
+  columns: { id: string; name: string; color: string | null }[];
+}) {
+  if (!triggerType) return null;
+
+  const set = (key: string, value: any) => onChange({ ...config, [key]: value });
+
+  switch (triggerType) {
+    case 'lead.created_in_stage':
+    case 'lead.moved_to':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Etapa de destino</Label>
+          <Select value={config.target_column_id || ''} onValueChange={v => set('target_column_id', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="Selecionar etapa..." /></SelectTrigger>
+            <SelectContent>
+              {columns.map(c => (
+                <SelectItem key={c.id} value={c.id}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color || '#8b5cf6' }} />
+                    {c.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+
+    case 'lead.moved_from':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Etapa de origem</Label>
+          <Select value={config.source_column_id || ''} onValueChange={v => set('source_column_id', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="Selecionar etapa..." /></SelectTrigger>
+            <SelectContent>
+              {columns.map(c => (
+                <SelectItem key={c.id} value={c.id}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color || '#8b5cf6' }} />
+                    {c.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+
+    case 'lead.pipeline_changed':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Pipeline de destino</Label>
+          <Select value={config.target_kanban_id || ''} onValueChange={v => set('target_kanban_id', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="Selecionar funil..." /></SelectTrigger>
+            <SelectContent>
+              {kanbans.map(k => (
+                <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+
+    case 'lead.field_changed':
+    case 'lead.value_changed':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Campo monitorado</Label>
+          <Select value={config.field_name || ''} onValueChange={v => set('field_name', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue placeholder="Selecionar campo..." /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Nome</SelectItem>
+              <SelectItem value="email">Email</SelectItem>
+              <SelectItem value="phone">Telefone</SelectItem>
+              <SelectItem value="source">Origem</SelectItem>
+              <SelectItem value="notes">Notas</SelectItem>
+              <SelectItem value="tags">Tags</SelectItem>
+              <SelectItem value="custom_field">Campo personalizado</SelectItem>
+            </SelectContent>
+          </Select>
+          {config.field_name === 'custom_field' && (
+            <>
+              <Label className="text-xs">Chave do campo</Label>
+              <Input placeholder="custom_key" value={config.custom_key || ''} onChange={e => set('custom_key', e.target.value)}
+                className="rounded-xl text-xs" />
+            </>
+          )}
+        </div>
+      );
+
+    case 'lead.tag_added':
+    case 'lead.tag_removed':
+    case 'contact.tag_added':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Tag específica (opcional)</Label>
+          <Input placeholder="Deixe vazio para qualquer tag" value={config.tag || ''} onChange={e => set('tag', e.target.value)}
+            className="rounded-xl text-xs" />
+        </div>
+      );
+
+    case 'message.received':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Filtrar por conteúdo (opcional)</Label>
+          <Input placeholder="Palavra-chave na mensagem..." value={config.keyword || ''} onChange={e => set('keyword', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Canal</Label>
+          <Select value={config.channel || 'any'} onValueChange={v => set('channel', v)}>
+            <SelectTrigger className="rounded-xl text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Qualquer canal</SelectItem>
+              <SelectItem value="whatsapp">WhatsApp</SelectItem>
+              <SelectItem value="instagram">Instagram</SelectItem>
+              <SelectItem value="email">Email</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      );
+
+    case 'webhook.received':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Filtrar por campo do payload (opcional)</Label>
+          <Input placeholder="campo.sub_campo" value={config.filter_field || ''} onChange={e => set('filter_field', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Valor esperado</Label>
+          <Input placeholder="valor" value={config.filter_value || ''} onChange={e => set('filter_value', e.target.value)}
+            className="rounded-xl text-xs" />
+        </div>
+      );
+
+    case 'custom.external':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Nome do evento</Label>
+          <Input placeholder="meu_evento_customizado" value={config.event_name || ''} onChange={e => set('event_name', e.target.value)}
+            className="rounded-xl text-xs" />
+        </div>
+      );
+
+    case 'appointment.created':
+    case 'appointment.updated':
+    case 'appointment.cancelled':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Tipo de serviço (opcional)</Label>
+          <Input placeholder="Consulta, Retorno..." value={config.service_type || ''} onChange={e => set('service_type', e.target.value)}
+            className="rounded-xl text-xs" />
+        </div>
+      );
+
+    case 'task.overdue':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Tolerância (horas)</Label>
+          <Input type="number" placeholder="0" value={config.tolerance_hours || ''} onChange={e => set('tolerance_hours', e.target.value)}
+            className="rounded-xl text-xs" />
+        </div>
+      );
+
+    default:
+      return null;
   }
 }
