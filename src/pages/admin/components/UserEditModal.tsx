@@ -174,10 +174,21 @@ export function UserEditModal({
     const loadAccessData = async () => {
       setLoadingAccess(true);
       try {
+        // First, get the neohub_users.id for this user (FK target)
+        const { data: neohubUser } = await supabase
+          .from('neohub_users')
+          .select('id')
+          .eq('user_id', user.user_id)
+          .maybeSingle();
+
+        const neohubUserId = neohubUser?.id;
+
         const [portalsRes, rolesRes, assignmentsRes] = await Promise.all([
           supabase.from('portals').select('id, slug, name').eq('is_active', true).order('order_index'),
           supabase.from('roles').select('id, name').order('hierarchy_level'),
-          supabase.from('user_portal_roles').select('portal_id, role_id').eq('user_id', user.id).eq('is_active', true),
+          neohubUserId
+            ? supabase.from('user_portal_roles').select('portal_id, role_id').eq('user_id', neohubUserId).eq('is_active', true)
+            : Promise.resolve({ data: [], error: null }),
         ]);
 
         if (portalsRes.data) setDbPortals(portalsRes.data);
