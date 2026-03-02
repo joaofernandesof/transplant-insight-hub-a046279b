@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { useProcessTemplates, ProcessTemplate } from '@/hooks/useProcessTemplates';
+import { useNeoTeamBranches } from '@/neohub/hooks/useNeoTeamBranches';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -41,18 +42,21 @@ const COLOR_OPTIONS = [
 export default function ProcessLibraryPage() {
   const navigate = useNavigate();
   const { templates, isLoading, createTemplate, updateTemplate, deleteTemplate } = useProcessTemplates();
+  const { branches } = useNeoTeamBranches();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [branchFilter, setBranchFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newFlow, setNewFlow] = useState({ name: '', description: '', category: '', color: '#3B82F6' });
+  const [newFlow, setNewFlow] = useState({ name: '', description: '', category: '', color: '#3B82F6', branch_id: '' });
 
   const filtered = useMemo(() => {
     return templates.filter(t => {
       if (statusFilter !== 'all' && t.status !== statusFilter) return false;
+      if (branchFilter !== 'all' && t.branch_id !== branchFilter) return false;
       if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [templates, search, statusFilter]);
+  }, [templates, search, statusFilter, branchFilter]);
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = { all: templates.length, active: 0, draft: 0, archived: 0 };
@@ -64,7 +68,7 @@ export default function ProcessLibraryPage() {
     if (!newFlow.name.trim()) return;
     const result = await createTemplate.mutateAsync(newFlow);
     setShowCreateDialog(false);
-    setNewFlow({ name: '', description: '', category: '', color: '#3B82F6' });
+    setNewFlow({ name: '', description: '', category: '', color: '#3B82F6', branch_id: '' });
     if (result?.id) navigate(`/neoteam/processos/${result.id}`);
   };
 
@@ -102,6 +106,17 @@ export default function ProcessLibraryPage() {
               className="pl-9"
             />
           </div>
+          <Select value={branchFilter} onValueChange={setBranchFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filial" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as filiais</SelectItem>
+              {branches.map(b => (
+                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="flex gap-2">
             {(['all', 'active', 'draft', 'archived'] as const).map(status => (
               <Button
@@ -144,6 +159,7 @@ export default function ProcessLibraryPage() {
               <TemplateCard
                 key={template.id}
                 template={template}
+                branches={branches}
                 onEdit={() => navigate(`/neoteam/processos/${template.id}`)}
                 onStatusChange={(status) => updateTemplate.mutate({ id: template.id, status })}
                 onDelete={() => deleteTemplate.mutate(template.id)}
@@ -207,6 +223,18 @@ export default function ProcessLibraryPage() {
                 ))}
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>Filial</Label>
+              <Select value={newFlow.branch_id || '__none__'} onValueChange={v => setNewFlow(p => ({ ...p, branch_id: v === '__none__' ? '' : v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione a filial..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Todas (padrão)</SelectItem>
+                  {branches.map(b => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancelar</Button>
@@ -229,17 +257,20 @@ export default function ProcessLibraryPage() {
 // ==========================================
 function TemplateCard({
   template,
+  branches,
   onEdit,
   onStatusChange,
   onDelete,
 }: {
   template: ProcessTemplate;
+  branches: { id: string; name: string }[];
   onEdit: () => void;
   onStatusChange: (status: string) => void;
   onDelete: () => void;
 }) {
   const statusCfg = STATUS_CONFIG[template.status] || STATUS_CONFIG.draft;
   const categoryLabel = CATEGORY_OPTIONS.find(c => c.value === template.category)?.label || template.category || 'Sem categoria';
+  const branchName = template.branch_id ? branches.find(b => b.id === template.branch_id)?.name : null;
 
   return (
     <Card
@@ -252,7 +283,10 @@ function TemplateCard({
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-foreground truncate">{template.name}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">{categoryLabel}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {categoryLabel}
+              {branchName && <span className="ml-1.5 text-primary/70">• {branchName}</span>}
+            </p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>

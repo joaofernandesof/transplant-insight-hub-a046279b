@@ -15538,6 +15538,7 @@ export type Database = {
       }
       neoteam_process_templates: {
         Row: {
+          branch_id: string | null
           category: string | null
           color: string | null
           created_at: string
@@ -15551,6 +15552,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          branch_id?: string | null
           category?: string | null
           color?: string | null
           created_at?: string
@@ -15564,6 +15566,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          branch_id?: string | null
           category?: string | null
           color?: string | null
           created_at?: string
@@ -15576,7 +15579,15 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_process_templates_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       neoteam_retention_protocols: {
         Row: {

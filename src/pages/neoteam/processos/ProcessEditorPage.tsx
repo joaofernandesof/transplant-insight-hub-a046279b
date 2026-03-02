@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { useProcessTemplates, useProcessSteps, ProcessStep } from '@/hooks/useProcessTemplates';
 import { useStaffRoles } from '@/neohub/hooks/useStaffRoles';
+import { useNeoTeamBranches } from '@/neohub/hooks/useNeoTeamBranches';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -264,6 +265,7 @@ export default function ProcessEditorPage() {
   const { templates, updateTemplate } = useProcessTemplates();
   const { steps, isLoading, createStep, updateStep, deleteStep, reorderSteps } = useProcessSteps(id);
   const { roles: staffRoles, rolesByDepartment, departmentLabels } = useStaffRoles();
+  const { branches } = useNeoTeamBranches();
 
   const template = useMemo(() => templates.find(t => t.id === id), [templates, id]);
 
@@ -369,9 +371,26 @@ export default function ProcessEditorPage() {
                 {template.status === 'active' ? 'Ativo' : template.status === 'draft' ? 'Rascunho' : 'Arquivado'}
               </Badge>
             </div>
-            {template.description && (
-              <p className="text-sm text-muted-foreground mt-1 ml-8">{template.description}</p>
-            )}
+            <div className="flex items-center gap-2 ml-8 mt-1">
+              {template.description && (
+                <p className="text-sm text-muted-foreground">{template.description}</p>
+              )}
+              <span className="text-muted-foreground">•</span>
+              <Select
+                value={template.branch_id || '__none__'}
+                onValueChange={v => id && updateTemplate.mutate({ id, branch_id: v === '__none__' ? null : v })}
+              >
+                <SelectTrigger className="h-7 w-[180px] text-xs">
+                  <SelectValue placeholder="Filial..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Todas as filiais</SelectItem>
+                  {branches.map(b => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="flex gap-2">
             {template.status === 'draft' && steps.length > 0 && (
