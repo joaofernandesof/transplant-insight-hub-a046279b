@@ -434,7 +434,7 @@ function HomeRouter() {
 // ====================================
 function NeoCareRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['paciente', 'administrador']}>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
       <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoCareHome />} />
@@ -481,7 +481,7 @@ function NeoTeamRoutes() {
   const CampaignsPage = lazy(() => import('@/pages/neoteam/marketing/CampaignsPage'));
   
   return (
-    <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
       <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoTeamHome />} />
@@ -544,7 +544,7 @@ function NeoRHRoutes() {
   const NeoRHVagas = lazy(() => import('@/neohub/pages/neorh/NeoRHVagas'));
 
   return (
-    <ProfileGuard allowedProfiles={['colaborador', 'administrador']}>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
       <UnifiedSidebar>
         <NeoRHBanner />
         <Routes>
@@ -651,7 +651,7 @@ function NeoAcademyRoutes() {
 // ====================================
 function NeoLicenseRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['licenciado']}>
+    <ProfileGuard allowedProfiles={['operador']}>
       <SidebarWrapper>
         <LazyRoute>
           <Routes>
@@ -683,7 +683,7 @@ function NeoLicenseRoutes() {
 // ====================================
 function HotLeadsRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['licenciado']}>
+    <ProfileGuard allowedProfiles={['operador']}>
       <SidebarWrapper>
         <LazyRoute>
           <Routes>
@@ -704,7 +704,7 @@ function HotLeadsRoutes() {
 // ====================================
 function AvivarRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['cliente_avivar', 'administrador']}>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
       <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0612]"><Loader2 className="h-8 w-8 animate-spin text-purple-400" /></div>}>
           <AvivarSidebar>
             <Routes>

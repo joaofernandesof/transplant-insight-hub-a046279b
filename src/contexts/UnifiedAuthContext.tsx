@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Tipos da Nova Arquitetura
 // ====================================
 
-export type ProfileKey = 'administrador' | 'licenciado' | 'colaborador' | 'medico' | 'aluno' | 'paciente' | 'cliente_avivar' | 'ipromed';
+export type ProfileKey = 'super_administrador' | 'administrador' | 'gerente' | 'coordenador' | 'supervisor' | 'operador' | 'visualizador' | 'externo';
 
 export interface UserProfile {
   key: ProfileKey;
@@ -76,78 +76,80 @@ export type Portal = 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'aviv
 
 // Mapeamento perfil -> portais
 export const PROFILE_PORTAL_MAP: Record<ProfileKey, Portal[]> = {
+  super_administrador: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed'],
   administrador: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed'],
-  licenciado: ['neolicense', 'neoteam'],
-  colaborador: ['neoteam'],
-  medico: ['neoteam'],
-  aluno: ['neoacademy'],
-  paciente: ['neocare'],
-  cliente_avivar: ['avivar'],
-  ipromed: ['ipromed'],
+  gerente: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed'],
+  coordenador: ['neoteam', 'neocare', 'neoacademy'],
+  supervisor: ['neoteam', 'neocare'],
+  operador: ['neoteam', 'neocare', 'neoacademy', 'neolicense', 'avivar', 'ipromed'],
+  visualizador: ['neoteam', 'neocare'],
+  externo: [],
 };
 
 export const PROFILE_ROUTES: Record<ProfileKey, string> = {
+  super_administrador: '/admin-dashboard',
   administrador: '/admin-dashboard',
-  licenciado: '/home',
-  colaborador: '/neoteam',
-  medico: '/neoteam',
-  aluno: '/academy',
-  paciente: '/neocare',
-  cliente_avivar: '/avivar',
-  ipromed: '/cpg',
+  gerente: '/neoteam',
+  coordenador: '/neoteam',
+  supervisor: '/neoteam',
+  operador: '/neoteam',
+  visualizador: '/neoteam',
+  externo: '/',
 };
 
 export const PROFILE_NAMES: Record<ProfileKey, string> = {
+  super_administrador: 'Super Administrador',
   administrador: 'Administrador',
-  licenciado: 'Licenciado',
-  colaborador: 'Colaborador',
-  medico: 'Médico',
-  aluno: 'Aluno',
-  paciente: 'Paciente',
-  cliente_avivar: 'Cliente Avivar',
-  ipromed: 'CPG Advocacia',
+  gerente: 'Gerente',
+  coordenador: 'Coordenador',
+  supervisor: 'Supervisor',
+  operador: 'Operador',
+  visualizador: 'Visualizador',
+  externo: 'Externo',
 };
 
 // Helpers
-export const isAdminProfile = (profile: ProfileKey | null): boolean => profile === 'administrador';
+export const isAdminProfile = (profile: ProfileKey | null): boolean => 
+  profile === 'administrador' || profile === 'super_administrador';
 export const canAccessPortal = (profile: ProfileKey | null, portal: Portal): boolean => {
   if (!profile) return false;
-  if (profile === 'administrador') return true;
+  if (profile === 'administrador' || profile === 'super_administrador') return true;
   return PROFILE_PORTAL_MAP[profile]?.includes(portal) || false;
 };
 // Mapeamento rota-prefixo → perfis permitidos
 const ROUTE_PROFILE_MAP: Record<string, ProfileKey[]> = {
-  '/admin': ['administrador'],
-  '/admin-portal': ['administrador'],
-  '/admin-dashboard': ['administrador'],
-  '/neocare': ['paciente', 'administrador'],
-  '/neoteam': ['colaborador', 'medico', 'administrador'],
-  '/academy': ['aluno', 'administrador'],
-  '/neolicense': ['licenciado', 'administrador'],
-  '/hotleads': ['licenciado', 'administrador'],
-  '/avivar': ['cliente_avivar', 'administrador'],
-  '/cpg': ['ipromed', 'administrador'],
-  '/neopay': ['administrador'],
-  '/dashboard': ['licenciado', 'administrador'],
-  '/financial': ['licenciado', 'administrador'],
-  '/marketing': ['licenciado', 'administrador'],
-  '/store': ['licenciado', 'administrador'],
-  '/mentorship': ['licenciado', 'administrador'],
-  '/systems': ['licenciado', 'administrador'],
-  '/regularization': ['licenciado', 'administrador'],
-  '/alunos': ['administrador'],
-  '/comparison': ['administrador'],
-  '/monitoring': ['administrador'],
-  '/system-metrics': ['administrador'],
-  '/certificates': ['licenciado', 'aluno', 'administrador'],
-  '/license-payments': ['licenciado', 'administrador'],
-  '/weekly-reports': ['licenciado', 'administrador'],
-  '/sala-tecnica': ['licenciado', 'administrador'],
-  '/consolidated-results': ['licenciado', 'administrador'],
-  '/marketplace': ['licenciado', 'administrador'],
-  '/neohair': ['paciente', 'licenciado', 'administrador'],
-  '/vision': ['licenciado', 'administrador'],
-  '/flow': ['colaborador', 'administrador'],
+  '/admin': ['administrador', 'super_administrador'],
+  '/admin-portal': ['administrador', 'super_administrador'],
+  '/admin-dashboard': ['administrador', 'super_administrador'],
+  '/neocare': ['operador', 'administrador', 'super_administrador'],
+  '/neoteam': ['operador', 'gerente', 'coordenador', 'supervisor', 'administrador', 'super_administrador'],
+  '/academy': ['operador', 'administrador', 'super_administrador'],
+  '/neolicense': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/hotleads': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/avivar': ['operador', 'administrador', 'super_administrador'],
+  '/cpg': ['operador', 'administrador', 'super_administrador'],
+  '/neopay': ['administrador', 'super_administrador'],
+  '/dashboard': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/financial': ['gerente', 'administrador', 'super_administrador'],
+  '/marketing': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/store': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/mentorship': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/systems': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/regularization': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/alunos': ['administrador', 'super_administrador'],
+  '/comparison': ['administrador', 'super_administrador'],
+  '/monitoring': ['administrador', 'super_administrador'],
+  '/system-metrics': ['administrador', 'super_administrador'],
+  '/certificates': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/license-payments': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/weekly-reports': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/sala-tecnica': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/consolidated-results': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/marketplace': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/neohair': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/vision': ['operador', 'gerente', 'administrador', 'super_administrador'],
+  '/flow': ['operador', 'coordenador', 'supervisor', 'gerente', 'administrador', 'super_administrador'],
+  '/neorh': ['operador', 'gerente', 'coordenador', 'administrador', 'super_administrador'],
 };
 
 export const canAccessRoute = (profile: ProfileKey | null, route: string): boolean => {
@@ -264,7 +266,7 @@ interface UnifiedAuthContextType {
 const UnifiedAuthContext = createContext<UnifiedAuthContextType | undefined>(undefined);
 
 const VALID_PROFILES: ProfileKey[] = [
-  'administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'
+  'super_administrador', 'administrador', 'gerente', 'coordenador', 'supervisor', 'operador', 'visualizador', 'externo'
 ];
 
 // ====================================
@@ -384,7 +386,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             activeProfileData: ctx.profiles?.[0],
             isAdmin,
             allowedPortals: allowedPortalsFromRoles,
-            legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
+            legacyRole: isAdmin ? 'admin' : profiles.includes('gerente') ? 'licensee' : undefined,
             addressCity: portalData?.address_city || undefined,
             addressState: portalData?.address_state || undefined,
             clinicName: portalData?.clinic_name || undefined,
@@ -447,7 +449,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           portalRoles: [],
           isAdmin,
           allowedPortals: neoHubData.allowed_portals || [],
-          legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
+          legacyRole: isAdmin ? 'admin' : profiles.includes('operador') ? 'licensee' : undefined,
           clinicName: neoHubData.clinic_name,
           clinicLogoUrl: neoHubData.clinic_logo_url,
           addressCity: neoHubData.address_city || undefined,
@@ -482,9 +484,9 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         if (isAdmin) {
           profiles = ['administrador'];
         } else if (isStudent) {
-          profiles = ['aluno'];
+          profiles = ['operador'];
         } else {
-          profiles = ['licenciado'];
+          profiles = ['operador'];
         }
 
         return {
