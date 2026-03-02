@@ -154,23 +154,26 @@ export function UserEditModal({
     mutationFn: async () => {
       if (!user) throw new Error('Usuário não encontrado');
 
-      // Update neohub_users
+      // Upsert neohub_users (some users may only exist in profiles table)
+      const neohubPayload = {
+        user_id: user.user_id,
+        full_name: formData.full_name,
+        email: formData.email || user.email,
+        phone: formData.phone || null,
+        clinic_name: formData.clinic_name || null,
+        address_city: formData.address_city || null,
+        address_state: formData.address_state || null,
+        crm: formData.crm || null,
+        rqe: formData.rqe || null,
+        tier: formData.tier,
+        is_active: isActive,
+        allowed_portals: allowedPortals,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error: userError } = await supabase
         .from('neohub_users')
-        .update({
-          full_name: formData.full_name,
-          phone: formData.phone || null,
-          clinic_name: formData.clinic_name || null,
-          address_city: formData.address_city || null,
-          address_state: formData.address_state || null,
-          crm: formData.crm || null,
-          rqe: formData.rqe || null,
-          tier: formData.tier,
-          is_active: isActive,
-          allowed_portals: allowedPortals,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.user_id);
+        .upsert(neohubPayload, { onConflict: 'user_id' });
 
       if (userError) throw userError;
 
