@@ -60,6 +60,7 @@ export interface ClinicSurgery {
 
 export interface SurgeryInput {
   patientId: string;
+  patientName?: string;
   saleId?: string;
   branch: string;
   procedure: string;
@@ -85,7 +86,7 @@ export function useClinicSurgeries() {
     queryFn: async () => {
       let query = supabase
         .from('clinic_surgeries')
-        .select('*')
+        .select('*, clinic_patients!clinic_surgeries_patient_id_fkey(full_name)')
         .order('surgery_date', { ascending: true, nullsFirst: false });
 
       if (!isAdmin && !isGestao && currentBranch) {
@@ -102,7 +103,7 @@ export function useClinicSurgeries() {
         return {
           id: s.id,
           patientId: s.patient_id || null,
-          patientName: s.patient_name || 'Paciente não vinculado',
+          patientName: s.patient_name || s.clinic_patients?.full_name || 'Paciente não vinculado',
           patientPhone: null,
           saleId: s.sale_id || null,
           branch: s.branch,
@@ -160,6 +161,7 @@ export function useClinicSurgeries() {
         .from('clinic_surgeries')
         .insert({
           patient_id: input.patientId,
+          patient_name: input.patientName || null,
           sale_id: input.saleId || null,
           branch: input.branch,
           procedure: input.procedure,

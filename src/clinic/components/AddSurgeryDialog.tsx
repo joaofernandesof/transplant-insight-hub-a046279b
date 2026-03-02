@@ -179,6 +179,7 @@ export function AddSurgeryDialog({
       // Create the surgery
       createSurgery.mutate({
         patientId: patientId!,
+        patientName: patientName.trim(),
         branch,
         procedure: procedure.trim(),
         category: category || undefined,
