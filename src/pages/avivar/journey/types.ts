@@ -13,7 +13,7 @@ export type RetentionStage = 'solicitacao_cancelamento' | 'analise_motivo' | 'ne
 
 export type JourneyStage = CommercialStage | PostSaleStage | RetentionStage;
 
-export type JourneyType = 'comercial' | 'pos_venda' | 'retencao';
+export type JourneyType = 'comercial' | 'pos_venda';
 
 export interface PatientJourney {
   id: string;
