@@ -126,6 +126,15 @@ interface UserRole {
   role: AppRole;
 }
 
+interface UserPortalRole {
+  user_id: string;
+  portal_name: string;
+  portal_slug: string;
+  role_name: string;
+  role_display_name: string;
+  hierarchy_level: number;
+}
+
 type SortField = 'name' | 'email' | 'clinic_name' | 'created_at' | 'role';
 type SortOrder = 'asc' | 'desc';
 
