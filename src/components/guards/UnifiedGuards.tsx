@@ -146,7 +146,8 @@ export function ProfileGuard({
       : portalKeyFromRoute ? [portalKeyFromRoute] : [];
     const hasPortalAccess = portalKeysToCheck.some(key => userPortals.includes(key));
     if (hasPortalAccess && portalKeyFromRoute) {
-      // Verificar permissões de módulo antes de liberar
+      // Verificar permissões de módulo - se existirem, exigir ao menos uma legível
+      // Se NÃO existirem permissões de módulo, liberar acesso ao portal (allowed_portals é suficiente)
       const permissions = user.permissions || [];
       const portalPrefix = portalKeyFromRoute + '_';
       
@@ -156,15 +157,23 @@ export function ProfileGuard({
           return <>{children}</>;
         }
       } else {
-        // Para neolicense, excluir neolicense_hotleads
-        const hasAnyReadableModule = permissions.some(p => 
-          p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads')
+        // Verificar se existem permissões de módulo para este portal
+        const portalModulePermissions = permissions.filter(p => 
+          p.startsWith(portalPrefix) && !p.startsWith('neolicense_hotleads')
         );
+        
+        // Se não há permissões de módulo configuradas, liberar via allowed_portals
+        // Se há permissões configuradas, exigir ao menos uma com read
+        if (portalModulePermissions.length === 0) {
+          return <>{children}</>;
+        }
+        
+        const hasAnyReadableModule = portalModulePermissions.some(p => p.endsWith(':read'));
         if (hasAnyReadableModule) {
           return <>{children}</>;
         }
       }
-      // Se não tem módulos legíveis, NÃO liberar via allowed_portals
+      // Se tem permissões de módulo mas nenhuma com read, NÃO liberar
     }
   }
 
