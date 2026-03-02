@@ -7,7 +7,9 @@ import {
   AlertCircle, Stethoscope, FileText, 
   HeadphonesIcon, ClipboardCheck, BarChart3, 
   FolderOpen, Scissors, GraduationCap, Clock, 
-  CheckCircle2, Target, Flame
+  CheckCircle2, Target, Flame, GitCompare,
+  DollarSign, Scale, Megaphone, CircuitBoard, UsersRound,
+  type LucideIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
