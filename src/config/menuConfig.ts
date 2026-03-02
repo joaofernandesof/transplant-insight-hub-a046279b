@@ -55,6 +55,13 @@ import {
   Kanban,
   Sparkles,
   FileBarChart,
+  Package,
+  Syringe,
+  BookMarked,
+  NotebookPen,
+  CircuitBoard,
+  UsersRound,
+  Landmark,
 } from 'lucide-react';
 
 // Tipos base
