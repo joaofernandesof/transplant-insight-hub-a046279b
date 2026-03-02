@@ -108,7 +108,7 @@ interface UserEditModalProps {
 
 export function UserEditModal({
   user,
-  userRole = 'licensee',
+  userRole = 'operador',
   open,
   onOpenChange,
   onUserUpdated,
