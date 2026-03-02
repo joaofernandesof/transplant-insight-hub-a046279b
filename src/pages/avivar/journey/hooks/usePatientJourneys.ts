@@ -81,7 +81,7 @@ export function usePatientJourneys(journeyType?: JourneyType) {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<PatientJourney> }) => {
       const { data, error } = await supabase
         .from('avivar_patient_journeys')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();
