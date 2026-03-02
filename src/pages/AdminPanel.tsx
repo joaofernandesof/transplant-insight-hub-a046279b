@@ -644,6 +644,7 @@ export default function AdminPanel() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  className="text-slate-300 hover:text-white hover:bg-slate-700"
                                   onClick={() => openEditDialog(userProfile)}
                                   title="Editar usuário"
                                 >
