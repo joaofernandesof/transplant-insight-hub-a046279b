@@ -11,6 +11,7 @@ import {
   JourneyType,
   COMMERCIAL_STAGES,
   POST_SALE_STAGES,
+  RETENTION_STAGES,
   StageConfig,
   ChecklistItem
 } from '../types';
