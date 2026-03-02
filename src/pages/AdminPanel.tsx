@@ -175,6 +175,8 @@ export default function AdminPanel() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [userPortalRoles, setUserPortalRoles] = useState<UserPortalRole[]>([]);
+  const [activePortals, setActivePortals] = useState<{ id: string; slug: string; name: string }[]>([]);
+  const [neohubIdMap, setNeohubIdMap] = useState<Record<string, string>>({}); // auth user_id -> neohub_users.id
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
