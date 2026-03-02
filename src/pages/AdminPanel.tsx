@@ -849,7 +849,7 @@ export default function AdminPanel() {
                       })}
                     </TableBody>
                   </Table>
-                </ScrollArea>
+                </div>
                 
                 <div className="mt-4 text-sm text-slate-400">
                   Mostrando {filteredAndSortedUsers.length} de {users.length} usuários
