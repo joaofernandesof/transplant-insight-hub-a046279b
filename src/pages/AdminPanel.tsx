@@ -484,7 +484,7 @@ export default function AdminPanel() {
         if (userId === user?.id) continue;
         await supabase
           .from('user_roles')
-          .update({ role: newRole })
+          .update({ role: newRole as any })
           .eq('user_id', userId);
       }
       toast.success(`Perfil de ${selectedUsers.size} usuário(s) alterado para ${getRoleMeta(newRole).name}`);
