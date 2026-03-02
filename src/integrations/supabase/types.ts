@@ -4453,6 +4453,56 @@ export type Database = {
           },
         ]
       }
+      clinic_surgery_audit_log: {
+        Row: {
+          action: string
+          changes: Json | null
+          created_at: string
+          field_label: string | null
+          field_name: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          surgery_id: string
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action?: string
+          changes?: Json | null
+          created_at?: string
+          field_label?: string | null
+          field_name?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          surgery_id: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          created_at?: string
+          field_label?: string | null
+          field_name?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          surgery_id?: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_surgery_audit_log_surgery_id_fkey"
+            columns: ["surgery_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_surgeries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinics: {
         Row: {
           city: string | null
