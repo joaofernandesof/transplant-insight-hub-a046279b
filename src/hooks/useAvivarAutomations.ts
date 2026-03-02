@@ -407,7 +407,7 @@ export function useAvivarAutomationExecutions(automationId?: string) {
         .select('*')
         .eq('account_id', accountId)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(200);
 
       if (automationId) {
         query = query.eq('automation_id', automationId);
@@ -418,5 +418,26 @@ export function useAvivarAutomationExecutions(automationId?: string) {
       return data as AvivarAutomationExecution[];
     },
     enabled: !!accountId,
+  });
+}
+
+export function useAvivarAutomationExecutionsByConversation(conversationId?: string) {
+  const { accountId } = useAvivarAccount();
+
+  return useQuery({
+    queryKey: ['avivar-automation-executions-conv', conversationId],
+    queryFn: async () => {
+      if (!accountId || !conversationId) return [];
+      const { data, error } = await supabase
+        .from('avivar_automation_executions')
+        .select('*')
+        .eq('account_id', accountId)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+        .limit(100);
+      if (error) throw error;
+      return data as AvivarAutomationExecution[];
+    },
+    enabled: !!accountId && !!conversationId,
   });
 }
