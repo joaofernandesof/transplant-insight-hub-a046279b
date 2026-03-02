@@ -323,6 +323,9 @@ export default function AdminPanel() {
     };
     return map[roleName] || 'text-slate-600 bg-slate-100';
   };
+
+  // Filter and sort users
+  const filteredAndSortedUsers = useMemo(() => {
     let result = [...users];
     
     // Filter by search term
