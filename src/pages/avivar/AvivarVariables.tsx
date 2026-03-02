@@ -413,6 +413,11 @@ export default function AvivarVariables() {
                             <span className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] italic">
                               ex: {v.example}
                             </span>
+                            {v.category === 'custom' && (
+                              <span className="ml-2 text-[10px] font-mono text-[hsl(var(--avivar-muted-foreground))] opacity-70">
+                                chave: {v.key}
+                              </span>
+                            )}
                           </div>
                         </div>
 
