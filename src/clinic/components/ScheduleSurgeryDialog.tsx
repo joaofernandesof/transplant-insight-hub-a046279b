@@ -61,6 +61,7 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
 
     createSurgery.mutate({
       patientId: patient.patientId,
+      patientName: patient.patientName,
       saleId: patient.saleId,
       branch: patient.branch,
       procedure: patient.procedure,

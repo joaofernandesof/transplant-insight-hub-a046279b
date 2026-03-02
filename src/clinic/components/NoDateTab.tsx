@@ -144,6 +144,7 @@ export function NoDateTab() {
       // But since NoDatePatients come from sales without surgeries, we need to create a surgery
       createSurgery.mutate({
         patientId: settingDateFor.patientId,
+        patientName: settingDateFor.patientName,
         saleId: settingDateFor.saleId,
         branch: settingDateFor.branch,
         procedure: settingDateFor.procedure,
