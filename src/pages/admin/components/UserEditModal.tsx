@@ -458,8 +458,8 @@ export function UserEditModal({
                 
                 <div className="grid gap-3">
                   {AVAILABLE_PORTALS.map(portal => {
-                    const isEnabled = selectedRole === 'admin' || allowedPortals.includes(portal.id);
-                    const isAdminOverride = selectedRole === 'admin';
+                    const isEnabled = selectedRole === 'super_administrador' || allowedPortals.includes(portal.id);
+                    const isAdminOverride = selectedRole === 'super_administrador';
                     
                     return (
                       <div
