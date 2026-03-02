@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type AppRole = 'admin' | 'licensee' | 'colaborador' | 'aluno' | 'paciente';
+export type AppRole = 'super_administrador' | 'administrador' | 'gerente' | 'coordenador' | 'supervisor' | 'operador' | 'visualizador' | 'externo';
 
 export interface ModulePermission {
   id: string;
@@ -16,11 +16,14 @@ export interface ModulePermission {
 }
 
 export const ACCESS_PROFILES = [
-  { id: 'admin' as AppRole, name: 'Administrador', color: 'text-amber-600 bg-amber-100', icon: 'Crown' },
-  { id: 'licensee' as AppRole, name: 'Licenciado', color: 'text-blue-600 bg-blue-100', icon: 'Shield' },
-  { id: 'colaborador' as AppRole, name: 'Colaborador', color: 'text-green-600 bg-green-100', icon: 'Building2' },
-  { id: 'aluno' as AppRole, name: 'Aluno', color: 'text-purple-600 bg-purple-100', icon: 'GraduationCap' },
-  { id: 'paciente' as AppRole, name: 'Paciente', color: 'text-rose-600 bg-rose-100', icon: 'Heart' },
+  { id: 'super_administrador' as AppRole, name: 'Super Administrador', color: 'text-amber-600 bg-amber-100', icon: 'Crown' },
+  { id: 'administrador' as AppRole, name: 'Administrador', color: 'text-blue-600 bg-blue-100', icon: 'Shield' },
+  { id: 'gerente' as AppRole, name: 'Gerente', color: 'text-green-600 bg-green-100', icon: 'Building2' },
+  { id: 'coordenador' as AppRole, name: 'Coordenador', color: 'text-purple-600 bg-purple-100', icon: 'Users' },
+  { id: 'supervisor' as AppRole, name: 'Supervisor', color: 'text-cyan-600 bg-cyan-100', icon: 'UserCheck' },
+  { id: 'operador' as AppRole, name: 'Operador', color: 'text-slate-600 bg-slate-100', icon: 'Settings' },
+  { id: 'visualizador' as AppRole, name: 'Visualizador', color: 'text-gray-600 bg-gray-100', icon: 'Eye' },
+  { id: 'externo' as AppRole, name: 'Externo', color: 'text-rose-600 bg-rose-100', icon: 'UserX' },
 ];
 
 export function useModulePermissions() {
@@ -79,8 +82,8 @@ export function useModulePermissions() {
     value: boolean
   ) => {
     // Don't allow changing admin permissions
-    if (profile === 'admin') {
-      toast.info('O perfil Administrador possui acesso total e não pode ser alterado.');
+    if (profile === 'super_administrador') {
+      toast.info('O Super Administrador possui acesso total e não pode ser alterado.');
       return;
     }
 

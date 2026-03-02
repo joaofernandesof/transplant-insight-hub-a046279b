@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { useModulePermissions, ACCESS_PROFILES as HOOK_ACCESS_PROFILES } from '@/hooks/useModulePermissions';
+import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -119,7 +119,7 @@ interface UserProfile {
   rqe?: string | null;
 }
 
-type AppRole = 'admin' | 'licensee' | 'colaborador' | 'aluno' | 'paciente';
+type AppRole = 'super_administrador' | 'administrador' | 'gerente' | 'coordenador' | 'supervisor' | 'operador' | 'visualizador' | 'externo';
 
 interface UserRole {
   user_id: string;
@@ -129,44 +129,16 @@ interface UserRole {
 type SortField = 'name' | 'email' | 'clinic_name' | 'created_at' | 'role';
 type SortOrder = 'asc' | 'desc';
 
-// All system modules for the permission matrix
-const SYSTEM_MODULES = [
-  { code: 'dashboard', name: 'Dashboard de Métricas', category: 'Dados' },
-  { code: 'consolidated', name: 'Resultados Consolidados', category: 'Dados' },
-  { code: 'achievements', name: 'Conquistas', category: 'Dados' },
-  { code: 'surgery_schedule', name: 'Agenda de Cirurgias', category: 'Dados' },
-  { code: 'sala_tecnica', name: 'Sala Técnica', category: 'Dados' },
-  { code: 'university', name: 'Academia ByNeofolic', category: 'Formação' },
-  { code: 'certificates', name: 'Certificados', category: 'Formação' },
-  { code: 'regularization', name: 'Regularização da Clínica', category: 'Formação' },
-  { code: 'materials', name: 'Central de Materiais', category: 'Recursos' },
-  { code: 'marketing', name: 'Central de Marketing', category: 'Recursos' },
-  { code: 'store', name: 'Loja Neo-Spa', category: 'Recursos' },
-  { code: 'partners', name: 'Vitrine de Parceiros', category: 'Recursos' },
-  { code: 'estrutura_neo', name: 'Estrutura NEO', category: 'Gestão' },
-  { code: 'hotleads', name: 'HotLeads', category: 'Gestão' },
-  { code: 'financial', name: 'Gestão Financeira', category: 'Gestão' },
-  { code: 'community', name: 'Comunidade', category: 'Social' },
-  { code: 'mentorship', name: 'Mentoria & Suporte', category: 'Suporte' },
-  { code: 'referral', name: 'Indique e Ganhe', category: 'Marketing' },
-  { code: 'marketplace', name: 'Marketplace', category: 'Marketplace' },
-  { code: 'admin_dashboard', name: 'Dashboard Admin', category: 'Admin' },
-  { code: 'licensees_panel', name: 'Gerenciar Alunos', category: 'Admin' },
-  { code: 'user_monitoring', name: 'Monitoramento de Usuários', category: 'Admin' },
-  { code: 'system_metrics', name: 'Métricas do Sistema', category: 'Admin' },
-  { code: 'weekly_reports', name: 'Relatórios Semanais', category: 'Admin' },
-  { code: 'clinic_comparison', name: 'Comparar Clínicas', category: 'Admin' },
-  { code: 'admin_panel', name: 'Configurações do Sistema', category: 'Admin' },
-  { code: 'access_matrix', name: 'Matriz de Acessos', category: 'Admin' },
-];
-
-// Permission profiles
-const ACCESS_PROFILES = [
-  { id: 'admin' as AppRole, name: 'Administrador', icon: Crown, color: 'text-amber-600 bg-amber-100' },
-  { id: 'licensee' as AppRole, name: 'Licenciado', icon: Shield, color: 'text-blue-600 bg-blue-100' },
-  { id: 'colaborador' as AppRole, name: 'Colaborador', icon: Building2, color: 'text-green-600 bg-green-100' },
-  { id: 'aluno' as AppRole, name: 'Aluno', icon: GraduationCap, color: 'text-purple-600 bg-purple-100' },
-  { id: 'paciente' as AppRole, name: 'Paciente', icon: Heart, color: 'text-rose-600 bg-rose-100' },
+// Permission profiles (new RBAC hierarchy)
+const ACCESS_PROFILES: { id: AppRole; name: string; icon: any; color: string }[] = [
+  { id: 'super_administrador', name: 'Super Administrador', icon: Crown, color: 'text-amber-600 bg-amber-100' },
+  { id: 'administrador', name: 'Administrador', icon: Shield, color: 'text-blue-600 bg-blue-100' },
+  { id: 'gerente', name: 'Gerente', icon: Building2, color: 'text-green-600 bg-green-100' },
+  { id: 'coordenador', name: 'Coordenador', icon: Users, color: 'text-purple-600 bg-purple-100' },
+  { id: 'supervisor', name: 'Supervisor', icon: UserCheck, color: 'text-cyan-600 bg-cyan-100' },
+  { id: 'operador', name: 'Operador', icon: Settings, color: 'text-slate-600 bg-slate-100' },
+  { id: 'visualizador', name: 'Visualizador', icon: Eye, color: 'text-gray-600 bg-gray-100' },
+  { id: 'externo', name: 'Externo', icon: UserX, color: 'text-rose-600 bg-rose-100' },
 ];
 
 const pageLabels: Record<keyof PageVisibility, string> = {
@@ -300,18 +272,18 @@ export default function AdminPanel() {
       });
 
       setUsers(mergedUsers);
-      setUserRoles(rolesRes.data || []);
+      setUserRoles((rolesRes.data || []).map(r => ({ ...r, role: r.role as AppRole })));
     } catch (error) {
       console.error('Error fetching users:', error);
     }
   };
 
   const getUserRole = (userId: string): AppRole => {
-    return userRoles.find(r => r.user_id === userId)?.role || 'licensee';
+    return (userRoles.find(r => r.user_id === userId)?.role as AppRole) || 'operador';
   };
 
   const getRoleMeta = (role: AppRole) => {
-    return ACCESS_PROFILES.find(p => p.id === role) || ACCESS_PROFILES[1];
+    return ACCESS_PROFILES.find(p => p.id === role) || ACCESS_PROFILES[5]; // default to operador
   };
 
   // Filter and sort users
@@ -411,24 +383,7 @@ export default function AdminPanel() {
   };
 
   const toggleUserRole = async (userId: string, currentRole: AppRole) => {
-    const newRole: AppRole = currentRole === 'admin' ? 'licensee' : 'admin';
-    
-    try {
-      const { error } = await supabase
-        .from('user_roles')
-        .update({ role: newRole })
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      
-      setUserRoles(prev => prev.map(r => 
-        r.user_id === userId ? { ...r, role: newRole } : r
-      ));
-      toast.success(`Usuário ${newRole === 'admin' ? 'promovido a administrador' : 'definido como licenciado'}`);
-    } catch (error) {
-      console.error('Error updating role:', error);
-      toast.error('Erro ao atualizar permissão');
-    }
+    // No longer toggle — use the dropdown to pick a specific role
   };
 
   const openEditDialog = (userProfile: UserProfile) => {
@@ -529,7 +484,7 @@ export default function AdminPanel() {
         if (userId === user?.id) continue;
         await supabase
           .from('user_roles')
-          .update({ role: newRole })
+          .update({ role: newRole as any })
           .eq('user_id', userId);
       }
       toast.success(`Perfil de ${selectedUsers.size} usuário(s) alterado para ${getRoleMeta(newRole).name}`);
@@ -596,26 +551,6 @@ export default function AdminPanel() {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   };
 
-  // Group modules by category
-  const modulesByCategory = useMemo(() => {
-    const grouped: Record<string, typeof SYSTEM_MODULES> = {};
-    SYSTEM_MODULES.forEach(mod => {
-      if (!grouped[mod.category]) {
-        grouped[mod.category] = [];
-      }
-      grouped[mod.category].push(mod);
-    });
-    return grouped;
-  }, []);
-
-  const filteredModules = useMemo(() => {
-    if (permissionFilter === 'all') return SYSTEM_MODULES;
-    return SYSTEM_MODULES.filter(m => m.category === permissionFilter);
-  }, [permissionFilter]);
-
-  const categories = useMemo(() => {
-    return [...new Set(SYSTEM_MODULES.map(m => m.category))];
-  }, []);
 
   if (isLoading) {
     return (
@@ -670,17 +605,15 @@ export default function AdminPanel() {
                       />
                     </div>
                     <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as any)}>
-                      <SelectTrigger className="w-36 bg-slate-900/50 border-slate-700 text-white">
+                      <SelectTrigger className="w-44 bg-slate-900/50 border-slate-700 text-white">
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="Perfil" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="licensee">Licenciado</SelectItem>
-                        <SelectItem value="colaborador">Colaborador</SelectItem>
-                        <SelectItem value="aluno">Aluno</SelectItem>
-                        <SelectItem value="paciente">Paciente</SelectItem>
+                        {ACCESS_PROFILES.map(p => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <Button onClick={() => setShowAddUserDialog(true)} className="gap-2">
@@ -707,7 +640,7 @@ export default function AdminPanel() {
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1">
                             <Shield className="h-3.5 w-3.5" />
-                            Alterar Perfil
+                            Alterar Função
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
@@ -877,26 +810,17 @@ export default function AdminPanel() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => toggleUserRole(userProfile.user_id, role)}>
-                                        {role === 'admin' ? (
-                                          <><UserX className="h-4 w-4 mr-2" /> Remover Admin</>
-                                        ) : (
-                                          <><UserCheck className="h-4 w-4 mr-2" /> Tornar Admin</>
-                                        )}
-                                      </DropdownMenuItem>
                                       <DropdownMenuSub>
                                         <DropdownMenuSubTrigger>
                                           <Shield className="h-4 w-4 mr-2" />
-                                          Alterar Perfil
+                                          Alterar Função
                                         </DropdownMenuSubTrigger>
                                         <DropdownMenuSubContent>
                                           {ACCESS_PROFILES.map(p => (
                                             <DropdownMenuItem key={p.id} onClick={() => {
-                                              toggleUserRole(userProfile.user_id, role);
-                                              // Use direct role update
-                                              supabase.from('user_roles').update({ role: p.id }).eq('user_id', userProfile.user_id).then(() => {
+                                              supabase.from('user_roles').update({ role: p.id as any }).eq('user_id', userProfile.user_id).then(() => {
                                                 setUserRoles(prev => prev.map(r => r.user_id === userProfile.user_id ? { ...r, role: p.id } : r));
-                                                toast.success(`Perfil alterado para ${p.name}`);
+                                                toast.success(`Função alterada para ${p.name}`);
                                               });
                                             }}>
                                               <p.icon className="h-4 w-4 mr-2" />

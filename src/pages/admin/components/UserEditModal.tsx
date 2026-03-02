@@ -70,11 +70,14 @@ const AVAILABLE_PORTALS = [
 ];
 
 const ROLES = [
-  { id: 'admin', name: 'Administrador', icon: Crown, description: 'Acesso total ao sistema' },
-  { id: 'licensee', name: 'Licenciado', icon: Shield, description: 'Acesso ao portal de licenciados' },
-  { id: 'colaborador', name: 'Colaborador', icon: Users, description: 'Membro de equipe' },
-  { id: 'aluno', name: 'Aluno', icon: GraduationCap, description: 'Acesso à Academy' },
-  { id: 'paciente', name: 'Paciente', icon: Heart, description: 'Acesso ao NeoCare' },
+  { id: 'super_administrador', name: 'Super Administrador', icon: Crown, description: 'Acesso total irrestrito' },
+  { id: 'administrador', name: 'Administrador', icon: Shield, description: 'Gestão de portais e configurações' },
+  { id: 'gerente', name: 'Gerente', icon: Building2, description: 'Gestão operacional' },
+  { id: 'coordenador', name: 'Coordenador', icon: Users, description: 'Coordenação de equipes' },
+  { id: 'supervisor', name: 'Supervisor', icon: Eye, description: 'Supervisão e acompanhamento' },
+  { id: 'operador', name: 'Operador', icon: Settings, description: 'Operações do dia a dia' },
+  { id: 'visualizador', name: 'Visualizador', icon: Eye, description: 'Acesso somente leitura' },
+  { id: 'externo', name: 'Externo', icon: AlertTriangle, description: 'Acesso externo limitado' },
 ];
 
 interface UserData {
@@ -105,7 +108,7 @@ interface UserEditModalProps {
 
 export function UserEditModal({
   user,
-  userRole = 'licensee',
+  userRole = 'operador',
   open,
   onOpenChange,
   onUserUpdated,
@@ -196,23 +199,13 @@ export function UserEditModal({
         // 1. Update user_roles table
         const { error: roleError } = await supabase
           .from('user_roles')
-          .update({ role: selectedRole as 'admin' | 'licensee' | 'colaborador' | 'aluno' | 'paciente' })
+          .update({ role: selectedRole as any })
           .eq('user_id', user.user_id);
 
         if (roleError) throw roleError;
 
-        // 2. Update neohub_user_profiles (the actual permission system)
-        // Map app_role to neohub_profile
-        const roleToProfileMap: Record<string, string> = {
-          admin: 'administrador',
-          licensee: 'licenciado',
-          colaborador: 'colaborador',
-          aluno: 'aluno',
-          paciente: 'paciente',
-        };
-
-        const oldProfile = roleToProfileMap[userRole] || userRole;
-        const newProfile = roleToProfileMap[selectedRole] || selectedRole;
+        // Update neohub_user_profiles
+        const newProfile = selectedRole;
 
         // Get neohub_user_id
         const { data: neohubUser } = await supabase
@@ -227,7 +220,7 @@ export function UserEditModal({
             .from('neohub_user_profiles')
             .update({ is_active: false })
             .eq('neohub_user_id', neohubUser.id)
-            .eq('profile', oldProfile as any);
+            .eq('profile', userRole as any);
 
           // Upsert new profile (insert or reactivate)
           const { data: existingProfile } = await supabase
@@ -446,10 +439,10 @@ export function UserEditModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedRole === 'admin' && (
+                {selectedRole === 'super_administrador' && (
                   <div className="flex items-center gap-2 p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-700 dark:text-amber-300 text-sm">
                     <Crown className="h-4 w-4" />
-                    Administradores têm acesso total a todos os portais
+                    Super Administradores têm acesso total a todos os portais
                   </div>
                 )}
               </div>
@@ -465,8 +458,8 @@ export function UserEditModal({
                 
                 <div className="grid gap-3">
                   {AVAILABLE_PORTALS.map(portal => {
-                    const isEnabled = selectedRole === 'admin' || allowedPortals.includes(portal.id);
-                    const isAdminOverride = selectedRole === 'admin';
+                    const isEnabled = selectedRole === 'super_administrador' || allowedPortals.includes(portal.id);
+                    const isAdminOverride = selectedRole === 'super_administrador';
                     
                     return (
                       <div
