@@ -28,7 +28,7 @@ export function usePatientJourneys(journeyType?: JourneyType) {
         .order('created_at', { ascending: false });
       
       if (journeyType) {
-        query = query.eq('journey_type', journeyType);
+        query = query.eq('journey_type', journeyType as any);
       }
 
       const { data, error } = await query;
