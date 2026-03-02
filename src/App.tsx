@@ -901,19 +901,19 @@ function AppRoutes() {
           Rotas Admin Legado (mantidas para compatibilidade)
           ==================================== */}
       <Route path="/admin-dashboard" element={<Navigate to="/admin-portal" replace />} />
-      <Route path="/dashboard" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/dashboard" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/alunos" element={<AdminRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/comparison" element={<AdminRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/regularization" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketing" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Marketing /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/store" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Store /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/financial" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/mentorship" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/systems" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/regularization" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketing" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Marketing /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/store" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Store /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/financial" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/mentorship" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/systems" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/admin" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/access-matrix" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/certificates" element={<ProfileGuard allowedProfiles={['licenciado', 'aluno']}><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/license-payments" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/certificates" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/license-payments" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/monitoring" element={<AdminRoute><SidebarWrapper><LazyRoute><UserMonitoring /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/system-metrics" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemMetrics /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/sentinel" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemSentinel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
@@ -929,44 +929,44 @@ function AppRoutes() {
       <Route path="/admin/licensee-onboarding" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/sales-urgency" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SalesUrgencyPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/admin/approvals" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><UserApprovals /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/weekly-reports" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/sala-tecnica" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/consolidated-results" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/weekly-reports" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/sala-tecnica" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProfileGuard>} />
+      <Route path="/consolidated-results" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProfileGuard>} />
 
       {/* ====================================
           CPG Advocacia Médica
           ==================================== */}
-      <Route path="/cpg" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedHome /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/dashboard" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedDashboard /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/students" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedStudents /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/exams" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedExams /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/mentors" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedMentors /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/surveys" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSurveys /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/leads" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLeads /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/clients" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClients /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/clients/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClientDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/journey" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedJourney /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/sales-funnel" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSalesFunnel /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/contracts" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContracts /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/contracts/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContractDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/legal" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><Navigate to="/cpg/dashboard" replace /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/agenda" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="agenda" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/cases" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="cases" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/cases/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedCaseDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/contracts-hub" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="contracts" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/ai" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="ai" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/university" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedUniversity /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/financial" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFinancial /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/push-juridico" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedPushJuridico /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/logs" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedActivityLogs /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/tasks" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedTasks /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/proposals" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalsList /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/proposals/new" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/proposals/:id" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/reports" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedReports /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/functions" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFunctions /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedHome /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/dashboard" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedDashboard /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/students" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedStudents /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/exams" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedExams /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/mentors" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedMentors /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/surveys" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSurveys /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/leads" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLeads /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/clients" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClients /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/clients/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClientDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/journey" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedJourney /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/sales-funnel" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSalesFunnel /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/contracts" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContracts /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/contracts/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContractDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/legal" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><Navigate to="/cpg/dashboard" replace /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/agenda" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="agenda" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/cases" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="cases" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/cases/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedCaseDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/contracts-hub" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="contracts" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/ai" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="ai" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/university" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedUniversity /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/financial" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFinancial /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/push-juridico" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedPushJuridico /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/logs" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedActivityLogs /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/tasks" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedTasks /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/proposals" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalsList /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/proposals/new" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/proposals/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/reports" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedReports /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/functions" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFunctions /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/access" element={<ProfileGuard allowedProfiles={['administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedAccessManagement /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/forms" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedOnboardingForms /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/forms" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedOnboardingForms /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       {/* Legacy redirect */}
       <Route path="/ipromed/*" element={<Navigate to="/cpg" replace />} />
       <Route path="/ipromed" element={<Navigate to="/cpg" replace />} />
@@ -974,8 +974,8 @@ function AppRoutes() {
 {/* ====================================
           Vision - Diagnóstico Capilar IA
           ==================================== */}
-      <Route path="/vision" element={<ProfileGuard allowedProfiles={['licenciado']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
-      <Route path="/vision/*" element={<ProfileGuard allowedProfiles={['licenciado']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
+      <Route path="/vision" element={<ProfileGuard allowedProfiles={['operador']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
+      <Route path="/vision/*" element={<ProfileGuard allowedProfiles={['operador']}><LazyRoute><VisionHome /></LazyRoute></ProfileGuard>} />
       {/* Legacy redirect */}
       <Route path="/neohairscan" element={<Navigate to="/vision" replace />} />
 
@@ -999,17 +999,17 @@ function AppRoutes() {
           NeoHair - Tratamento Capilar
           ==================================== */}
       <Route path="/neohair-landing" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairLanding /></Suspense>} />
-      <Route path="/neohair" element={<ProfileGuard allowedProfiles={['paciente', 'licenciado']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProfileGuard>} />
-      <Route path="/neohair/avaliacao" element={<ProfileGuard allowedProfiles={['paciente', 'licenciado']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairEvaluation /></NeoHairSidebar></Suspense></ProfileGuard>} />
-      <Route path="/neohair/loja" element={<ProfileGuard allowedProfiles={['paciente', 'licenciado']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairStore /></NeoHairSidebar></Suspense></ProfileGuard>} />
-      <Route path="/neohair/profissional" element={<ProfileGuard allowedProfiles={['colaborador', 'medico']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairProfessionalDashboard /></NeoHairSidebar></Suspense></ProfileGuard>} />
+      <Route path="/neohair" element={<ProfileGuard allowedProfiles={['operador']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProfileGuard>} />
+      <Route path="/neohair/avaliacao" element={<ProfileGuard allowedProfiles={['operador']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairEvaluation /></NeoHairSidebar></Suspense></ProfileGuard>} />
+      <Route path="/neohair/loja" element={<ProfileGuard allowedProfiles={['operador']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairStore /></NeoHairSidebar></Suspense></ProfileGuard>} />
+      <Route path="/neohair/profissional" element={<ProfileGuard allowedProfiles={['operador']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairProfessionalDashboard /></NeoHairSidebar></Suspense></ProfileGuard>} />
       <Route path="/neohair/admin" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairAdminDashboard /></NeoHairSidebar></Suspense></AdminRoute>} />
-      <Route path="/neohair/*" element={<ProfileGuard allowedProfiles={['paciente', 'licenciado']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProfileGuard>} />
+      <Route path="/neohair/*" element={<ProfileGuard allowedProfiles={['operador']}><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProfileGuard>} />
 
       {/* ====================================
           Flow.do - Gestão Operacional (Work OS)
           ==================================== */}
-      <Route path="/flow" element={<ProfileGuard allowedProfiles={['colaborador']}><LazyRoute><FlowPortal /></LazyRoute></ProfileGuard>}>
+      <Route path="/flow" element={<ProfileGuard allowedProfiles={['operador']}><LazyRoute><FlowPortal /></LazyRoute></ProfileGuard>}>
         <Route index element={<FlowDashboard />} />
         <Route path="projects" element={<FlowProjects />} />
         <Route path="projects/:projectId" element={<FlowProjectDetail />} />
@@ -1023,15 +1023,15 @@ function AppRoutes() {
       {/* ====================================
           Marketplace
           ==================================== */}
-      <Route path="/marketplace" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceHome /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/professionals" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceProfessionals /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/units" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceUnits /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/leads" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceLeads /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/schedule" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceSchedule /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/reviews" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceReviews /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/campaigns" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceCampaigns /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/dashboard" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceDashboard /></SidebarWrapper></ProfileGuard>} />
-      <Route path="/marketplace/discovery" element={<ProfileGuard allowedProfiles={['licenciado']}><SidebarWrapper><MarketplaceDiscovery /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceHome /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/professionals" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceProfessionals /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/units" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceUnits /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/leads" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceLeads /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/schedule" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceSchedule /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/reviews" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceReviews /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/campaigns" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceCampaigns /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/dashboard" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceDashboard /></SidebarWrapper></ProfileGuard>} />
+      <Route path="/marketplace/discovery" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><MarketplaceDiscovery /></SidebarWrapper></ProfileGuard>} />
 
       {/* ====================================
           Pós-Venda (Redirect para NeoTeam)

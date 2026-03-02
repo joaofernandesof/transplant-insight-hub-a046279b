@@ -12,25 +12,25 @@ import { toast } from 'sonner';
 
 const PROFILE_OPTIONS: { value: NeoHubProfile; label: string; icon: React.ElementType; description: string }[] = [
   { 
-    value: 'paciente', 
+    value: 'operador', 
     label: 'Paciente', 
     icon: Heart,
     description: 'Acesse seus dados, agendamentos e histórico médico'
   },
   { 
-    value: 'aluno', 
+    value: 'operador', 
     label: 'Aluno', 
     icon: GraduationCap,
     description: 'Acesse cursos e materiais da Ibramed Academy'
   },
   { 
-    value: 'colaborador', 
+    value: 'operador', 
     label: 'Colaborador', 
     icon: Briefcase,
     description: 'Área para colaboradores das clínicas'
   },
   { 
-    value: 'licenciado', 
+    value: 'operador', 
     label: 'Licenciado', 
     icon: User,
     description: 'Gestão da sua clínica licenciada'

@@ -11,7 +11,7 @@ export function useIsLicensee() {
   const { activeProfile } = useUnifiedAuth();
   
   // Admin simulating licensee view should see licensee content
-  if (isAdmin && activeProfile === 'licenciado') {
+  if (isAdmin && activeProfile === 'operador') {
     return true;
   }
   
@@ -29,7 +29,7 @@ export function useCanAccessSalaTecnica() {
   if (isAdmin) return true;
   
   // Licensees have access
-  if (activeProfile === 'licenciado') return true;
+  if (activeProfile === 'operador') return true;
   
   return !isAdmin;
 }

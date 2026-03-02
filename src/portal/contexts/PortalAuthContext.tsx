@@ -96,7 +96,7 @@ export function usePortalAuth() {
       fullName: data.full_name,
       phone: data.phone,
       cpf: data.cpf,
-      profile: 'paciente', // Portal sempre cria paciente
+      profile: 'operador', // Portal sempre cria operador
     });
   };
 
