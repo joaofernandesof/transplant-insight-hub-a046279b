@@ -640,7 +640,7 @@ export default function AdminPanel() {
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1">
                             <Shield className="h-3.5 w-3.5" />
-                            Alterar Perfil
+                            Alterar Função
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
