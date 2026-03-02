@@ -140,7 +140,12 @@ export function ProfileGuard({
   if (userPortals && userPortals.length > 0) {
     const currentPath = location.pathname;
     const portalKeyFromRoute = getPortalKeyFromRoute(currentPath);
-    if (portalKeyFromRoute && userPortals.includes(portalKeyFromRoute)) {
+    // Para CPG/IPROMED, aceitar ambas as chaves legadas
+    const portalKeysToCheck = portalKeyFromRoute === 'ipromed' 
+      ? ['ipromed', 'cpg'] 
+      : portalKeyFromRoute ? [portalKeyFromRoute] : [];
+    const hasPortalAccess = portalKeysToCheck.some(key => userPortals.includes(key));
+    if (hasPortalAccess && portalKeyFromRoute) {
       // Verificar permissões de módulo antes de liberar
       const permissions = user.permissions || [];
       const portalPrefix = portalKeyFromRoute + '_';
@@ -218,6 +223,7 @@ function getPortalKeyFromRoute(route: string): string | null {
   if (route.startsWith('/neopay')) return 'neopay';
   if (route.startsWith('/neoacademy')) return 'neoacademy';
   if (route.startsWith('/neorh')) return 'neorh';
+  if (route.startsWith('/cpg') || route.startsWith('/ipromed')) return 'ipromed';
   return null;
 }
 
