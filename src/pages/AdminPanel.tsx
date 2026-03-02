@@ -318,8 +318,6 @@ export default function AdminPanel() {
   const getUserRoleInPortal = (authUserId: string, portalId: string): string | null => {
     const neohubId = neohubIdMap[authUserId];
     if (!neohubId) return null;
-    const match = userPortalRoles.find(pr => pr.user_id === neohubId && pr.portal_name === activePortals.find(p => p.id === portalId)?.name);
-    // Match by portal_id via portal_name lookup
     const portalInfo = activePortals.find(p => p.id === portalId);
     if (!portalInfo) return null;
     const role = userPortalRoles.find(pr => pr.user_id === neohubId && pr.portal_slug === portalInfo.slug);
