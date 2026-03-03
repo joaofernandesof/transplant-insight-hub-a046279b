@@ -30,6 +30,7 @@ import {
   TrendingUp,
   X,
   Plus,
+  Upload,
 } from 'lucide-react';
 import { format, parseISO, differenceInCalendarDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, subDays, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -38,6 +39,7 @@ import { SurgeryDetailDialog } from '../components/SurgeryDetailDialog';
 import { NoDateRiskQueue } from '../components/NoDateRiskQueue';
 import { NoDateTab } from '../components/NoDateTab';
 import { AddSurgeryDialog } from '../components/AddSurgeryDialog';
+import { ImportSurgeriesDialog } from '../components/ImportSurgeriesDialog';
 
 import type { DateRange } from 'react-day-picker';
 
@@ -82,6 +84,7 @@ export default function ClinicDashboard() {
     return tabParam === 'sem-data' ? 'sem-data' : 'agenda';
   });
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
 
   // Sync tab from URL params
@@ -349,6 +352,12 @@ export default function ClinicDashboard() {
           </div>
            {activeTab === 'agenda' && (
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => setShowImportDialog(true)}>
+                  <Upload className="h-3.5 w-3.5" />
+                  Importar
+                </Button>
+              )}
               <Button size="sm" className="h-8 text-xs gap-1.5" onClick={() => setShowAddDialog(true)}>
                 <Plus className="h-3.5 w-3.5" />
                 Adicionar
@@ -676,6 +685,11 @@ export default function ClinicDashboard() {
         onOpenChange={setShowAddDialog}
         defaultWithDate={activeTab === 'agenda'}
         requireExistingPatient={isNeoTeamContext}
+      />
+
+      <ImportSurgeriesDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
       />
     </div>
   );
