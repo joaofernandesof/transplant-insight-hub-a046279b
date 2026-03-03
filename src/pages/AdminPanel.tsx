@@ -756,9 +756,9 @@ export default function AdminPanel() {
                   </div>
                 )}
 
-                <div className="w-full overflow-x-auto">
+                <div className="w-full overflow-x-auto max-h-[calc(100vh-280px)] overflow-y-auto">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 z-30">
                      <TableRow className="border-slate-700/50 hover:bg-transparent">
                         <TableHead className="w-[40px] sticky left-0 z-20 bg-slate-800">
                           <Checkbox
