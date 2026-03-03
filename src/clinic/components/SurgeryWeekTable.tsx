@@ -130,6 +130,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                             <TableHead>Paciente</TableHead>
                             <TableHead className="hidden md:table-cell">Procedimento</TableHead>
                             <TableHead className="hidden lg:table-cell">Grau</TableHead>
+                            <TableHead className="hidden md:table-cell">Tricotomia</TableHead>
                             <TableHead className="hidden md:table-cell">Checklist</TableHead>
                             <TableHead className="hidden md:table-cell">Tarefas D-X</TableHead>
                             <TableHead className="text-right">Status</TableHead>
@@ -173,6 +174,15 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                               </TableCell>
                               <TableCell className="hidden lg:table-cell text-sm">
                                 {surgery.grade || '—'}
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell text-xs">
+                                {surgery.trichotomyDatetime ? (
+                                  <span className="font-medium text-amber-700 dark:text-amber-400">
+                                    {format(parseISO(surgery.trichotomyDatetime), "dd/MM HH:mm")}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground">—</span>
+                                )}
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
                                 <div className="flex gap-0.5 flex-wrap">
