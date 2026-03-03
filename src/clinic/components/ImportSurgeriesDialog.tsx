@@ -82,28 +82,107 @@ function textOrNull(val: string | undefined): string | null {
   return val.trim();
 }
 
-function parseRowClient(fields: string[]): ParsedRecord | null {
-  let f = fields;
-  if (f.length > 0 && f[0].trim() === "") f = f.slice(1);
-  if (f.length > 0 && f[f.length - 1].trim() === "") f = f.slice(0, -1);
+// Header keyword patterns for smart column detection
+const HEADER_PATTERNS: Record<string, RegExp> = {
+  date: /^data$/i,
+  time: /hor[áa]rio\s*(da\s*)?cirurgia/i,
+  patient: /paciente/i,
+  category: /categoria/i,
+  procedure: /procedimento/i,
+  grade: /grau/i,
+  vgv: /vgv\s*(final|inicial)?/i,
+  vgv_final: /vgv\s*final/i,
+  companion: /acompanhante/i,
+  confirmed: /contrato\s*assinado/i,
+  notes: /observa[çc][õo]es$/i,
+  doctor: /m[ée]dico|plantonista/i,
+  medical_record: /pront/i,
+  tricotomia: /tricotomia/i,
+};
 
-  const patient = textOrNull(f[13]);
+interface ColumnMap {
+  date: number;
+  time: number;
+  patient: number;
+  category: number;
+  procedure: number;
+  grade: number;
+  vgv: number;
+  companion: number;
+  confirmed: number;
+  notes: number;
+  doctor: number;
+  medical_record: number;
+}
+
+function detectColumns(headers: string[]): ColumnMap | null {
+  const normalized = headers.map(h => String(h ?? '').trim());
+  
+  const find = (pattern: RegExp, priority?: RegExp): number => {
+    // Try priority pattern first
+    if (priority) {
+      const idx = normalized.findIndex(h => priority.test(h));
+      if (idx >= 0) return idx;
+    }
+    return normalized.findIndex(h => pattern.test(h));
+  };
+
+  const patient = find(HEADER_PATTERNS.patient);
+  if (patient < 0) return null; // Can't import without patient column
+
+  // For VGV, prefer VGV FINAL over VGV INICIAL
+  const vgvFinal = find(HEADER_PATTERNS.vgv_final);
+  const vgvAny = find(HEADER_PATTERNS.vgv);
+  
+  return {
+    date: find(HEADER_PATTERNS.date),
+    time: find(HEADER_PATTERNS.time),
+    patient,
+    category: find(HEADER_PATTERNS.category),
+    procedure: find(HEADER_PATTERNS.procedure),
+    grade: find(HEADER_PATTERNS.grade),
+    vgv: vgvFinal >= 0 ? vgvFinal : vgvAny,
+    companion: find(HEADER_PATTERNS.companion),
+    confirmed: find(HEADER_PATTERNS.confirmed),
+    notes: find(HEADER_PATTERNS.notes),
+    doctor: find(HEADER_PATTERNS.doctor),
+    medical_record: find(HEADER_PATTERNS.medical_record),
+  };
+}
+
+// Stored column map (set when file is loaded)
+let _columnMap: ColumnMap | null = null;
+
+function setColumnMap(map: ColumnMap | null) {
+  _columnMap = map;
+}
+
+function getVal(f: string[], idx: number): string | undefined {
+  return idx >= 0 && idx < f.length ? f[idx] : undefined;
+}
+
+function parseRowClient(fields: string[]): ParsedRecord | null {
+  const f = fields;
+  const m = _columnMap;
+  if (!m) return null;
+
+  const patient = textOrNull(getVal(f, m.patient));
   if (!patient) return null;
   if (patient === "PACIENTE" || patient.includes("CURSO FORMAÇÃO")) return null;
 
   return {
     patient_name: patient,
-    medical_record: textOrNull(f[12]),
-    procedure: textOrNull(f[15]) || "CABELO",
-    category: textOrNull(f[14]),
-    grade: parseGrade(f[16]),
-    surgery_date: parseDate(f[5]),
-    surgery_time: parseTime(f[7]),
-    surgery_confirmed: parseBool(f[8]),
-    companion_name: textOrNull(f[18]),
-    vgv: parseVgv(f[17]),
-    doctor_on_duty: textOrNull(f[1]),
-    notes: textOrNull(f[0]),
+    medical_record: textOrNull(getVal(f, m.medical_record)),
+    procedure: textOrNull(getVal(f, m.procedure)) || "CABELO",
+    category: textOrNull(getVal(f, m.category)),
+    grade: parseGrade(getVal(f, m.grade)),
+    surgery_date: parseDate(getVal(f, m.date)),
+    surgery_time: parseTime(getVal(f, m.time)),
+    surgery_confirmed: parseBool(getVal(f, m.confirmed)),
+    companion_name: textOrNull(getVal(f, m.companion)),
+    vgv: parseVgv(getVal(f, m.vgv)),
+    doctor_on_duty: textOrNull(getVal(f, m.doctor)),
+    notes: textOrNull(getVal(f, m.notes)),
   };
 }
 
@@ -129,6 +208,7 @@ export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportS
   const [activeTab, setActiveTab] = useState('import');
   const [rawRows, setRawRows] = useState<string[][]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [headerRow, setHeaderRow] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -142,7 +222,7 @@ export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportS
     if (rawRows.length === 0) return [];
     return rawRows
       .map(row => {
-        const fields = ['', ...row.map(c => String(c ?? '')), ''];
+        const fields = row.map(c => String(c ?? ''));
         return parseRowClient(fields);
       })
       .filter(Boolean) as ParsedRecord[];
@@ -195,6 +275,17 @@ export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportS
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonRows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
       if (jsonRows.length >= 2) {
+        // Detect columns from header row
+        const headers = jsonRows[0].map((c: any) => String(c ?? ''));
+        const colMap = detectColumns(headers);
+        if (!colMap) {
+          toast.error('Não foi possível identificar as colunas. Verifique se a planilha possui cabeçalhos como PACIENTE, DATA, etc.');
+          setRawRows([]);
+          return;
+        }
+        setColumnMap(colMap);
+        console.log('[Import] Column mapping detected:', colMap);
+        setHeaderRow(headers);
         setRawRows(jsonRows.slice(1));
         setShowPreview(true);
       } else {
@@ -214,12 +305,11 @@ export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportS
     setResult(null);
 
     try {
-      const pipeRows = rawRows.map(row =>
-        '|' + row.map((cell: any) => String(cell ?? '')).join('|') + '|'
-      );
+      // Send raw arrays with header row for column detection
+      const arrayRows = rawRows.map(row => row.map((cell: any) => String(cell ?? '')));
 
       const { data: response, error } = await supabase.functions.invoke('import-surgeries', {
-        body: { rows: pipeRows, branch },
+        body: { rows: arrayRows, branch, headers: headerRow },
       });
 
       if (error) throw error;

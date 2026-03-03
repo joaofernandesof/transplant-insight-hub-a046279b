@@ -25,7 +25,6 @@ function parseVgv(val: string | undefined): number | null {
 
 function parseDate(val: string | undefined): string | null {
   if (!val || val.trim() === "" || val.trim() === "-") return null;
-  // DD/MM/YYYY → YYYY-MM-DD
   const match = val.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!match) return null;
   return `${match[3]}-${match[2]}-${match[1]}`;
@@ -43,62 +42,130 @@ function textOrNull(val: string | undefined): string | null {
   return val.trim();
 }
 
-function parseRow(row: string, branch: string) {
-  const fields = row.split("|");
-  let f = fields;
-  if (fields.length > 0 && fields[0].trim() === "") f = f.slice(1);
-  if (f.length > 0 && f[f.length - 1].trim() === "") f = f.slice(0, -1);
+// Header keyword patterns for smart column detection
+const HEADER_PATTERNS: Record<string, RegExp> = {
+  date: /^data$/i,
+  time: /hor[áa]rio\s*(da\s*)?cirurgia/i,
+  patient: /paciente/i,
+  category: /categoria/i,
+  procedure: /procedimento/i,
+  grade: /grau/i,
+  vgv: /vgv\s*(final|inicial)?/i,
+  vgv_final: /vgv\s*final/i,
+  companion: /acompanhante/i,
+  companion_phone: /celular\s*acomp/i,
+  confirmed: /contrato\s*assinado|confirmou/i,
+  notes: /observa[çc][õo]es$/i,
+  doctor: /terceiriza[çc][ãa]o|m[ée]dico|plantonista/i,
+  medical_record: /pront/i,
+  tricotomia: /tricotomia/i,
+  exams: /exames\s*(recebidos|no\s*feegow)/i,
+  guides: /guias\s*enviados/i,
+  sale_year: /ano\s*(da\s*)?venda/i,
+  is_juazeiro: /cirurgia\s*juazeiro/i,
+  d20: /d[\-\s]*20/i,
+  d15: /d[\-\s]*15/i,
+  d10: /d[\-\s]*10/i,
+  d7: /d[\-\s]*7/i,
+  d2: /d[\-\s]*2(?!\d)/i,
+  d1: /^d[\-\s]*1(?!\s*\()/i,
+  lunch: /almo[çc]o/i,
+  booking_term: /termo\s*marca/i,
+  discharge_term: /termo\s*(de\s*)?alta/i,
+  gpi: /gpi|d\+1/i,
+};
 
-  // New spreadsheet column mapping:
-  // 0:OBSERVAÇÃO 1:TERCEIRIZAÇÃO 2:CIRURGIA JUAZEIRO 3:ANO/MÊS 4:DIA 5:DATA
-  // 6:TRICOTOMIA 7:HORÁRIO 8:CONFIRMOU 9:EXAMES RECEBIDOS 10:GUIAS ENVIADOS
-  // 11:ANO DA VENDA 12:PRONTUÁRIO 13:PACIENTE 14:CATEGORIA 15:PROCEDIMENTO
-  // 16:GRAU 17:VGV 18:ACOMPANHANTE 19:CELULAR ACOMP 20:CONTRATO ASSINADO
-  // 21:D-20 22:D-15 23:D-10 24:D-7 25:D-2 26:ALMOÇO 27:D-1
-  // 28:D-1(TERMO MARCAÇÃO) 29:D-0(TERMO ALTA) 30:D+1(GPI) 31:OBSERVAÇÕES3
+interface ColumnMap { [key: string]: number }
 
-  const patient = textOrNull(f[13]);
+function detectColumns(headers: string[]): ColumnMap | null {
+  const normalized = headers.map(h => String(h ?? '').trim());
+  
+  const find = (pattern: RegExp): number => normalized.findIndex(h => pattern.test(h));
+
+  const patient = find(HEADER_PATTERNS.patient);
+  if (patient < 0) return null;
+
+  const vgvFinal = find(HEADER_PATTERNS.vgv_final);
+  const vgvAny = find(HEADER_PATTERNS.vgv);
+
+  return {
+    date: find(HEADER_PATTERNS.date),
+    time: find(HEADER_PATTERNS.time),
+    patient,
+    category: find(HEADER_PATTERNS.category),
+    procedure: find(HEADER_PATTERNS.procedure),
+    grade: find(HEADER_PATTERNS.grade),
+    vgv: vgvFinal >= 0 ? vgvFinal : vgvAny,
+    companion: find(HEADER_PATTERNS.companion),
+    companion_phone: find(HEADER_PATTERNS.companion_phone),
+    confirmed: find(HEADER_PATTERNS.confirmed),
+    notes: find(HEADER_PATTERNS.notes),
+    doctor: find(HEADER_PATTERNS.doctor),
+    medical_record: find(HEADER_PATTERNS.medical_record),
+    tricotomia: find(HEADER_PATTERNS.tricotomia),
+    exams: find(HEADER_PATTERNS.exams),
+    guides: find(HEADER_PATTERNS.guides),
+    sale_year: find(HEADER_PATTERNS.sale_year),
+    is_juazeiro: find(HEADER_PATTERNS.is_juazeiro),
+    d20: find(HEADER_PATTERNS.d20),
+    d15: find(HEADER_PATTERNS.d15),
+    d10: find(HEADER_PATTERNS.d10),
+    d7: find(HEADER_PATTERNS.d7),
+    d2: find(HEADER_PATTERNS.d2),
+    d1: find(HEADER_PATTERNS.d1),
+    lunch: find(HEADER_PATTERNS.lunch),
+    booking_term: find(HEADER_PATTERNS.booking_term),
+    discharge_term: find(HEADER_PATTERNS.discharge_term),
+    gpi: find(HEADER_PATTERNS.gpi),
+  };
+}
+
+function getVal(f: string[], idx: number): string | undefined {
+  return idx >= 0 && idx < f.length ? f[idx] : undefined;
+}
+
+function parseRow(fields: string[], branch: string, m: ColumnMap) {
+  const f = fields;
+  const patient = textOrNull(getVal(f, m.patient));
   if (!patient) return null;
-
-  // Skip header row or CURSO rows
   if (patient === "PACIENTE" || patient.includes("CURSO FORMAÇÃO")) return null;
 
-  const procedure = textOrNull(f[15]) || "CABELO";
-  const doctorName = textOrNull(f[1]);
+  const procedure = textOrNull(getVal(f, m.procedure)) || "CABELO";
+  const doctorName = textOrNull(getVal(f, m.doctor));
 
   return {
     branch,
     patient_name: patient,
-    medical_record: textOrNull(f[12]),
+    medical_record: textOrNull(getVal(f, m.medical_record)),
     procedure,
-    category: textOrNull(f[14]),
-    grade: parseGrade(f[16]),
-    surgery_date: parseDate(f[5]),
-    surgery_time: parseTime(f[7]),
+    category: textOrNull(getVal(f, m.category)),
+    grade: parseGrade(getVal(f, m.grade)),
+    surgery_date: parseDate(getVal(f, m.date)),
+    surgery_time: parseTime(getVal(f, m.time)),
     schedule_status: "agendado",
-    surgery_confirmed: parseBool(f[8]),
-    exams_sent: parseBool(f[9]),
-    guides_sent: parseBool(f[10]),
-    contract_signed: parseBool(f[20]),
+    surgery_confirmed: parseBool(getVal(f, m.confirmed)),
+    exams_sent: parseBool(getVal(f, m.exams)),
+    guides_sent: parseBool(getVal(f, m.guides)),
+    contract_signed: parseBool(getVal(f, m.confirmed)),
     outsourcing: !!doctorName,
     doctor_on_duty: doctorName,
-    is_juazeiro: parseBool(f[2]),
-    trichotomy_datetime: textOrNull(f[6]),
-    sale_year: textOrNull(f[11]),
-    companion_name: textOrNull(f[18]),
-    companion_phone: textOrNull(f[19]),
-    d20_contact: parseBool(f[21]),
-    d15_contact: parseBool(f[22]),
-    d10_contact: parseBool(f[23]),
-    d7_contact: parseBool(f[24]),
-    d2_contact: parseBool(f[25]),
-    d1_contact: parseBool(f[27]),
-    lunch_choice: textOrNull(f[26]),
-    booking_term_signed: parseBool(f[28]),
-    discharge_term_signed: parseBool(f[29]),
-    gpi_d1_done: parseBool(f[30]),
-    notes: textOrNull(f[0]),
-    vgv: parseVgv(f[17]),
+    is_juazeiro: parseBool(getVal(f, m.is_juazeiro)),
+    trichotomy_datetime: textOrNull(getVal(f, m.tricotomia)),
+    sale_year: textOrNull(getVal(f, m.sale_year)),
+    companion_name: textOrNull(getVal(f, m.companion)),
+    companion_phone: textOrNull(getVal(f, m.companion_phone)),
+    d20_contact: parseBool(getVal(f, m.d20)),
+    d15_contact: parseBool(getVal(f, m.d15)),
+    d10_contact: parseBool(getVal(f, m.d10)),
+    d7_contact: parseBool(getVal(f, m.d7)),
+    d2_contact: parseBool(getVal(f, m.d2)),
+    d1_contact: parseBool(getVal(f, m.d1)),
+    lunch_choice: textOrNull(getVal(f, m.lunch)),
+    booking_term_signed: parseBool(getVal(f, m.booking_term)),
+    discharge_term_signed: parseBool(getVal(f, m.discharge_term)),
+    gpi_d1_done: parseBool(getVal(f, m.gpi)),
+    notes: textOrNull(getVal(f, m.notes)),
+    vgv: parseVgv(getVal(f, m.vgv)),
   };
 }
 
@@ -112,7 +179,7 @@ const handler = async (req: Request): Promise<Response> => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const { rows, branch = "Filial Fortaleza" } = await req.json();
+    const { rows, branch = "Filial Fortaleza", headers } = await req.json();
 
     if (!rows || !Array.isArray(rows) || rows.length === 0) {
       return new Response(
@@ -121,13 +188,46 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Generate a unique batch ID for this import
+    // Detect column mapping from headers
+    let columnMap: ColumnMap | null = null;
+    
+    if (headers && Array.isArray(headers)) {
+      columnMap = detectColumns(headers);
+    }
+    
+    // Fallback: try detecting from first row if it looks like a header
+    if (!columnMap && rows.length > 0) {
+      const firstRowFields = typeof rows[0] === 'string' 
+        ? rows[0].split('|').filter((s: string) => s.trim() !== '')
+        : rows[0];
+      const testMap = detectColumns(firstRowFields);
+      if (testMap) {
+        columnMap = testMap;
+        rows.shift(); // Remove header row
+      }
+    }
+
+    if (!columnMap) {
+      return new Response(
+        JSON.stringify({ error: "Could not detect column mapping from headers" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Column mapping detected:", columnMap);
+
     const batchId = `import_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
 
-    const parsed = rows.map((r: string) => parseRow(r, branch)).filter(Boolean).map((record: any) => ({
+    const parsed = rows.map((r: any) => {
+      const fields = typeof r === 'string' 
+        ? r.split('|').filter((s: string, i: number, arr: string[]) => !(i === 0 && s.trim() === '') && !(i === arr.length - 1 && s.trim() === ''))
+        : (Array.isArray(r) ? r.map(String) : []);
+      return parseRow(fields, branch, columnMap!);
+    }).filter(Boolean).map((record: any) => ({
       ...record,
       import_batch_id: batchId,
     }));
+
     console.log(`Parsed ${parsed.length} valid records from ${rows.length} rows`);
 
     if (parsed.length === 0) {
@@ -137,7 +237,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Insert in batches of 50
     let inserted = 0;
     let errors: string[] = [];
     
