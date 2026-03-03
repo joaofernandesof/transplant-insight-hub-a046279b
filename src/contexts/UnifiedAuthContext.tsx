@@ -14,6 +14,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 export type ProfileKey = 'super_administrador' | 'administrador' | 'gerente' | 'coordenador' | 'supervisor' | 'operador' | 'visualizador' | 'externo';
 
+// SEGURANÇA: isSuperAdmin é o ÚNICO bypass total do sistema.
+// isAdmin (administrador) NÃO deve ter bypass total — deve seguir a matriz de permissões.
+export const isSuperAdminProfile = (profile: ProfileKey | null): boolean =>
+  profile === 'super_administrador';
+
 export interface UserProfile {
   key: ProfileKey;
   name: string;
@@ -113,17 +118,26 @@ export const isAdminProfile = (profile: ProfileKey | null): boolean =>
   profile === 'administrador' || profile === 'super_administrador';
 export const canAccessPortal = (profile: ProfileKey | null, portal: Portal): boolean => {
   if (!profile) return false;
-  if (profile === 'administrador' || profile === 'super_administrador') return true;
+  if (profile === 'super_administrador') return true;
+  // Administrador segue a mesma lógica dos demais — verifica mapeamento
   return PROFILE_PORTAL_MAP[profile]?.includes(portal) || false;
 };
 // Mapeamento rota-prefixo → perfis permitidos
 const ROUTE_PROFILE_MAP: Record<string, ProfileKey[]> = {
-  '/admin': ['administrador', 'super_administrador'],
-  '/admin-portal': ['administrador', 'super_administrador'],
-  '/admin-dashboard': ['administrador', 'super_administrador'],
+  // SEGURANÇA: Rotas admin restritas APENAS a super_administrador
+  '/admin': ['super_administrador'],
+  '/admin-portal': ['super_administrador'],
+  '/admin-dashboard': ['super_administrador'],
+  '/access-matrix': ['super_administrador'],
+  '/monitoring': ['super_administrador'],
+  '/system-metrics': ['super_administrador'],
+  '/alunos': ['super_administrador'],
+  '/comparison': ['super_administrador'],
+  // Portais — seguem matriz de permissões
   '/neocare': ['operador', 'administrador', 'super_administrador'],
   '/neoteam': ['operador', 'gerente', 'coordenador', 'supervisor', 'administrador', 'super_administrador'],
   '/academy': ['operador', 'administrador', 'super_administrador'],
+  '/neoacademy': ['operador', 'administrador', 'super_administrador'],
   '/neolicense': ['operador', 'gerente', 'administrador', 'super_administrador'],
   '/hotleads': ['operador', 'gerente', 'administrador', 'super_administrador'],
   '/avivar': ['operador', 'administrador', 'super_administrador'],
@@ -136,10 +150,6 @@ const ROUTE_PROFILE_MAP: Record<string, ProfileKey[]> = {
   '/mentorship': ['operador', 'gerente', 'administrador', 'super_administrador'],
   '/systems': ['operador', 'gerente', 'administrador', 'super_administrador'],
   '/regularization': ['operador', 'gerente', 'administrador', 'super_administrador'],
-  '/alunos': ['administrador', 'super_administrador'],
-  '/comparison': ['administrador', 'super_administrador'],
-  '/monitoring': ['administrador', 'super_administrador'],
-  '/system-metrics': ['administrador', 'super_administrador'],
   '/certificates': ['operador', 'gerente', 'administrador', 'super_administrador'],
   '/license-payments': ['operador', 'gerente', 'administrador', 'super_administrador'],
   '/weekly-reports': ['operador', 'gerente', 'administrador', 'super_administrador'],
@@ -154,7 +164,9 @@ const ROUTE_PROFILE_MAP: Record<string, ProfileKey[]> = {
 
 export const canAccessRoute = (profile: ProfileKey | null, route: string): boolean => {
   if (!profile) return false;
-  if (profile === 'administrador') return true;
+  // SEGURANÇA: Apenas super_administrador tem bypass total.
+  // Administrador deve seguir o ROUTE_PROFILE_MAP normalmente.
+  if (profile === 'super_administrador') return true;
   
   // Encontrar a regra mais específica (prefixo mais longo)
   const matchingPrefix = Object.keys(ROUTE_PROFILE_MAP)
@@ -261,6 +273,8 @@ interface UnifiedAuthContextType {
   
   // Atalhos
   isAdmin: boolean;
+  /** SEGURANÇA: true APENAS para super_administrador — bypass total do sistema */
+  isSuperAdmin: boolean;
 }
 
 const UnifiedAuthContext = createContext<UnifiedAuthContextType | undefined>(undefined);
@@ -337,8 +351,10 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         
       if (ctx.user) {
           const profiles = (ctx.profiles || []).map(p => p.key).filter(k => VALID_PROFILES.includes(k));
-          // Usar is_admin da RPC (fonte única de verdade)
-          const isAdmin = ctx.is_admin === true || profiles.includes('administrador');
+          // SEGURANÇA: isAdmin = true APENAS para super_administrador (bypass total)
+          // Administrador comum NÃO recebe bypass — segue a matriz de permissões
+          const isSuperAdmin = ctx.is_admin === true || profiles.includes('super_administrador');
+          const isAdmin = isSuperAdmin;
           
           // Definir perfil ativo se ainda não definido
           if (!activeProfile && profiles.length > 0) {
@@ -417,7 +433,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           .map(p => p.profile as ProfileKey)
           .filter(p => VALID_PROFILES.includes(p));
 
-        const isAdminByProfile = profiles.includes('administrador');
+        const isAdminByProfile = profiles.includes('super_administrador');
         
         const { data: roleData } = await supabase
           .from('user_roles')
@@ -427,6 +443,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           .single();
         
         const isAdminByRole = !!roleData;
+        // SEGURANÇA: isAdmin = super_administrador OU admin role legado
         const isAdmin = isAdminByProfile || isAdminByRole;
 
         if (isAdminByRole && !isAdminByProfile) {
@@ -683,7 +700,8 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
   // ====================================
 
   const hasProfile = useCallback((profile: ProfileKey): boolean => {
-    if (user?.isAdmin) return true;
+    // SEGURANÇA: Apenas super_administrador tem bypass de perfil
+    if (user?.profiles.includes('super_administrador')) return true;
     return user?.profiles.includes(profile) || false;
   }, [user]);
 
@@ -742,6 +760,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         canAccess,
         canAccessCurrentRoute,
         isAdmin: user?.isAdmin || false,
+        isSuperAdmin: user?.profiles.includes('super_administrador') || false,
       }}
     >
       {children}

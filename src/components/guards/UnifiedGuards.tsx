@@ -235,7 +235,7 @@ export function PortalGuard({
 }
 
 // ====================================
-// AdminRoute - Wrapper para rotas admin
+// AdminRoute - Wrapper para rotas admin (administrador OU super_administrador)
 // ====================================
 
 interface AdminRouteProps {
@@ -249,6 +249,41 @@ export function AdminRoute({ children, fallbackRoute = '/' }: AdminRouteProps) {
       {children}
     </RouteGuard>
   );
+}
+
+// ====================================
+// SuperAdminRoute - EXCLUSIVO para super_administrador
+// ====================================
+// SEGURANÇA: Apenas super_administrador pode acessar.
+// isAdmin NÃO é suficiente — verificação explícita do perfil.
+
+interface SuperAdminRouteProps {
+  children: React.ReactNode;
+  fallbackRoute?: string;
+}
+
+export function SuperAdminRoute({ children, fallbackRoute = '/unauthorized' }: SuperAdminRouteProps) {
+  const { user, isLoading, isSuperAdmin } = useUnifiedAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!isSuperAdmin) {
+    console.warn(`[SuperAdminRoute] BLOCKED: User ${user.email} tried to access ${location.pathname} without super_admin`);
+    return <Navigate to={fallbackRoute} replace />;
+  }
+
+  return <>{children}</>;
 }
 
 // ====================================
