@@ -9372,6 +9372,7 @@ export type Database = {
           is_active: boolean
           is_system: boolean
           name: string
+          public_token: string | null
           questions: Json
           updated_at: string
         }
@@ -9385,6 +9386,7 @@ export type Database = {
           is_active?: boolean
           is_system?: boolean
           name: string
+          public_token?: string | null
           questions?: Json
           updated_at?: string
         }
@@ -9398,6 +9400,7 @@ export type Database = {
           is_active?: boolean
           is_system?: boolean
           name?: string
+          public_token?: string | null
           questions?: Json
           updated_at?: string
         }
@@ -10712,6 +10715,47 @@ export type Database = {
           validity_days?: number | null
         }
         Relationships: []
+      }
+      ipromed_public_form_submissions: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          ip_address: string | null
+          respondent_email: string | null
+          respondent_name: string | null
+          submitted_at: string
+          template_id: string
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          respondent_email?: string | null
+          respondent_name?: string | null
+          submitted_at?: string
+          template_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          respondent_email?: string | null
+          respondent_name?: string | null
+          submitted_at?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_public_form_submissions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_form_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ipromed_publications: {
         Row: {

@@ -30,7 +30,7 @@ import {
   Loader2, FileText, Clock, CheckCircle2, AlertCircle,
   Plus, Pencil, Trash2, GripVertical, UserPlus, FolderOpen,
   ShieldAlert, Star, Scale, FileCheck, LayoutTemplate,
-  ArrowLeft, Save,
+  ArrowLeft, Save, Link2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -57,6 +57,7 @@ interface FormTemplate {
   questions: FormQuestion[];
   is_system: boolean;
   is_active: boolean;
+  public_token: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -250,6 +251,7 @@ export default function IpromedOnboardingForms() {
       questions: [{ id: crypto.randomUUID(), label: "", type: "text", required: false, order: 1 }],
       is_system: false,
       is_active: true,
+      public_token: null,
       created_at: "",
       updated_at: "",
     });
@@ -348,7 +350,7 @@ export default function IpromedOnboardingForms() {
                       <div className="text-xs text-muted-foreground">
                         {t.questions.length} pergunta{t.questions.length !== 1 ? "s" : ""}
                       </div>
-                      <div className="flex gap-2 pt-1">
+                      <div className="flex gap-2 pt-1 flex-wrap">
                         <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => handleSelectTemplate(t)}>
                           <Pencil className="h-3 w-3" />
                           Editar
@@ -363,6 +365,23 @@ export default function IpromedOnboardingForms() {
                           </Button>
                         )}
                       </div>
+                      {t.public_token && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full gap-1.5 text-xs mt-1"
+                          onClick={() => {
+                            const url = `${window.location.origin}/public/form/${t.public_token}`;
+                            navigator.clipboard.writeText(url);
+                            setCopiedId(t.id);
+                            toast.success("Link público copiado!");
+                            setTimeout(() => setCopiedId(null), 2000);
+                          }}
+                        >
+                          {copiedId === t.id ? <Check className="h-3 w-3 text-emerald-500" /> : <Link2 className="h-3 w-3" />}
+                          {copiedId === t.id ? "Copiado!" : "Copiar Link Público"}
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 );
