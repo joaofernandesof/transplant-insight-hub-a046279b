@@ -397,6 +397,32 @@ export function useClinicSurgeries() {
     noDateOver60: noDateOver60.length,
   };
 
+  const deleteSurgery = useMutation({
+    mutationFn: async (id: string) => {
+      // Delete related tasks first
+      await supabase
+        .from('surgery_tasks')
+        .delete()
+        .eq('surgery_id', id);
+
+      const { error } = await supabase
+        .from('clinic_surgeries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
+      toast.success('Paciente removido da agenda!');
+    },
+    onError: () => {
+      toast.error('Erro ao remover paciente da agenda');
+    },
+  });
+
   return {
     surgeries,
     scheduledSurgeries,
@@ -411,5 +437,6 @@ export function useClinicSurgeries() {
     createSurgery,
     updateSurgery,
     rescheduleSurgery,
+    deleteSurgery,
   };
 }
