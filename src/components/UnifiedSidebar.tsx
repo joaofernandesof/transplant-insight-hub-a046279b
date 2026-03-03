@@ -39,6 +39,7 @@ import {
   HeartPulse,
   Scale,
   Flame,
+  Eye,
 } from "lucide-react";
 import { LayoutGrid } from "lucide-react";
 import {
