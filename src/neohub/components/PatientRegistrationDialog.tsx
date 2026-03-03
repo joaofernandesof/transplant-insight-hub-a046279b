@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ export function PatientRegistrationDialog({
   const [surgeryDate, setSurgeryDate] = useState('');
   const [surgeryTime, setSurgeryTime] = useState('');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Fetch branches from database
   useEffect(() => {
@@ -193,8 +195,8 @@ export function PatientRegistrationDialog({
         created_by: user?.id,
       };
 
-      if (data.patient_id) {
-        insertData.patient_id = data.patient_id;
+      if (data.clinic_patient_id) {
+        insertData.patient_id = data.clinic_patient_id;
       }
 
       if (withDate && surgeryDate) {
@@ -207,6 +209,11 @@ export function PatientRegistrationDialog({
         .insert(insertData as any);
 
       if (surgeryError) throw surgeryError;
+
+      // Invalidate all related queries so both views stay in sync
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
 
       toast.success(
         withDate 
