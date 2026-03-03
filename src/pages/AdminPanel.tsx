@@ -835,7 +835,7 @@ export default function AdminPanel() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm text-slate-300 sticky left-[290px] z-10 bg-slate-800">{userProfile.email}</TableCell>
+                            <TableCell className="text-sm text-slate-300">{userProfile.email}</TableCell>
                             <TableCell className="text-sm text-slate-300">{userProfile.clinic_name || '-'}</TableCell>
                             {activePortals.map(portal => {
                               const roleDisplay = getUserRoleInPortal(userProfile.user_id, portal.id);
