@@ -91,7 +91,61 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
             {surgery.procedure && <Badge variant="outline">{surgery.procedure}</Badge>}
             {surgery.category && <Badge variant="outline" className="text-xs">{surgery.category}</Badge>}
 
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-1.5">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 relative" title="Histórico de Alterações">
+                    <History className="h-4 w-4" />
+                    {auditLogs.length > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                        {auditLogs.length > 9 ? '9+' : auditLogs.length}
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-0" align="end">
+                  <div className="p-3 border-b">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      <History className="h-4 w-4 text-muted-foreground" />
+                      Histórico de Alterações
+                    </h4>
+                  </div>
+                  <ScrollArea className="max-h-[350px]">
+                    <div className="p-3">
+                      {logsLoading ? (
+                        <div className="flex items-center justify-center py-4 text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Carregando...
+                        </div>
+                      ) : auditLogs.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma alteração registrada.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {auditLogs.map((log) => (
+                            <div key={log.id} className="flex items-start gap-2 text-xs border-l-2 border-muted pl-3 py-1.5">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-medium text-foreground">{log.user_name || 'Usuário'}</span>
+                                  <span className="text-muted-foreground">alterou</span>
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">{log.field_label || log.field_name}</Badge>
+                                </div>
+                                <div className="mt-0.5 text-muted-foreground">
+                                  <span className="line-through">{log.old_value || '—'}</span>
+                                  <span className="mx-1">→</span>
+                                  <span className="text-foreground font-medium">{log.new_value || '—'}</span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
+                                {format(parseISO(log.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
               <Popover open={rescheduleOpen} onOpenChange={(o) => { setRescheduleOpen(o); if (o) setRescheduleDate(''); }}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-1.5 text-xs">
@@ -375,44 +429,6 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
               />
             </div>
 
-            {/* Histórico de Alterações */}
-            <Separator />
-            <div>
-              <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                <History className="h-4 w-4 text-muted-foreground" />
-                Histórico de Alterações
-              </h4>
-              {logsLoading ? (
-                <div className="flex items-center justify-center py-4 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Carregando histórico...
-                </div>
-              ) : auditLogs.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2">Nenhuma alteração registrada.</p>
-              ) : (
-                <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                  {auditLogs.map((log) => (
-                    <div key={log.id} className="flex items-start gap-2 text-xs border-l-2 border-muted pl-3 py-1.5">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-medium text-foreground">{log.user_name || 'Usuário'}</span>
-                          <span className="text-muted-foreground">alterou</span>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">{log.field_label || log.field_name}</Badge>
-                        </div>
-                        <div className="mt-0.5 text-muted-foreground">
-                          <span className="line-through">{log.old_value || '—'}</span>
-                          <span className="mx-1">→</span>
-                          <span className="text-foreground font-medium">{log.new_value || '—'}</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
-                        {format(parseISO(log.created_at), "dd/MM HH:mm", { locale: ptBR })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </ScrollArea>
       </DialogContent>
