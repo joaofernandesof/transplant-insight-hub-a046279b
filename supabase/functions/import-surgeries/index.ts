@@ -142,7 +142,7 @@ function parseRow(fields: string[], branch: string, m: ColumnMap) {
     grade: parseGrade(getVal(f, m.grade)),
     surgery_date: parseDate(getVal(f, m.date)),
     surgery_time: parseTime(getVal(f, m.time)),
-    schedule_status: "agendado",
+    schedule_status: parseDate(getVal(f, m.date)) ? "agendado" : "sem_data",
     surgery_confirmed: parseBool(getVal(f, m.confirmed)),
     exams_sent: parseBool(getVal(f, m.exams)),
     guides_sent: parseBool(getVal(f, m.guides)),
