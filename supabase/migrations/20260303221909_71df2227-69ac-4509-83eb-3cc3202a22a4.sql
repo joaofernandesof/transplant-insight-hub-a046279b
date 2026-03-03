@@ -1,0 +1,1 @@
+ALTER TABLE clinic_surgeries ADD COLUMN IF NOT EXISTS import_batch_id text DEFAULT NULL;
