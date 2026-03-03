@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useClinicSurgeries, ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useNoDatePatients } from '../hooks/useNoDatePatients';
 import { useBranches } from '../hooks/useBranches';
@@ -53,7 +54,9 @@ const D_FILTERS = [
 type DFilter = typeof D_FILTERS[number]['value'];
 
 export default function ClinicDashboard() {
-  const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
+  const { user, currentBranch, isAdmin: isClinicAdmin, isGestao } = useClinicAuth();
+  const { isAdmin: isUnifiedAdmin } = useUnifiedAuth();
+  const isAdmin = isClinicAdmin || isUnifiedAdmin;
   const { scheduledSurgeries, noDateSurgeries, updateSurgery, rescheduleSurgery, deleteSurgery } = useClinicSurgeries();
   const { violatedIds } = useLockViolations(scheduledSurgeries);
   const { allPatients: noDatePatients } = useNoDatePatients();
