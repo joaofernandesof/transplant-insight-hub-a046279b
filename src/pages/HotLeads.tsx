@@ -38,6 +38,7 @@ import { SaleFormDialog } from '@/components/hotleads/SaleFormDialog';
 import { DiscardFormDialog } from '@/components/hotleads/DiscardFormDialog';
 import { SaleCelebrationPopup } from '@/components/hotleads/SaleCelebrationPopup';
 import { HotLeadsAdminRadiusSettings } from '@/components/hotleads/HotLeadsAdminRadiusSettings';
+import { LeadStateDistributionChart } from '@/components/hotleads/LeadStateDistributionChart';
 
 import type { HotLead, LeadTab } from '@/hooks/useHotLeads';
 import { CompleteProfileGate } from '@/components/hotleads/CompleteProfileGate';
@@ -859,6 +860,13 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
                 );
               })}
             </div>
+
+            {/* State distribution chart */}
+            <LeadStateDistributionChart
+              leads={activeItems}
+              tabLabel={TAB_CONFIG.find(t => t.key === activeTab)?.label || ''}
+              tabColor={TAB_CONFIG.find(t => t.key === activeTab)?.color || 'bg-primary'}
+            />
 
             <div className="flex flex-wrap items-center gap-2">
               {/* Inline filters */}
