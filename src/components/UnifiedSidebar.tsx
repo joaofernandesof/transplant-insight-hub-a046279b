@@ -442,14 +442,16 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {[
+                {([
+                  { key: 'super_administrador', label: 'Super Administrador', icon: Shield },
                   { key: 'administrador', label: 'Administrador', icon: Crown },
-                  { key: 'colaborador', label: 'Colaborador', icon: Clipboard },
-                  { key: 'paciente', label: 'Paciente', icon: HeartPulse },
-                  { key: 'aluno', label: 'Aluno', icon: GraduationCap },
-                  { key: 'licenciado', label: 'Licenciado', icon: Building2 },
-                  { key: 'ipromed', label: 'CPG Advocacia', icon: Scale },
-                ].map(({ key, label, icon: Icon }) => (
+                  { key: 'gerente', label: 'Gerente', icon: Building2 },
+                  { key: 'coordenador', label: 'Coordenador', icon: Clipboard },
+                  { key: 'supervisor', label: 'Supervisor', icon: Star },
+                  { key: 'operador', label: 'Operador', icon: Users },
+                  { key: 'visualizador', label: 'Visualizador', icon: Eye },
+                  { key: 'externo', label: 'Externo', icon: Scale },
+                ] as const).map(({ key, label, icon: Icon }) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
                       <Icon className="h-4 w-4" />
