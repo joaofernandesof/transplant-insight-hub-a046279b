@@ -24,6 +24,7 @@ import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useSurgeryTasks } from '../hooks/useSurgeryTasks';
 import { useSurgeryAuditLog } from '../hooks/useSurgeryAuditLog';
 import { ProcedureCheckboxField } from './ProcedureCheckboxField';
+import { TrichotomyField } from './TrichotomyField';
 
 const UPGRADE_CATEGORIES = [
   { value: 'CATEGORIA A - DR HYGOR', label: 'Categoria A - Dr Hygor' },
@@ -257,46 +258,10 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                 type="time"
                 onSave={handleFieldSave}
               />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Scissors className="h-4 w-4" />
-                  <span>Tricotomia</span>
-                </div>
-                {surgery.trichotomyDatetime === 'NÃO TEM MARCAÇÃO' ? (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-amber-600 border-amber-600/30 bg-amber-500/10">NÃO TEM MARCAÇÃO</Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => handleFieldSave('trichotomyDatetime', '')}
-                    >
-                      <Pencil className="h-3 w-3 mr-1" /> Alterar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <Input
-                      type="datetime-local"
-                      value={surgery.trichotomyDatetime?.includes('/') ? '' : (surgery.trichotomyDatetime?.substring(0, 16) || '')}
-                      placeholder="dd/mm/aaaa hh:mm"
-                      onChange={(e) => handleFieldSave('trichotomyDatetime', e.target.value)}
-                      className="h-8 text-sm"
-                    />
-                    {surgery.trichotomyDatetime && (
-                      <p className="text-xs text-muted-foreground">Atual: {surgery.trichotomyDatetime}</p>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-fit h-7 text-xs text-amber-600 border-amber-600/30 hover:bg-amber-500/10"
-                      onClick={() => handleFieldSave('trichotomyDatetime', 'NÃO TEM MARCAÇÃO')}
-                    >
-                      <XCircle className="h-3 w-3 mr-1" /> Não tem marcação
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <TrichotomyField
+                value={surgery.trichotomyDatetime}
+                onSave={(val) => handleFieldSave('trichotomyDatetime', val)}
+              />
               <div className="col-span-2">
                 <ProcedureCheckboxField
                   value={surgery.procedure || ''}
