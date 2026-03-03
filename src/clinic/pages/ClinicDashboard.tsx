@@ -76,6 +76,7 @@ export default function ClinicDashboard() {
     return tabParam === 'sem-data' ? 'sem-data' : 'agenda';
   });
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showOnlyViolations, setShowOnlyViolations] = useState(false);
 
   // Sync tab from URL params
   useEffect(() => {
@@ -206,6 +207,11 @@ export default function ClinicDashboard() {
         s.medicalRecord?.toLowerCase().includes(term) ||
         s.procedure?.toLowerCase().includes(term)
       );
+    }
+
+    // Lock violation filter
+    if (showOnlyViolations && violatedIds.size > 0) {
+      items = items.filter(s => violatedIds.has(s.id));
     }
 
     // Sort: Today first, then tomorrow, then ascending, then past
@@ -608,12 +614,24 @@ export default function ClinicDashboard() {
 
             {/* Lock violation alert banner */}
             {violatedIds.size > 0 && (
-              <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs">
+              <button
+                onClick={() => {
+                  setShowOnlyViolations(prev => !prev);
+                  setActiveTab('agenda');
+                }}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs transition-colors cursor-pointer w-full text-left",
+                  showOnlyViolations
+                    ? "border-red-600 bg-red-600/20 ring-1 ring-red-500/40"
+                    : "border-red-500/30 bg-red-500/10 hover:bg-red-500/20"
+                )}
+              >
                 <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />
                 <span className="text-red-800 dark:text-red-300 font-medium">
                   ⚠️ {violatedIds.size} cirurgia{violatedIds.size > 1 ? 's' : ''} com trava de agenda violada — tarefas criadas para BRENNA ajustar
+                  {showOnlyViolations && <span className="ml-1 text-red-600">(filtro ativo — clique para remover)</span>}
                 </span>
-              </div>
+              </button>
             )}
           </>
         )}
