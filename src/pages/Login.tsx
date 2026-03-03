@@ -39,7 +39,7 @@ const modules = [
 { id: 'neoacademy', name: 'NeoAcademy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Alunos' },
 { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
 { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
-{ id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
+{ id: 'ipromed', name: 'CPG Advocacia', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
 { id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico IA' },
 { id: 'neopay', name: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', description: 'Pagamentos' },
 { id: 'hotleads', name: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', description: 'Leads' }];

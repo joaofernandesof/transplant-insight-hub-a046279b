@@ -58,7 +58,7 @@ const FOLDER_STRUCTURE = [
   { path: '├── pages/', type: 'folder', desc: 'Páginas e portais do sistema' },
   { path: '│   ├── admin/', type: 'folder', desc: 'Portal Admin' },
   { path: '│   ├── avivar/', type: 'folder', desc: 'Portal Avivar (CRM/Marketing)' },
-  { path: '│   ├── ipromed/', type: 'folder', desc: 'Portal IPROMED (Jurídico)' },
+  { path: '│   ├── ipromed/', type: 'folder', desc: 'Portal CPG Advocacia (Jurídico)' },
   { path: '│   ├── vision/', type: 'folder', desc: 'Portal Vision (Scanner IA)' },
   { path: '│   ├── neohair/', type: 'folder', desc: 'Portal NeoHair' },
   { path: '│   ├── neopay/', type: 'folder', desc: 'Portal NeoPay' },
