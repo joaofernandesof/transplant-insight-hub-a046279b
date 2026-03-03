@@ -620,10 +620,6 @@ export default function ClinicDashboard() {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-4 pb-6 space-y-4">
         {activeTab === 'agenda' ? (
           <>
-            <NoDateRiskQueue
-              surgeries={filteredNoDate}
-              onSetDate={handleSetDate}
-            />
             <SurgeryWeekTable
               surgeries={filteredSurgeries}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
