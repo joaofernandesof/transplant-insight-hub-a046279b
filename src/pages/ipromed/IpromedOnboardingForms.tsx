@@ -80,6 +80,17 @@ interface OnboardingForm {
   ipromed_legal_clients: { name: string } | null;
 }
 
+interface PublicFormSubmission {
+  id: string;
+  template_id: string;
+  respondent_name: string | null;
+  respondent_email: string | null;
+  answers: Record<string, any>;
+  submitted_at: string;
+  created_at: string;
+  ipromed_form_templates: { name: string; questions: FormQuestion[] | string } | null;
+}
+
 // ── Constants ──
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -119,6 +130,7 @@ export default function IpromedOnboardingForms() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedForm, setSelectedForm] = useState<OnboardingForm | null>(null);
+  const [selectedPublicSubmission, setSelectedPublicSubmission] = useState<PublicFormSubmission | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Template states
@@ -153,6 +165,26 @@ export default function IpromedOnboardingForms() {
         ...t,
         questions: (typeof t.questions === 'string' ? JSON.parse(t.questions) : t.questions) as FormQuestion[],
       })) as FormTemplate[];
+    },
+  });
+
+  const { data: publicSubmissions, isLoading: publicLoading } = useQuery({
+    queryKey: ["ipromed-public-submissions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ipromed_public_form_submissions")
+        .select("*, ipromed_form_templates(name, questions)")
+        .order("submitted_at", { ascending: false });
+      if (error) throw error;
+      return (data || []).map((s: any) => ({
+        ...s,
+        ipromed_form_templates: s.ipromed_form_templates ? {
+          ...s.ipromed_form_templates,
+          questions: typeof s.ipromed_form_templates.questions === 'string'
+            ? JSON.parse(s.ipromed_form_templates.questions)
+            : s.ipromed_form_templates.questions,
+        } : null,
+      })) as PublicFormSubmission[];
     },
   });
 
@@ -219,9 +251,9 @@ export default function IpromedOnboardingForms() {
   });
 
   const stats = {
-    total: (forms || []).length,
+    total: (forms || []).length + (publicSubmissions || []).length,
     pending: (forms || []).filter((f) => f.status === "pending").length,
-    submitted: (forms || []).filter((f) => f.status === "submitted").length,
+    submitted: (forms || []).filter((f) => f.status === "submitted").length + (publicSubmissions || []).length,
   };
 
   const copyLink = (token: string, id: string) => {
@@ -485,6 +517,51 @@ export default function IpromedOnboardingForms() {
               </Table>
             </CardContent></Card>
           )}
+
+          {/* ── Submissões Públicas ── */}
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mt-6 mb-3">
+            📨 Submissões via Link Público
+          </h3>
+          {publicLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : !publicSubmissions || publicSubmissions.length === 0 ? (
+            <Card><CardContent className="py-8 text-center text-muted-foreground">
+              <ClipboardList className="h-8 w-8 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">Nenhuma submissão pública recebida ainda</p>
+            </CardContent></Card>
+          ) : (
+            <Card><CardContent className="p-0">
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Respondente</TableHead>
+                  <TableHead>Formulário</TableHead>
+                  <TableHead>Enviado em</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {publicSubmissions.map((sub) => (
+                    <TableRow key={sub.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-sm">{sub.respondent_name || "Anônimo"}</p>
+                          {sub.respondent_email && <p className="text-xs text-muted-foreground">{sub.respondent_email}</p>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">{sub.ipromed_form_templates?.name || "—"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {format(new Date(sub.submitted_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedPublicSubmission(sub)} title="Ver respostas">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent></Card>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -518,7 +595,50 @@ export default function IpromedOnboardingForms() {
         </DialogContent>
       </Dialog>
 
-      {/* Template Selector Dialog */}
+      {/* Public Submission Detail Dialog */}
+      <Dialog open={!!selectedPublicSubmission} onOpenChange={() => setSelectedPublicSubmission(null)}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5" />
+              Respostas do Formulário Público
+            </DialogTitle>
+          </DialogHeader>
+          {selectedPublicSubmission && (
+            <div className="space-y-4">
+              <InfoRow label="Respondente" value={selectedPublicSubmission.respondent_name || "Anônimo"} />
+              <InfoRow label="E-mail" value={selectedPublicSubmission.respondent_email} />
+              <InfoRow label="Formulário" value={selectedPublicSubmission.ipromed_form_templates?.name} />
+              <InfoRow label="Enviado em" value={format(new Date(selectedPublicSubmission.submitted_at), "dd/MM/yyyy HH:mm", { locale: ptBR })} />
+              <hr className="border-border" />
+              <h4 className="font-semibold text-sm">Respostas</h4>
+              {(() => {
+                const questions = (selectedPublicSubmission.ipromed_form_templates?.questions || []) as FormQuestion[];
+                const answers = selectedPublicSubmission.answers || {};
+                if (questions.length === 0) {
+                  return Object.entries(answers).map(([key, val]) => (
+                    <InfoRow key={key} label={key} value={String(val ?? "—")} />
+                  ));
+                }
+                return questions
+                  .sort((a, b) => a.order - b.order)
+                  .map((q) => (
+                    <InfoRow
+                      key={q.id}
+                      label={q.label}
+                      value={
+                        answers[q.id] === true ? "Sim" :
+                        answers[q.id] === false ? "Não" :
+                        answers[q.id] != null ? String(answers[q.id]) : "—"
+                      }
+                    />
+                  ));
+              })()}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showTemplateSelector} onOpenChange={setShowTemplateSelector}>
         <DialogContent className="max-w-2xl max-h-[85vh]">
           <DialogHeader>
