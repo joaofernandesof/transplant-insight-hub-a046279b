@@ -861,6 +861,13 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               })}
             </div>
 
+            {/* State distribution chart */}
+            <LeadStateDistributionChart
+              leads={activeItems}
+              tabLabel={TAB_CONFIG.find(t => t.key === activeTab)?.label || ''}
+              tabColor={TAB_CONFIG.find(t => t.key === activeTab)?.color || 'bg-primary'}
+            />
+
             <div className="flex flex-wrap items-center gap-2">
               {/* Inline filters */}
               <div className="hidden sm:flex items-center gap-2 shrink-0">
