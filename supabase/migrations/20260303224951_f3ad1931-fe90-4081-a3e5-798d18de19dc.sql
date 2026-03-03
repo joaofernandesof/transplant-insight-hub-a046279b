@@ -1,0 +1,1 @@
+UPDATE clinic_surgeries SET schedule_status = 'sem_data' WHERE surgery_date IS NULL AND schedule_status = 'agendado';
