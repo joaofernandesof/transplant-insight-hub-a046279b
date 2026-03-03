@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -15,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
   CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil,
-  ChevronDown, ChevronRight, Loader2, History, CalendarClock, CalendarX2
+  ChevronDown, ChevronRight, Loader2, History, CalendarClock, CalendarX2, Trash2
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -48,9 +49,11 @@ interface SurgeryDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   onUpdate?: (id: string, updates: Partial<ClinicSurgery>) => void;
   onReschedule?: (id: string, newDate: string | null) => void;
+  onDelete?: (id: string) => void;
+  canDelete?: boolean;
 }
 
-export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onReschedule }: SurgeryDetailDialogProps) {
+export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onReschedule, onDelete, canDelete }: SurgeryDetailDialogProps) {
   const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask } = useSurgeryTasks(surgery?.id);
   const { logs: auditLogs, isLoading: logsLoading } = useSurgeryAuditLog(surgery?.id);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -199,6 +202,36 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                   </div>
                 </PopoverContent>
               </Popover>
+              {canDelete && onDelete && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="gap-1.5 text-xs">
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Excluir
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir da agenda?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        O paciente <strong>{surgery.patientName}</strong> será removido da agenda cirúrgica. Todas as tarefas associadas também serão excluídas. Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={() => {
+                          onDelete(surgery.id);
+                          onOpenChange(false);
+                        }}
+                      >
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           </div>
         </DialogHeader>

@@ -54,7 +54,7 @@ type DFilter = typeof D_FILTERS[number]['value'];
 
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
-  const { scheduledSurgeries, noDateSurgeries, updateSurgery, rescheduleSurgery } = useClinicSurgeries();
+  const { scheduledSurgeries, noDateSurgeries, updateSurgery, rescheduleSurgery, deleteSurgery } = useClinicSurgeries();
   const { violatedIds } = useLockViolations(scheduledSurgeries);
   const { allPatients: noDatePatients } = useNoDatePatients();
   const { branches: allowedBranches } = useBranches();
@@ -624,6 +624,8 @@ export default function ClinicDashboard() {
               surgeries={filteredSurgeries}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
               onReschedule={(id, newDate) => rescheduleSurgery.mutate({ id, newDate })}
+              onDelete={(id) => deleteSurgery.mutate(id)}
+              canDelete={isAdmin}
               title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
               violatedIds={violatedIds}
             />
@@ -633,6 +635,8 @@ export default function ClinicDashboard() {
               onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
               onReschedule={(id, newDate) => rescheduleSurgery.mutate({ id, newDate })}
+              onDelete={(id) => deleteSurgery.mutate(id)}
+              canDelete={isAdmin}
             />
           </>
         ) : (
