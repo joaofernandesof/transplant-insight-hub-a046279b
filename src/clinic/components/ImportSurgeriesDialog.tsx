@@ -7,6 +7,7 @@ import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2 } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { useNeoTeamBranches } from '@/neohub/hooks/useNeoTeamBranches';
 
 interface ImportSurgeriesDialogProps {
   open: boolean;
@@ -15,11 +16,19 @@ interface ImportSurgeriesDialogProps {
 }
 
 export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportSurgeriesDialogProps) {
+  const { branches } = useNeoTeamBranches();
   const [file, setFile] = useState<File | null>(null);
-  const [branch, setBranch] = useState('Filial Fortaleza');
+  const [branch, setBranch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; inserted?: number; errors?: string[] } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Set default branch when branches load
+  React.useEffect(() => {
+    if (branches.length > 0 && !branch) {
+      setBranch(branches[0].name);
+    }
+  }, [branches, branch]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -105,10 +114,9 @@ export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportS
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Filial Fortaleza">Filial Fortaleza</SelectItem>
-                <SelectItem value="Filial Recife">Filial Recife</SelectItem>
-                <SelectItem value="Filial Salvador">Filial Salvador</SelectItem>
-                <SelectItem value="Filial São Paulo">Filial São Paulo</SelectItem>
+                {branches.map(b => (
+                  <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
