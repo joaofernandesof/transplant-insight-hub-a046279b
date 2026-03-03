@@ -20,7 +20,7 @@ import { ProfileUpdateGuard } from "@/components/ProfileUpdateGuard";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { queryClient } from "@/lib/queryClient";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
-import { ProtectedRoute, ProfileGuard, AdminRoute, MobileGuard } from "@/components/guards";
+import { ProtectedRoute, ProfileGuard, AdminRoute, SuperAdminRoute, MobileGuard } from "@/components/guards";
 import { PROFILE_ROUTES, getDefaultRouteForProfile } from "@/neohub/lib/permissions";
 import { MobileAppWrapper } from "@/components/MobileAppWrapper";
 import { useMobileEnvironment } from "@/hooks/useMobileEnvironment";
@@ -603,46 +603,48 @@ const NeoAcademyAdminSettings = React.lazy(() => import('./neoacademy/pages/NeoA
 
 function NeoAcademyRoutes() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0a0f]"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>}>
-      <Routes>
-        {/* Direct survey route - no sidebar wrapper */}
-        <Route path="pesquisa-dia2/:classId" element={<Day2SurveyPage />} />
-        
-        {/* All other routes with sidebar */}
-        <Route path="*" element={
-          <NeoAcademySidebar>
-            <Routes>
-              <Route index element={<NeoAcademyDashboard />} />
-              <Route path="catalog" element={<NeoAcademyCatalog />} />
-              <Route path="course/:courseId" element={<NeoAcademyCourseDetail />} />
-              <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
-              <Route path="my-courses" element={<NeoAcademyMyCourses />} />
-              <Route path="continue" element={<NeoAcademyContinue />} />
-              <Route path="community" element={<NeoAcademyCommunity />} />
-              <Route path="certificates" element={<NeoAcademyCertificates />} />
-              {/* Presential courses - migrated from Academy */}
-              <Route path="schedule" element={<AcademySchedule />} />
-              <Route path="classes/:classId" element={<AcademyClassDetail />} />
-              <Route path="exams" element={<AcademyExams />} />
-              <Route path="exams/:examId/take" element={<AcademyExamTaking />} />
-              <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
-              <Route path="chat" element={<AcademyChat />} />
-              <Route path="chat/:recipientId" element={<AcademyChat />} />
-              <Route path="referral" element={<AcademyReferral />} />
-              <Route path="profile" element={<AcademySettings />} />
-              {/* Admin */}
-              <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
-              <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
-              <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
-              <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
-              <Route path="admin/surveys" element={<SurveyManagement />} />
-              <Route path="admin/settings" element={<NeoAcademyAdminSettings />} />
-              <Route path="*" element={<Navigate to="/neoacademy" replace />} />
-            </Routes>
-          </NeoAcademySidebar>
-        } />
-      </Routes>
-    </Suspense>
+    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
+      <Suspense fallback={<div className="flex h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+        <Routes>
+          {/* Direct survey route - no sidebar wrapper */}
+          <Route path="pesquisa-dia2/:classId" element={<Day2SurveyPage />} />
+          
+          {/* All other routes with sidebar */}
+          <Route path="*" element={
+            <NeoAcademySidebar>
+              <Routes>
+                <Route index element={<NeoAcademyDashboard />} />
+                <Route path="catalog" element={<NeoAcademyCatalog />} />
+                <Route path="course/:courseId" element={<NeoAcademyCourseDetail />} />
+                <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
+                <Route path="my-courses" element={<NeoAcademyMyCourses />} />
+                <Route path="continue" element={<NeoAcademyContinue />} />
+                <Route path="community" element={<NeoAcademyCommunity />} />
+                <Route path="certificates" element={<NeoAcademyCertificates />} />
+                {/* Presential courses - migrated from Academy */}
+                <Route path="schedule" element={<AcademySchedule />} />
+                <Route path="classes/:classId" element={<AcademyClassDetail />} />
+                <Route path="exams" element={<AcademyExams />} />
+                <Route path="exams/:examId/take" element={<AcademyExamTaking />} />
+                <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
+                <Route path="chat" element={<AcademyChat />} />
+                <Route path="chat/:recipientId" element={<AcademyChat />} />
+                <Route path="referral" element={<AcademyReferral />} />
+                <Route path="profile" element={<AcademySettings />} />
+                {/* Admin */}
+                <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
+                <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
+                <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
+                <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
+                <Route path="admin/surveys" element={<SurveyManagement />} />
+                <Route path="admin/settings" element={<NeoAcademyAdminSettings />} />
+                <Route path="*" element={<Navigate to="/neoacademy" replace />} />
+              </Routes>
+            </NeoAcademySidebar>
+          } />
+        </Routes>
+      </Suspense>
+    </ProfileGuard>
   );
 }
 
@@ -784,15 +786,15 @@ function AppRoutes() {
       <Route path="/forms/onboarding/:token" element={<LazyRoute><OnboardingPublicForm /></LazyRoute>} />
       <Route path="/neocare-landing" element={<NeoCareLanding />} />
       <Route path="/neocare-protect" element={<NeoCareProductLanding />} />
-      <Route path="/audit-report" element={<AuditReportExport />} />
+      <Route path="/audit-report" element={<ProtectedRoute><AdminRoute><AuditReportExport /></AdminRoute></ProtectedRoute>} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/public/dashboard/:token" element={<Suspense fallback={<div className="p-6 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}><PublicDashboardPage /></Suspense>} />
       <Route path="/neohub" element={<NeoHubSalesPage />} />
-      <Route path="/docs/architecture" element={<LazyRoute><ArchitectureDocDownload /></LazyRoute>} />
-      <Route path="/export-users" element={<Suspense fallback={<div className="p-6">Gerando...</div>}><ExportUsersCSV /></Suspense>} />
-      <Route path="/docs/flow-do" element={<LazyRoute><FlowDoArchitecturePlan /></LazyRoute>} />
+      <Route path="/docs/architecture" element={<ProtectedRoute><AdminRoute><LazyRoute><ArchitectureDocDownload /></LazyRoute></AdminRoute></ProtectedRoute>} />
+      <Route path="/export-users" element={<ProtectedRoute><AdminRoute><Suspense fallback={<div className="p-6">Gerando...</div>}><ExportUsersCSV /></Suspense></AdminRoute></ProtectedRoute>} />
+      <Route path="/docs/flow-do" element={<ProtectedRoute><AdminRoute><LazyRoute><FlowDoArchitecturePlan /></LazyRoute></AdminRoute></ProtectedRoute>} />
       
        
        {/* Landing Page HotLeads - Pública */}
@@ -808,7 +810,7 @@ function AppRoutes() {
 
         {/* Contatos Oficiais - Neo Group */}
         <Route path="/contatos" element={<LazyRoute><ContatosOficiais /></LazyRoute>} />
-        <Route path="/contatos/admin" element={<LazyRoute><ContatosAdmin /></LazyRoute>} />
+        <Route path="/contatos/admin" element={<ProtectedRoute><AdminRoute><LazyRoute><ContatosAdmin /></LazyRoute></AdminRoute></ProtectedRoute>} />
 
         {/* Google Calendar OAuth Callback - fora do ProtectedRoute para não perder sessão no redirect */}
         <Route path="/avivar/google-callback" element={<LazyRoute><GoogleCalendarCallback /></LazyRoute>} />
@@ -892,43 +894,43 @@ function AppRoutes() {
       {/* ====================================
           Portal Administrativo (com layout próprio)
           ==================================== */}
-      <Route path="/admin-portal" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
-      <Route path="/admin-portal/monitoring" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><NeoHubMonitoring /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/birthdays" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><BirthdayControlPage /></AdminLayout></Suspense></AdminRoute>} />
-      <Route path="/admin-portal/*" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
+      <Route path="/admin-portal" element={<SuperAdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></SuperAdminRoute>} />
+      <Route path="/admin-portal/monitoring" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><NeoHubMonitoring /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/birthdays" element={<SuperAdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><BirthdayControlPage /></AdminLayout></Suspense></SuperAdminRoute>} />
+      <Route path="/admin-portal/*" element={<SuperAdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></SuperAdminRoute>} />
       
       {/* ====================================
           Rotas Admin Legado (mantidas para compatibilidade)
           ==================================== */}
       <Route path="/admin-dashboard" element={<Navigate to="/admin-portal" replace />} />
       <Route path="/dashboard" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/alunos" element={<AdminRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/comparison" element={<AdminRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/alunos" element={<SuperAdminRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></SuperAdminRoute>} />
+      <Route path="/comparison" element={<SuperAdminRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></SuperAdminRoute>} />
       <Route path="/regularization" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/marketing" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Marketing /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/store" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Store /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/financial" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/mentorship" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/systems" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/admin" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/access-matrix" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/access-matrix" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
       <Route path="/certificates" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/license-payments" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProfileGuard>} />
-      <Route path="/monitoring" element={<AdminRoute><SidebarWrapper><LazyRoute><UserMonitoring /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/system-metrics" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemMetrics /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/sentinel" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemSentinel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/announcements" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AnnouncementsAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/banners" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><BannersAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/module-overrides" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><ModuleOverridesAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/referrals" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><ReferralsAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/event-logs" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><EventLogs /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/code-assistant" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/surgery-schedule" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SurgerySchedule /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/schedule-rules" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><ScheduleRulesAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/travas-agenda" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><ScheduleWeekLocksAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/licensee-onboarding" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/sales-urgency" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SalesUrgencyPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
-      <Route path="/admin/approvals" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><UserApprovals /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/monitoring" element={<SuperAdminRoute><SidebarWrapper><LazyRoute><UserMonitoring /></LazyRoute></SidebarWrapper></SuperAdminRoute>} />
+      <Route path="/system-metrics" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><SystemMetrics /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/sentinel" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><SystemSentinel /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/announcements" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><AnnouncementsAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/banners" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><BannersAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/module-overrides" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><ModuleOverridesAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/referrals" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><ReferralsAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/event-logs" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><EventLogs /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/code-assistant" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/surgery-schedule" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><SurgerySchedule /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/schedule-rules" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><ScheduleRulesAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/travas-agenda" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><ScheduleWeekLocksAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/licensee-onboarding" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/sales-urgency" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><SalesUrgencyPage /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/approvals" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><UserApprovals /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
       <Route path="/weekly-reports" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/sala-tecnica" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProfileGuard>} />
       <Route path="/consolidated-results" element={<ProfileGuard allowedProfiles={['operador']}><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProfileGuard>} />

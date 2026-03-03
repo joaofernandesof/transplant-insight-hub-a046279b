@@ -9,6 +9,7 @@ export {
   ProfileGuard,
   PortalGuard,
   AdminRoute,
+  SuperAdminRoute,
   ComponentGuard,
 } from './UnifiedGuards';
 
