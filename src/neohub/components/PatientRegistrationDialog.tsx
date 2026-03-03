@@ -21,10 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, UserPlus, Mail, MessageSquare, Check, User, FileText, DollarSign } from 'lucide-react';
+import { Loader2, UserPlus, Mail, MessageSquare, Check, User, FileText, DollarSign, CalendarDays, CalendarOff, CalendarCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ProcedureCheckboxField } from '@/clinic/components/ProcedureCheckboxField';
+import { useNavigate } from 'react-router-dom';
 
 interface PatientRegistrationDialogProps {
   open: boolean;
@@ -45,15 +46,21 @@ const CATEGORIES = [
 const LEAD_SOURCES = ['INDICAÇÃO', 'GOOGLE', 'INSTAGRAM', 'FACEBOOK', 'TIKTOK', 'YOUTUBE', 'SITE', 'EVENTO', 'OUTROS'];
 const CONTRACT_STATUS = ['PENDENTE', 'ASSINADO', 'CANCELADO', 'EM_ANALISE'];
 
+type Step = 'form' | 'date-choice' | 'success';
+
 export function PatientRegistrationDialog({ 
   open, 
   onOpenChange, 
   onSuccess 
 }: PatientRegistrationDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState<'form' | 'success'>('form');
+  const [step, setStep] = useState<Step>('form');
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   const [branches, setBranches] = useState<string[]>(BRANCHES_FALLBACK);
+  const [surgeryDate, setSurgeryDate] = useState('');
+  const [surgeryTime, setSurgeryTime] = useState('');
+  const [registeredPatientId, setRegisteredPatientId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // Fetch branches from database
   useEffect(() => {
@@ -129,7 +136,7 @@ export function PatientRegistrationDialog({
     return parseInt(numbers) / 100;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.full_name || !formData.phone) {
@@ -153,7 +160,6 @@ export function PatientRegistrationDialog({
           cpf: formData.cpf || undefined,
           birth_date: formData.birth_date || undefined,
           send_credentials_via: sendVia,
-          // Dados comerciais para criar venda associada
           branch: formData.branch || undefined,
           category: formData.category || undefined,
           service_type: formData.service_type || undefined,
@@ -175,13 +181,16 @@ export function PatientRegistrationDialog({
         return;
       }
 
+      setRegisteredPatientId(data.patient_id || null);
       setCredentials({
         email: formData.email,
         password: '(enviada por email/WhatsApp)'
       });
-      setStep('success');
       toast.success('Paciente cadastrado com sucesso!');
       onSuccess?.();
+      
+      // Go to date choice step
+      setStep('date-choice');
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erro ao cadastrar paciente');
@@ -190,9 +199,60 @@ export function PatientRegistrationDialog({
     }
   };
 
+  const createSurgeryAndNavigate = async (withDate: boolean) => {
+    setIsLoading(true);
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+
+      const insertData: Record<string, any> = {
+        patient_name: formData.full_name,
+        branch: formData.branch || null,
+        procedure: formData.service_type || null,
+        category: formData.category || null,
+        schedule_status: withDate ? 'agendado' : 'sem_data',
+        notes: formData.notes || null,
+        created_by: user?.id,
+      };
+
+      if (registeredPatientId) {
+        insertData.patient_id = registeredPatientId;
+      }
+
+      if (withDate && surgeryDate) {
+        insertData.surgery_date = surgeryDate;
+        insertData.surgery_time = surgeryTime || null;
+      }
+
+      const { error } = await supabase
+        .from('clinic_surgeries')
+        .insert(insertData as any);
+
+      if (error) throw error;
+
+      toast.success(withDate ? 'Cirurgia agendada com sucesso!' : 'Paciente adicionado à fila sem data.');
+      
+      handleClose();
+      
+      // Navigate to appropriate tab
+      if (withDate) {
+        navigate('/neoteam/agenda-cirurgica?tab=agenda');
+      } else {
+        navigate('/neoteam/agenda-cirurgica?tab=sem-data');
+      }
+    } catch (error) {
+      console.error('Error creating surgery:', error);
+      toast.error('Erro ao criar registro na agenda');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleClose = () => {
     setStep('form');
     setCredentials(null);
+    setRegisteredPatientId(null);
+    setSurgeryDate('');
+    setSurgeryTime('');
     setFormData({
       full_name: '',
       email: '',
@@ -232,7 +292,7 @@ export function PatientRegistrationDialog({
             </DialogHeader>
 
             <ScrollArea className="max-h-[60vh] pr-4">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmitForm} className="space-y-6">
                 {/* Dados Pessoais */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-sm font-medium text-primary">
@@ -499,7 +559,7 @@ export function PatientRegistrationDialog({
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancelar
               </Button>
-              <Button onClick={handleSubmit} disabled={isLoading}>
+              <Button onClick={handleSubmitForm} disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -513,6 +573,99 @@ export function PatientRegistrationDialog({
                 )}
               </Button>
             </DialogFooter>
+          </>
+        ) : step === 'date-choice' ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-primary" />
+                Definir Data da Cirurgia
+              </DialogTitle>
+              <DialogDescription>
+                Paciente <strong>{formData.full_name}</strong> cadastrado com sucesso. Agora defina a data da cirurgia.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Resumo do paciente */}
+              <div className="bg-muted rounded-lg p-3 space-y-1 text-sm">
+                <p><strong>Paciente:</strong> {formData.full_name}</p>
+                {formData.service_type && <p><strong>Procedimento:</strong> {formData.service_type}</p>}
+                {formData.category && <p><strong>Categoria:</strong> {formData.category}</p>}
+                {formData.branch && <p><strong>Filial:</strong> {formData.branch}</p>}
+              </div>
+
+              <Separator />
+
+              {/* Opções de data */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Sem Data */}
+                <div
+                  className="border rounded-lg p-4 space-y-3 cursor-pointer hover:border-destructive/50 hover:bg-destructive/5 transition-colors group"
+                  onClick={() => !isLoading && createSurgeryAndNavigate(false)}
+                >
+                  <div className="flex items-center gap-2 text-destructive">
+                    <CalendarOff className="h-5 w-5" />
+                    <span className="font-semibold">Sem Data Definida</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    O paciente será adicionado à fila de espera sem data. Você poderá definir a data depois.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    disabled={isLoading}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      createSurgeryAndNavigate(false);
+                    }}
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ir para Fila Sem Data'}
+                  </Button>
+                </div>
+
+                {/* Com Data */}
+                <div className="border rounded-lg p-4 space-y-3 hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                  <div className="flex items-center gap-2 text-primary">
+                    <CalendarCheck className="h-5 w-5" />
+                    <span className="font-semibold">Com Data Definida</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="surgery_date" className="text-xs">Data *</Label>
+                      <Input
+                        id="surgery_date"
+                        type="date"
+                        value={surgeryDate}
+                        onChange={(e) => setSurgeryDate(e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="surgery_time" className="text-xs">Horário</Label>
+                      <Input
+                        id="surgery_time"
+                        type="time"
+                        value={surgeryTime}
+                        onChange={(e) => setSurgeryTime(e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    disabled={isLoading || !surgeryDate}
+                    onClick={() => createSurgeryAndNavigate(true)}
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Agendar e Ir para Agenda'}
+                  </Button>
+                </div>
+              </div>
+            </div>
           </>
         ) : (
           <>

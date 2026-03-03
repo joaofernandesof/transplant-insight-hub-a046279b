@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useClinicSurgeries, ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useNoDatePatients } from '../hooks/useNoDatePatients';
@@ -59,6 +59,7 @@ export default function ClinicDashboard() {
   const { allPatients: noDatePatients } = useNoDatePatients();
   const { branches: allowedBranches } = useBranches();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const isNeoTeamContext = location.pathname.includes('/neoteam/');
 
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
@@ -67,8 +68,18 @@ export default function ClinicDashboard() {
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeDFilters, setActiveDFilters] = useState<Set<DFilter>>(new Set());
-  const [activeTab, setActiveTab] = useState<'agenda' | 'sem-data'>('agenda');
+  const [activeTab, setActiveTab] = useState<'agenda' | 'sem-data'>(() => {
+    const tabParam = searchParams.get('tab');
+    return tabParam === 'sem-data' ? 'sem-data' : 'agenda';
+  });
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  // Sync tab from URL params
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'sem-data') setActiveTab('sem-data');
+    else if (tabParam === 'agenda') setActiveTab('agenda');
+  }, [searchParams]);
 
   const canFilterBranch = isAdmin || isGestao;
 
