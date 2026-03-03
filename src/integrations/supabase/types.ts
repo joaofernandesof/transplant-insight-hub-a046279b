@@ -4318,6 +4318,7 @@ export type Database = {
           grade: number | null
           guides_sent: boolean | null
           id: string
+          import_batch_id: string | null
           is_juazeiro: boolean | null
           lunch_choice: string | null
           medical_record: string | null
@@ -4366,6 +4367,7 @@ export type Database = {
           grade?: number | null
           guides_sent?: boolean | null
           id?: string
+          import_batch_id?: string | null
           is_juazeiro?: boolean | null
           lunch_choice?: string | null
           medical_record?: string | null
@@ -4414,6 +4416,7 @@ export type Database = {
           grade?: number | null
           guides_sent?: boolean | null
           id?: string
+          import_batch_id?: string | null
           is_juazeiro?: boolean | null
           lunch_choice?: string | null
           medical_record?: string | null

@@ -121,7 +121,13 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const parsed = rows.map((r: string) => parseRow(r, branch)).filter(Boolean);
+    // Generate a unique batch ID for this import
+    const batchId = `import_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+
+    const parsed = rows.map((r: string) => parseRow(r, branch)).filter(Boolean).map((record: any) => ({
+      ...record,
+      import_batch_id: batchId,
+    }));
     console.log(`Parsed ${parsed.length} valid records from ${rows.length} rows`);
 
     if (parsed.length === 0) {
@@ -156,6 +162,7 @@ const handler = async (req: Request): Promise<Response> => {
         total_rows: rows.length,
         parsed: parsed.length,
         inserted,
+        batch_id: batchId,
         errors: errors.length > 0 ? errors : undefined,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
