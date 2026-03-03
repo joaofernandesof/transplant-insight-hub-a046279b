@@ -1,5 +1,5 @@
 /**
- * IPROMED Reports - Relatórios do Portal IPROMED
+ * CPG Advocacia - Relatórios do Portal CPG
  */
 import { ReportsPageTemplate, ReportDefinition } from '@/components/reports/ReportsPageTemplate';
 import { Users, FileText, DollarSign, Scale, Target, GraduationCap, BarChart3, TrendingUp } from 'lucide-react';

@@ -25,7 +25,7 @@ const modules = [
   { id: 'neoacademy', name: 'NeoAcademy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Cursos e Certificações' },
   { id: 'neolicense', name: 'Licença', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Portal do Licenciado' },
   { id: 'avivar', name: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-500', description: 'CRM + IA para Vendas' },
-  { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Proteção Médico-Legal' },
+  { id: 'ipromed', name: 'CPG Advocacia', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Advocacia Médica' },
   { id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico por IA' },
   { id: 'neopay', name: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', description: 'Gateway de Pagamentos' },
   { id: 'hotleads', name: 'HotLeads', icon: Flame, gradient: 'from-orange-500 to-red-600', description: 'Marketplace de Leads' },
