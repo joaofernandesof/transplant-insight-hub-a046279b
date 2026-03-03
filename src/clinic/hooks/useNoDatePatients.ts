@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { differenceInDays } from 'date-fns';
 import { useMemo, useState } from 'react';
 
@@ -43,11 +44,14 @@ const defaultFilters: NoDateFilters = {
 
 export function useNoDatePatients() {
   const { user, currentBranch, isAdmin, isGestao } = useClinicAuth();
+  const { session, isAdmin: isUnifiedAdmin } = useUnifiedAuth();
+  const effectiveAdmin = isAdmin || isUnifiedAdmin;
+  const effectiveGestao = isGestao;
   const [filters, setFilters] = useState<NoDateFilters>(defaultFilters);
 
   // Fetch sales with active contracts
   const { data: salesData = [], isLoading: loadingSales } = useQuery({
-    queryKey: ['no-date-patients-sales', currentBranch, isAdmin, isGestao],
+    queryKey: ['no-date-patients-sales', currentBranch, effectiveAdmin, effectiveGestao],
     queryFn: async () => {
       let query = supabase
         .from('clinic_sales')
@@ -57,7 +61,7 @@ export function useNoDatePatients() {
         `)
         .neq('contract_status', 'cancelado');
 
-      if (!isAdmin && !isGestao && currentBranch) {
+      if (!effectiveAdmin && !effectiveGestao && currentBranch) {
         query = query.eq('branch', currentBranch);
       }
 
@@ -65,12 +69,12 @@ export function useNoDatePatients() {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!session,
   });
 
   // Fetch all surgeries to check which patients have future scheduled ones
   const { data: surgeriesData = [], isLoading: loadingSurgeries } = useQuery({
-    queryKey: ['no-date-patients-surgeries', currentBranch, isAdmin, isGestao],
+    queryKey: ['no-date-patients-surgeries', currentBranch, effectiveAdmin, effectiveGestao],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
@@ -82,7 +86,28 @@ export function useNoDatePatients() {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!session,
+  });
+
+  // Also fetch surgeries with sem_data status (created directly, not from sales)
+  const { data: semDataSurgeries = [], isLoading: loadingSemData } = useQuery({
+    queryKey: ['no-date-surgeries-direct', currentBranch, effectiveAdmin, effectiveGestao],
+    queryFn: async () => {
+      let query = supabase
+        .from('clinic_surgeries')
+        .select('id, patient_id, patient_name, branch, procedure, category, created_at, sale_id, clinic_patients!clinic_surgeries_patient_id_fkey(full_name)')
+        .eq('schedule_status', 'sem_data')
+        .is('surgery_date', null);
+
+      if (!effectiveAdmin && !effectiveGestao && currentBranch) {
+        query = query.eq('branch', currentBranch);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!session,
   });
 
   // Derive "sold without date" patients
@@ -95,7 +120,8 @@ export function useNoDatePatients() {
 
     const today = new Date();
 
-    return salesData
+    // From sales without scheduled surgery
+    const fromSales = salesData
       .filter((sale: any) => sale.patient_id && !patientsWithFutureSurgery.has(sale.patient_id))
       .map((sale: any): NoDatePatient => ({
         saleId: sale.id,
@@ -111,7 +137,28 @@ export function useNoDatePatients() {
         contractStatus: sale.contract_status,
         notes: sale.notes,
       }));
-  }, [salesData, surgeriesData]);
+
+    // From clinic_surgeries with sem_data (not already covered by sales)
+    const salePatientIds = new Set(fromSales.map(p => p.patientId));
+    const fromSurgeries = semDataSurgeries
+      .filter((s: any) => s.patient_id && !salePatientIds.has(s.patient_id))
+      .map((s: any): NoDatePatient => ({
+        saleId: s.id, // use surgery id as key
+        patientId: s.patient_id,
+        patientName: s.clinic_patients?.full_name || s.patient_name || 'Paciente não vinculado',
+        branch: s.branch || '-',
+        procedure: s.procedure || '-',
+        category: s.category,
+        vgv: 0,
+        saleDate: s.created_at,
+        daysSinceSale: differenceInDays(today, new Date(s.created_at)),
+        seller: null,
+        contractStatus: null,
+        notes: null,
+      }));
+
+    return [...fromSales, ...fromSurgeries];
+  }, [salesData, surgeriesData, semDataSurgeries]);
 
   // Apply filters
   const filteredPatients = useMemo(() => {
@@ -143,7 +190,7 @@ export function useNoDatePatients() {
   return {
     patients: filteredPatients,
     allPatients: allNoDatePatients,
-    isLoading: loadingSales || loadingSurgeries,
+    isLoading: loadingSales || loadingSurgeries || loadingSemData,
     filters,
     setFilters,
     updateFilter: <K extends keyof NoDateFilters>(key: K, value: NoDateFilters[K]) => {

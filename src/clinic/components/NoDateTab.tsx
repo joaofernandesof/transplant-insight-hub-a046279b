@@ -22,6 +22,7 @@ import { useNoDatePatients, NoDatePatient } from '../hooks/useNoDatePatients';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
 import { useBranches } from '../hooks/useBranches';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
 interface DayGroup {
   label: string;
@@ -78,7 +79,9 @@ const DAY_GROUPS: DayGroup[] = [
 ];
 
 export function NoDateTab() {
-  const { isAdmin, isGestao } = useClinicAuth();
+  const { isAdmin: isClinicAdmin, isGestao } = useClinicAuth();
+  const { isAdmin: isUnifiedAdmin } = useUnifiedAuth();
+  const isAdmin = isClinicAdmin || isUnifiedAdmin;
   const { allPatients, isLoading } = useNoDatePatients();
   const { createSurgery, updateSurgery } = useClinicSurgeries();
   const { branches: allowedBranches } = useBranches();
