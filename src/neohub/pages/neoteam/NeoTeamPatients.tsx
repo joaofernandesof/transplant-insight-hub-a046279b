@@ -898,7 +898,7 @@ export default function NeoTeamPatients() {
         open={showNewPatient}
         onOpenChange={setShowNewPatient}
         onSuccess={() => {
-          setShowNewPatient(false);
+          // Don't close - let the dialog show the date-choice step
         }}
       />
 
