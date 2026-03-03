@@ -413,8 +413,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
         {isCollapsed && (
           <div className="p-2 border-b flex justify-center">
             <Avatar 
-              className="h-10 w-10 cursor-pointer ring-2 ring-primary/20"
-              onClick={() => navigate(profileRoute)}
+              className="h-10 w-10 ring-2 ring-primary/20"
             >
               <AvatarImage src={user?.avatarUrl} />
               <AvatarFallback className="bg-primary/10 text-primary text-xs">
