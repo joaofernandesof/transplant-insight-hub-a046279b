@@ -1,9 +1,10 @@
 /**
  * Modal completo de edição de usuário
  * Permite editar dados, acessos (Portal × Perfil), status ativo/inativo
+ * Inclui edição granular de permissões por módulo com indicador de personalização
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -28,6 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   User,
   Mail,
@@ -52,6 +59,9 @@ import {
   CreditCard,
   Settings,
   X,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -84,12 +94,30 @@ const PORTAL_CONFIG: Record<string, { name: string; icon: any; color: string }> 
   'neohair': { name: 'NeoHair', icon: Heart, color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300' },
 };
 
-// Portal role assignment for this user
+const PERMISSION_ACTIONS = [
+  { key: 'can_view', label: 'Ver', short: 'V' },
+  { key: 'can_create', label: 'Criar', short: 'C' },
+  { key: 'can_edit', label: 'Editar', short: 'E' },
+  { key: 'can_delete', label: 'Excluir', short: 'D' },
+  { key: 'can_approve', label: 'Aprovar', short: 'A' },
+  { key: 'can_export', label: 'Exportar', short: 'X' },
+  { key: 'can_configure', label: 'Config', short: 'Cfg' },
+] as const;
+
+type PermAction = typeof PERMISSION_ACTIONS[number]['key'];
+
+interface ModulePermissions {
+  moduleId: string;
+  moduleName: string;
+  defaults: Record<PermAction, boolean>;
+  current: Record<PermAction, boolean>;
+}
+
 interface PortalRoleAssignment {
   portalId: string;
   portalSlug: string;
   portalName: string;
-  roleId: string | null; // null = no access
+  roleId: string | null;
   roleName: string | null;
 }
 
@@ -146,8 +174,14 @@ export function UserEditModal({
   // Portal × Role state
   const [dbPortals, setDbPortals] = useState<{ id: string; slug: string; name: string }[]>([]);
   const [dbRoles, setDbRoles] = useState<{ id: string; name: string }[]>([]);
-  const [portalRoles, setPortalRoles] = useState<Record<string, string | null>>({}); // portalId -> roleId | null
+  const [portalRoles, setPortalRoles] = useState<Record<string, string | null>>({});
   const [loadingAccess, setLoadingAccess] = useState(false);
+
+  // Granular permissions state
+  const [expandedPortal, setExpandedPortal] = useState<string | null>(null);
+  const [portalModulePerms, setPortalModulePerms] = useState<Record<string, ModulePermissions[]>>({});
+  const [loadingModules, setLoadingModules] = useState<string | null>(null);
+  const [neohubUserId, setNeohubUserId] = useState<string | null>(null);
 
   // Reset form when user changes
   useEffect(() => {
@@ -164,6 +198,8 @@ export function UserEditModal({
         tier: user.tier || 'basic',
       });
       setIsActive(user.is_active ?? true);
+      setExpandedPortal(null);
+      setPortalModulePerms({});
     }
   }, [user]);
 
@@ -174,27 +210,26 @@ export function UserEditModal({
     const loadAccessData = async () => {
       setLoadingAccess(true);
       try {
-        // First, get the neohub_users.id for this user (FK target)
         const { data: neohubUser } = await supabase
           .from('neohub_users')
           .select('id')
           .eq('user_id', user.user_id)
           .maybeSingle();
 
-        const neohubUserId = neohubUser?.id;
+        const nId = neohubUser?.id;
+        setNeohubUserId(nId || null);
 
         const [portalsRes, rolesRes, assignmentsRes] = await Promise.all([
           supabase.from('portals').select('id, slug, name').eq('is_active', true).order('order_index'),
           supabase.from('roles').select('id, name').order('hierarchy_level'),
-          neohubUserId
-            ? supabase.from('user_portal_roles').select('portal_id, role_id').eq('user_id', neohubUserId).eq('is_active', true)
+          nId
+            ? supabase.from('user_portal_roles').select('portal_id, role_id').eq('user_id', nId).eq('is_active', true)
             : Promise.resolve({ data: [], error: null }),
         ]);
 
         if (portalsRes.data) setDbPortals(portalsRes.data);
         if (rolesRes.data) setDbRoles(rolesRes.data);
 
-        // Build portal -> role map
         const roleMap: Record<string, string | null> = {};
         (portalsRes.data || []).forEach(p => { roleMap[p.id] = null; });
         (assignmentsRes.data || []).forEach(a => { roleMap[a.portal_id] = a.role_id; });
@@ -208,6 +243,163 @@ export function UserEditModal({
 
     loadAccessData();
   }, [user, open]);
+
+  // Load module permissions for a portal when expanded
+  const loadModulePermissions = useCallback(async (portalId: string, roleId: string) => {
+    setLoadingModules(portalId);
+    try {
+      // Get modules for this portal
+      const { data: modules } = await supabase
+        .from('modules')
+        .select('id, name, code')
+        .eq('portal_id', portalId)
+        .eq('is_active', true)
+        .order('order_index');
+
+      if (!modules || modules.length === 0) {
+        setPortalModulePerms(prev => ({ ...prev, [portalId]: [] }));
+        setLoadingModules(null);
+        return;
+      }
+
+      // Get default permissions for this role
+      const { data: rolePerms } = await supabase
+        .from('role_module_permissions')
+        .select('module_id, can_view, can_create, can_edit, can_delete, can_approve, can_export, can_configure')
+        .eq('role_id', roleId)
+        .in('module_id', modules.map(m => m.id));
+
+      // Get user overrides
+      let userOverrides: any[] = [];
+      if (neohubUserId) {
+        const { data } = await supabase
+          .from('user_module_permission_overrides' as any)
+          .select('module_id, can_view, can_create, can_edit, can_delete, can_approve, can_export, can_configure')
+          .eq('user_id', neohubUserId)
+          .eq('portal_id', portalId);
+        userOverrides = data || [];
+      }
+
+      const permMap: Record<string, any> = {};
+      (rolePerms || []).forEach(rp => { permMap[rp.module_id] = rp; });
+
+      const overrideMap: Record<string, any> = {};
+      userOverrides.forEach(uo => { overrideMap[uo.module_id] = uo; });
+
+      const result: ModulePermissions[] = modules.map(m => {
+        const defaults: Record<PermAction, boolean> = {
+          can_view: permMap[m.id]?.can_view ?? false,
+          can_create: permMap[m.id]?.can_create ?? false,
+          can_edit: permMap[m.id]?.can_edit ?? false,
+          can_delete: permMap[m.id]?.can_delete ?? false,
+          can_approve: permMap[m.id]?.can_approve ?? false,
+          can_export: permMap[m.id]?.can_export ?? false,
+          can_configure: permMap[m.id]?.can_configure ?? false,
+        };
+
+        const override = overrideMap[m.id];
+        const current: Record<PermAction, boolean> = override
+          ? {
+              can_view: override.can_view ?? defaults.can_view,
+              can_create: override.can_create ?? defaults.can_create,
+              can_edit: override.can_edit ?? defaults.can_edit,
+              can_delete: override.can_delete ?? defaults.can_delete,
+              can_approve: override.can_approve ?? defaults.can_approve,
+              can_export: override.can_export ?? defaults.can_export,
+              can_configure: override.can_configure ?? defaults.can_configure,
+            }
+          : { ...defaults };
+
+        return {
+          moduleId: m.id,
+          moduleName: m.name,
+          defaults,
+          current,
+        };
+      });
+
+      setPortalModulePerms(prev => ({ ...prev, [portalId]: result }));
+    } catch (err) {
+      console.error('Error loading module permissions:', err);
+    } finally {
+      setLoadingModules(null);
+    }
+  }, [neohubUserId]);
+
+  // Toggle a specific module permission
+  const toggleModulePerm = (portalId: string, moduleId: string, action: PermAction) => {
+    setPortalModulePerms(prev => {
+      const portalPerms = prev[portalId] || [];
+      return {
+        ...prev,
+        [portalId]: portalPerms.map(mp =>
+          mp.moduleId === moduleId
+            ? { ...mp, current: { ...mp.current, [action]: !mp.current[action] } }
+            : mp
+        ),
+      };
+    });
+  };
+
+  // Reset module permissions to defaults
+  const resetPortalToDefaults = (portalId: string) => {
+    setPortalModulePerms(prev => {
+      const portalPerms = prev[portalId] || [];
+      return {
+        ...prev,
+        [portalId]: portalPerms.map(mp => ({
+          ...mp,
+          current: { ...mp.defaults },
+        })),
+      };
+    });
+  };
+
+  // Check if a portal has customized permissions
+  const hasCustomPermissions = (portalId: string): boolean => {
+    const perms = portalModulePerms[portalId];
+    if (!perms) return false;
+    return perms.some(mp =>
+      PERMISSION_ACTIONS.some(a => mp.current[a.key] !== mp.defaults[a.key])
+    );
+  };
+
+  // Count customized modules
+  const countCustomModules = (portalId: string): number => {
+    const perms = portalModulePerms[portalId];
+    if (!perms) return 0;
+    return perms.filter(mp =>
+      PERMISSION_ACTIONS.some(a => mp.current[a.key] !== mp.defaults[a.key])
+    ).length;
+  };
+
+  // Handle portal expand toggle
+  const handleExpandPortal = (portalId: string) => {
+    if (expandedPortal === portalId) {
+      setExpandedPortal(null);
+      return;
+    }
+    setExpandedPortal(portalId);
+    const roleId = portalRoles[portalId];
+    if (roleId && !portalModulePerms[portalId]) {
+      loadModulePermissions(portalId, roleId);
+    }
+  };
+
+  // When role changes for a portal, reload module permissions
+  const handleRoleChange = (portalId: string, roleId: string | null) => {
+    setPortalRoles(prev => ({ ...prev, [portalId]: roleId }));
+    // Clear cached permissions when role changes
+    setPortalModulePerms(prev => {
+      const next = { ...prev };
+      delete next[portalId];
+      return next;
+    });
+    // If expanded and new role selected, reload
+    if (expandedPortal === portalId && roleId) {
+      loadModulePermissions(portalId, roleId);
+    }
+  };
 
   // Update user mutation
   const updateUser = useMutation({
@@ -257,26 +449,26 @@ export function UserEditModal({
 
       if (profileError) console.warn('Profiles update warning:', profileError);
 
-      // 3. Get neohub_users.id (FK target for user_portal_roles)
+      // 3. Get neohub_users.id
       const { data: neohubUser } = await supabase
         .from('neohub_users')
         .select('id')
         .eq('user_id', user.user_id)
         .maybeSingle();
 
-      const neohubUserId = neohubUser?.id;
-      if (!neohubUserId) throw new Error('Registro do usuário não encontrado');
+      const nId = neohubUser?.id;
+      if (!nId) throw new Error('Registro do usuário não encontrado');
 
-      // 4. Sync user_portal_roles: delete all, then insert active ones
+      // 4. Sync user_portal_roles
       await supabase
         .from('user_portal_roles')
         .delete()
-        .eq('user_id', neohubUserId);
+        .eq('user_id', nId);
 
       const newAssignments = Object.entries(portalRoles)
         .filter(([_, roleId]) => roleId !== null)
         .map(([portalId, roleId]) => ({
-          user_id: neohubUserId,
+          user_id: nId,
           portal_id: portalId,
           role_id: roleId!,
           is_active: true,
@@ -287,6 +479,43 @@ export function UserEditModal({
           .from('user_portal_roles')
           .insert(newAssignments);
         if (insertError) throw insertError;
+      }
+
+      // 5. Save module permission overrides
+      // Delete existing overrides for this user
+      await supabase
+        .from('user_module_permission_overrides' as any)
+        .delete()
+        .eq('user_id', nId);
+
+      // Insert only overrides that differ from defaults
+      const overrides: any[] = [];
+      for (const [portalId, modules] of Object.entries(portalModulePerms)) {
+        if (!portalRoles[portalId]) continue; // Skip portals with no access
+        for (const mp of modules) {
+          const hasOverride = PERMISSION_ACTIONS.some(a => mp.current[a.key] !== mp.defaults[a.key]);
+          if (hasOverride) {
+            overrides.push({
+              user_id: nId,
+              portal_id: portalId,
+              module_id: mp.moduleId,
+              can_view: mp.current.can_view,
+              can_create: mp.current.can_create,
+              can_edit: mp.current.can_edit,
+              can_delete: mp.current.can_delete,
+              can_approve: mp.current.can_approve,
+              can_export: mp.current.can_export,
+              can_configure: mp.current.can_configure,
+            });
+          }
+        }
+      }
+
+      if (overrides.length > 0) {
+        const { error: overrideError } = await supabase
+          .from('user_module_permission_overrides' as any)
+          .insert(overrides);
+        if (overrideError) throw overrideError;
       }
     },
     onSuccess: () => {
@@ -301,7 +530,7 @@ export function UserEditModal({
   });
 
   const setPortalRole = (portalId: string, roleId: string | null) => {
-    setPortalRoles(prev => ({ ...prev, [portalId]: roleId }));
+    handleRoleChange(portalId, roleId);
   };
 
   const getInitials = (name: string) => {
@@ -459,13 +688,13 @@ export function UserEditModal({
               </div>
             </TabsContent>
 
-            {/* Acessos Tab - Portal × Perfil */}
+            {/* Acessos Tab - Portal × Perfil with granular permissions */}
             <TabsContent value="acessos" className="space-y-4 mt-0">
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-sm font-medium">Portal × Perfil de Acesso</Label>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Defina o perfil de acesso para cada portal. Deixe "Sem Acesso" para bloquear.
+                    Defina o perfil e personalize permissões por módulo.
                   </p>
                 </div>
                 <Badge variant="outline" className="text-xs">
@@ -482,60 +711,160 @@ export function UserEditModal({
                   {dbPortals.map(portal => {
                     const config = PORTAL_CONFIG[portal.slug] || { name: portal.name, icon: LayoutDashboard, color: 'bg-muted text-muted-foreground' };
                     const currentRoleId = portalRoles[portal.id];
-                    const roleName = getRoleName(currentRoleId);
                     const hasAccess = currentRoleId !== null;
                     const Icon = config.icon;
+                    const isExpanded = expandedPortal === portal.id;
+                    const isCustomized = hasCustomPermissions(portal.id);
+                    const customCount = countCustomModules(portal.id);
+                    const modules = portalModulePerms[portal.id];
 
                     return (
                       <div
                         key={portal.id}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                          "rounded-lg border transition-all",
                           hasAccess ? "bg-primary/5 border-primary/20" : "bg-muted/20 border-border/50"
                         )}
                       >
-                        <div className={cn("p-2 rounded-lg shrink-0", config.color)}>
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{config.name}</p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Select
-                            value={currentRoleId || 'none'}
-                            onValueChange={(v) => setPortalRole(portal.id, v === 'none' ? null : v)}
-                          >
-                            <SelectTrigger className="w-[180px] h-8 text-xs">
-                              <SelectValue placeholder="Sem Acesso" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">
-                                <span className="text-muted-foreground">Sem Acesso</span>
-                              </SelectItem>
-                              {dbRoles.map(role => {
-                                const roleDef = ROLES.find(r => r.id === role.name);
-                                return (
-                                  <SelectItem key={role.id} value={role.id}>
-                                    <div className="flex items-center gap-2">
-                                      {roleDef && <roleDef.icon className="h-3 w-3" />}
-                                      <span>{roleDef?.name || role.name}</span>
-                                    </div>
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                          {hasAccess && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => setPortalRole(portal.id, null)}
+                        {/* Portal header row */}
+                        <div className="flex items-center gap-3 p-3">
+                          <div className={cn("p-2 rounded-lg shrink-0", config.color)}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm">{config.name}</p>
+                              {isCustomized && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-amber-400 text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400">
+                                  <Pencil className="h-2.5 w-2.5 mr-1" />
+                                  {customCount} personalizado{customCount > 1 ? 's' : ''}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Select
+                              value={currentRoleId || 'none'}
+                              onValueChange={(v) => setPortalRole(portal.id, v === 'none' ? null : v)}
                             >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
+                              <SelectTrigger className="w-[180px] h-8 text-xs">
+                                <SelectValue placeholder="Sem Acesso" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">
+                                  <span className="text-muted-foreground">Sem Acesso</span>
+                                </SelectItem>
+                                {dbRoles.map(role => {
+                                  const roleDef = ROLES.find(r => r.id === role.name);
+                                  return (
+                                    <SelectItem key={role.id} value={role.id}>
+                                      <div className="flex items-center gap-2">
+                                        {roleDef && <roleDef.icon className="h-3 w-3" />}
+                                        <span>{roleDef?.name || role.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                            {hasAccess && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                  onClick={() => handleExpandPortal(portal.id)}
+                                  title="Editar permissões individuais"
+                                >
+                                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                  onClick={() => setPortalRole(portal.id, null)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Expanded module permissions */}
+                        {isExpanded && hasAccess && (
+                          <div className="border-t px-3 pb-3 pt-2">
+                            {loadingModules === portal.id ? (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              </div>
+                            ) : modules && modules.length > 0 ? (
+                              <div className="space-y-1">
+                                {/* Header row */}
+                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium px-2 py-1">
+                                  <span className="flex-1">Módulo</span>
+                                  {PERMISSION_ACTIONS.map(a => (
+                                    <span key={a.key} className="w-8 text-center" title={a.label}>{a.short}</span>
+                                  ))}
+                                </div>
+                                {/* Module rows */}
+                                {modules.map(mp => {
+                                  const isModuleCustom = PERMISSION_ACTIONS.some(
+                                    a => mp.current[a.key] !== mp.defaults[a.key]
+                                  );
+                                  return (
+                                    <div
+                                      key={mp.moduleId}
+                                      className={cn(
+                                        "flex items-center gap-2 px-2 py-1.5 rounded-md text-xs",
+                                        isModuleCustom ? "bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50" : "hover:bg-muted/50"
+                                      )}
+                                    >
+                                      <span className="flex-1 truncate flex items-center gap-1.5">
+                                        {mp.moduleName}
+                                        {isModuleCustom && (
+                                          <span className="text-amber-500 text-[9px]">●</span>
+                                        )}
+                                      </span>
+                                      {PERMISSION_ACTIONS.map(a => {
+                                        const isDefault = mp.current[a.key] === mp.defaults[a.key];
+                                        return (
+                                          <div key={a.key} className="w-8 flex justify-center">
+                                            <Checkbox
+                                              checked={mp.current[a.key]}
+                                              onCheckedChange={() => toggleModulePerm(portal.id, mp.moduleId, a.key)}
+                                              className={cn(
+                                                "h-4 w-4",
+                                                !isDefault && "border-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                                              )}
+                                            />
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })}
+                                {/* Reset button */}
+                                {isCustomized && (
+                                  <div className="flex justify-end pt-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-xs text-muted-foreground h-7"
+                                      onClick={() => resetPortalToDefaults(portal.id)}
+                                    >
+                                      Restaurar padrão do perfil
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground text-center py-4">
+                                Nenhum módulo cadastrado para este portal.
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
