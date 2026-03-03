@@ -21914,6 +21914,69 @@ export type Database = {
           },
         ]
       }
+      user_module_permission_overrides: {
+        Row: {
+          can_approve: boolean | null
+          can_configure: boolean | null
+          can_create: boolean | null
+          can_delete: boolean | null
+          can_edit: boolean | null
+          can_export: boolean | null
+          can_view: boolean | null
+          created_at: string
+          id: string
+          module_id: string
+          portal_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          can_approve?: boolean | null
+          can_configure?: boolean | null
+          can_create?: boolean | null
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_export?: boolean | null
+          can_view?: boolean | null
+          created_at?: string
+          id?: string
+          module_id: string
+          portal_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          can_approve?: boolean | null
+          can_configure?: boolean | null
+          can_create?: boolean | null
+          can_delete?: boolean | null
+          can_edit?: boolean | null
+          can_export?: boolean | null
+          can_view?: boolean | null
+          created_at?: string
+          id?: string
+          module_id?: string
+          portal_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_module_permission_overrides_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_module_permission_overrides_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "portals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_permission_overrides: {
         Row: {
           clinic_id: string | null
