@@ -384,8 +384,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
         {!isCollapsed && (
           <div className="p-4 border-b">
             <div 
-              className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors"
-              onClick={() => navigate(profileRoute)}
+              className="flex items-center gap-3 rounded-lg p-2 -m-2"
             >
               <Avatar className="h-10 w-10 ring-2 ring-primary/20">
                 <AvatarImage src={user?.avatarUrl} />
