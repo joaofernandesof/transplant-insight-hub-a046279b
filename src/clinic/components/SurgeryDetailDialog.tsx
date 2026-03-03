@@ -257,6 +257,14 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                 type="time"
                 onSave={handleFieldSave}
               />
+              <EditableField
+                icon={Scissors}
+                label="Tricotomia"
+                value={surgery.trichotomyDatetime ? surgery.trichotomyDatetime.substring(0, 16) : ''}
+                field="trichotomyDatetime"
+                type="datetime-local"
+                onSave={handleFieldSave}
+              />
               <div className="col-span-2">
                 <ProcedureCheckboxField
                   value={surgery.procedure || ''}

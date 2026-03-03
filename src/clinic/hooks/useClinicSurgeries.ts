@@ -239,7 +239,8 @@ export function useClinicSurgeries() {
       if (updates.upgradeValue !== undefined) dbUpdates.upgrade_value = updates.upgradeValue;
       if (updates.upgradeCategory !== undefined) dbUpdates.upgrade_category = updates.upgradeCategory;
       if (updates.upsellValue !== undefined) dbUpdates.upsell_value = updates.upsellValue;
-      if (updates.upsellCategory !== undefined) dbUpdates.upsellCategory = updates.upsellCategory;
+      if (updates.upsellCategory !== undefined) dbUpdates.upsell_category = updates.upsellCategory;
+      if (updates.trichotomyDatetime !== undefined) dbUpdates.trichotomy_datetime = updates.trichotomyDatetime;
 
       // Find current surgery to capture old values for audit log
       const currentSurgery = surgeries.find(s => s.id === id);
