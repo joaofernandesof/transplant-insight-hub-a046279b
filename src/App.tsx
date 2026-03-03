@@ -153,6 +153,7 @@ const IpromedReports = lazy(() => import("./pages/ipromed/IpromedReports"));
 const IpromedFunctions = lazy(() => import("./pages/ipromed/IpromedFunctions"));
 const IpromedAccessManagement = lazy(() => import("./pages/ipromed/IpromedAccessManagement"));
 const IpromedOnboardingForms = lazy(() => import("./pages/ipromed/IpromedOnboardingForms"));
+const PublicFormPage = lazy(() => import("./pages/public/PublicFormPage"));
 
 // ====================================
 // Pages - NeoPay (Gateway de Pagamentos)
@@ -791,6 +792,7 @@ function AppRoutes() {
       <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/public/dashboard/:token" element={<Suspense fallback={<div className="p-6 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}><PublicDashboardPage /></Suspense>} />
+      <Route path="/public/form/:token" element={<Suspense fallback={<div className="p-6 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}><PublicFormPage /></Suspense>} />
       <Route path="/neohub" element={<NeoHubSalesPage />} />
       <Route path="/docs/architecture" element={<ProtectedRoute><AdminRoute><LazyRoute><ArchitectureDocDownload /></LazyRoute></AdminRoute></ProtectedRoute>} />
       <Route path="/export-users" element={<ProtectedRoute><AdminRoute><Suspense fallback={<div className="p-6">Gerando...</div>}><ExportUsersCSV /></Suspense></AdminRoute></ProtectedRoute>} />
