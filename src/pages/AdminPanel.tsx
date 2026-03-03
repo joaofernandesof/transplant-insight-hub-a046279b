@@ -806,14 +806,14 @@ export default function AdminPanel() {
                             "border-slate-700/50 hover:bg-slate-700/30",
                             isSelected && "bg-blue-950/30"
                           )}>
-                            <TableCell>
+                            <TableCell className="sticky left-0 z-10 bg-slate-800">
                               <Checkbox
                                 checked={isSelected}
                                 onCheckedChange={() => toggleSelectUser(userProfile.user_id)}
                                 className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                               />
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="sticky left-[40px] z-10 bg-slate-800">
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
                                   <AvatarImage src={userProfile.avatar_url || undefined} />
@@ -835,7 +835,7 @@ export default function AdminPanel() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm text-slate-300">{userProfile.email}</TableCell>
+                            <TableCell className="text-sm text-slate-300 sticky left-[290px] z-10 bg-slate-800">{userProfile.email}</TableCell>
                             <TableCell className="text-sm text-slate-300">{userProfile.clinic_name || '-'}</TableCell>
                             {activePortals.map(portal => {
                               const roleDisplay = getUserRoleInPortal(userProfile.user_id, portal.id);
