@@ -760,7 +760,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         canAccess,
         canAccessCurrentRoute,
         isAdmin: user?.isAdmin || false,
-        isSuperAdmin: user?.profiles.includes('super_administrador') || false,
+        isSuperAdmin: user?.isAdmin || user?.profiles.includes('super_administrador') || false,
       }}
     >
       {children}
