@@ -176,13 +176,16 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                 {surgery.grade || '—'}
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-xs">
-                                {surgery.trichotomyDatetime ? (
-                                  <span className="font-medium text-amber-700 dark:text-amber-400">
-                                    {format(parseISO(surgery.trichotomyDatetime), "dd/MM HH:mm")}
-                                  </span>
-                                ) : (
-                                  <span className="text-muted-foreground">—</span>
-                                )}
+                                {(() => {
+                                  if (!surgery.trichotomyDatetime) return <span className="text-muted-foreground">—</span>;
+                                  try {
+                                    const d = parseISO(surgery.trichotomyDatetime);
+                                    if (isNaN(d.getTime())) return <span className="text-muted-foreground">—</span>;
+                                    return <span className="font-medium text-amber-700 dark:text-amber-400">{format(d, "dd/MM HH:mm")}</span>;
+                                  } catch {
+                                    return <span className="text-muted-foreground">—</span>;
+                                  }
+                                })()}
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
                                 <div className="flex gap-0.5 flex-wrap">
