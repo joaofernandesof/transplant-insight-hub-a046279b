@@ -65,7 +65,13 @@ export default function ClinicDashboard() {
   const [searchParams] = useSearchParams();
   const isNeoTeamContext = location.pathname.includes('/neoteam/');
 
-  const [selectedBranch, setSelectedBranch] = useState<string>('all');
+  const [selectedBranch, setSelectedBranchState] = useState<string>(() => {
+    return localStorage.getItem('clinic-selected-branch') || 'all';
+  });
+  const setSelectedBranch = (branch: string) => {
+    setSelectedBranchState(branch);
+    localStorage.setItem('clinic-selected-branch', branch);
+  };
   const [selectedPeriod, setSelectedPeriod] = useState<string>('this-week');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
