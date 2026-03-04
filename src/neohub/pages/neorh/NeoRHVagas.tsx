@@ -88,17 +88,7 @@ interface EtapaDef {
   icon: React.ElementType;
 }
 
-const EXPRESS_ETAPAS: EtapaDef[] = [
-  { id: 'solicitacao', label: 'Solicitação', shortLabel: 'Solic.', color: 'from-slate-500 to-slate-600', dot: 'bg-slate-500', icon: Briefcase },
-  { id: 'captacao', label: 'Captação', shortLabel: 'Capt.', color: 'from-blue-500 to-blue-600', dot: 'bg-blue-500', icon: Users2 },
-  { id: 'triagem', label: 'Triagem Técnica', shortLabel: 'Triag.', color: 'from-indigo-500 to-indigo-600', dot: 'bg-indigo-500', icon: Target },
-  { id: 'entrevista_unica', label: 'Entrevista RH+Gestor', shortLabel: 'Entrev.', color: 'from-purple-500 to-purple-600', dot: 'bg-purple-500', icon: Users2 },
-  { id: 'teste_rapido', label: 'Teste Prático', shortLabel: 'Teste', color: 'from-amber-500 to-amber-600', dot: 'bg-amber-500', icon: Target },
-  { id: 'proposta', label: 'Proposta', shortLabel: 'Prop.', color: 'from-teal-500 to-teal-600', dot: 'bg-teal-500', icon: DollarSign },
-  { id: 'contratado', label: 'Contratado', shortLabel: 'Contr.', color: 'from-emerald-500 to-emerald-600', dot: 'bg-emerald-500', icon: CheckCircle2 },
-];
-
-const EXECUTIVO_ETAPAS: EtapaDef[] = [
+const ETAPAS: EtapaDef[] = [
   { id: 'solicitacao', label: 'Solicitação', shortLabel: 'Solic.', color: 'from-slate-500 to-slate-600', dot: 'bg-slate-500', icon: Briefcase },
   { id: 'captacao', label: 'Captação', shortLabel: 'Capt.', color: 'from-blue-500 to-blue-600', dot: 'bg-blue-500', icon: Users2 },
   { id: 'triagem', label: 'Triagem Técnica', shortLabel: 'Triag.', color: 'from-indigo-500 to-indigo-600', dot: 'bg-indigo-500', icon: Target },
@@ -111,16 +101,7 @@ const EXECUTIVO_ETAPAS: EtapaDef[] = [
 
 const CANCELADA_ETAPA: EtapaDef = { id: 'cancelada', label: 'Cancelada', shortLabel: 'Canc.', color: 'from-red-500 to-red-600', dot: 'bg-red-500', icon: XCircle };
 
-const getEtapas = (fluxo: string): EtapaDef[] => {
-  const base = fluxo === 'executivo' ? EXECUTIVO_ETAPAS : EXPRESS_ETAPAS;
-  return [...base, CANCELADA_ETAPA];
-};
-
-const ALL_ETAPAS_IDS = [...new Set([
-  ...EXPRESS_ETAPAS.map(e => e.id),
-  ...EXECUTIVO_ETAPAS.map(e => e.id),
-  'cancelada',
-])];
+const ALL_ETAPAS = [...ETAPAS, CANCELADA_ETAPA];
 
 const MOTIVOS_REPROVACAO_PADRAO = [
   'Não atende requisitos técnicos',
