@@ -17,8 +17,8 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import {
   Plus, Pencil, Trash2, Eye, KanbanSquare, List, Briefcase, DollarSign, MapPin,
-  GraduationCap, Target, Users2, Zap, Crown, BarChart3, Clock, TrendingUp,
-  Copy, XCircle, CheckCircle2, ChevronRight, AlertTriangle,
+  GraduationCap, Target, Users2, Crown, BarChart3, Clock, TrendingUp,
+  Copy, XCircle, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
