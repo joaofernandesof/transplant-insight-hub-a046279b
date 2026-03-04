@@ -23099,6 +23099,10 @@ export type Database = {
       release_random_queued_lead:
         | { Args: { p_mode?: string }; Returns: Json }
         | { Args: { p_user_id: string }; Returns: Json }
+      resolve_surgery_process_template: {
+        Args: { p_branch_name: string }
+        Returns: string
+      }
       schedule_followup_for_conversation: {
         Args: { p_conversation_id: string; p_user_id: string }
         Returns: string
