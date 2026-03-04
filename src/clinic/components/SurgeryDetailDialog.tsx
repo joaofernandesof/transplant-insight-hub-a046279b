@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -64,11 +66,19 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [editingResponsibleTaskId, setEditingResponsibleTaskId] = useState<string | null>(null);
 
-  // Get unique responsible names from all tasks
-  const availableResponsibles = useMemo(() => {
-    const names = new Set(surgeryTasks.map(t => t.responsible_name).filter(Boolean));
-    return Array.from(names).sort();
-  }, [surgeryTasks]);
+  // Fetch system users for responsible assignment
+  const { data: systemUsers = [] } = useQuery({
+    queryKey: ['neohub-users-for-responsible'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('neohub_users')
+        .select('id, full_name')
+        .eq('is_active', true)
+        .order('full_name');
+      return (data || []).filter(u => u.full_name);
+    },
+    enabled: isAdmin && open,
+  });
 
   if (!surgery) return null;
 
@@ -446,21 +456,21 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                                     <CommandList>
                                       <CommandEmpty>Nenhum encontrado</CommandEmpty>
                                       <CommandGroup>
-                                        {availableResponsibles.map((name) => (
+                                        {systemUsers.map((user) => (
                                           <CommandItem
-                                            key={name}
-                                            value={name}
+                                            key={user.id}
+                                            value={user.full_name}
                                             onSelect={() => {
                                               updateResponsible.mutate({
                                                 taskId: task.id,
                                                 definitionId: task.definition_id,
-                                                responsibleName: name,
+                                                responsibleName: user.full_name,
                                               });
                                               setEditingResponsibleTaskId(null);
                                             }}
                                             className="text-xs"
                                           >
-                                            {name}
+                                            {user.full_name}
                                           </CommandItem>
                                         ))}
                                       </CommandGroup>
