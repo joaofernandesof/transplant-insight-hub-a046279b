@@ -776,9 +776,8 @@ export default function NeoRHVagas() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {form.tipo_fluxo === 'executivo' ? <Crown className="h-5 w-5 text-violet-500" /> : <Zap className="h-5 w-5 text-amber-500" />}
-              {editing ? 'Editar Vaga' : 'Nova Vaga'} — {form.tipo_fluxo === 'executivo' ? 'Executivo' : 'Express'}
+            <DialogTitle>
+              {editing ? 'Editar Vaga' : 'Nova Vaga'}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2">
