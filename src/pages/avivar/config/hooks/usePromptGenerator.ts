@@ -151,7 +151,7 @@ Transfira para um humano quando apropriado.
     if (config.consultationType.online) {
       prompt += `\n- Consultas online disponíveis para todo Brasil e exterior.`;
       if (config.consultationType.presencial) {
-        prompt += `\n  (Priorize atendimento presencial, mas ofereça online quando necessário)`;
+        prompt += `\n  REGRA DE MODALIDADE: SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL. SOMENTE ofereça consulta ONLINE quando o lead informar que não pode comparecer presencialmente, morar longe ou pedir explicitamente. NUNCA apresente as duas modalidades na mesma mensagem.`;
       }
     }
     

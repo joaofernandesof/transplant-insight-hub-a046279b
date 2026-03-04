@@ -303,6 +303,7 @@ interface RoutedAgent {
   services: unknown[];
   target_kanbans: string[] | null;
   target_stages: string[] | null;
+  consultation_type: { presencial?: boolean; online?: boolean } | null;
 }
 
 interface KanbanColumnInfo {
@@ -3322,7 +3323,8 @@ async function getRoutedAgent(
       fluxo_atendimento: agent.fluxo_atendimento,
       services: agent.services || [],
       target_kanbans: agent.target_kanbans,
-      target_stages: agent.target_stages
+      target_stages: agent.target_stages,
+      consultation_type: agent.consultation_type || null
     };
   }
 
@@ -3344,7 +3346,8 @@ async function getRoutedAgent(
       fluxo_atendimento: fallbackAgent.fluxo_atendimento,
       services: fallbackAgent.services || [],
       target_kanbans: fallbackAgent.target_kanbans,
-      target_stages: fallbackAgent.target_stages
+      target_stages: fallbackAgent.target_stages,
+      consultation_type: fallbackAgent.consultation_type || null
     };
   }
 
@@ -3899,7 +3902,31 @@ ${fluxoInstructions}
 
 ${checklistInstructions}
 
+${buildModalityRule(agent.consultation_type)}
+
 ${restrictions ? `<restricoes>\n${restrictions}\n</restricoes>` : ""}`;
+}
+
+function buildModalityRule(consultationType: { presencial?: boolean; online?: boolean } | null): string {
+  if (!consultationType) return '';
+  const hasPresencial = consultationType.presencial === true;
+  const hasOnline = consultationType.online === true;
+
+  // Only add rule when BOTH modalities are enabled
+  if (hasPresencial && hasOnline) {
+    return `<regra_modalidade_atendimento>
+REGRA OBRIGATÓRIA DE MODALIDADE:
+- SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
+- SOMENTE ofereça consulta ONLINE quando o lead:
+  • Disser que não pode comparecer presencialmente
+  • Informar que mora longe/em outra cidade/estado
+  • Pedir explicitamente por atendimento online
+- NUNCA apresente as duas modalidades na mesma mensagem
+- Se o lead aceitar presencial, NÃO mencione a opção online
+</regra_modalidade_atendimento>`;
+  }
+
+  return '';
 }
 
 function getDefaultObjectiveForStage(stage: string): string {
@@ -4355,7 +4382,8 @@ serve(async (req) => {
         fluxo_atendimento: null,
         services: [],
         target_kanbans: null,
-        target_stages: null
+        target_stages: null,
+        consultation_type: null
       };
     }
 
