@@ -278,11 +278,12 @@ export function WorkspaceAgenda() {
   // Filter by selected user
   const filteredAppointments = selectedUser
     ? appointments?.filter(apt => {
-        // Tasks have assigned_to_name in client_name
+        // Tasks have assigned_to_name in client_name - resolve name to userId
         if (apt.appointment_type === 'tarefa') {
-          return apt.client_name === selectedUser;
+          return apt.client_name === lawyerNameMap[selectedUser];
         }
-        // Regular appointments/meetings show for all (no assigned_to data)
+        // Regular appointments filter by assigned_to (UUID)
+        if (apt.assigned_to) return apt.assigned_to === selectedUser;
         return true;
       })
     : appointments;
