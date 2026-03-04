@@ -401,16 +401,16 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                         <tr key={task.id} className={`border-b last:border-b-0 ${task.status === 'completed' ? 'bg-muted/30' : task.status === 'overdue' ? 'bg-destructive/5' : ''}`}>
                           <td className="px-3 py-2">
                             <div className="flex items-center gap-2">
-                              {task.status === 'completed' ? (
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                              ) : task.status === 'overdue' ? (
-                                <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                              ) : (
-                                <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/40 shrink-0" />
-                              )}
+                              <Checkbox
+                                checked={task.status === 'completed'}
+                                disabled={task.status === 'completed'}
+                                onCheckedChange={() => completeTask.mutate({ taskId: task.id })}
+                                className="h-4 w-4"
+                              />
                               <span className={task.status === 'completed' ? 'line-through text-muted-foreground' : task.status === 'overdue' ? 'text-destructive font-medium' : ''}>
                                 {task.title}
                               </span>
+                              {task.status === 'overdue' && <AlertCircle className="h-3 w-3 text-destructive shrink-0" />}
                             </div>
                           </td>
                           <td className="px-3 py-2 text-center">
