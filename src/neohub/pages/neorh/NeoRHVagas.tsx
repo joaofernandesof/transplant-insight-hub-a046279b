@@ -215,6 +215,12 @@ export default function NeoRHVagas() {
   const [showFluxoSelector, setShowFluxoSelector] = useState(false);
   const [eliminateDialog, setEliminateDialog] = useState<Vaga | null>(null);
   const [eliminateReason, setEliminateReason] = useState('');
+  const [activeVaga, setActiveVaga] = useState<Vaga | null>(null);
+  const [overColumnId, setOverColumnId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
   const load = useCallback(async () => {
     const [v, c, u, a] = await Promise.all([
