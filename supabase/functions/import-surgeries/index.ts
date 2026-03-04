@@ -25,9 +25,29 @@ function parseVgv(val: string | undefined): number | null {
 
 function parseDate(val: string | undefined): string | null {
   if (!val || val.trim() === "" || val.trim() === "-") return null;
-  const match = val.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!match) return null;
-  return `${match[3]}-${match[2]}-${match[1]}`;
+  const trimmed = val.trim();
+  
+  // Standard DD/MM/YYYY format
+  const match = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+  
+  // Handle Excel serial number dates (e.g., "46121")
+  const serial = Number(trimmed);
+  if (!isNaN(serial) && serial > 40000 && serial < 60000) {
+    // Excel serial date: days since 1899-12-30
+    const epoch = new Date(1899, 11, 30);
+    const date = new Date(epoch.getTime() + serial * 86400000);
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  
+  // Handle ISO format YYYY-MM-DD
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  
+  return null;
 }
 
 function parseTime(val: string | undefined): string | null {
