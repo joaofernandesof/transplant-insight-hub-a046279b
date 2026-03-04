@@ -175,6 +175,7 @@ export function ReminderRuleDialog({ open, onOpenChange, rule, onSave, isSaving 
             <div className="space-y-2">
               <Label className="text-[hsl(var(--avivar-foreground))]">Mensagem</Label>
               <Textarea
+                ref={messageRef}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 placeholder="Olá {{primeiro_nome}}, sua consulta é amanhã às {{hora}}!"
