@@ -748,29 +748,6 @@ export default function NeoRHVagas() {
         </SheetContent>
       </Sheet>
 
-      {/* ═══════ FLUXO SELECTOR ═══════ */}
-      <Dialog open={showFluxoSelector} onOpenChange={setShowFluxoSelector}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Qual tipo de fluxo?</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground mb-4">Escolha o pipeline ideal para esta vaga.</p>
-          <div className="grid gap-3">
-            <button onClick={() => startCreateWithFluxo('express')} className="p-4 rounded-lg border hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition text-left">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30"><Zap className="h-5 w-5 text-amber-600" /></div>
-                <div><h3 className="font-bold text-sm">⚡ Fluxo Express</h3><p className="text-[10px] text-muted-foreground">7 etapas • Decisão rápida</p></div>
-              </div>
-              <p className="text-xs text-muted-foreground">Para vagas comerciais, SDR, operacional e funções técnicas de execução. Entrevista única RH+Gestor, teste prático rápido.</p>
-            </button>
-            <button onClick={() => startCreateWithFluxo('executivo')} className="p-4 rounded-lg border hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/20 transition text-left">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30"><Crown className="h-5 w-5 text-violet-600" /></div>
-                <div><h3 className="font-bold text-sm">👔 Fluxo Executivo</h3><p className="text-[10px] text-muted-foreground">8 etapas • Análise completa</p></div>
-              </div>
-              <p className="text-xs text-muted-foreground">Para coordenadores, gerentes e cargos estratégicos. Inclui case prático e entrevista final com diretor.</p>
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* ═══════ ELIMINATE DIALOG ═══════ */}
       <Dialog open={!!eliminateDialog} onOpenChange={() => setEliminateDialog(null)}>
