@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
@@ -101,8 +101,25 @@ export function ReminderRuleDialog({ open, onOpenChange, rule, onSave, isSaving 
     });
   };
 
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+
   const insertVariable = (key: string) => {
-    setMessage(prev => prev + key);
+    const textarea = messageRef.current;
+    if (!textarea) {
+      setMessage(prev => prev + key);
+      return;
+    }
+    const start = textarea.selectionStart ?? message.length;
+    const end = textarea.selectionEnd ?? message.length;
+    const newValue = message.slice(0, start) + key + message.slice(end);
+    setMessage(newValue);
+    // Restore cursor after the inserted variable
+    requestAnimationFrame(() => {
+      const pos = start + key.length;
+      textarea.selectionStart = pos;
+      textarea.selectionEnd = pos;
+      textarea.focus();
+    });
   };
 
   return (
@@ -158,6 +175,7 @@ export function ReminderRuleDialog({ open, onOpenChange, rule, onSave, isSaving 
             <div className="space-y-2">
               <Label className="text-[hsl(var(--avivar-foreground))]">Mensagem</Label>
               <Textarea
+                ref={messageRef}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 placeholder="Olá {{primeiro_nome}}, sua consulta é amanhã às {{hora}}!"
