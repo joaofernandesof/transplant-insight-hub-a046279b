@@ -418,7 +418,8 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                       <tr className="bg-muted/50 border-b">
                         <th className="text-left px-3 py-2 font-medium text-muted-foreground">Atividade</th>
                         <th className="text-center px-3 py-2 font-medium text-muted-foreground w-20">Momento</th>
-                        <th className="text-center px-3 py-2 font-medium text-muted-foreground w-24">Data</th>
+                        <th className="text-center px-3 py-2 font-medium text-muted-foreground w-20">Data</th>
+                        <th className="text-center px-3 py-2 font-medium text-muted-foreground w-24">Atraso</th>
                         <th className="text-left px-3 py-2 font-medium text-muted-foreground w-32">Responsável</th>
                       </tr>
                     </thead>
@@ -445,30 +446,34 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                             </Badge>
                           </td>
                           <td className="px-3 py-2 text-center">
-                            <div className="flex flex-col items-center gap-0.5">
-                              {task.scheduled_date ? (
-                                <span className="text-[10px] text-muted-foreground">
-                                  {format(parseISO(task.scheduled_date), 'dd/MM')}
-                                </span>
-                              ) : (
-                                <span className="text-[10px] text-muted-foreground">—</span>
-                              )}
-                              {task.status !== 'completed' && task.scheduled_date && (() => {
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                const taskDate = parseISO(task.scheduled_date);
-                                taskDate.setHours(0, 0, 0, 0);
-                                const diffDays = Math.floor((today.getTime() - taskDate.getTime()) / (1000 * 60 * 60 * 24));
-                                if (diffDays > 0) {
-                                  return (
-                                    <span className="text-[9px] font-semibold text-destructive">
-                                      {diffDays}d atraso
-                                    </span>
-                                  );
-                                }
-                                return null;
-                              })()}
-                            </div>
+                            {task.scheduled_date ? (
+                              <span className="text-[10px] text-muted-foreground">
+                                {format(parseISO(task.scheduled_date), 'dd/MM')}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            {task.status !== 'completed' && task.scheduled_date ? (() => {
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              const taskDate = parseISO(task.scheduled_date);
+                              taskDate.setHours(0, 0, 0, 0);
+                              const diffDays = Math.floor((today.getTime() - taskDate.getTime()) / (1000 * 60 * 60 * 24));
+                              if (diffDays > 0) {
+                                return (
+                                  <Badge variant="destructive" className="text-[9px] px-1.5">
+                                    {diffDays}d
+                                  </Badge>
+                                );
+                              }
+                              return <span className="text-[10px] text-muted-foreground">—</span>;
+                            })() : (
+                              <span className="text-[10px] text-muted-foreground">
+                                {task.status === 'completed' ? '✓' : '—'}
+                              </span>
+                            )}
                           </td>
                           <td className="px-3 py-2 text-xs">
                             {isAdmin ? (
