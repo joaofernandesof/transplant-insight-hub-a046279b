@@ -60,7 +60,7 @@ interface SurgeryDetailDialogProps {
 
 export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onReschedule, onDelete, canDelete }: SurgeryDetailDialogProps) {
   const queryClient = useQueryClient();
-  const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask, updateResponsible } = useSurgeryTasks(surgery?.id);
+  const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask, uncompleteTask, updateResponsible } = useSurgeryTasks(surgery?.id);
   const { logs: auditLogs, isLoading: logsLoading } = useSurgeryAuditLog(surgery?.id);
   const { isAdmin } = useUnifiedAuth();
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -430,8 +430,13 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                             <div className="flex items-center gap-2">
                               <Checkbox
                                 checked={task.status === 'completed'}
-                                disabled={task.status === 'completed'}
-                                onCheckedChange={() => completeTask.mutate({ taskId: task.id })}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    completeTask.mutate({ taskId: task.id });
+                                  } else {
+                                    uncompleteTask.mutate({ taskId: task.id });
+                                  }
+                                }}
                                 className="h-4 w-4"
                               />
                               <span className={task.status === 'completed' ? 'line-through text-muted-foreground' : task.status === 'overdue' ? 'text-destructive font-medium' : ''}>
