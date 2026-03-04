@@ -23,6 +23,28 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/* ─── Category options (sidebar module mapping) ─── */
+const CATEGORY_OPTIONS = [
+  { value: 'neoteam_schedule', label: 'Agenda' },
+  { value: 'neoteam_surgical_dashboard', label: 'Agenda Cirúrgica' },
+  { value: 'neoteam_waiting_room', label: 'Sala de Espera' },
+  { value: 'neoteam_patients', label: 'Pacientes' },
+  { value: 'neoteam_medical_records', label: 'Prontuários' },
+  { value: 'neoteam_anamnesis', label: 'Anamnese' },
+  { value: 'neoteam_procedures', label: 'Procedimentos' },
+  { value: 'neoteam_after_sales', label: 'Pós-Venda' },
+  { value: 'neoteam_retention', label: 'Retenção & Churn' },
+  { value: 'neoteam_tasks', label: 'Tarefas' },
+  { value: 'neoteam_cleaning', label: 'Limpeza' },
+  { value: 'neoteam_inventory', label: 'Inventário' },
+  { value: 'neoteam_diary', label: 'Diário de Bordo' },
+  { value: 'neoteam_financial_dashboard', label: 'Dashboard Financeiro' },
+  { value: 'neoteam_contract_review', label: 'Revisão de Contratos' },
+  { value: 'neoteam_legal_dashboard', label: 'Dashboard Jurídico' },
+  { value: 'neoteam_staff', label: 'Cargos & Funções' },
+  { value: 'custom', label: 'Personalizado' },
+];
+
 /* ─── BPMN config ─── */
 const STEP_TYPE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string; borderColor: string; bgGlow: string }> = {
   manual: {
@@ -405,10 +427,25 @@ export default function ProcessEditorPage() {
                 {template.status === 'active' ? 'Ativo' : template.status === 'draft' ? 'Rascunho' : 'Arquivado'}
               </Badge>
             </div>
-            <div className="flex items-center gap-2 ml-8 mt-1">
+            <div className="flex items-center gap-2 ml-8 mt-1 flex-wrap">
               {template.description && (
                 <p className="text-sm text-muted-foreground">{template.description}</p>
               )}
+              <span className="text-muted-foreground">•</span>
+              <Select
+                value={template.category || '__none__'}
+                onValueChange={v => id && updateTemplate.mutate({ id, category: v === '__none__' ? '' : v })}
+              >
+                <SelectTrigger className="h-7 w-[180px] text-xs">
+                  <SelectValue placeholder="Categoria..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Sem categoria</SelectItem>
+                  {CATEGORY_OPTIONS.map(c => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <span className="text-muted-foreground">•</span>
               <Select
                 value={template.branch_id || '__none__'}
