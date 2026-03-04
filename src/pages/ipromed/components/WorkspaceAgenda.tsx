@@ -355,15 +355,15 @@ export function WorkspaceAgenda() {
           >
             Geral
           </Button>
-          {LAWYER_NAMES.map(name => (
+          {LAWYERS.map(lawyer => (
             <Button
-              key={name}
-              variant={selectedUser === name ? 'default' : 'outline'}
+              key={lawyer.userId}
+              variant={selectedUser === lawyer.userId ? 'default' : 'outline'}
               size="sm"
               className="text-xs h-7 px-3"
-              onClick={() => setSelectedUser(name)}
+              onClick={() => setSelectedUser(lawyer.userId)}
             >
-              {name}
+              {lawyer.name}
             </Button>
           ))}
         </div>
