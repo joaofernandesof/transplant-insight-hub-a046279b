@@ -2707,6 +2707,67 @@ async function sendFluxoMedia(
 ): Promise<{ success: boolean; message: string }> {
   console.log(`[AI Agent] Tool: send_fluxo_media(step_id="${stepId}")`);
 
+  // Anti-duplication guard: check if media from this step was already sent in this conversation
+  try {
+    const { data: existingSent } = await supabase
+      .from("crm_messages")
+      .select("id")
+      .eq("conversation_id", conversationId)
+      .eq("direction", "outbound")
+      .eq("is_ai_generated", true)
+      .not("media_url", "is", null)
+      .order("sent_at", { ascending: false })
+      .limit(50);
+
+    if (existingSent && existingSent.length > 0) {
+      // We need to check if the specific step media was already sent
+      // Get the step's media URL first, then compare
+      let fluxoCheck: Record<string, unknown> | null = null;
+      if (agentId) {
+        const { data: agentCheck } = await supabase
+          .from("avivar_agents")
+          .select("fluxo_atendimento")
+          .eq("id", agentId)
+          .single();
+        fluxoCheck = agentCheck?.fluxo_atendimento as Record<string, unknown> | null;
+      }
+      if (fluxoCheck) {
+        const allStepsCheck = [
+          ...((fluxoCheck.passosCronologicos || []) as Array<Record<string, unknown>>),
+          ...((fluxoCheck.passosExtras || []) as Array<Record<string, unknown>>),
+        ];
+        const stepCheck = allStepsCheck.find((s) => s.id === stepId);
+        if (stepCheck) {
+          const stepMediaUrls: string[] = [];
+          if (stepCheck.media && (stepCheck.media as { url: string }).url) {
+            stepMediaUrls.push((stepCheck.media as { url: string }).url);
+          }
+          const varsCheck = (stepCheck.mediaVariations || []) as Array<{ url: string }>;
+          for (const v of varsCheck) {
+            if (v.url) stepMediaUrls.push(v.url);
+          }
+
+          // Check if any of this step's media URLs already exist in sent messages
+          const { data: dupeCheck } = await supabase
+            .from("crm_messages")
+            .select("id, media_url")
+            .eq("conversation_id", conversationId)
+            .eq("direction", "outbound")
+            .in("media_url", stepMediaUrls)
+            .limit(1);
+
+          if (dupeCheck && dupeCheck.length > 0) {
+            console.log(`[AI Agent] ⛔ ANTI-DUPLICATE: Media for step "${stepId}" already sent in this conversation (msg ${dupeCheck[0].id}). Skipping.`);
+            return { success: false, message: `Mídia do passo "${stepId}" já foi enviada anteriormente nesta conversa. Não reenviar.` };
+          }
+        }
+      }
+    }
+  } catch (dupErr) {
+    console.error("[AI Agent] Anti-duplicate check error (non-blocking):", dupErr);
+    // Continue with send if check fails
+  }
+
   // Get agent's fluxo_atendimento
   let fluxo: Record<string, unknown> | null = null;
   if (agentId) {
