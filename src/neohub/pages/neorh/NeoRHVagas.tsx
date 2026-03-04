@@ -985,9 +985,6 @@ function VagaCard({
         <Badge className={cn('text-[9px] h-4 shrink-0', prioridadeColor(vaga.prioridade))}>{vaga.prioridade}</Badge>
       </div>
       <div className="flex items-center gap-1.5 flex-wrap">
-        <Badge variant="outline" className={cn('text-[9px] h-4', vaga.tipo_fluxo === 'executivo' ? 'border-violet-300 text-violet-600' : 'border-amber-300 text-amber-600')}>
-          {vaga.tipo_fluxo === 'executivo' ? '👔' : '⚡'}
-        </Badge>
         <Badge variant="outline" className="text-[10px] h-5 uppercase">{vaga.modelo_contratacao || '—'}</Badge>
         <Badge variant="outline" className="text-[10px] h-5 capitalize">{vaga.modalidade?.replace('_', ' ') || '—'}</Badge>
       </div>
