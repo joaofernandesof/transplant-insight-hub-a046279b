@@ -4489,7 +4489,72 @@ serve(async (req) => {
     console.log(`[AI Agent] hasGoogleCalendar: ${hasGoogleCalendar} for account ${accountId}`);
 
     // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist + language)
-    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage, hasGoogleCalendar);
+    let systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage, hasGoogleCalendar);
+
+    // 4.1 Anti-duplication: detect already-sent fluxo media and inject into prompt
+    try {
+      const fluxoData = routedAgent.fluxo_atendimento as Record<string, unknown> | null;
+      if (fluxoData) {
+        const allFluxoSteps = [
+          ...((fluxoData.passosCronologicos || []) as Array<Record<string, unknown>>),
+          ...((fluxoData.passosExtras || []) as Array<Record<string, unknown>>),
+        ];
+        const stepsWithMedia = allFluxoSteps.filter(s => s.media || ((s.mediaVariations as unknown[]) || []).length > 0);
+        
+        if (stepsWithMedia.length > 0) {
+          // Collect all possible media URLs from fluxo steps
+          const allMediaUrls: string[] = [];
+          for (const step of stepsWithMedia) {
+            if (step.media && (step.media as { url: string }).url) {
+              allMediaUrls.push((step.media as { url: string }).url);
+            }
+            for (const v of ((step.mediaVariations || []) as Array<{ url: string }>)) {
+              if (v.url) allMediaUrls.push(v.url);
+            }
+          }
+
+          if (allMediaUrls.length > 0) {
+            const { data: sentMediaMsgs } = await supabase
+              .from("crm_messages")
+              .select("media_url, sent_at")
+              .eq("conversation_id", conversationId)
+              .eq("direction", "outbound")
+              .in("media_url", allMediaUrls);
+
+            if (sentMediaMsgs && sentMediaMsgs.length > 0) {
+              const sentUrls = new Set(sentMediaMsgs.map(m => m.media_url));
+              const sentStepIds = stepsWithMedia
+                .filter(s => {
+                  const urls: string[] = [];
+                  if (s.media && (s.media as { url: string }).url) urls.push((s.media as { url: string }).url);
+                  for (const v of ((s.mediaVariations || []) as Array<{ url: string }>)) {
+                    if (v.url) urls.push(v.url);
+                  }
+                  return urls.some(u => sentUrls.has(u));
+                })
+                .map(s => s.id as string)
+                .filter(Boolean);
+
+              if (sentStepIds.length > 0) {
+                const antiDupSection = `\n\n<regra_anti_duplicacao_midia>
+## ⛔ MÍDIAS DE FLUXO JÁ ENVIADAS NESTA CONVERSA — NÃO REENVIAR
+Os seguintes passos do fluxo JÁ tiveram sua mídia enviada nesta conversa:
+${sentStepIds.map(id => `- step_id="${id}" — JÁ ENVIADO`).join("\n")}
+
+REGRA OBRIGATÓRIA: NUNCA chame send_fluxo_media para esses step_ids acima.
+Se você chamar send_fluxo_media para um passo já enviado, você FALHOU na tarefa.
+Analise o histórico — se a mídia já aparece, NÃO reenvie.
+</regra_anti_duplicacao_midia>`;
+                systemPrompt += antiDupSection;
+                console.log(`[AI Agent] Anti-dup: injected ${sentStepIds.length} already-sent step IDs into prompt: ${sentStepIds.join(", ")}`);
+              }
+            }
+          }
+        }
+      }
+    } catch (antiDupErr) {
+      console.error("[AI Agent] Anti-dup prompt injection error (non-blocking):", antiDupErr);
+    }
 
     // 4.7 Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);
