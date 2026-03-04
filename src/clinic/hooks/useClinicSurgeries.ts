@@ -326,6 +326,7 @@ export function useClinicSurgeries() {
                 scheduled_date: format(scheduledDate, 'yyyy-MM-dd'),
                 responsible_name: def.responsible_name,
                 responsible_email: def.responsible_email,
+                responsible_user_id: def.responsible_user_id || null,
                 is_required: def.is_required,
                 status: 'pending',
                 phase_label: def.phase_label,

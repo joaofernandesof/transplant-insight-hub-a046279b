@@ -465,6 +465,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                                                 taskId: task.id,
                                                 definitionId: task.definition_id,
                                                 responsibleName: user.full_name,
+                                                responsibleUserId: user.id,
                                               });
                                               setEditingResponsibleTaskId(null);
                                             }}

@@ -11,6 +11,7 @@ export interface SurgeryTask {
   scheduled_date: string | null;
   responsible_name: string;
   responsible_email: string;
+  responsible_user_id: string | null;
   is_required: boolean;
   status: 'pending' | 'active' | 'completed' | 'overdue';
   phase_label: string;
@@ -118,11 +119,11 @@ export function useSurgeryTasks(surgeryId?: string) {
   });
 
   const updateResponsible = useMutation({
-    mutationFn: async ({ taskId, definitionId, responsibleName }: { taskId: string; definitionId: string | null; responsibleName: string }) => {
+    mutationFn: async ({ taskId, definitionId, responsibleName, responsibleUserId }: { taskId: string; definitionId: string | null; responsibleName: string; responsibleUserId: string | null }) => {
       // Update the specific task
       const { error } = await supabase
         .from('surgery_tasks')
-        .update({ responsible_name: responsibleName })
+        .update({ responsible_name: responsibleName, responsible_user_id: responsibleUserId })
         .eq('id', taskId);
       if (error) throw error;
 
@@ -130,7 +131,7 @@ export function useSurgeryTasks(surgeryId?: string) {
       if (definitionId) {
         await supabase
           .from('surgery_task_definitions')
-          .update({ responsible_name: responsibleName })
+          .update({ responsible_name: responsibleName, responsible_user_id: responsibleUserId })
           .eq('id', definitionId);
       }
     },
