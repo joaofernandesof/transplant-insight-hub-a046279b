@@ -559,7 +559,6 @@ export default function NeoRHVagas() {
 
         {/* ═══════ KANBAN ═══════ */}
         <TabsContent value="kanban" className="mt-4">
-          {/* Render separate boards per flow when filter=all, or single board */}
           {(fluxoFilter === 'all' ? ['express', 'executivo'] : [fluxoFilter]).map(fluxo => {
             const etapas = getEtapas(fluxo);
             const fluxoVagas = filteredItems.filter(v => (v.tipo_fluxo || 'express') === fluxo);
@@ -574,51 +573,52 @@ export default function NeoRHVagas() {
                   </div>
                 )}
 
-                {/* Board */}
-                <ScrollArea className="w-full">
-                  <div className="flex gap-3 pb-4">
-                    {etapas.map(etapa => {
-                      const etapaVagas = fluxoVagas.filter(v => (v.etapa_kanban || 'solicitacao') === etapa.id);
-                      const EtapaIcon = etapa.icon;
-                      return (
-                        <div key={etapa.id} className="flex-shrink-0 w-[250px]">
-                          <Card className="border-none shadow-sm overflow-hidden">
-                            <div className={cn('px-3 py-2 bg-gradient-to-r text-white flex items-center justify-between', etapa.color)}>
-                              <div className="flex items-center gap-2">
-                                <EtapaIcon className="h-3.5 w-3.5" />
-                                <h3 className="font-semibold text-xs">{etapa.label}</h3>
-                                <Badge variant="secondary" className="bg-white/20 text-white text-[10px] h-5">{etapaVagas.length}</Badge>
-                              </div>
-                            </div>
-                            <CardContent className="p-2 bg-muted/20 min-h-[calc(100vh-340px)]">
-                              {etapaVagas.length === 0 ? (
-                                <div className="flex items-center justify-center h-24 text-muted-foreground text-xs">Nenhuma vaga</div>
-                              ) : (
-                                <ScrollArea className="h-[calc(100vh-380px)]">
-                                  <div className="space-y-2 pr-1">
-                                    {etapaVagas.map(vaga => (
-                                      <VagaCard
-                                        key={vaga.id}
-                                        vaga={vaga}
-                                        cargos={cargos}
-                                        getName={getName}
-                                        formatCurrency={formatCurrency}
-                                        prioridadeColor={prioridadeColor}
-                                        daysInEtapa={getDaysInEtapa(vaga)}
-                                        onClick={() => setDetailVaga(vaga)}
-                                      />
-                                    ))}
-                                  </div>
-                                </ScrollArea>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragEnd={handleDragEnd}
+                >
+                  <ScrollArea className="w-full">
+                    <div className="flex gap-3 pb-4">
+                      {etapas.map(etapa => {
+                        const etapaVagas = fluxoVagas.filter(v => (v.etapa_kanban || 'solicitacao') === etapa.id);
+                        return (
+                          <DroppableEtapaColumn
+                            key={etapa.id}
+                            etapa={etapa}
+                            vagas={etapaVagas}
+                            cargos={cargos}
+                            getName={getName}
+                            formatCurrency={formatCurrency}
+                            prioridadeColor={prioridadeColor}
+                            getDaysInEtapa={getDaysInEtapa}
+                            onCardClick={setDetailVaga}
+                            isOver={overColumnId === etapa.id}
+                          />
+                        );
+                      })}
+                    </div>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+
+                  <DragOverlay dropAnimation={null}>
+                    {activeVaga && (
+                      <div className="opacity-90 rotate-2 scale-105 shadow-xl">
+                        <VagaCard
+                          vaga={activeVaga}
+                          cargos={cargos}
+                          getName={getName}
+                          formatCurrency={formatCurrency}
+                          prioridadeColor={prioridadeColor}
+                          daysInEtapa={getDaysInEtapa(activeVaga)}
+                          onClick={() => {}}
+                        />
+                      </div>
+                    )}
+                  </DragOverlay>
+                </DndContext>
               </div>
             );
           })}
