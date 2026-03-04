@@ -250,13 +250,11 @@ export default function NeoRHVagas() {
     });
     const topMotivos = Object.entries(motivosCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-    // Conversão por etapa (Express como referência)
-    const allEtapas = EXPRESS_ETAPAS;
-    const conversionRates = allEtapas.map((etapa, i) => {
+    // Conversão por etapa
+    const conversionRates = ETAPAS.map((etapa, i) => {
       const inThisOrAfter = items.filter(v => {
-        const flow = getEtapas(v.tipo_fluxo || 'express');
-        const etapaIdx = flow.findIndex(e => e.id === v.etapa_kanban);
-        const thisIdx = flow.findIndex(e => e.id === etapa.id);
+        const etapaIdx = ETAPAS.findIndex(e => e.id === v.etapa_kanban);
+        const thisIdx = i;
         return etapaIdx >= thisIdx && v.etapa_kanban !== 'cancelada';
       }).length;
       return { etapa: etapa.shortLabel, count: inThisOrAfter, total: items.length };
