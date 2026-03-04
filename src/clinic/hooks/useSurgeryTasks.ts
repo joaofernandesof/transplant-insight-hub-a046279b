@@ -117,7 +117,32 @@ export function useSurgeryTasks(surgeryId?: string) {
     onError: () => toast.error('Erro ao registrar problema'),
   });
 
-  return { tasks, phases, isLoading, completeTask, flagProblem };
+  const updateResponsible = useMutation({
+    mutationFn: async ({ taskId, definitionId, responsibleName }: { taskId: string; definitionId: string | null; responsibleName: string }) => {
+      // Update the specific task
+      const { error } = await supabase
+        .from('surgery_tasks')
+        .update({ responsible_name: responsibleName })
+        .eq('id', taskId);
+      if (error) throw error;
+
+      // Also update the definition template so future surgeries use the new responsible
+      if (definitionId) {
+        await supabase
+          .from('surgery_task_definitions')
+          .update({ responsible_name: responsibleName })
+          .eq('id', definitionId);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surgery-tasks', surgeryId] });
+      queryClient.invalidateQueries({ queryKey: ['surgery-tasks-all'] });
+      toast.success('Responsável atualizado!');
+    },
+    onError: () => toast.error('Erro ao atualizar responsável'),
+  });
+
+  return { tasks, phases, isLoading, completeTask, flagProblem, updateResponsible };
 }
 
 // Hook for operational dashboard: all tasks across surgeries
