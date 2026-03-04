@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -59,12 +59,42 @@ interface SurgeryDetailDialogProps {
 }
 
 export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onReschedule, onDelete, canDelete }: SurgeryDetailDialogProps) {
+  const queryClient = useQueryClient();
   const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask, updateResponsible } = useSurgeryTasks(surgery?.id);
   const { logs: auditLogs, isLoading: logsLoading } = useSurgeryAuditLog(surgery?.id);
   const { isAdmin } = useUnifiedAuth();
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [editingResponsibleTaskId, setEditingResponsibleTaskId] = useState<string | null>(null);
+
+  // Fetch available process templates for linking
+  const { data: processTemplates = [] } = useQuery({
+    queryKey: ['process-templates-for-surgery'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('neoteam_process_templates')
+        .select('id, name, category')
+        .eq('status', 'active')
+        .order('name');
+      return data || [];
+    },
+    enabled: isAdmin && open,
+  });
+
+  // Fetch the current surgery's process_template_id
+  const { data: surgeryTemplateId } = useQuery({
+    queryKey: ['surgery-template-id', surgery?.id],
+    queryFn: async () => {
+      if (!surgery?.id) return null;
+      const { data } = await supabase
+        .from('clinic_surgeries')
+        .select('process_template_id')
+        .eq('id', surgery.id)
+        .single();
+      return data?.process_template_id || null;
+    },
+    enabled: !!surgery?.id && open,
+  });
 
   // Fetch system users for responsible assignment
   const { data: systemUsers = [] } = useQuery({
@@ -395,10 +425,48 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
 
             {/* Protocolo de Atividades */}
             <div>
-              <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                <Phone className="h-4 w-4 text-primary" />
-                Protocolo de Atividades
-              </h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-primary" />
+                  Protocolo de Atividades
+                </h4>
+                {isAdmin && (
+                  <Select
+                    value={surgeryTemplateId || ''}
+                    onValueChange={async (templateId) => {
+                      const newTemplateId = templateId === 'none' ? null : templateId;
+                      await supabase
+                        .from('clinic_surgeries')
+                        .update({ process_template_id: newTemplateId } as any)
+                        .eq('id', surgery.id);
+                      // Regenerate tasks if surgery has a date
+                      if (surgery.surgeryDate && newTemplateId) {
+                        await supabase.rpc('generate_surgery_tasks', {
+                          p_surgery_id: surgery.id,
+                          p_surgery_date: surgery.surgeryDate,
+                          p_include_sale: false,
+                        });
+                      }
+                      // Invalidate queries to refresh
+                      queryClient.invalidateQueries({ queryKey: ['surgery-tasks', surgery.id] });
+                      queryClient.invalidateQueries({ queryKey: ['surgery-tasks-all'] });
+                      queryClient.invalidateQueries({ queryKey: ['surgery-template-id', surgery.id] });
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px] h-7 text-xs">
+                      <SelectValue placeholder="Vincular fluxo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none" className="text-xs">Sem fluxo (legado)</SelectItem>
+                      {processTemplates.map((t) => (
+                        <SelectItem key={t.id} value={t.id} className="text-xs">
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
               {tasksLoading ? (
                 <div className="flex items-center justify-center py-4 text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -464,6 +532,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                                               updateResponsible.mutate({
                                                 taskId: task.id,
                                                 definitionId: task.definition_id,
+                                                processStepId: (task as any).process_step_id,
                                                 responsibleName: user.full_name,
                                                 responsibleUserId: user.id,
                                               });

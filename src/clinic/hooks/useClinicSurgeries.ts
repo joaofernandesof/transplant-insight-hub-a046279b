@@ -297,50 +297,19 @@ export function useClinicSurgeries() {
       if (updateError) throw updateError;
 
       if (newDate) {
-        // PATH A: New date → delete non-completed tasks and regenerate from definitions
-        // Delete all non-completed tasks
+        // PATH A: New date → delete non-completed tasks and regenerate via DB function
         await supabase
           .from('surgery_tasks')
           .delete()
           .eq('surgery_id', id)
           .neq('status', 'completed');
 
-        // Fetch active definitions to create new tasks
-        const { data: definitions } = await supabase
-          .from('surgery_task_definitions')
-          .select('*')
-          .eq('is_active', true)
-          .order('order_index');
-
-        if (definitions && definitions.length > 0) {
-          const surgeryDate = new Date(newDate + 'T12:00:00');
-          const newTasks = definitions
-            .filter((def: any) => def.d_offset !== null)
-            .map((def: any) => {
-              const scheduledDate = addDays(surgeryDate, def.d_offset);
-              return {
-                surgery_id: id,
-                definition_id: def.id,
-                d_offset: def.d_offset,
-                title: def.title,
-                scheduled_date: format(scheduledDate, 'yyyy-MM-dd'),
-                responsible_name: def.responsible_name,
-                responsible_email: def.responsible_email,
-                responsible_user_id: def.responsible_user_id || null,
-                is_required: def.is_required,
-                status: 'pending',
-                phase_label: def.phase_label,
-                phase_color: def.phase_color,
-              };
-            });
-
-          if (newTasks.length > 0) {
-            const { error: insertError } = await supabase
-              .from('surgery_tasks')
-              .insert(newTasks);
-            if (insertError) console.error('Error creating tasks:', insertError);
-          }
-        }
+        // Call DB function to regenerate tasks (supports both process templates and legacy definitions)
+        await supabase.rpc('generate_surgery_tasks', {
+          p_surgery_id: id,
+          p_surgery_date: newDate,
+          p_include_sale: false,
+        });
       } else {
         // PATH B: "A definir" → cancel all non-completed tasks
         await supabase
