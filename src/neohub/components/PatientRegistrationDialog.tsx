@@ -187,7 +187,7 @@ export function PatientRegistrationDialog({
 
       const insertData: Record<string, any> = {
         patient_name: formData.full_name,
-        branch: formData.branch || null,
+        branch: formData.branch || 'FORTALEZA',
         procedure: formData.service_type || null,
         category: formData.category || null,
         schedule_status: withDate ? 'agendado' : 'sem_data',
