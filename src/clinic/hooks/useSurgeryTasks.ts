@@ -104,6 +104,26 @@ export function useSurgeryTasks(surgeryId?: string) {
     onError: () => toast.error('Erro ao concluir tarefa'),
   });
 
+  const uncompleteTask = useMutation({
+    mutationFn: async ({ taskId }: { taskId: string }) => {
+      const { error } = await supabase
+        .from('surgery_tasks')
+        .update({
+          status: 'pending',
+          completed_at: null,
+          completed_by: null,
+        })
+        .eq('id', taskId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surgery-tasks', surgeryId] });
+      queryClient.invalidateQueries({ queryKey: ['surgery-tasks-all'] });
+      toast.success('Tarefa reaberta!');
+    },
+    onError: () => toast.error('Erro ao reabrir tarefa'),
+  });
+
   const flagProblem = useMutation({
     mutationFn: async ({ taskId, observation }: { taskId: string; observation: string }) => {
       const { error } = await supabase
@@ -152,7 +172,7 @@ export function useSurgeryTasks(surgeryId?: string) {
     onError: () => toast.error('Erro ao atualizar responsável'),
   });
 
-  return { tasks, phases, isLoading, completeTask, flagProblem, updateResponsible };
+  return { tasks, phases, isLoading, completeTask, uncompleteTask, flagProblem, updateResponsible };
 }
 
 // Hook for operational dashboard: all tasks across surgeries
