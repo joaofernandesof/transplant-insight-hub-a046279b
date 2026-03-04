@@ -23008,6 +23008,10 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
+      is_active_neoteam_member: {
+        Args: { _auth_uid: string }
+        Returns: boolean
+      }
       is_avivar_onboarding_complete: {
         Args: { _user_id: string }
         Returns: boolean
