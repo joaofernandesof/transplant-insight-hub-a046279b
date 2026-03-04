@@ -192,8 +192,6 @@ export default function NeoRHVagas() {
   const [form, setForm] = useState(emptyForm);
   const [detailVaga, setDetailVaga] = useState<Vaga | null>(null);
   const [activeTab, setActiveTab] = useState('kanban');
-  const [fluxoFilter, setFluxoFilter] = useState<'all' | 'express' | 'executivo'>('all');
-  const [showFluxoSelector, setShowFluxoSelector] = useState(false);
   const [eliminateDialog, setEliminateDialog] = useState<Vaga | null>(null);
   const [eliminateReason, setEliminateReason] = useState('');
   const [activeVaga, setActiveVaga] = useState<Vaga | null>(null);
