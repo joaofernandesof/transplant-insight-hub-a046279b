@@ -27,11 +27,32 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   archived: { label: 'Arquivado', color: 'bg-muted text-muted-foreground border-border', icon: <Archive className="h-3 w-3" /> },
 };
 
+// Categorias mapeadas aos módulos do sidebar NeoTeam
 const CATEGORY_OPTIONS = [
-  { value: 'pre_operatorio', label: 'Pré-operatório' },
-  { value: 'pos_operatorio', label: 'Pós-operatório' },
-  { value: 'documentacao', label: 'Documentação' },
-  { value: 'alta', label: 'Alta' },
+  // Setor Técnico
+  { value: 'neoteam_schedule', label: 'Agenda' },
+  { value: 'neoteam_surgical_dashboard', label: 'Agenda Cirúrgica' },
+  { value: 'neoteam_waiting_room', label: 'Sala de Espera' },
+  { value: 'neoteam_patients', label: 'Pacientes' },
+  { value: 'neoteam_medical_records', label: 'Prontuários' },
+  { value: 'neoteam_anamnesis', label: 'Anamnese' },
+  { value: 'neoteam_procedures', label: 'Procedimentos' },
+  // Setor Sucesso do Paciente
+  { value: 'neoteam_after_sales', label: 'Pós-Venda' },
+  { value: 'neoteam_retention', label: 'Retenção & Churn' },
+  // Setor Operacional
+  { value: 'neoteam_tasks', label: 'Tarefas' },
+  { value: 'neoteam_cleaning', label: 'Limpeza' },
+  { value: 'neoteam_inventory', label: 'Inventário' },
+  { value: 'neoteam_diary', label: 'Diário de Bordo' },
+  // Setor Financeiro
+  { value: 'neoteam_financial_dashboard', label: 'Dashboard Financeiro' },
+  { value: 'neoteam_contract_review', label: 'Revisão de Contratos' },
+  // Setor Jurídico
+  { value: 'neoteam_legal_dashboard', label: 'Dashboard Jurídico' },
+  // Setor de RH
+  { value: 'neoteam_staff', label: 'Cargos & Funções' },
+  // Personalizado
   { value: 'custom', label: 'Personalizado' },
 ];
 
