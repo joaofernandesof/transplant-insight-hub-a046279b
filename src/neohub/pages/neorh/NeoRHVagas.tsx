@@ -269,8 +269,6 @@ export default function NeoRHVagas() {
       avgParado,
       topMotivos,
       conversionRates,
-      express: items.filter(v => (v.tipo_fluxo || 'express') === 'express').length,
-      executivo: items.filter(v => v.tipo_fluxo === 'executivo').length,
     };
   }, [items]);
 
