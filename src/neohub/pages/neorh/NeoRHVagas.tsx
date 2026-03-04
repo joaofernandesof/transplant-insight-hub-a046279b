@@ -691,7 +691,7 @@ export default function NeoRHVagas() {
                   >
                     <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue placeholder="Mover para..." /></SelectTrigger>
                     <SelectContent>
-                      {getEtapas(detailVaga.tipo_fluxo || 'express').map(e => (
+                      {ALL_ETAPAS.map(e => (
                         <SelectItem key={e.id} value={e.id}>{e.label}</SelectItem>
                       ))}
                     </SelectContent>
