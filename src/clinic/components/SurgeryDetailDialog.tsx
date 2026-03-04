@@ -439,9 +439,31 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                             </div>
                           </td>
                           <td className="px-3 py-2 text-center">
-                            <Badge variant="outline" className="text-[10px] px-1.5">
-                              {task.phase_label}
-                            </Badge>
+                            <div className="flex flex-col items-center gap-0.5">
+                              <Badge variant="outline" className="text-[10px] px-1.5">
+                                {task.phase_label}
+                              </Badge>
+                              {task.scheduled_date && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  {format(parseISO(task.scheduled_date), 'dd/MM')}
+                                </span>
+                              )}
+                              {task.status !== 'completed' && task.scheduled_date && (() => {
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                const taskDate = parseISO(task.scheduled_date);
+                                taskDate.setHours(0, 0, 0, 0);
+                                const diffDays = Math.floor((today.getTime() - taskDate.getTime()) / (1000 * 60 * 60 * 24));
+                                if (diffDays > 0) {
+                                  return (
+                                    <span className="text-[9px] font-semibold text-destructive">
+                                      {diffDays}d atraso
+                                    </span>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
                           </td>
                           <td className="px-3 py-2 text-xs">
                             {isAdmin ? (
