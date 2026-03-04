@@ -93,7 +93,12 @@ function getDayLabel(date: Date, today: Date): string {
   return format(date, "EEE", { locale: ptBR });
 }
 
-const LAWYER_NAMES = ['Dra. Caroline Parahyba', 'Dra. Larissa Guerreiro', 'Isabele Cartaxo'];
+const LAWYERS = [
+  { name: 'Dra. Caroline Parahyba', userId: '2bec7b54-9cd1-4be4-a8a6-c927167761f9' },
+  { name: 'Dra. Larissa Guerreiro', userId: '5ea64048-eb5e-4f2b-9f1e-f60c5494ff3f' },
+  { name: 'Isabele Cartaxo', userId: 'ae05b3bb-5eab-4133-9bac-70066bd4b71e' },
+];
+const lawyerNameMap: Record<string, string> = Object.fromEntries(LAWYERS.map(l => [l.userId, l.name]));
 
 export function WorkspaceAgenda() {
   const navigate = useNavigate();
