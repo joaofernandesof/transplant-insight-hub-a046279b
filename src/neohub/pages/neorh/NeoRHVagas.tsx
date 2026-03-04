@@ -218,10 +218,7 @@ export default function NeoRHVagas() {
 
   // ── Computed ──
 
-  const filteredItems = useMemo(() => {
-    if (fluxoFilter === 'all') return items;
-    return items.filter(v => (v.tipo_fluxo || 'express') === fluxoFilter);
-  }, [items, fluxoFilter]);
+  const filteredItems = items;
 
   const indicators = useMemo(() => {
     const active = items.filter(v => v.etapa_kanban !== 'cancelada' && v.etapa_kanban !== 'contratado');
