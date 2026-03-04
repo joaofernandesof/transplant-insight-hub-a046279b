@@ -1,65 +1,68 @@
 
 
-## Diagnóstico: Imagem duplicada do passo 3
+## Diagnóstico: Por que a IA oferece presencial e online juntos
 
-### O que aconteceu
+### Como funciona hoje
 
-Analisei a conversa completa do lead Lucas Araújo (conversa `70932678-85f2-4dc9-a43d-74d49cdc2c7b`):
+O prompt do agente é montado em **dois lugares**:
 
-| Hora | Quem | Conteúdo | Passo |
-|------|------|----------|-------|
-| 19:04 | Lead | "oi" | → Passo 1 |
-| 19:05 | Lead | "Lucas" | → Passo 2 |
-| 19:06 | Lead | "Cabelo" | → Passo 3 |
-| **19:07** | **IA** | **📎 imagem (antes/depois)** | **✅ correto - mídia do passo 3** |
-| 19:09 | Lead | "quero sim" / "como funciona?" | → Passo 4 |
-| 19:12 | Lead | "sim, qual endereço?" | → Passo 4/5 |
-| **19:13** | **IA** | **📎 mesma imagem (antes/depois)** | **❌ DUPLICADA** |
-| 19:13 | IA | "Avenida Rui Barbosa, 1540, Aldeota" | endereço |
-| 19:13 | IA | "A agenda do Dr. Lucas Araújo..." | horários |
+1. **Frontend (preview)** — `usePromptGenerator.ts`: gera um prompt de visualização com a instrução fraca:
+   > "Priorize atendimento presencial, mas ofereça online quando necessário"
+   
+2. **Backend (edge function)** — `avivar-ai-agent/index.ts` → `buildHybridSystemPrompt()`: monta o prompt real enviado à IA. Ele injeta:
+   - `agent.ai_instructions` (instruções livres do agente)
+   - `fluxoInstructions` (passos cronológicos + passos extras)
+   - Regras de agendamento genéricas
 
-A IA **reenviou a imagem do passo 3 (qualificação)** quando o lead pediu o endereço. Não foi porque não tinha foto do estacionamento — **foi um reenvio duplicado** da mesma mídia que já tinha sido enviada 6 minutos antes.
+**O problema**: Nenhum dos dois locais tem uma regra explícita dizendo "NUNCA ofereça consulta online na mesma mensagem que a presencial. Online só deve ser oferecido quando o lead recusar a presencial."
 
-### Causa raiz
+A IA vê que o agente tem objetivo principal "Agendar Consulta Presencial" e secundário "Agendar Consulta Online", e como ambos estão disponíveis, ela os apresenta juntos por padrão.
 
-O sistema atual **não rastreia quais mídias de passo já foram enviadas** nessa conversa. A IA:
-1. Vê no prompt que o passo "qualificacao" tem mídia anexada
-2. Decide chamar `send_fluxo_media(step_id="qualificacao")` novamente
-3. O guard no backend só impede **2+ envios na mesma resposta**, mas não entre respostas diferentes
+### Onde resolver
 
-Não existe nenhum mecanismo que diga à IA: "essa mídia já foi enviada nessa conversa, não envie de novo."
+A solução deve ser implementada **internamente no prompt do backend** (edge function), não nas instruções dos passos do fluxo. Motivos:
+- É uma regra de comportamento global, não específica de um passo
+- Precisa ser aplicada automaticamente com base na configuração de `consultationType`
+- O usuário não deveria precisar digitar essa regra manualmente
 
-### Solução proposta
+### Plano de implementação
 
-**1. Rastrear mídias já enviadas no histórico da conversa**
+**1. Adicionar regra de priorização no `buildHybridSystemPrompt`** (edge function)
 
-No `buildHybridSystemPrompt`, ao montar as instruções de fluxo, analisar o histórico de mensagens e identificar quais `media_url` do fluxo já foram enviadas. Adicionar uma regra explícita no prompt:
+Na função `buildHybridSystemPrompt` em `supabase/functions/avivar-ai-agent/index.ts`, após a seção `<fluxo_agendamento>`, adicionar uma nova seção `<regra_modalidade_atendimento>` que será gerada dinamicamente com base na configuração do agente:
 
-```
-## ⛔ MÍDIAS JÁ ENVIADAS NESTA CONVERSA (NÃO REENVIAR):
-- Passo "qualificacao": imagem já enviada às 19:07
-```
+- Carregar `consultation_type` do agente (campo já existente na tabela `avivar_agents`)
+- Se `presencial=true` E `online=true`:
+  ```
+  <regra_modalidade_atendimento>
+  REGRA OBRIGATÓRIA DE MODALIDADE:
+  - SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
+  - SOMENTE ofereça consulta ONLINE quando o lead:
+    • Disser que não pode comparecer presencialmente
+    • Informar que mora longe/em outra cidade/estado
+    • Pedir explicitamente por atendimento online
+  - NUNCA apresente as duas modalidades na mesma mensagem
+  - Se o lead aceitar presencial, NÃO mencione a opção online
+  </regra_modalidade_atendimento>
+  ```
+- Se apenas `online=true`: não adicionar restrição (oferecer online diretamente)
+- Se apenas `presencial=true`: não adicionar restrição
 
-**2. Adicionar guard no backend (sendFluxoMedia)**
+**2. Carregar `consultation_type` na query do agente**
 
-Na função `sendFluxoMedia`, antes de enviar, verificar no `crm_messages` se já existe uma mensagem outbound com a mesma `media_url` nessa conversa. Se sim, retornar `{ success: false, message: "Mídia já enviada anteriormente nesta conversa." }`.
+Na query que carrega o agente roteado (função que popula `RoutedAgent`), incluir o campo `consultation_type` do `avivar_agents`. Adicionar o campo à interface `RoutedAgent`.
 
-**3. Reforçar instrução no prompt**
+**3. Atualizar o prompt de preview no frontend**
 
-Adicionar regra explícita nas instruções de fluxo:
-```
-REGRA ANTI-DUPLICAÇÃO: NUNCA reenvie a mídia de um passo que já foi executado.
-Analise o histórico — se a mídia já aparece nas mensagens anteriores, NÃO chame send_fluxo_media novamente para esse passo.
-```
+Em `usePromptGenerator.ts`, substituir a instrução fraca (linha 154) por uma regra mais clara e alinhada com o backend.
 
 ### Arquivos a modificar
+- `supabase/functions/avivar-ai-agent/index.ts` — adicionar seção de modalidade no prompt + carregar consultation_type
+- `src/pages/avivar/config/hooks/usePromptGenerator.ts` — melhorar instrução de priorização no preview
 
-- `supabase/functions/avivar-ai-agent/index.ts`:
-  - **`sendFluxoMedia`**: adicionar verificação de duplicação antes de enviar (checar `crm_messages` por `media_url` existente na conversa)
-  - **`buildHybridSystemPrompt`** (ou onde o histórico é processado): incluir lista de mídias já enviadas e regra anti-duplicação no prompt
+### Resposta às perguntas
 
-### Impacto
-
-- Dupla proteção: guard no backend (impede envio técnico) + instrução no prompt (impede a IA de tentar)
-- Sem breaking changes — apenas adiciona verificação antes de algo que já existe
+- **Por que a IA oferece junto?** Porque não existe regra explícita no prompt impedindo isso. A instrução atual é apenas "priorize", o que é vago demais para a IA.
+- **Onde está configurado?** O prompt é montado na edge function `avivar-ai-agent`. As instruções do fluxo (passos) são injetadas, mas a regra de priorização de modalidade não existe em nenhum lugar.
+- **Devo configurar nos passos do fluxo?** Não. Vou implementar internamente no prompt do backend, aplicado automaticamente com base na sua configuração de tipo de consulta (presencial + online). Assim funciona para todos os agentes sem precisar escrever a regra manualmente.
 
