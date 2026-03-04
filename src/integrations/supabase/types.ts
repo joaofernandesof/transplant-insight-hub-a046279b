@@ -4327,6 +4327,7 @@ export type Database = {
           patient_id: string | null
           patient_name: string | null
           procedure: string | null
+          process_template_id: string | null
           remaining_paid: number | null
           sale_id: string | null
           sale_year: string | null
@@ -4376,6 +4377,7 @@ export type Database = {
           patient_id?: string | null
           patient_name?: string | null
           procedure?: string | null
+          process_template_id?: string | null
           remaining_paid?: number | null
           sale_id?: string | null
           sale_year?: string | null
@@ -4425,6 +4427,7 @@ export type Database = {
           patient_id?: string | null
           patient_name?: string | null
           procedure?: string | null
+          process_template_id?: string | null
           remaining_paid?: number | null
           sale_id?: string | null
           sale_year?: string | null
@@ -4445,6 +4448,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_surgeries_process_template_id_fkey"
+            columns: ["process_template_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_templates"
             referencedColumns: ["id"]
           },
           {
@@ -21171,6 +21181,8 @@ export type Database = {
           observation: string | null
           phase_color: string
           phase_label: string
+          process_instance_id: string | null
+          process_step_id: string | null
           responsible_email: string
           responsible_name: string
           responsible_user_id: string | null
@@ -21192,6 +21204,8 @@ export type Database = {
           observation?: string | null
           phase_color?: string
           phase_label: string
+          process_instance_id?: string | null
+          process_step_id?: string | null
           responsible_email: string
           responsible_name: string
           responsible_user_id?: string | null
@@ -21213,6 +21227,8 @@ export type Database = {
           observation?: string | null
           phase_color?: string
           phase_label?: string
+          process_instance_id?: string | null
+          process_step_id?: string | null
           responsible_email?: string
           responsible_name?: string
           responsible_user_id?: string | null
@@ -21228,6 +21244,20 @@ export type Database = {
             columns: ["definition_id"]
             isOneToOne: false
             referencedRelation: "surgery_task_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_tasks_process_instance_id_fkey"
+            columns: ["process_instance_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_tasks_process_step_id_fkey"
+            columns: ["process_step_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_process_steps"
             referencedColumns: ["id"]
           },
           {

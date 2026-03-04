@@ -6,6 +6,8 @@ export interface SurgeryTask {
   id: string;
   surgery_id: string;
   definition_id: string | null;
+  process_step_id: string | null;
+  process_instance_id: string | null;
   d_offset: number | null;
   title: string;
   scheduled_date: string | null;
@@ -119,7 +121,7 @@ export function useSurgeryTasks(surgeryId?: string) {
   });
 
   const updateResponsible = useMutation({
-    mutationFn: async ({ taskId, definitionId, responsibleName, responsibleUserId }: { taskId: string; definitionId: string | null; responsibleName: string; responsibleUserId: string | null }) => {
+    mutationFn: async ({ taskId, definitionId, processStepId, responsibleName, responsibleUserId }: { taskId: string; definitionId: string | null; processStepId?: string | null; responsibleName: string; responsibleUserId: string | null }) => {
       // Update the specific task
       const { error } = await supabase
         .from('surgery_tasks')
@@ -127,8 +129,15 @@ export function useSurgeryTasks(surgeryId?: string) {
         .eq('id', taskId);
       if (error) throw error;
 
-      // Also update the definition template so future surgeries use the new responsible
-      if (definitionId) {
+      // Also update the template so future surgeries use the new responsible
+      if (processStepId) {
+        // Update the process step (new unified system)
+        await supabase
+          .from('neoteam_process_steps')
+          .update({ responsible_user_id: responsibleUserId })
+          .eq('id', processStepId);
+      } else if (definitionId) {
+        // Update the legacy definition
         await supabase
           .from('surgery_task_definitions')
           .update({ responsible_name: responsibleName, responsible_user_id: responsibleUserId })
