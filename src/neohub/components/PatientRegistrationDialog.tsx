@@ -34,7 +34,7 @@ interface PatientRegistrationDialogProps {
   onSuccess?: () => void;
 }
 
-const BRANCHES_FALLBACK = ['FORTALEZA', 'JUAZEIRO', 'SÃO PAULO'];
+// Branches are loaded dynamically from neoteam_branches (managed in /neoteam/settings)
 const CATEGORIES = [
   'Categoria A - Hygor',
   'Categoria A - Patrick',
@@ -55,7 +55,7 @@ export function PatientRegistrationDialog({
   onSuccess 
 }: PatientRegistrationDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [branches, setBranches] = useState<string[]>(BRANCHES_FALLBACK);
+  const [branches, setBranches] = useState<string[]>([]);
   const [dateOption, setDateOption] = useState<DateOption>('none');
   const [surgeryDate, setSurgeryDate] = useState('');
   const [surgeryTime, setSurgeryTime] = useState('');
@@ -187,7 +187,7 @@ export function PatientRegistrationDialog({
 
       const insertData: Record<string, any> = {
         patient_name: formData.full_name,
-        branch: formData.branch || 'FORTALEZA',
+        branch: formData.branch || branches[0] || '',
         procedure: formData.service_type || null,
         category: formData.category || null,
         schedule_status: withDate ? 'agendado' : 'sem_data',
