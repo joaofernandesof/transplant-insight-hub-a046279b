@@ -88,7 +88,8 @@ export function useClinicSurgeries() {
       let query = supabase
         .from('clinic_surgeries')
         .select('*, clinic_patients!clinic_surgeries_patient_id_fkey(full_name)')
-        .order('surgery_date', { ascending: true, nullsFirst: false });
+        .order('surgery_date', { ascending: true, nullsFirst: false })
+        .limit(5000);
 
       if (!isAdmin && !isGestao && currentBranch) {
         query = query.eq('branch', currentBranch);
