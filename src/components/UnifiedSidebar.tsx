@@ -3,11 +3,9 @@
 // ====================================
 // Detecta automaticamente o portal ativo baseado na rota
 // Menu derivado de menuConfig.ts - fonte única de verdade
-// Fluxos de Processo são injetados dinamicamente via banco de dados
+
 
 import { useNavigate, useLocation } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,7 +41,6 @@ import {
   Scale,
   Flame,
   Eye,
-  GitCompare,
 } from "lucide-react";
 import { LayoutGrid } from "lucide-react";
 import {
@@ -170,21 +167,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
   const currentPortal = useMemo(() => detectPortal(location.pathname), [location.pathname]);
   const portalConfig = PORTAL_CONFIG[currentPortal];
 
-  // Fetch dynamic process templates for NeoTeam sidebar
-  const { data: processTemplates } = useQuery({
-    queryKey: ['sidebar-process-templates'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('neoteam_process_templates')
-        .select('id, name, color, status, category')
-        .eq('status', 'active')
-        .order('name');
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: currentPortal === 'neoteam',
-    staleTime: 60_000, // cache 1 min
-  });
+  
   const { setTheme } = useTheme();
 
   // Force light theme for HotLeads portal
@@ -285,44 +268,10 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     // Check if portal has categorized menu
     const categorizedMenu = PORTAL_MENU_CATEGORIES[currentPortal];
     if (categorizedMenu) {
-      let filtered = categorizedMenu.map(category => {
-        let items = filterMenuByPermissions(category.items, hasPermission, isAdmin);
-        
-        // Inject dynamic process templates as children of matching sidebar modules
-        if (currentPortal === 'neoteam' && processTemplates?.length) {
-          items = items.map(item => {
-            // Find flows whose category matches this menu item's id
-            // Flows with category 'custom' or null go under "Fluxos de Processo"
-            const matchingFlows = processTemplates.filter(pt => {
-              // Legacy categories and unset ones go under "Fluxos de Processo"
-              const legacyCategories = ['pre_operatorio', 'pos_operatorio', 'documentacao', 'alta'];
-              const isUnmapped = !pt.category || pt.category === 'custom' || pt.category === 'neoteam_processos' || legacyCategories.includes(pt.category || '');
-              if (item.id === 'neoteam_processos') {
-                return isUnmapped;
-              }
-              return pt.category === item.id;
-            });
-            if (matchingFlows.length > 0) {
-              return {
-                ...item,
-                children: [
-                  ...(item.children || []),
-                  ...matchingFlows.map(pt => ({
-                    id: `process_${pt.id}`,
-                    code: `process_${pt.id}`,
-                    title: pt.name,
-                    icon: GitCompare,
-                    route: `/neoteam/processos/${pt.id}`,
-                  })),
-                ],
-              };
-            }
-            return item;
-          });
-        }
-        
-        return { ...category, items };
-      }).filter(category => category.items.length > 0);
+      let filtered = categorizedMenu.map(category => ({
+        ...category,
+        items: filterMenuByPermissions(category.items, hasPermission, isAdmin),
+      })).filter(category => category.items.length > 0);
 
       // If inside a sector, show only that sector's items + home
       if (activeSectorCode && currentPortal === 'neoteam') {
@@ -348,7 +297,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
         return true;
       })
     })).filter(category => category.items.length > 0);
-  }, [currentPortal, menuItems, isAdmin, activeSectorCode, processTemplates]);
+  }, [currentPortal, menuItems, isAdmin, activeSectorCode]);
 
   // Track open state of collapsible categories
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
@@ -593,38 +542,18 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-2 space-y-0.5">
                       {category.items.map((item) => (
-                        <div key={item.id}>
-                          <Button
-                            variant={isActive(item.route) ? "secondary" : "ghost"}
-                            className={cn(
-                              "w-full justify-start gap-3 h-9",
-                              isActive(item.route) && "bg-primary/10 text-primary font-medium"
-                            )}
-                            onClick={() => navigate(item.route)}
-                          >
-                            {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
-                            <span className="truncate text-sm">{item.title}</span>
-                          </Button>
-                          {/* Render dynamic children (e.g. process templates) */}
-                          {item.children && item.children.length > 0 && (
-                            <div className="pl-5 space-y-0.5 mt-0.5">
-                              {item.children.map((child) => (
-                                <Button
-                                  key={child.id}
-                                  variant={isActive(child.route) ? "secondary" : "ghost"}
-                                  className={cn(
-                                    "w-full justify-start gap-2 h-8 text-xs",
-                                    isActive(child.route) && "bg-primary/10 text-primary font-medium"
-                                  )}
-                                  onClick={() => navigate(child.route)}
-                                >
-                                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 flex-shrink-0" />
-                                  <span className="truncate">{child.title}</span>
-                                </Button>
-                              ))}
-                            </div>
+                        <Button
+                          key={item.id}
+                          variant={isActive(item.route) ? "secondary" : "ghost"}
+                          className={cn(
+                            "w-full justify-start gap-3 h-9",
+                            isActive(item.route) && "bg-primary/10 text-primary font-medium"
                           )}
-                        </div>
+                          onClick={() => navigate(item.route)}
+                        >
+                          {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
+                          <span className="truncate text-sm">{item.title}</span>
+                        </Button>
                       ))}
                     </CollapsibleContent>
                   </Collapsible>
