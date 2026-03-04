@@ -323,6 +323,9 @@ export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportS
 
       toast.success(`${response?.inserted || 0} registros importados com sucesso!`);
       refetchBatches();
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
       onSuccess?.();
     } catch (err: any) {
       console.error('Import error:', err);
