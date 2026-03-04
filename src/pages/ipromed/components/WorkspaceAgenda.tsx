@@ -639,8 +639,8 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
                   <Select value={editAssignedTo} onValueChange={setEditAssignedTo}>
                     <SelectTrigger><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
                     <SelectContent>
-                      {LAWYER_NAMES.map(name => (
-                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      {LAWYERS.map(lawyer => (
+                        <SelectItem key={lawyer.userId} value={lawyer.userId}>{lawyer.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
