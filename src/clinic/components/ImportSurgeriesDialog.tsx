@@ -65,9 +65,28 @@ function parseVgv(val: string | undefined): number | null {
 
 function parseDate(val: string | undefined): string | null {
   if (!val || val.trim() === "" || val.trim() === "-") return null;
-  const match = val.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!match) return null;
-  return `${match[3]}-${match[2]}-${match[1]}`;
+  const trimmed = val.trim();
+  
+  // DD/MM/YYYY
+  const match = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+  
+  // Excel serial number
+  const serial = Number(trimmed);
+  if (!isNaN(serial) && serial > 40000 && serial < 60000) {
+    const epoch = new Date(1899, 11, 30);
+    const date = new Date(epoch.getTime() + serial * 86400000);
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  
+  // ISO YYYY-MM-DD
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  
+  return null;
 }
 
 function parseTime(val: string | undefined): string | null {
@@ -271,9 +290,9 @@ export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportS
     // Parse file immediately for preview
     try {
       const data = await selected.arrayBuffer();
-      const workbook = XLSX.read(data, { type: 'array' });
+      const workbook = XLSX.read(data, { type: 'array', cellDates: true });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonRows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      const jsonRows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', rawNumbers: false });
       if (jsonRows.length >= 2) {
         // Detect columns from header row
         const headers = jsonRows[0].map((c: any) => String(c ?? ''));
@@ -306,7 +325,16 @@ export function ImportSurgeriesDialog({ open, onOpenChange, onSuccess }: ImportS
 
     try {
       // Send raw arrays with header row for column detection
-      const arrayRows = rawRows.map(row => row.map((cell: any) => String(cell ?? '')));
+      // Convert Date objects to DD/MM/YYYY strings before sending
+      const arrayRows = rawRows.map(row => row.map((cell: any) => {
+        if (cell instanceof Date && !isNaN(cell.getTime())) {
+          const dd = String(cell.getDate()).padStart(2, '0');
+          const mm = String(cell.getMonth() + 1).padStart(2, '0');
+          const yyyy = cell.getFullYear();
+          return `${dd}/${mm}/${yyyy}`;
+        }
+        return String(cell ?? '');
+      }));
 
       const { data: response, error } = await supabase.functions.invoke('import-surgeries', {
         body: { rows: arrayRows, branch, headers: headerRow },
