@@ -278,14 +278,9 @@ export default function NeoRHVagas() {
   const formatCurrency = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
   const prioridadeColor = (p: string | null) => PRIORIDADES.find(x => x.value === p)?.color ?? '';
 
-  const openNew = (etapa?: string) => {
-    setShowFluxoSelector(true);
-  };
-
-  const startCreateWithFluxo = (fluxo: string) => {
+  const openNew = () => {
     setEditing(null);
-    setForm({ ...emptyForm, tipo_fluxo: fluxo, etapa_kanban: 'solicitacao' });
-    setShowFluxoSelector(false);
+    setForm({ ...emptyForm });
     setDialogOpen(true);
   };
 
