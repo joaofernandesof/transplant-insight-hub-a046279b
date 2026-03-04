@@ -101,8 +101,25 @@ export function ReminderRuleDialog({ open, onOpenChange, rule, onSave, isSaving 
     });
   };
 
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+
   const insertVariable = (key: string) => {
-    setMessage(prev => prev + key);
+    const textarea = messageRef.current;
+    if (!textarea) {
+      setMessage(prev => prev + key);
+      return;
+    }
+    const start = textarea.selectionStart ?? message.length;
+    const end = textarea.selectionEnd ?? message.length;
+    const newValue = message.slice(0, start) + key + message.slice(end);
+    setMessage(newValue);
+    // Restore cursor after the inserted variable
+    requestAnimationFrame(() => {
+      const pos = start + key.length;
+      textarea.selectionStart = pos;
+      textarea.selectionEnd = pos;
+      textarea.focus();
+    });
   };
 
   return (
