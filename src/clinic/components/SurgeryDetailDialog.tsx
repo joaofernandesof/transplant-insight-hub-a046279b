@@ -418,6 +418,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                       <tr className="bg-muted/50 border-b">
                         <th className="text-left px-3 py-2 font-medium text-muted-foreground">Atividade</th>
                         <th className="text-center px-3 py-2 font-medium text-muted-foreground w-20">Momento</th>
+                        <th className="text-center px-3 py-2 font-medium text-muted-foreground w-24">Data</th>
                         <th className="text-left px-3 py-2 font-medium text-muted-foreground w-32">Responsável</th>
                       </tr>
                     </thead>
@@ -439,14 +440,18 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                             </div>
                           </td>
                           <td className="px-3 py-2 text-center">
+                            <Badge variant="outline" className="text-[10px] px-1.5">
+                              {task.phase_label}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-2 text-center">
                             <div className="flex flex-col items-center gap-0.5">
-                              <Badge variant="outline" className="text-[10px] px-1.5">
-                                {task.phase_label}
-                              </Badge>
-                              {task.scheduled_date && (
+                              {task.scheduled_date ? (
                                 <span className="text-[10px] text-muted-foreground">
                                   {format(parseISO(task.scheduled_date), 'dd/MM')}
                                 </span>
+                              ) : (
+                                <span className="text-[10px] text-muted-foreground">—</span>
                               )}
                               {task.status !== 'completed' && task.scheduled_date && (() => {
                                 const today = new Date();
