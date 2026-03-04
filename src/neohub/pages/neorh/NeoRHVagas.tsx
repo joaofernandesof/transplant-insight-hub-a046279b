@@ -1100,3 +1100,148 @@ function VagaCard({
     </div>
   );
 }
+
+// ── Droppable Column ──
+
+function DroppableEtapaColumn({
+  etapa,
+  vagas,
+  cargos,
+  getName,
+  formatCurrency,
+  prioridadeColor,
+  getDaysInEtapa,
+  onCardClick,
+  isOver,
+}: {
+  etapa: EtapaDef;
+  vagas: Vaga[];
+  cargos: Cargo[];
+  getName: (list: RefData[], id: string | null) => string;
+  formatCurrency: (v: number) => string;
+  prioridadeColor: (p: string | null) => string;
+  getDaysInEtapa: (v: Vaga) => number;
+  onCardClick: (v: Vaga) => void;
+  isOver: boolean;
+}) {
+  const { setNodeRef } = useDroppable({
+    id: etapa.id,
+    data: { type: 'column', etapaId: etapa.id },
+  });
+
+  const EtapaIcon = etapa.icon;
+  const vagaIds = vagas.map(v => v.id);
+
+  return (
+    <div className="flex-shrink-0 w-[250px]">
+      <Card className={cn(
+        "border-none shadow-sm overflow-hidden transition-all duration-200",
+        isOver && "ring-2 ring-primary ring-offset-2"
+      )}>
+        <div className={cn('px-3 py-2 bg-gradient-to-r text-white flex items-center justify-between', etapa.color)}>
+          <div className="flex items-center gap-2">
+            <EtapaIcon className="h-3.5 w-3.5" />
+            <h3 className="font-semibold text-xs">{etapa.label}</h3>
+            <Badge variant="secondary" className="bg-white/20 text-white text-[10px] h-5">{vagas.length}</Badge>
+          </div>
+        </div>
+        <CardContent
+          ref={setNodeRef}
+          className={cn(
+            "p-2 bg-muted/20 min-h-[calc(100vh-340px)] transition-colors duration-200",
+            isOver && "bg-primary/10"
+          )}
+        >
+          <SortableContext items={vagaIds} strategy={verticalListSortingStrategy}>
+            {vagas.length === 0 ? (
+              <div className={cn(
+                "flex flex-col items-center justify-center h-24 text-muted-foreground text-xs border-2 border-dashed rounded-lg transition-colors",
+                isOver ? "border-primary bg-primary/5" : "border-transparent"
+              )}>
+                <Users2 className="h-6 w-6 mb-1 opacity-50" />
+                <span>{isOver ? "Solte aqui" : "Nenhuma vaga"}</span>
+              </div>
+            ) : (
+              <ScrollArea className="h-[calc(100vh-380px)]">
+                <div className="space-y-2 pr-1">
+                  {vagas.map(vaga => (
+                    <DraggableVagaCard
+                      key={vaga.id}
+                      vaga={vaga}
+                      etapaId={etapa.id}
+                      cargos={cargos}
+                      getName={getName}
+                      formatCurrency={formatCurrency}
+                      prioridadeColor={prioridadeColor}
+                      daysInEtapa={getDaysInEtapa(vaga)}
+                      onClick={() => onCardClick(vaga)}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </SortableContext>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ── Draggable VagaCard wrapper ──
+
+function DraggableVagaCard({
+  vaga,
+  etapaId,
+  cargos,
+  getName,
+  formatCurrency,
+  prioridadeColor,
+  daysInEtapa,
+  onClick,
+}: {
+  vaga: Vaga;
+  etapaId: string;
+  cargos: Cargo[];
+  getName: (list: RefData[], id: string | null) => string;
+  formatCurrency: (v: number) => string;
+  prioridadeColor: (p: string | null) => string;
+  daysInEtapa: number;
+  onClick: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: vaga.id,
+    data: { type: 'vaga', vaga, etapaId },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn("touch-none", isDragging && "opacity-40 z-50")}
+      {...attributes}
+      {...listeners}
+    >
+      <VagaCard
+        vaga={vaga}
+        cargos={cargos}
+        getName={getName}
+        formatCurrency={formatCurrency}
+        prioridadeColor={prioridadeColor}
+        daysInEtapa={daysInEtapa}
+        onClick={onClick}
+      />
+    </div>
+  );
+}
