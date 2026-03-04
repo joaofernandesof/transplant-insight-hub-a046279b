@@ -23,6 +23,20 @@ import {
 import { toast } from 'sonner';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+  type DragOverEvent,
+} from '@dnd-kit/core';
+import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useDroppable } from '@dnd-kit/core';
 
 // ── Types ──
 
@@ -201,6 +215,12 @@ export default function NeoRHVagas() {
   const [showFluxoSelector, setShowFluxoSelector] = useState(false);
   const [eliminateDialog, setEliminateDialog] = useState<Vaga | null>(null);
   const [eliminateReason, setEliminateReason] = useState('');
+  const [activeVaga, setActiveVaga] = useState<Vaga | null>(null);
+  const [overColumnId, setOverColumnId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
   const load = useCallback(async () => {
     const [v, c, u, a] = await Promise.all([
@@ -424,6 +444,45 @@ export default function NeoRHVagas() {
     load();
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const vaga = event.active.data.current?.vaga as Vaga | undefined;
+    if (vaga) setActiveVaga(vaga);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const overId = event.over?.id as string | undefined;
+    const overData = event.over?.data.current;
+    if (overData?.type === 'column') {
+      setOverColumnId(overId ?? null);
+    } else if (overData?.type === 'vaga') {
+      setOverColumnId(overData.etapaId ?? null);
+    } else {
+      setOverColumnId(null);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveVaga(null);
+    setOverColumnId(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const draggedVaga = active.data.current?.vaga as Vaga | undefined;
+    if (!draggedVaga) return;
+
+    let targetEtapa: string | null = null;
+    const overData = over.data.current;
+    if (overData?.type === 'column') {
+      targetEtapa = over.id as string;
+    } else if (overData?.type === 'vaga') {
+      targetEtapa = overData.etapaId as string;
+    }
+
+    if (targetEtapa && targetEtapa !== draggedVaga.etapa_kanban) {
+      moveToEtapa(draggedVaga, targetEtapa);
+    }
+  };
+
   const eliminateVaga = async () => {
     if (!eliminateDialog || !eliminateReason) return;
     const motivos = Array.isArray(eliminateDialog.motivos_reprovacao) ? eliminateDialog.motivos_reprovacao : [];
@@ -500,7 +559,6 @@ export default function NeoRHVagas() {
 
         {/* ═══════ KANBAN ═══════ */}
         <TabsContent value="kanban" className="mt-4">
-          {/* Render separate boards per flow when filter=all, or single board */}
           {(fluxoFilter === 'all' ? ['express', 'executivo'] : [fluxoFilter]).map(fluxo => {
             const etapas = getEtapas(fluxo);
             const fluxoVagas = filteredItems.filter(v => (v.tipo_fluxo || 'express') === fluxo);
@@ -515,51 +573,52 @@ export default function NeoRHVagas() {
                   </div>
                 )}
 
-                {/* Board */}
-                <ScrollArea className="w-full">
-                  <div className="flex gap-3 pb-4">
-                    {etapas.map(etapa => {
-                      const etapaVagas = fluxoVagas.filter(v => (v.etapa_kanban || 'solicitacao') === etapa.id);
-                      const EtapaIcon = etapa.icon;
-                      return (
-                        <div key={etapa.id} className="flex-shrink-0 w-[250px]">
-                          <Card className="border-none shadow-sm overflow-hidden">
-                            <div className={cn('px-3 py-2 bg-gradient-to-r text-white flex items-center justify-between', etapa.color)}>
-                              <div className="flex items-center gap-2">
-                                <EtapaIcon className="h-3.5 w-3.5" />
-                                <h3 className="font-semibold text-xs">{etapa.label}</h3>
-                                <Badge variant="secondary" className="bg-white/20 text-white text-[10px] h-5">{etapaVagas.length}</Badge>
-                              </div>
-                            </div>
-                            <CardContent className="p-2 bg-muted/20 min-h-[calc(100vh-340px)]">
-                              {etapaVagas.length === 0 ? (
-                                <div className="flex items-center justify-center h-24 text-muted-foreground text-xs">Nenhuma vaga</div>
-                              ) : (
-                                <ScrollArea className="h-[calc(100vh-380px)]">
-                                  <div className="space-y-2 pr-1">
-                                    {etapaVagas.map(vaga => (
-                                      <VagaCard
-                                        key={vaga.id}
-                                        vaga={vaga}
-                                        cargos={cargos}
-                                        getName={getName}
-                                        formatCurrency={formatCurrency}
-                                        prioridadeColor={prioridadeColor}
-                                        daysInEtapa={getDaysInEtapa(vaga)}
-                                        onClick={() => setDetailVaga(vaga)}
-                                      />
-                                    ))}
-                                  </div>
-                                </ScrollArea>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragEnd={handleDragEnd}
+                >
+                  <ScrollArea className="w-full">
+                    <div className="flex gap-3 pb-4">
+                      {etapas.map(etapa => {
+                        const etapaVagas = fluxoVagas.filter(v => (v.etapa_kanban || 'solicitacao') === etapa.id);
+                        return (
+                          <DroppableEtapaColumn
+                            key={etapa.id}
+                            etapa={etapa}
+                            vagas={etapaVagas}
+                            cargos={cargos}
+                            getName={getName}
+                            formatCurrency={formatCurrency}
+                            prioridadeColor={prioridadeColor}
+                            getDaysInEtapa={getDaysInEtapa}
+                            onCardClick={setDetailVaga}
+                            isOver={overColumnId === etapa.id}
+                          />
+                        );
+                      })}
+                    </div>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+
+                  <DragOverlay dropAnimation={null}>
+                    {activeVaga && (
+                      <div className="opacity-90 rotate-2 scale-105 shadow-xl">
+                        <VagaCard
+                          vaga={activeVaga}
+                          cargos={cargos}
+                          getName={getName}
+                          formatCurrency={formatCurrency}
+                          prioridadeColor={prioridadeColor}
+                          daysInEtapa={getDaysInEtapa(activeVaga)}
+                          onClick={() => {}}
+                        />
+                      </div>
+                    )}
+                  </DragOverlay>
+                </DndContext>
               </div>
             );
           })}
@@ -1038,6 +1097,151 @@ function VagaCard({
           {daysInEtapa > 0 ? `${daysInEtapa}d` : 'Hoje'}
         </span>
       </div>
+    </div>
+  );
+}
+
+// ── Droppable Column ──
+
+function DroppableEtapaColumn({
+  etapa,
+  vagas,
+  cargos,
+  getName,
+  formatCurrency,
+  prioridadeColor,
+  getDaysInEtapa,
+  onCardClick,
+  isOver,
+}: {
+  etapa: EtapaDef;
+  vagas: Vaga[];
+  cargos: Cargo[];
+  getName: (list: RefData[], id: string | null) => string;
+  formatCurrency: (v: number) => string;
+  prioridadeColor: (p: string | null) => string;
+  getDaysInEtapa: (v: Vaga) => number;
+  onCardClick: (v: Vaga) => void;
+  isOver: boolean;
+}) {
+  const { setNodeRef } = useDroppable({
+    id: etapa.id,
+    data: { type: 'column', etapaId: etapa.id },
+  });
+
+  const EtapaIcon = etapa.icon;
+  const vagaIds = vagas.map(v => v.id);
+
+  return (
+    <div className="flex-shrink-0 w-[250px]">
+      <Card className={cn(
+        "border-none shadow-sm overflow-hidden transition-all duration-200",
+        isOver && "ring-2 ring-primary ring-offset-2"
+      )}>
+        <div className={cn('px-3 py-2 bg-gradient-to-r text-white flex items-center justify-between', etapa.color)}>
+          <div className="flex items-center gap-2">
+            <EtapaIcon className="h-3.5 w-3.5" />
+            <h3 className="font-semibold text-xs">{etapa.label}</h3>
+            <Badge variant="secondary" className="bg-white/20 text-white text-[10px] h-5">{vagas.length}</Badge>
+          </div>
+        </div>
+        <CardContent
+          ref={setNodeRef}
+          className={cn(
+            "p-2 bg-muted/20 min-h-[calc(100vh-340px)] transition-colors duration-200",
+            isOver && "bg-primary/10"
+          )}
+        >
+          <SortableContext items={vagaIds} strategy={verticalListSortingStrategy}>
+            {vagas.length === 0 ? (
+              <div className={cn(
+                "flex flex-col items-center justify-center h-24 text-muted-foreground text-xs border-2 border-dashed rounded-lg transition-colors",
+                isOver ? "border-primary bg-primary/5" : "border-transparent"
+              )}>
+                <Users2 className="h-6 w-6 mb-1 opacity-50" />
+                <span>{isOver ? "Solte aqui" : "Nenhuma vaga"}</span>
+              </div>
+            ) : (
+              <ScrollArea className="h-[calc(100vh-380px)]">
+                <div className="space-y-2 pr-1">
+                  {vagas.map(vaga => (
+                    <DraggableVagaCard
+                      key={vaga.id}
+                      vaga={vaga}
+                      etapaId={etapa.id}
+                      cargos={cargos}
+                      getName={getName}
+                      formatCurrency={formatCurrency}
+                      prioridadeColor={prioridadeColor}
+                      daysInEtapa={getDaysInEtapa(vaga)}
+                      onClick={() => onCardClick(vaga)}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </SortableContext>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ── Draggable VagaCard wrapper ──
+
+function DraggableVagaCard({
+  vaga,
+  etapaId,
+  cargos,
+  getName,
+  formatCurrency,
+  prioridadeColor,
+  daysInEtapa,
+  onClick,
+}: {
+  vaga: Vaga;
+  etapaId: string;
+  cargos: Cargo[];
+  getName: (list: RefData[], id: string | null) => string;
+  formatCurrency: (v: number) => string;
+  prioridadeColor: (p: string | null) => string;
+  daysInEtapa: number;
+  onClick: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: vaga.id,
+    data: { type: 'vaga', vaga, etapaId },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn("touch-none", isDragging && "opacity-40 z-50")}
+      {...attributes}
+      {...listeners}
+    >
+      <VagaCard
+        vaga={vaga}
+        cargos={cargos}
+        getName={getName}
+        formatCurrency={formatCurrency}
+        prioridadeColor={prioridadeColor}
+        daysInEtapa={daysInEtapa}
+        onClick={onClick}
+      />
     </div>
   );
 }
