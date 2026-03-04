@@ -659,18 +659,14 @@ export default function NeoRHVagas() {
       <Sheet open={!!detailVaga} onOpenChange={() => setDetailVaga(null)}>
         <SheetContent className="overflow-y-auto sm:max-w-lg">
           <SheetHeader>
-            <SheetTitle className="text-lg flex items-center gap-2">
-              {detailVaga?.tipo_fluxo === 'executivo' ? <Crown className="h-5 w-5 text-violet-500" /> : <Zap className="h-5 w-5 text-amber-500" />}
+            <SheetTitle className="text-lg">
               {detailVaga?.descricao_curta || 'Detalhes'}
             </SheetTitle>
           </SheetHeader>
           {detailVaga && (
             <div className="mt-4 space-y-4">
-              {/* Flow badge + Days */}
+              {/* Etapa + Days */}
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="outline" className={cn('text-xs', detailVaga.tipo_fluxo === 'executivo' ? 'border-violet-300 text-violet-700' : 'border-amber-300 text-amber-700')}>
-                  {detailVaga.tipo_fluxo === 'executivo' ? '👔 Executivo' : '⚡ Express'}
-                </Badge>
                 <Badge className="text-xs">{etapaLabel(detailVaga)}</Badge>
                 <Badge variant="outline" className={cn('text-xs', getDaysInEtapa(detailVaga) > 7 ? 'border-red-300 text-red-700' : '')}>
                   {getDaysInEtapa(detailVaga)}d nesta etapa
