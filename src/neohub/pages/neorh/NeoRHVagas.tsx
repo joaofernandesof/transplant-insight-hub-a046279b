@@ -17,8 +17,8 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import {
   Plus, Pencil, Trash2, Eye, KanbanSquare, List, Briefcase, DollarSign, MapPin,
-  GraduationCap, Target, Users2, Zap, Crown, BarChart3, Clock, TrendingUp,
-  Copy, XCircle, CheckCircle2, ChevronRight, AlertTriangle,
+  GraduationCap, Target, Users2, Crown, BarChart3, Clock, TrendingUp,
+  Copy, XCircle, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -88,17 +88,7 @@ interface EtapaDef {
   icon: React.ElementType;
 }
 
-const EXPRESS_ETAPAS: EtapaDef[] = [
-  { id: 'solicitacao', label: 'Solicitação', shortLabel: 'Solic.', color: 'from-slate-500 to-slate-600', dot: 'bg-slate-500', icon: Briefcase },
-  { id: 'captacao', label: 'Captação', shortLabel: 'Capt.', color: 'from-blue-500 to-blue-600', dot: 'bg-blue-500', icon: Users2 },
-  { id: 'triagem', label: 'Triagem Técnica', shortLabel: 'Triag.', color: 'from-indigo-500 to-indigo-600', dot: 'bg-indigo-500', icon: Target },
-  { id: 'entrevista_unica', label: 'Entrevista RH+Gestor', shortLabel: 'Entrev.', color: 'from-purple-500 to-purple-600', dot: 'bg-purple-500', icon: Users2 },
-  { id: 'teste_rapido', label: 'Teste Prático', shortLabel: 'Teste', color: 'from-amber-500 to-amber-600', dot: 'bg-amber-500', icon: Target },
-  { id: 'proposta', label: 'Proposta', shortLabel: 'Prop.', color: 'from-teal-500 to-teal-600', dot: 'bg-teal-500', icon: DollarSign },
-  { id: 'contratado', label: 'Contratado', shortLabel: 'Contr.', color: 'from-emerald-500 to-emerald-600', dot: 'bg-emerald-500', icon: CheckCircle2 },
-];
-
-const EXECUTIVO_ETAPAS: EtapaDef[] = [
+const ETAPAS: EtapaDef[] = [
   { id: 'solicitacao', label: 'Solicitação', shortLabel: 'Solic.', color: 'from-slate-500 to-slate-600', dot: 'bg-slate-500', icon: Briefcase },
   { id: 'captacao', label: 'Captação', shortLabel: 'Capt.', color: 'from-blue-500 to-blue-600', dot: 'bg-blue-500', icon: Users2 },
   { id: 'triagem', label: 'Triagem Técnica', shortLabel: 'Triag.', color: 'from-indigo-500 to-indigo-600', dot: 'bg-indigo-500', icon: Target },
@@ -111,16 +101,7 @@ const EXECUTIVO_ETAPAS: EtapaDef[] = [
 
 const CANCELADA_ETAPA: EtapaDef = { id: 'cancelada', label: 'Cancelada', shortLabel: 'Canc.', color: 'from-red-500 to-red-600', dot: 'bg-red-500', icon: XCircle };
 
-const getEtapas = (fluxo: string): EtapaDef[] => {
-  const base = fluxo === 'executivo' ? EXECUTIVO_ETAPAS : EXPRESS_ETAPAS;
-  return [...base, CANCELADA_ETAPA];
-};
-
-const ALL_ETAPAS_IDS = [...new Set([
-  ...EXPRESS_ETAPAS.map(e => e.id),
-  ...EXECUTIVO_ETAPAS.map(e => e.id),
-  'cancelada',
-])];
+const ALL_ETAPAS = [...ETAPAS, CANCELADA_ETAPA];
 
 const MOTIVOS_REPROVACAO_PADRAO = [
   'Não atende requisitos técnicos',
@@ -211,8 +192,6 @@ export default function NeoRHVagas() {
   const [form, setForm] = useState(emptyForm);
   const [detailVaga, setDetailVaga] = useState<Vaga | null>(null);
   const [activeTab, setActiveTab] = useState('kanban');
-  const [fluxoFilter, setFluxoFilter] = useState<'all' | 'express' | 'executivo'>('all');
-  const [showFluxoSelector, setShowFluxoSelector] = useState(false);
   const [eliminateDialog, setEliminateDialog] = useState<Vaga | null>(null);
   const [eliminateReason, setEliminateReason] = useState('');
   const [activeVaga, setActiveVaga] = useState<Vaga | null>(null);
@@ -239,10 +218,7 @@ export default function NeoRHVagas() {
 
   // ── Computed ──
 
-  const filteredItems = useMemo(() => {
-    if (fluxoFilter === 'all') return items;
-    return items.filter(v => (v.tipo_fluxo || 'express') === fluxoFilter);
-  }, [items, fluxoFilter]);
+  const filteredItems = items;
 
   const indicators = useMemo(() => {
     const active = items.filter(v => v.etapa_kanban !== 'cancelada' && v.etapa_kanban !== 'contratado');
@@ -274,13 +250,11 @@ export default function NeoRHVagas() {
     });
     const topMotivos = Object.entries(motivosCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-    // Conversão por etapa (Express como referência)
-    const allEtapas = EXPRESS_ETAPAS;
-    const conversionRates = allEtapas.map((etapa, i) => {
+    // Conversão por etapa
+    const conversionRates = ETAPAS.map((etapa, i) => {
       const inThisOrAfter = items.filter(v => {
-        const flow = getEtapas(v.tipo_fluxo || 'express');
-        const etapaIdx = flow.findIndex(e => e.id === v.etapa_kanban);
-        const thisIdx = flow.findIndex(e => e.id === etapa.id);
+        const etapaIdx = ETAPAS.findIndex(e => e.id === v.etapa_kanban);
+        const thisIdx = i;
         return etapaIdx >= thisIdx && v.etapa_kanban !== 'cancelada';
       }).length;
       return { etapa: etapa.shortLabel, count: inThisOrAfter, total: items.length };
@@ -295,8 +269,6 @@ export default function NeoRHVagas() {
       avgParado,
       topMotivos,
       conversionRates,
-      express: items.filter(v => (v.tipo_fluxo || 'express') === 'express').length,
-      executivo: items.filter(v => v.tipo_fluxo === 'executivo').length,
     };
   }, [items]);
 
@@ -306,14 +278,9 @@ export default function NeoRHVagas() {
   const formatCurrency = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
   const prioridadeColor = (p: string | null) => PRIORIDADES.find(x => x.value === p)?.color ?? '';
 
-  const openNew = (etapa?: string) => {
-    setShowFluxoSelector(true);
-  };
-
-  const startCreateWithFluxo = (fluxo: string) => {
+  const openNew = () => {
     setEditing(null);
-    setForm({ ...emptyForm, tipo_fluxo: fluxo, etapa_kanban: 'solicitacao' });
-    setShowFluxoSelector(false);
+    setForm({ ...emptyForm });
     setDialogOpen(true);
   };
 
@@ -516,8 +483,7 @@ export default function NeoRHVagas() {
   };
 
   const etapaLabel = (v: Vaga) => {
-    const etapas = getEtapas(v.tipo_fluxo || 'express');
-    return etapas.find(e => e.id === v.etapa_kanban)?.label ?? v.etapa_kanban ?? '—';
+    return ALL_ETAPAS.find(e => e.id === v.etapa_kanban)?.label ?? v.etapa_kanban ?? '—';
   };
 
   // ── Render ──
@@ -528,24 +494,9 @@ export default function NeoRHVagas() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold">Pipeline de Contratações</h1>
-          <p className="text-sm text-muted-foreground">Fluxo Express & Executivo • Menos etapas, mais decisão</p>
+          <p className="text-sm text-muted-foreground">Pipeline unificado de contratações</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Fluxo filter */}
-          <div className="flex rounded-lg border overflow-hidden text-xs">
-            {(['all', 'express', 'executivo'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setFluxoFilter(f)}
-                className={cn(
-                  'px-3 py-1.5 font-medium transition-colors',
-                  fluxoFilter === f ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-                )}
-              >
-                {f === 'all' ? `Todos (${items.length})` : f === 'express' ? `⚡ Express (${indicators.express})` : `👔 Executivo (${indicators.executivo})`}
-              </button>
-            ))}
-          </div>
           {isAdmin && <Button onClick={() => openNew()}><Plus className="h-4 w-4 mr-2" />Nova Vaga</Button>}
         </div>
       </div>
@@ -559,69 +510,52 @@ export default function NeoRHVagas() {
 
         {/* ═══════ KANBAN ═══════ */}
         <TabsContent value="kanban" className="mt-4">
-          {(fluxoFilter === 'all' ? ['express', 'executivo'] : [fluxoFilter]).map(fluxo => {
-            const etapas = getEtapas(fluxo);
-            const fluxoVagas = filteredItems.filter(v => (v.tipo_fluxo || 'express') === fluxo);
-            if (fluxoFilter === 'all' && fluxoVagas.length === 0) return null;
-
-            return (
-              <div key={fluxo} className="mb-6">
-                {fluxoFilter === 'all' && (
-                  <div className="flex items-center gap-2 mb-3">
-                    {fluxo === 'express' ? <Zap className="h-5 w-5 text-amber-500" /> : <Crown className="h-5 w-5 text-violet-500" />}
-                    <h2 className="font-bold text-lg">{fluxo === 'express' ? 'Fluxo Express' : 'Fluxo Executivo'}</h2>
-                  </div>
-                )}
-
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDragEnd={handleDragEnd}
-                >
-                  <ScrollArea className="w-full">
-                    <div className="flex gap-3 pb-4">
-                      {etapas.map(etapa => {
-                        const etapaVagas = fluxoVagas.filter(v => (v.etapa_kanban || 'solicitacao') === etapa.id);
-                        return (
-                          <DroppableEtapaColumn
-                            key={etapa.id}
-                            etapa={etapa}
-                            vagas={etapaVagas}
-                            cargos={cargos}
-                            getName={getName}
-                            formatCurrency={formatCurrency}
-                            prioridadeColor={prioridadeColor}
-                            getDaysInEtapa={getDaysInEtapa}
-                            onCardClick={setDetailVaga}
-                            isOver={overColumnId === etapa.id}
-                          />
-                        );
-                      })}
-                    </div>
-                    <ScrollBar orientation="horizontal" />
-                  </ScrollArea>
-
-                  <DragOverlay dropAnimation={null}>
-                    {activeVaga && (
-                      <div className="opacity-90 rotate-2 scale-105 shadow-xl">
-                        <VagaCard
-                          vaga={activeVaga}
-                          cargos={cargos}
-                          getName={getName}
-                          formatCurrency={formatCurrency}
-                          prioridadeColor={prioridadeColor}
-                          daysInEtapa={getDaysInEtapa(activeVaga)}
-                          onClick={() => {}}
-                        />
-                      </div>
-                    )}
-                  </DragOverlay>
-                </DndContext>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <ScrollArea className="w-full">
+              <div className="flex gap-3 pb-4">
+                {ALL_ETAPAS.map(etapa => {
+                  const etapaVagas = filteredItems.filter(v => (v.etapa_kanban || 'solicitacao') === etapa.id);
+                  return (
+                    <DroppableEtapaColumn
+                      key={etapa.id}
+                      etapa={etapa}
+                      vagas={etapaVagas}
+                      cargos={cargos}
+                      getName={getName}
+                      formatCurrency={formatCurrency}
+                      prioridadeColor={prioridadeColor}
+                      getDaysInEtapa={getDaysInEtapa}
+                      onCardClick={setDetailVaga}
+                      isOver={overColumnId === etapa.id}
+                    />
+                  );
+                })}
               </div>
-            );
-          })}
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+
+            <DragOverlay dropAnimation={null}>
+              {activeVaga && (
+                <div className="opacity-90 rotate-2 scale-105 shadow-xl">
+                  <VagaCard
+                    vaga={activeVaga}
+                    cargos={cargos}
+                    getName={getName}
+                    formatCurrency={formatCurrency}
+                    prioridadeColor={prioridadeColor}
+                    daysInEtapa={getDaysInEtapa(activeVaga)}
+                    onClick={() => {}}
+                  />
+                </div>
+              )}
+            </DragOverlay>
+          </DndContext>
         </TabsContent>
 
         {/* ═══════ LISTA ═══════ */}
@@ -630,7 +564,6 @@ export default function NeoRHVagas() {
             <Table>
               <TableHeader><TableRow>
                 <TableHead>Vaga</TableHead>
-                <TableHead>Fluxo</TableHead>
                 <TableHead>Empresa</TableHead>
                 <TableHead>Salário</TableHead>
                 <TableHead>Etapa</TableHead>
@@ -642,11 +575,6 @@ export default function NeoRHVagas() {
                 {filteredItems.map(v => (
                   <TableRow key={v.id}>
                     <TableCell className="font-medium">{v.descricao_curta || getName(cargos, v.cargo_id)}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={cn('text-[10px]', v.tipo_fluxo === 'executivo' ? 'border-violet-300 text-violet-700' : 'border-amber-300 text-amber-700')}>
-                        {v.tipo_fluxo === 'executivo' ? '👔 Executivo' : '⚡ Express'}
-                      </Badge>
-                    </TableCell>
                     <TableCell className="text-sm">{v.empresa || '—'}</TableCell>
                     <TableCell className="text-sm">{formatCurrency(v.salario_fixo || 0)}{v.tem_comissao ? ' +C' : ''}</TableCell>
                     <TableCell><Badge className="text-xs">{etapaLabel(v)}</Badge></TableCell>
@@ -731,18 +659,14 @@ export default function NeoRHVagas() {
       <Sheet open={!!detailVaga} onOpenChange={() => setDetailVaga(null)}>
         <SheetContent className="overflow-y-auto sm:max-w-lg">
           <SheetHeader>
-            <SheetTitle className="text-lg flex items-center gap-2">
-              {detailVaga?.tipo_fluxo === 'executivo' ? <Crown className="h-5 w-5 text-violet-500" /> : <Zap className="h-5 w-5 text-amber-500" />}
+            <SheetTitle className="text-lg">
               {detailVaga?.descricao_curta || 'Detalhes'}
             </SheetTitle>
           </SheetHeader>
           {detailVaga && (
             <div className="mt-4 space-y-4">
-              {/* Flow badge + Days */}
+              {/* Etapa + Days */}
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="outline" className={cn('text-xs', detailVaga.tipo_fluxo === 'executivo' ? 'border-violet-300 text-violet-700' : 'border-amber-300 text-amber-700')}>
-                  {detailVaga.tipo_fluxo === 'executivo' ? '👔 Executivo' : '⚡ Express'}
-                </Badge>
                 <Badge className="text-xs">{etapaLabel(detailVaga)}</Badge>
                 <Badge variant="outline" className={cn('text-xs', getDaysInEtapa(detailVaga) > 7 ? 'border-red-300 text-red-700' : '')}>
                   {getDaysInEtapa(detailVaga)}d nesta etapa
@@ -767,7 +691,7 @@ export default function NeoRHVagas() {
                   >
                     <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue placeholder="Mover para..." /></SelectTrigger>
                     <SelectContent>
-                      {getEtapas(detailVaga.tipo_fluxo || 'express').map(e => (
+                      {ALL_ETAPAS.map(e => (
                         <SelectItem key={e.id} value={e.id}>{e.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -784,7 +708,7 @@ export default function NeoRHVagas() {
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-1">Progresso no Pipeline</p>
                 {(() => {
-                  const etapas = getEtapas(detailVaga.tipo_fluxo || 'express').filter(e => e.id !== 'cancelada');
+                  const etapas = ETAPAS;
                   const currentIdx = etapas.findIndex(e => e.id === detailVaga.etapa_kanban);
                   const pct = detailVaga.etapa_kanban === 'cancelada' ? 0 : currentIdx >= 0 ? Math.round(((currentIdx + 1) / etapas.length) * 100) : 0;
                   return <Progress value={pct} className="h-2" />;
@@ -824,29 +748,6 @@ export default function NeoRHVagas() {
         </SheetContent>
       </Sheet>
 
-      {/* ═══════ FLUXO SELECTOR ═══════ */}
-      <Dialog open={showFluxoSelector} onOpenChange={setShowFluxoSelector}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Qual tipo de fluxo?</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground mb-4">Escolha o pipeline ideal para esta vaga.</p>
-          <div className="grid gap-3">
-            <button onClick={() => startCreateWithFluxo('express')} className="p-4 rounded-lg border hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition text-left">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30"><Zap className="h-5 w-5 text-amber-600" /></div>
-                <div><h3 className="font-bold text-sm">⚡ Fluxo Express</h3><p className="text-[10px] text-muted-foreground">7 etapas • Decisão rápida</p></div>
-              </div>
-              <p className="text-xs text-muted-foreground">Para vagas comerciais, SDR, operacional e funções técnicas de execução. Entrevista única RH+Gestor, teste prático rápido.</p>
-            </button>
-            <button onClick={() => startCreateWithFluxo('executivo')} className="p-4 rounded-lg border hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/20 transition text-left">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30"><Crown className="h-5 w-5 text-violet-600" /></div>
-                <div><h3 className="font-bold text-sm">👔 Fluxo Executivo</h3><p className="text-[10px] text-muted-foreground">8 etapas • Análise completa</p></div>
-              </div>
-              <p className="text-xs text-muted-foreground">Para coordenadores, gerentes e cargos estratégicos. Inclui case prático e entrevista final com diretor.</p>
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* ═══════ ELIMINATE DIALOG ═══════ */}
       <Dialog open={!!eliminateDialog} onOpenChange={() => setEliminateDialog(null)}>
@@ -875,9 +776,8 @@ export default function NeoRHVagas() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {form.tipo_fluxo === 'executivo' ? <Crown className="h-5 w-5 text-violet-500" /> : <Zap className="h-5 w-5 text-amber-500" />}
-              {editing ? 'Editar Vaga' : 'Nova Vaga'} — {form.tipo_fluxo === 'executivo' ? 'Executivo' : 'Express'}
+            <DialogTitle>
+              {editing ? 'Editar Vaga' : 'Nova Vaga'}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2">
@@ -1016,7 +916,7 @@ export default function NeoRHVagas() {
                 <Label>Etapa Pipeline</Label>
                 <Select value={form.etapa_kanban} onValueChange={v => setForm(f => ({ ...f, etapa_kanban: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{getEtapas(form.tipo_fluxo).map(e => <SelectItem key={e.id} value={e.id}>{e.label}</SelectItem>)}</SelectContent>
+                  <SelectContent>{ALL_ETAPAS.map(e => <SelectItem key={e.id} value={e.id}>{e.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
@@ -1085,9 +985,6 @@ function VagaCard({
         <Badge className={cn('text-[9px] h-4 shrink-0', prioridadeColor(vaga.prioridade))}>{vaga.prioridade}</Badge>
       </div>
       <div className="flex items-center gap-1.5 flex-wrap">
-        <Badge variant="outline" className={cn('text-[9px] h-4', vaga.tipo_fluxo === 'executivo' ? 'border-violet-300 text-violet-600' : 'border-amber-300 text-amber-600')}>
-          {vaga.tipo_fluxo === 'executivo' ? '👔' : '⚡'}
-        </Badge>
         <Badge variant="outline" className="text-[10px] h-5 uppercase">{vaga.modelo_contratacao || '—'}</Badge>
         <Badge variant="outline" className="text-[10px] h-5 capitalize">{vaga.modalidade?.replace('_', ' ') || '—'}</Badge>
       </div>
