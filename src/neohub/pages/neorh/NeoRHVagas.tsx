@@ -917,7 +917,7 @@ export default function NeoRHVagas() {
                 <Label>Etapa Pipeline</Label>
                 <Select value={form.etapa_kanban} onValueChange={v => setForm(f => ({ ...f, etapa_kanban: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{getEtapas(form.tipo_fluxo).map(e => <SelectItem key={e.id} value={e.id}>{e.label}</SelectItem>)}</SelectContent>
+                  <SelectContent>{ALL_ETAPAS.map(e => <SelectItem key={e.id} value={e.id}>{e.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
