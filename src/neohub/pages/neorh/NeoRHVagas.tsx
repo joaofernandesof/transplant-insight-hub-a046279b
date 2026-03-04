@@ -483,8 +483,7 @@ export default function NeoRHVagas() {
   };
 
   const etapaLabel = (v: Vaga) => {
-    const etapas = getEtapas(v.tipo_fluxo || 'express');
-    return etapas.find(e => e.id === v.etapa_kanban)?.label ?? v.etapa_kanban ?? '—';
+    return ALL_ETAPAS.find(e => e.id === v.etapa_kanban)?.label ?? v.etapa_kanban ?? '—';
   };
 
   // ── Render ──
