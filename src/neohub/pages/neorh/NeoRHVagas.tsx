@@ -444,6 +444,45 @@ export default function NeoRHVagas() {
     load();
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const vaga = event.active.data.current?.vaga as Vaga | undefined;
+    if (vaga) setActiveVaga(vaga);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const overId = event.over?.id as string | undefined;
+    const overData = event.over?.data.current;
+    if (overData?.type === 'column') {
+      setOverColumnId(overId ?? null);
+    } else if (overData?.type === 'vaga') {
+      setOverColumnId(overData.etapaId ?? null);
+    } else {
+      setOverColumnId(null);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveVaga(null);
+    setOverColumnId(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const draggedVaga = active.data.current?.vaga as Vaga | undefined;
+    if (!draggedVaga) return;
+
+    let targetEtapa: string | null = null;
+    const overData = over.data.current;
+    if (overData?.type === 'column') {
+      targetEtapa = over.id as string;
+    } else if (overData?.type === 'vaga') {
+      targetEtapa = overData.etapaId as string;
+    }
+
+    if (targetEtapa && targetEtapa !== draggedVaga.etapa_kanban) {
+      moveToEtapa(draggedVaga, targetEtapa);
+    }
+  };
+
   const eliminateVaga = async () => {
     if (!eliminateDialog || !eliminateReason) return;
     const motivos = Array.isArray(eliminateDialog.motivos_reprovacao) ? eliminateDialog.motivos_reprovacao : [];
