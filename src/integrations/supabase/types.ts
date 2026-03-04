@@ -21117,6 +21117,7 @@ export type Database = {
           phase_label: string
           responsible_email: string
           responsible_name: string
+          responsible_user_id: string | null
           title: string
         }
         Insert: {
@@ -21130,6 +21131,7 @@ export type Database = {
           phase_label: string
           responsible_email: string
           responsible_name: string
+          responsible_user_id?: string | null
           title: string
         }
         Update: {
@@ -21143,9 +21145,18 @@ export type Database = {
           phase_label?: string
           responsible_email?: string
           responsible_name?: string
+          responsible_user_id?: string | null
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "surgery_task_definitions_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       surgery_tasks: {
         Row: {
@@ -21162,6 +21173,7 @@ export type Database = {
           phase_label: string
           responsible_email: string
           responsible_name: string
+          responsible_user_id: string | null
           scheduled_date: string | null
           status: string
           surgery_id: string
@@ -21182,6 +21194,7 @@ export type Database = {
           phase_label: string
           responsible_email: string
           responsible_name: string
+          responsible_user_id?: string | null
           scheduled_date?: string | null
           status?: string
           surgery_id: string
@@ -21202,6 +21215,7 @@ export type Database = {
           phase_label?: string
           responsible_email?: string
           responsible_name?: string
+          responsible_user_id?: string | null
           scheduled_date?: string | null
           status?: string
           surgery_id?: string
@@ -21214,6 +21228,13 @@ export type Database = {
             columns: ["definition_id"]
             isOneToOne: false
             referencedRelation: "surgery_task_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surgery_tasks_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
             referencedColumns: ["id"]
           },
           {
