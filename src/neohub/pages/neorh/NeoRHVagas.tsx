@@ -494,24 +494,9 @@ export default function NeoRHVagas() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold">Pipeline de Contratações</h1>
-          <p className="text-sm text-muted-foreground">Fluxo Express & Executivo • Menos etapas, mais decisão</p>
+          <p className="text-sm text-muted-foreground">Pipeline unificado de contratações</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Fluxo filter */}
-          <div className="flex rounded-lg border overflow-hidden text-xs">
-            {(['all', 'express', 'executivo'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setFluxoFilter(f)}
-                className={cn(
-                  'px-3 py-1.5 font-medium transition-colors',
-                  fluxoFilter === f ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-                )}
-              >
-                {f === 'all' ? `Todos (${items.length})` : f === 'express' ? `⚡ Express (${indicators.express})` : `👔 Executivo (${indicators.executivo})`}
-              </button>
-            ))}
-          </div>
           {isAdmin && <Button onClick={() => openNew()}><Plus className="h-4 w-4 mr-2" />Nova Vaga</Button>}
         </div>
       </div>
