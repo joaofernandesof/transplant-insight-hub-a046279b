@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,8 @@ import { useSurgeryTasks } from '../hooks/useSurgeryTasks';
 import { useSurgeryAuditLog } from '../hooks/useSurgeryAuditLog';
 import { ProcedureCheckboxField } from './ProcedureCheckboxField';
 import { TrichotomyField } from './TrichotomyField';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 const UPGRADE_CATEGORIES = [
   { value: 'CATEGORIA A - DR HYGOR', label: 'Categoria A - Dr Hygor' },
@@ -55,10 +57,18 @@ interface SurgeryDetailDialogProps {
 }
 
 export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onReschedule, onDelete, canDelete }: SurgeryDetailDialogProps) {
-  const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask } = useSurgeryTasks(surgery?.id);
+  const { tasks: surgeryTasks, phases, isLoading: tasksLoading, completeTask, updateResponsible } = useSurgeryTasks(surgery?.id);
   const { logs: auditLogs, isLoading: logsLoading } = useSurgeryAuditLog(surgery?.id);
+  const { isAdmin } = useUnifiedAuth();
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState('');
+  const [editingResponsibleTaskId, setEditingResponsibleTaskId] = useState<string | null>(null);
+
+  // Get unique responsible names from all tasks
+  const availableResponsibles = useMemo(() => {
+    const names = new Set(surgeryTasks.map(t => t.responsible_name).filter(Boolean));
+    return Array.from(names).sort();
+  }, [surgeryTasks]);
 
   if (!surgery) return null;
 
@@ -398,7 +408,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                     </thead>
                     <tbody>
                       {surgeryTasks.map((task, i) => (
-                        <tr key={task.id} className={`border-b last:border-b-0 ${task.status === 'completed' ? 'bg-muted/30' : task.status === 'overdue' ? 'bg-destructive/5' : ''}`}>
+                        <tr key={task.id} className={`group border-b last:border-b-0 ${task.status === 'completed' ? 'bg-muted/30' : task.status === 'overdue' ? 'bg-destructive/5' : ''}`}>
                           <td className="px-3 py-2">
                             <div className="flex items-center gap-2">
                               <Checkbox
@@ -418,8 +428,49 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                               {task.phase_label}
                             </Badge>
                           </td>
-                          <td className="px-3 py-2 text-muted-foreground text-xs truncate">
-                            {task.responsible_name}
+                          <td className="px-3 py-2 text-xs">
+                            {isAdmin ? (
+                              <Popover
+                                open={editingResponsibleTaskId === task.id}
+                                onOpenChange={(open) => setEditingResponsibleTaskId(open ? task.id : null)}
+                              >
+                                <PopoverTrigger asChild>
+                                  <button className="text-left text-muted-foreground hover:text-foreground hover:underline cursor-pointer transition-colors truncate max-w-[120px] block">
+                                    {task.responsible_name}
+                                    <Pencil className="h-2.5 w-2.5 inline ml-1 opacity-0 group-hover:opacity-50" />
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-48 p-0" align="end">
+                                  <Command>
+                                    <CommandInput placeholder="Buscar..." className="h-8 text-xs" />
+                                    <CommandList>
+                                      <CommandEmpty>Nenhum encontrado</CommandEmpty>
+                                      <CommandGroup>
+                                        {availableResponsibles.map((name) => (
+                                          <CommandItem
+                                            key={name}
+                                            value={name}
+                                            onSelect={() => {
+                                              updateResponsible.mutate({
+                                                taskId: task.id,
+                                                definitionId: task.definition_id,
+                                                responsibleName: name,
+                                              });
+                                              setEditingResponsibleTaskId(null);
+                                            }}
+                                            className="text-xs"
+                                          >
+                                            {name}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            ) : (
+                              <span className="text-muted-foreground truncate">{task.responsible_name}</span>
+                            )}
                           </td>
                         </tr>
                       ))}
