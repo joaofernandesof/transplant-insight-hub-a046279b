@@ -1229,6 +1229,7 @@ export type Database = {
           field_type: string
           id: string
           is_required: boolean | null
+          is_system: boolean
           options: Json | null
           order_index: number | null
           required_for_columns: string[] | null
@@ -1242,6 +1243,7 @@ export type Database = {
           field_type?: string
           id?: string
           is_required?: boolean | null
+          is_system?: boolean
           options?: Json | null
           order_index?: number | null
           required_for_columns?: string[] | null
@@ -1255,6 +1257,7 @@ export type Database = {
           field_type?: string
           id?: string
           is_required?: boolean | null
+          is_system?: boolean
           options?: Json | null
           order_index?: number | null
           required_for_columns?: string[] | null
