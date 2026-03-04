@@ -93,7 +93,12 @@ function getDayLabel(date: Date, today: Date): string {
   return format(date, "EEE", { locale: ptBR });
 }
 
-const LAWYER_NAMES = ['Dra. Caroline Parahyba', 'Dra. Larissa Guerreiro', 'Isabele Cartaxo'];
+const LAWYERS = [
+  { name: 'Dra. Caroline Parahyba', userId: '2bec7b54-9cd1-4be4-a8a6-c927167761f9' },
+  { name: 'Dra. Larissa Guerreiro', userId: '5ea64048-eb5e-4f2b-9f1e-f60c5494ff3f' },
+  { name: 'Isabele Cartaxo', userId: 'ae05b3bb-5eab-4133-9bac-70066bd4b71e' },
+];
+const lawyerNameMap: Record<string, string> = Object.fromEntries(LAWYERS.map(l => [l.userId, l.name]));
 
 export function WorkspaceAgenda() {
   const navigate = useNavigate();
@@ -273,11 +278,12 @@ export function WorkspaceAgenda() {
   // Filter by selected user
   const filteredAppointments = selectedUser
     ? appointments?.filter(apt => {
-        // Tasks have assigned_to_name in client_name
+        // Tasks have assigned_to_name in client_name - resolve name to userId
         if (apt.appointment_type === 'tarefa') {
-          return apt.client_name === selectedUser;
+          return apt.client_name === lawyerNameMap[selectedUser];
         }
-        // Regular appointments/meetings show for all (no assigned_to data)
+        // Regular appointments filter by assigned_to (UUID)
+        if (apt.assigned_to) return apt.assigned_to === selectedUser;
         return true;
       })
     : appointments;
@@ -350,15 +356,15 @@ export function WorkspaceAgenda() {
           >
             Geral
           </Button>
-          {LAWYER_NAMES.map(name => (
+          {LAWYERS.map(lawyer => (
             <Button
-              key={name}
-              variant={selectedUser === name ? 'default' : 'outline'}
+              key={lawyer.userId}
+              variant={selectedUser === lawyer.userId ? 'default' : 'outline'}
               size="sm"
               className="text-xs h-7 px-3"
-              onClick={() => setSelectedUser(name)}
+              onClick={() => setSelectedUser(lawyer.userId)}
             >
-              {name}
+              {lawyer.name}
             </Button>
           ))}
         </div>
@@ -634,8 +640,8 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
                   <Select value={editAssignedTo} onValueChange={setEditAssignedTo}>
                     <SelectTrigger><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
                     <SelectContent>
-                      {LAWYER_NAMES.map(name => (
-                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      {LAWYERS.map(lawyer => (
+                        <SelectItem key={lawyer.userId} value={lawyer.userId}>{lawyer.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -697,19 +703,22 @@ function KanbanAppointmentCard({ appointment, compact = false }: { appointment: 
                   <Badge variant="secondary" className="text-xs">{appointment.status}</Badge>
                 </div>
 
-                {appointment.assigned_to && (
+                {appointment.assigned_to && (() => {
+                  const assignedName = lawyerNameMap[appointment.assigned_to!] || appointment.assigned_to;
+                  return (
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                        {appointment.assigned_to.split(' ').map(n => n[0]).filter(Boolean).join('').slice(0, 2).toUpperCase()}
+                        {assignedName.split(' ').map(n => n[0]).filter(Boolean).join('').slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <span className="text-[10px] text-muted-foreground block">Responsável</span>
-                      <span className="text-sm font-medium">{appointment.assigned_to}</span>
+                      <span className="text-sm font-medium">{assignedName}</span>
                     </div>
                   </div>
-                )}
+                  );
+                })()}
 
                 {!isSynthetic && (
                   <div className="flex justify-end pt-2">
