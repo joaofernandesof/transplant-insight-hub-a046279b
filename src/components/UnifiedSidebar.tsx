@@ -176,7 +176,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('neoteam_process_templates')
-        .select('id, name, color, status')
+        .select('id, name, color, status, category')
         .eq('status', 'active')
         .order('name');
       if (error) throw error;
@@ -288,19 +288,33 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
       let filtered = categorizedMenu.map(category => {
         let items = filterMenuByPermissions(category.items, hasPermission, isAdmin);
         
-        // Inject dynamic process templates as children of "Fluxos de Processo"
-        if (category.id === 'setor_processos' && currentPortal === 'neoteam' && processTemplates?.length) {
+        // Inject dynamic process templates as children of matching sidebar modules
+        if (currentPortal === 'neoteam' && processTemplates?.length) {
           items = items.map(item => {
-            if (item.id === 'neoteam_processos') {
+            // Find flows whose category matches this menu item's id
+            // Flows with category 'custom' or null go under "Fluxos de Processo"
+            const matchingFlows = processTemplates.filter(pt => {
+              // Legacy categories and unset ones go under "Fluxos de Processo"
+              const legacyCategories = ['pre_operatorio', 'pos_operatorio', 'documentacao', 'alta'];
+              const isUnmapped = !pt.category || pt.category === 'custom' || pt.category === 'neoteam_processos' || legacyCategories.includes(pt.category || '');
+              if (item.id === 'neoteam_processos') {
+                return isUnmapped;
+              }
+              return pt.category === item.id;
+            });
+            if (matchingFlows.length > 0) {
               return {
                 ...item,
-                children: processTemplates.map(pt => ({
-                  id: `process_${pt.id}`,
-                  code: `process_${pt.id}`,
-                  title: pt.name,
-                  icon: GitCompare,
-                  route: `/neoteam/processos/${pt.id}`,
-                })),
+                children: [
+                  ...(item.children || []),
+                  ...matchingFlows.map(pt => ({
+                    id: `process_${pt.id}`,
+                    code: `process_${pt.id}`,
+                    title: pt.name,
+                    icon: GitCompare,
+                    route: `/neoteam/processos/${pt.id}`,
+                  })),
+                ],
               };
             }
             return item;
