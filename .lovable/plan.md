@@ -1,48 +1,68 @@
 
 
-## Plano: Checklist Matriz Fixa para Todas as Contas Avivar
+## Diagnóstico: Por que a IA oferece presencial e online juntos
 
-### Objetivo
-Tornar os 5 campos de checklist configurados na conta `lucasaraujo.neofolic@gmail.com` um template fixo ("matriz") que:
-1. É criado automaticamente em toda nova conta Avivar
-2. Não pode ser editado nem apagado por nenhum usuário
-3. A seção "Estatísticas" (UTM) também fica protegida (já é somente leitura)
+### Como funciona hoje
 
-### Campos da Matriz (fonte: banco atual)
-| # | field_key | field_label | field_type | options |
-|---|-----------|-------------|------------|---------|
-| 0 | nome_do_lead | NOME DO LEAD | text | — |
-| 1 | email | EMAIL | text | — |
-| 2 | data_e_hora | DATA E HORA | datetime | — |
-| 3 | tipo_de_consulta | TIPO DE CONSULTA | select | PRESENCIAL, ONLINE |
-| 4 | link_da_meet | LINK DA MEET | url | — |
+O prompt do agente é montado em **dois lugares**:
 
-### Alterações
+1. **Frontend (preview)** — `usePromptGenerator.ts`: gera um prompt de visualização com a instrução fraca:
+   > "Priorize atendimento presencial, mas ofereça online quando necessário"
+   
+2. **Backend (edge function)** — `avivar-ai-agent/index.ts` → `buildHybridSystemPrompt()`: monta o prompt real enviado à IA. Ele injeta:
+   - `agent.ai_instructions` (instruções livres do agente)
+   - `fluxoInstructions` (passos cronológicos + passos extras)
+   - Regras de agendamento genéricas
 
-#### 1. Migração SQL — marcar campos como `is_system`
-- Adicionar coluna `is_system BOOLEAN DEFAULT false` na tabela `avivar_column_checklists`
-- Marcar os 5 campos existentes da conta matriz como `is_system = true`
-- Adicionar política RLS que impede DELETE/UPDATE em campos `is_system = true`
+**O problema**: Nenhum dos dois locais tem uma regra explícita dizendo "NUNCA ofereça consulta online na mesma mensagem que a presencial. Online só deve ser oferecido quando o lead recusar a presencial."
 
-#### 2. Atualizar `create_default_avivar_kanbans` (função SQL)
-- Após criar as colunas do kanban "Comercial", inserir automaticamente os 5 campos de checklist na primeira coluna, com `is_system = true`
-- Garantir que toda nova conta já nasce com o checklist completo
+A IA vê que o agente tem objetivo principal "Agendar Consulta Presencial" e secundário "Agendar Consulta Online", e como ambos estão disponíveis, ela os apresenta juntos por padrão.
 
-#### 3. Backfill — aplicar em contas existentes
-- Para todas as contas que já existem e **não possuem** esses 5 campos, inseri-los automaticamente com `is_system = true`
+### Onde resolver
 
-#### 4. Frontend — `ChecklistConfigDialog.tsx`
-- Campos com `is_system = true`: ocultar botões de editar (Pencil) e excluir (Trash2)
-- Exibir um badge/indicador "Campo padrão" nesses itens
-- Manter a possibilidade de adicionar campos **customizados** (sem `is_system`)
+A solução deve ser implementada **internamente no prompt do backend** (edge function), não nas instruções dos passos do fluxo. Motivos:
+- É uma regra de comportamento global, não específica de um passo
+- Precisa ser aplicada automaticamente com base na configuração de `consultationType`
+- O usuário não deveria precisar digitar essa regra manualmente
 
-#### 5. Frontend — `LeadDetailsSidebar.tsx`
-- Nenhuma mudança necessária; os campos continuam renderizando normalmente
-- A seção "Estatísticas" já é somente leitura (não tem botão de config)
+### Plano de implementação
 
-### Resultado
-- Novas contas: nascem com os 5 campos fixos + Estatísticas
-- Contas existentes: recebem os campos via backfill
-- Ninguém pode apagar/editar campos `is_system`
-- Usuários podem adicionar campos customizados adicionais normalmente
+**1. Adicionar regra de priorização no `buildHybridSystemPrompt`** (edge function)
+
+Na função `buildHybridSystemPrompt` em `supabase/functions/avivar-ai-agent/index.ts`, após a seção `<fluxo_agendamento>`, adicionar uma nova seção `<regra_modalidade_atendimento>` que será gerada dinamicamente com base na configuração do agente:
+
+- Carregar `consultation_type` do agente (campo já existente na tabela `avivar_agents`)
+- Se `presencial=true` E `online=true`:
+  ```
+  <regra_modalidade_atendimento>
+  REGRA OBRIGATÓRIA DE MODALIDADE:
+  - SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
+  - SOMENTE ofereça consulta ONLINE quando o lead:
+    • Disser que não pode comparecer presencialmente
+    • Informar que mora longe/em outra cidade/estado
+    • Pedir explicitamente por atendimento online
+  - NUNCA apresente as duas modalidades na mesma mensagem
+  - Se o lead aceitar presencial, NÃO mencione a opção online
+  </regra_modalidade_atendimento>
+  ```
+- Se apenas `online=true`: não adicionar restrição (oferecer online diretamente)
+- Se apenas `presencial=true`: não adicionar restrição
+
+**2. Carregar `consultation_type` na query do agente**
+
+Na query que carrega o agente roteado (função que popula `RoutedAgent`), incluir o campo `consultation_type` do `avivar_agents`. Adicionar o campo à interface `RoutedAgent`.
+
+**3. Atualizar o prompt de preview no frontend**
+
+Em `usePromptGenerator.ts`, substituir a instrução fraca (linha 154) por uma regra mais clara e alinhada com o backend.
+
+### Arquivos a modificar
+- `supabase/functions/avivar-ai-agent/index.ts` — adicionar seção de modalidade no prompt + carregar consultation_type
+- `src/pages/avivar/config/hooks/usePromptGenerator.ts` — melhorar instrução de priorização no preview
+
+### Resposta às perguntas
+
+- **Por que a IA oferece junto?** Porque não existe regra explícita no prompt impedindo isso. A instrução atual é apenas "priorize", o que é vago demais para a IA.
+- **Onde está configurado?** O prompt é montado na edge function `avivar-ai-agent`. As instruções do fluxo (passos) são injetadas, mas a regra de priorização de modalidade não existe em nenhum lugar.
+- **Devo configurar nos passos do fluxo?** Não. Vou implementar internamente no prompt do backend, aplicado automaticamente com base na sua configuração de tipo de consulta (presencial + online). Assim funciona para todos os agentes sem precisar escrever a regra manualmente.
 

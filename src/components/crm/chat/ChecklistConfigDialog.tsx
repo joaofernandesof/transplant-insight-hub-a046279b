@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings2, Plus, Trash2, Loader2, Pencil, X, Check } from 'lucide-react';
+import { Settings2, Plus, Trash2, Loader2, Pencil, X, Check, Lock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -561,11 +562,22 @@ export function ChecklistConfigDialog({ open, onOpenChange, kanbanId, kanbanName
                       // Modo visualização
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <div className="h-4 w-4 shrink-0" /> {/* Spacer */}
+                          {(field as any).is_system ? (
+                            <Lock className="h-4 w-4 shrink-0 text-[hsl(var(--avivar-muted-foreground))]" />
+                          ) : (
+                            <div className="h-4 w-4 shrink-0" />
+                          )}
                           <div className="min-w-0">
-                            <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">
-                              {field.field_label}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">
+                                {field.field_label}
+                              </p>
+                              {(field as any).is_system && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
+                                  Padrão
+                                </Badge>
+                              )}
+                            </div>
                             <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
                               {FIELD_TYPES.find(t => t.value === field.field_type)?.label || field.field_type}
                               {field.is_required && ' • Obrigatório'}
@@ -577,25 +589,27 @@ export function ChecklistConfigDialog({ open, onOpenChange, kanbanId, kanbanName
                             </p>
                           </div>
                         </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => startEdit(field)}
-                            className="h-8 w-8 shrink-0 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))]"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeField.mutate(field.id)}
-                            disabled={removeField.isPending}
-                            className="h-8 w-8 shrink-0 text-[hsl(var(--avivar-muted-foreground))] hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        {!(field as any).is_system && (
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => startEdit(field)}
+                              className="h-8 w-8 shrink-0 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))]"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeField.mutate(field.id)}
+                              disabled={removeField.isPending}
+                              className="h-8 w-8 shrink-0 text-[hsl(var(--avivar-muted-foreground))] hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </Card>
