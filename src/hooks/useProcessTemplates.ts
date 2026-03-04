@@ -150,6 +150,7 @@ export function useProcessTemplates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['process-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['sidebar-process-templates'] });
       toast.success('Fluxo criado com sucesso.');
     },
     onError: () => toast.error('Erro ao criar fluxo.'),
@@ -165,6 +166,7 @@ export function useProcessTemplates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['process-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['sidebar-process-templates'] });
       toast.success('Fluxo atualizado.');
     },
     onError: () => toast.error('Erro ao atualizar fluxo.'),
@@ -180,6 +182,7 @@ export function useProcessTemplates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['process-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['sidebar-process-templates'] });
       toast.success('Fluxo removido.');
     },
     onError: () => toast.error('Erro ao remover fluxo.'),
