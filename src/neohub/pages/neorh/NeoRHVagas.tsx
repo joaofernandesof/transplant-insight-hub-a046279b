@@ -708,7 +708,7 @@ export default function NeoRHVagas() {
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-1">Progresso no Pipeline</p>
                 {(() => {
-                  const etapas = getEtapas(detailVaga.tipo_fluxo || 'express').filter(e => e.id !== 'cancelada');
+                  const etapas = ETAPAS;
                   const currentIdx = etapas.findIndex(e => e.id === detailVaga.etapa_kanban);
                   const pct = detailVaga.etapa_kanban === 'cancelada' ? 0 : currentIdx >= 0 ? Math.round(((currentIdx + 1) / etapas.length) * 100) : 0;
                   return <Progress value={pct} className="h-2" />;
