@@ -564,7 +564,6 @@ export default function NeoRHVagas() {
             <Table>
               <TableHeader><TableRow>
                 <TableHead>Vaga</TableHead>
-                <TableHead>Fluxo</TableHead>
                 <TableHead>Empresa</TableHead>
                 <TableHead>Salário</TableHead>
                 <TableHead>Etapa</TableHead>
@@ -576,11 +575,6 @@ export default function NeoRHVagas() {
                 {filteredItems.map(v => (
                   <TableRow key={v.id}>
                     <TableCell className="font-medium">{v.descricao_curta || getName(cargos, v.cargo_id)}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={cn('text-[10px]', v.tipo_fluxo === 'executivo' ? 'border-violet-300 text-violet-700' : 'border-amber-300 text-amber-700')}>
-                        {v.tipo_fluxo === 'executivo' ? '👔 Executivo' : '⚡ Express'}
-                      </Badge>
-                    </TableCell>
                     <TableCell className="text-sm">{v.empresa || '—'}</TableCell>
                     <TableCell className="text-sm">{formatCurrency(v.salario_fixo || 0)}{v.tem_comissao ? ' +C' : ''}</TableCell>
                     <TableCell><Badge className="text-xs">{etapaLabel(v)}</Badge></TableCell>
