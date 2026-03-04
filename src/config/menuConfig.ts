@@ -222,7 +222,7 @@ export const NEOTEAM_MENU_ITEMS: MenuItem[] = [
   { id: 'neoteam_inventory', code: 'neoteam_inventory', title: 'Inventário', icon: Package, route: '/neoteam/inventory' },
   { id: 'neoteam_diary', code: 'neoteam_diary', title: 'Diário de Bordo', icon: NotebookPen, route: '/neoteam/diario' },
   // Setor de Processos
-  { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos', adminOnly: true },
+      { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos' },
   { id: 'neoteam_pops', code: 'neoteam_pops', title: 'POPs', icon: BookMarked, route: '/neoteam/pops' },
   { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
   // Setor Financeiro
@@ -297,7 +297,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
-      { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos', adminOnly: true },
+      { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos' },
       { id: 'neoteam_pops', code: 'neoteam_pops', title: 'POPs', icon: BookMarked, route: '/neoteam/pops' },
       { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
     ],
