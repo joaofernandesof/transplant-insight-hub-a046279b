@@ -22,7 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Lock, AlertCircle, Check, Scissors, Star } from 'lucide-react';
+import { CalendarIcon, Plus, Lock, AlertCircle, Check, Scissors, Star, XCircle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -32,6 +32,7 @@ import { useBranches } from '../hooks/useBranches';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { ShieldAlert } from 'lucide-react';
 import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
 import { PatientAutocomplete } from '@/neohub/components/PatientAutocomplete';
@@ -480,17 +481,40 @@ export function AddSurgeryDialog({
           />
 
           {/* Trichotomy & Grade */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5">
                 <Scissors className="h-3.5 w-3.5" />
                 Tricotomia
               </Label>
-              <Input
-                value={patientTrichotomy || ''}
-                onChange={(e) => setPatientTrichotomy(e.target.value || null)}
-                placeholder="Ex: 31/01 16:00"
-              />
+              {patientTrichotomy === 'NÃO TEM MARCAÇÃO' ? (
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-amber-600 border-amber-600/30 bg-amber-500/10">
+                    SEM TRICOTOMIA
+                  </Badge>
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setPatientTrichotomy(null)}>
+                    Alterar
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Input
+                    type="datetime-local"
+                    value={patientTrichotomy || ''}
+                    onChange={(e) => setPatientTrichotomy(e.target.value || null)}
+                    className="h-8 text-sm"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-fit h-7 text-xs text-amber-600 border-amber-600/30 hover:bg-amber-500/10"
+                    onClick={() => setPatientTrichotomy('NÃO TEM MARCAÇÃO')}
+                  >
+                    <XCircle className="h-3 w-3 mr-1" /> Sem tricotomia
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5">
