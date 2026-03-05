@@ -143,7 +143,7 @@ const IpromedLegalHub = lazy(() => import("./pages/ipromed/IpromedLegalHub"));
 const IpromedUniversity = lazy(() => import("./pages/ipromed/IpromedUniversity"));
 const IpromedFinancial = lazy(() => import("./pages/ipromed/IpromedFinancial"));
 const IpromedPushJuridico = lazy(() => import("./pages/ipromed/IpromedPushJuridico"));
-const IpromedActivityLogs = lazy(() => import("./pages/ipromed/IpromedActivityLogs"));
+
 const IpromedTasks = lazy(() => import("./pages/ipromed/IpromedTasks"));
 const IpromedProposalsList = lazy(() => import("./pages/ipromed/IpromedProposalsList"));
 const IpromedProposalEditor = lazy(() => import("./pages/ipromed/IpromedProposals"));
