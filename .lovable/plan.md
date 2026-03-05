@@ -1,68 +1,69 @@
 
 
-## Diagnóstico: Por que a IA oferece presencial e online juntos
+# Criar Edge Function de Provisionamento Avivar + Criar Conta para mdertkigil@uol.com.br
 
-### Como funciona hoje
+## Objetivo
 
-O prompt do agente é montado em **dois lugares**:
+1. Criar uma edge function `provision-avivar-account` que automatiza a criação de novas contas Avivar com todas as configurações replicadas da conta template (Lucas).
+2. Usar essa function para criar a conta do `mdertkigil@uol.com.br`.
 
-1. **Frontend (preview)** — `usePromptGenerator.ts`: gera um prompt de visualização com a instrução fraca:
-   > "Priorize atendimento presencial, mas ofereça online quando necessário"
-   
-2. **Backend (edge function)** — `avivar-ai-agent/index.ts` → `buildHybridSystemPrompt()`: monta o prompt real enviado à IA. Ele injeta:
-   - `agent.ai_instructions` (instruções livres do agente)
-   - `fluxoInstructions` (passos cronológicos + passos extras)
-   - Regras de agendamento genéricas
+## Dados do Template (conta Lucas - `a0000001-...002`)
 
-**O problema**: Nenhum dos dois locais tem uma regra explícita dizendo "NUNCA ofereça consulta online na mesma mensagem que a presencial. Online só deve ser oferecido quando o lead recusar a presencial."
+Tudo já foi mapeado:
+- **Agente IA (Iza)**: ai_identity, ai_objective, ai_instructions, ai_restrictions, fluxo_atendimento, tone_of_voice, services, nicho, subnicho, consultation_type, consultation_duration, payment_methods, schedule, crm, address, city, state, company_name, professional_name
+- **2 Kanbans**: Comercial (8 colunas), Pós-Venda (3 colunas)
+- **5 Checklists**: Vinculados à coluna "Lead de Entrada"
+- **5 Reminder Rules**: D-7, 48h, 24h, 2h, 1h
+- **5 Follow-up Rules**: Tentativas 1-5 (com mídia em algumas)
+- **2 Knowledge Docs + 27 chunks**: FAQ + RAG
+- **1 Agenda**: Medic Clinica (ativa)
+- **Onboarding**: whatsapp_connected + funnels_setup + columns_setup = true
 
-A IA vê que o agente tem objetivo principal "Agendar Consulta Presencial" e secundário "Agendar Consulta Online", e como ambos estão disponíveis, ela os apresenta juntos por padrão.
+## Edge Function: `provision-avivar-account`
 
-### Onde resolver
+### Input
+```json
+{
+  "email": "mdertkigil@uol.com.br",
+  "password": "Senha123!",
+  "full_name": "Nome do Usuário",
+  "account_name": "Nome da Conta",
+  "account_slug": "slug-unico"
+}
+```
 
-A solução deve ser implementada **internamente no prompt do backend** (edge function), não nas instruções dos passos do fluxo. Motivos:
-- É uma regra de comportamento global, não específica de um passo
-- Precisa ser aplicada automaticamente com base na configuração de `consultationType`
-- O usuário não deveria precisar digitar essa regra manualmente
+### Fluxo interno (service role)
+1. **Criar auth user** (email_confirm: true)
+2. **Criar neohub_users** (allowed_portals: ['avivar'], profile: 'cliente_avivar')
+3. **Criar avivar_accounts** + **avivar_account_members** (role: owner)
+4. **Criar avivar_agents** — copiar todos os campos de config do agente template (wizard_step: 7, is_draft: false)
+5. **Criar avivar_kanbans** (2) + **avivar_kanban_columns** (11) — gerar novos UUIDs, guardar mapeamento
+6. **Criar avivar_column_checklists** (5) — vinculados à nova coluna "Lead de Entrada"
+7. **Criar avivar_reminder_rules** (5) — mesmos templates
+8. **Criar avivar_followup_rules** (5) — com `applicable_kanban_ids` e `applicable_column_ids` mapeados para novos IDs
+9. **Criar avivar_knowledge_documents** (2) + **avivar_knowledge_chunks** (27) — copiar content dos chunks do template
+10. **Criar avivar_agendas** (1) — "Medic Clinica" ativa
+11. **Criar avivar_onboarding_progress** — com funnels_setup, columns_setup como true
+12. **Criar avivar_api_tokens** + webhook_slug
 
-### Plano de implementação
+### Segurança
+- Validar JWT + `is_neohub_admin`
+- Usar service role para operações
 
-**1. Adicionar regra de priorização no `buildHybridSystemPrompt`** (edge function)
+## Para criar a conta mdertkigil@uol.com.br
 
-Na função `buildHybridSystemPrompt` em `supabase/functions/avivar-ai-agent/index.ts`, após a seção `<fluxo_agendamento>`, adicionar uma nova seção `<regra_modalidade_atendimento>` que será gerada dinamicamente com base na configuração do agente:
+Após criar a edge function, invocar com:
+- email: `mdertkigil@uol.com.br`
+- password: gerada automaticamente (ex: `Neo@2026!`)
+- full_name: a definir (ou usar o email como base)
+- account_name/slug derivados
 
-- Carregar `consultation_type` do agente (campo já existente na tabela `avivar_agents`)
-- Se `presencial=true` E `online=true`:
-  ```
-  <regra_modalidade_atendimento>
-  REGRA OBRIGATÓRIA DE MODALIDADE:
-  - SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
-  - SOMENTE ofereça consulta ONLINE quando o lead:
-    • Disser que não pode comparecer presencialmente
-    • Informar que mora longe/em outra cidade/estado
-    • Pedir explicitamente por atendimento online
-  - NUNCA apresente as duas modalidades na mesma mensagem
-  - Se o lead aceitar presencial, NÃO mencione a opção online
-  </regra_modalidade_atendimento>
-  ```
-- Se apenas `online=true`: não adicionar restrição (oferecer online diretamente)
-- Se apenas `presencial=true`: não adicionar restrição
+## Arquivos a criar/editar
 
-**2. Carregar `consultation_type` na query do agente**
+1. **Criar** `supabase/functions/provision-avivar-account/index.ts` — a edge function completa
+2. **Editar** `supabase/config.toml` — NÃO (auto-gerenciado). A config será detectada automaticamente.
 
-Na query que carrega o agente roteado (função que popula `RoutedAgent`), incluir o campo `consultation_type` do `avivar_agents`. Adicionar o campo à interface `RoutedAgent`.
+## Observação sobre knowledge chunks
 
-**3. Atualizar o prompt de preview no frontend**
-
-Em `usePromptGenerator.ts`, substituir a instrução fraca (linha 154) por uma regra mais clara e alinhada com o backend.
-
-### Arquivos a modificar
-- `supabase/functions/avivar-ai-agent/index.ts` — adicionar seção de modalidade no prompt + carregar consultation_type
-- `src/pages/avivar/config/hooks/usePromptGenerator.ts` — melhorar instrução de priorização no preview
-
-### Resposta às perguntas
-
-- **Por que a IA oferece junto?** Porque não existe regra explícita no prompt impedindo isso. A instrução atual é apenas "priorize", o que é vago demais para a IA.
-- **Onde está configurado?** O prompt é montado na edge function `avivar-ai-agent`. As instruções do fluxo (passos) são injetadas, mas a regra de priorização de modalidade não existe em nenhum lugar.
-- **Devo configurar nos passos do fluxo?** Não. Vou implementar internamente no prompt do backend, aplicado automaticamente com base na sua configuração de tipo de consulta (presencial + online). Assim funciona para todos os agentes sem precisar escrever a regra manualmente.
+Os chunks serão copiados via query direta do template (SELECT content, chunk_index, metadata do template → INSERT com novo document_id e account_id). Isso garante que a base de conhecimento funcione imediatamente sem precisar reprocessar.
 
