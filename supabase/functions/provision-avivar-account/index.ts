@@ -33,27 +33,34 @@ Deno.serve(async (req) => {
     // ========== 1. Create Auth User (or use existing) ==========
     let userId: string
 
-    // Check if user already exists
-    const { data: existingUsers } = await sb.auth.admin.listUsers({ perPage: 1, page: 1 })
-    const { data: existingUser } = await sb.rpc('get_user_id_by_email', { p_email: email }).maybeSingle()
+    // Try create first, handle "already registered" gracefully
+    const { data: authData, error: authError } = await sb.auth.admin.createUser({
+      email, password, email_confirm: true,
+      user_metadata: { full_name },
+    })
 
-    // Try to find existing user by email
-    const { data: existingAuth } = await sb.auth.admin.listUsers()
-    const found = existingAuth?.users?.find((u: any) => u.email === email)
-
-    if (found) {
-      userId = found.id
-      console.log(`[1/12] Existing auth user found: ${userId}`)
-      // Update password if provided
-      if (password) {
-        await sb.auth.admin.updateUserById(userId, { password })
+    if (authError) {
+      if (authError.message.includes('already been registered')) {
+        // Find existing user via SQL
+        const { data: existingRow } = await sb.from('neohub_users').select('user_id').eq('email', email).maybeSingle()
+        if (!existingRow) {
+          // Try auth.users directly
+          const { data: authList } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 })
+          const found = authList?.users?.find((u: any) => u.email === email)
+          if (!found) throw new Error(`User exists in auth but not found: ${email}`)
+          userId = found.id
+        } else {
+          userId = existingRow.user_id
+        }
+        console.log(`[1/12] Existing user found: ${userId}`)
+        // Update password
+        if (password) {
+          await sb.auth.admin.updateUserById(userId, { password })
+        }
+      } else {
+        throw new Error(`Auth: ${authError.message}`)
       }
     } else {
-      const { data: authData, error: authError } = await sb.auth.admin.createUser({
-        email, password, email_confirm: true,
-        user_metadata: { full_name },
-      })
-      if (authError) throw new Error(`Auth: ${authError.message}`)
       userId = authData.user.id
       console.log(`[1/12] Auth user created: ${userId}`)
     }
