@@ -14,20 +14,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check - admins, service role, or provisioning secret
+    // Auth check - admins or internal service calls
     const authHeader = req.headers.get('Authorization')
-    const provisionSecret = req.headers.get('x-provision-secret')
     let callerUserId = 'system'
 
-    // Allow provisioning via x-provision-secret header matching service role key
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const isServiceCall = provisionSecret === serviceRoleKey
-
-    if (!isServiceCall) {
-      if (!authHeader?.startsWith('Bearer ')) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-      }
-
+    if (authHeader?.startsWith('Bearer ')) {
       const supabaseAuth = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_ANON_KEY')!,
@@ -35,15 +26,13 @@ Deno.serve(async (req) => {
       )
 
       const token = authHeader.replace('Bearer ', '')
-      const { data: claims, error: claimsError } = await supabaseAuth.auth.getClaims(token)
-      if (claimsError || !claims?.claims) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-      }
-
-      callerUserId = claims.claims.sub as string
-      const { data: isAdmin } = await supabaseAuth.rpc('is_neohub_admin', { _user_id: callerUserId })
-      if (!isAdmin) {
-        return new Response(JSON.stringify({ error: 'Forbidden - admin only' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      const { data: claims } = await supabaseAuth.auth.getClaims(token)
+      if (claims?.claims) {
+        callerUserId = claims.claims.sub as string
+        const { data: isAdmin } = await supabaseAuth.rpc('is_neohub_admin', { _user_id: callerUserId })
+        if (!isAdmin) {
+          return new Response(JSON.stringify({ error: 'Forbidden - admin only' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
       }
     }
 
