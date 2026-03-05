@@ -20,12 +20,11 @@ import {
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor as DndKitKeyboardSensor,
+  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
-  KeyboardSensorOptions,
 } from '@dnd-kit/core';
 import {
   arrayMove,
