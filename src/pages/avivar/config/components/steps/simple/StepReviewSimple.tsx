@@ -190,15 +190,6 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Imagens - step 6 */}
-            <ReviewRow icon={ImageIcon} stepIndex={6}>
-              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                Galeria de Imagens
-              </p>
-              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                {imagesCount} imagem(ns) adicionada(s)
-              </p>
-            </ReviewRow>
           </CardContent>
         </Card>
 

@@ -663,13 +663,6 @@ export default function AvivarSimpleWizard() {
         );
       case 6:
         return (
-          <StepImagesSimple
-            gallery={config.imageGallery}
-            onChange={(imageGallery) => updateConfig({ imageGallery })}
-          />
-        );
-      case 7:
-        return (
           <StepReviewSimple
             config={config}
             onComplete={handleComplete}
