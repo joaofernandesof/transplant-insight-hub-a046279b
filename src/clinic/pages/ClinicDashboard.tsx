@@ -43,7 +43,7 @@ import { NoDateTab } from '../components/NoDateTab';
 import { AddSurgeryDialog } from '../components/AddSurgeryDialog';
 import { ImportSurgeriesDialog } from '../components/ImportSurgeriesDialog';
 import { AgendaAvailabilityConfig } from '../components/AgendaAvailabilityConfig';
-import { AgendaAvailabilityView } from '../components/AgendaAvailabilityView';
+
 
 import type { DateRange } from 'react-day-picker';
 
@@ -679,7 +679,7 @@ export default function ClinicDashboard() {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-4 pb-6 space-y-4">
         {activeTab === 'agenda' ? (
           <>
-            <AgendaAvailabilityView />
+            
             <SurgeryWeekTable
               surgeries={filteredSurgeries}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
