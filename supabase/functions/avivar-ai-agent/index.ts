@@ -4072,6 +4072,7 @@ Você DEVE executar APENAS UM passo do fluxo por resposta. NUNCA avance múltipl
 - Exemplo: se o lead respondeu ao passo 2 (interesse), execute APENAS o passo 3 (qualificação). NÃO pule para o passo 4 ou 5
 - PROIBIDO: Enviar mídia de um passo + texto de outro passo na mesma resposta
 - Se o passo tem mídia E texto, envie ambos, mas APENAS do passo atual
+- Se o passo tiver um MENU DE OPÇÕES, o menu DEVE ser apresentado junto com o texto do passo — ambos são parte do mesmo passo
 
 **⚠️ REGRA ANTI-SPAM OBRIGATÓRIA — VARIAÇÃO DE MENSAGENS:**
 Os exemplos fornecidos são REFERÊNCIAS DE INTENÇÃO, NUNCA textos para copiar. Para CADA mensagem que você enviar:
