@@ -4116,7 +4116,7 @@ ${allMediaSteps}
   const buildMenuInstructions = (passo: typeof passosCronologicos[0], allPassos: typeof passosCronologicos) => {
     if (!passo.menuOptions || passo.menuOptions.length === 0) return '';
     
-    let menuText = '\n📋 **MENU DE OPÇÕES — Apresente ao lead:**\n';
+    let menuText = '\n📋 **MENU DE OPÇÕES — OBRIGATÓRIO: Apresente este menu NA MESMA MENSAGEM deste passo. O menu é parte integrante deste passo, NÃO é um passo separado.**\n';
     const goToStepIds: string[] = [];
     
     for (let i = 0; i < passo.menuOptions.length; i++) {
