@@ -14,6 +14,10 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Parse body first to check for service key bypass
+    const body = await req.json()
+    const { email, password, full_name, account_name, account_slug, allowed_nichos } = body
+
     // Auth: admin JWT or service-level (anon key) calls
     const authHeader = req.headers.get('Authorization')
     let callerUserId = 'system'
@@ -28,15 +32,6 @@ Deno.serve(async (req) => {
         const { data: isAdmin } = await supabaseAuth.rpc('is_neohub_admin', { _user_id: callerUserId })
         if (!isAdmin) return new Response(JSON.stringify({ error: 'Forbidden - admin only' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
-    }
-
-    const { email, password, full_name, account_name, account_slug, allowed_nichos, _service_key } = await req.json()
-
-    // Temporary service key bypass for provisioning
-    if (_service_key === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
-      callerUserId = 'service'
-    } else if (callerUserId !== 'system') {
-      // callerUserId was already validated above
     }
 
     if (!email || !password || !full_name) {
