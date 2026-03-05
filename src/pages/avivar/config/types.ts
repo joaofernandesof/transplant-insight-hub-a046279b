@@ -114,6 +114,35 @@ export interface FluxoAtendimento {
 
 export type TomVoz = 'formal' | 'cordial' | 'casual';
 
+// Modo de Atendimento
+export type AttendanceMode = 'humanized' | 'chatbot' | 'hybrid';
+
+// Chatbot Flow Types
+export interface ChatbotChoice {
+  id: string;
+  label: string;
+  description?: string;
+  action: 'next_node' | 'transfer_human' | 'switch_to_ai' | 'send_message';
+  nextNodeId?: string;
+  messageContent?: string;
+}
+
+export interface ChatbotFlowNode {
+  id: string;
+  type: 'button' | 'list';
+  text: string;
+  footerText?: string;
+  listButton?: string;
+  choices: ChatbotChoice[];
+}
+
+export interface ChatbotFlow {
+  id: string;
+  name: string;
+  nodes: ChatbotFlowNode[];
+  rootNodeId: string;
+}
+
 export interface TimeInterval {
   start: string; // "08:00"
   end: string;   // "12:00"
