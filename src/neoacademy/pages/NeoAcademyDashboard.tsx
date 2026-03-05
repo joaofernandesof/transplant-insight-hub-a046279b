@@ -41,7 +41,7 @@ export default function NeoAcademyDashboard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
@@ -71,12 +71,12 @@ export default function NeoAcademyDashboard() {
             }))}
           />
         ) : (
-          <div className="relative w-full h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-violet-900/60 via-[#1a1a2e] to-fuchsia-900/40 flex items-center justify-center">
+          <div className="relative w-full h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-blue-900/60 via-[#1a1a2e] to-sky-900/40 flex items-center justify-center">
             <div className="text-center space-y-4">
-              <div className="h-16 w-16 rounded-2xl bg-violet-500/20 flex items-center justify-center mx-auto">
-                <Sparkles className="h-8 w-8 text-violet-400" />
+              <div className="h-16 w-16 rounded-2xl bg-blue-500/20 flex items-center justify-center mx-auto">
+                <Sparkles className="h-8 w-8 text-blue-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Bem-vindo ao NeoAcademy</h2>
+              <h2 className="text-2xl font-bold text-white">Bem-vindo ao Conecta Capilar</h2>
               <p className="text-zinc-400 max-w-md">
                 Sua plataforma premium de aprendizado. Explore cursos, participe da comunidade e conquiste badges.
               </p>
@@ -87,7 +87,7 @@ export default function NeoAcademyDashboard() {
         {/* Quick stats */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { icon: BookOpen, label: 'Cursos Disponíveis', value: allCourses.length, color: 'violet' },
+            { icon: BookOpen, label: 'Cursos Disponíveis', value: allCourses.length, color: 'blue' },
             { icon: TrendingUp, label: 'Em Progresso', value: myCourses.length, color: 'emerald' },
             { icon: Trophy, label: 'Concluídos', value: enrollments?.filter(e => e.completed_at).length || 0, color: 'yellow' },
           ].map(stat => (

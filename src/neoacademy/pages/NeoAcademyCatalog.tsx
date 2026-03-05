@@ -72,7 +72,7 @@ export default function NeoAcademyCatalog() {
         {/* Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -103,7 +103,7 @@ export default function NeoAcademyCatalog() {
 function cn_pill(active: boolean) {
   return `px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
     active
-      ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
       : 'bg-white/5 text-zinc-400 border border-white/5 hover:bg-white/10'
   }`;
 }

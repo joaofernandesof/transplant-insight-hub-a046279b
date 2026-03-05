@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils';
 export default function NeoAcademyCertificates() {
   const { user } = useUnifiedAuth();
 
-  // Fetch enrollments with course data
   const { data: enrollments, isLoading } = useQuery({
     queryKey: ['neoacademy-certificates', user?.id],
     queryFn: async () => {
@@ -30,7 +29,7 @@ export default function NeoAcademyCertificates() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
@@ -46,7 +45,7 @@ export default function NeoAcademyCertificates() {
   const stats = [
     { icon: CheckCircle, label: 'Concluídos', value: completed.length, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
     { icon: Clock, label: 'Em Andamento', value: inProgress.length, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-    { icon: Award, label: 'Horas Certificadas', value: `${totalHoursFormatted}h`, color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
+    { icon: Award, label: 'Horas Certificadas', value: `${totalHoursFormatted}h`, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
   ];
 
   const allCourses = [...completed, ...inProgress];
@@ -54,16 +53,14 @@ export default function NeoAcademyCertificates() {
   return (
     <div className="min-h-screen pb-12">
       <div className="px-6 pt-6 space-y-6">
-        {/* Title */}
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <Award className="h-5 w-5 text-violet-400" />
+            <Award className="h-5 w-5 text-blue-400" />
             <h1 className="text-xl font-bold text-white">Meus Certificados</h1>
           </div>
           <p className="text-sm text-zinc-400">Acompanhe seu progresso e baixe seus certificados</p>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           {stats.map(stat => (
             <div key={stat.label} className={cn("p-4 rounded-xl border text-center", stat.bg)}>
@@ -74,7 +71,6 @@ export default function NeoAcademyCertificates() {
           ))}
         </div>
 
-        {/* Course list */}
         <div className="space-y-3">
           {allCourses.length === 0 && (
             <div className="text-center py-16 text-zinc-500">
@@ -102,7 +98,6 @@ export default function NeoAcademyCertificates() {
                     : "bg-[#14141f] border-white/5"
                 )}
               >
-                {/* Icon */}
                 <div className={cn(
                   "h-12 w-12 rounded-xl flex items-center justify-center shrink-0",
                   isCompleted ? "bg-emerald-500/20" : "bg-zinc-800"
@@ -116,7 +111,6 @@ export default function NeoAcademyCertificates() {
                   )}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className={cn(
@@ -130,7 +124,7 @@ export default function NeoAcademyCertificates() {
                         "text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0",
                         isCompleted
                           ? "bg-emerald-500/20 text-emerald-300"
-                          : "bg-violet-500/20 text-violet-300"
+                          : "bg-blue-500/20 text-blue-300"
                       )}>
                         {course.category}
                       </span>
@@ -146,7 +140,6 @@ export default function NeoAcademyCertificates() {
                   <p className="text-[10px] text-zinc-600 text-right mt-1">{Math.round(progress)}%</p>
                 </div>
 
-                {/* Action */}
                 <div className="shrink-0">
                   {isCompleted ? (
                     <Button

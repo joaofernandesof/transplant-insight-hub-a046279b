@@ -50,10 +50,10 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
-              <span className="font-bold text-white text-lg">NeoAcademy</span>
+              <span className="font-bold text-white text-lg">Conecta Capilar</span>
             </div>
           )}
           <button 
@@ -74,7 +74,7 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium",
                 isActive 
-                  ? "bg-violet-500/15 text-violet-400 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.2)]" 
+                  ? "bg-blue-500/15 text-blue-400 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]" 
                   : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
               )}
             >
@@ -98,7 +98,7 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium",
                 isActive 
-                  ? "bg-violet-500/15 text-violet-400" 
+                  ? "bg-blue-500/15 text-blue-400" 
                   : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
               )}
             >
