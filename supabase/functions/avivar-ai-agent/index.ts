@@ -4025,6 +4025,7 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
     exemploMensagem?: string;
     media?: { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
     mediaVariations?: Array<{ type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean }>;
+    menuOptions?: Array<{ id: string; label: string; action: { type: string; targetStepId?: string; targetColumnSlug?: string; targetResponsibleId?: string; message?: string } }>;
   }>;
   
   const passosExtras = (fluxo.passosExtras || []) as Array<{
@@ -4034,6 +4035,7 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
     descricao: string;
     exemploMensagem?: string;
     media?: { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
+    menuOptions?: Array<{ id: string; label: string; action: { type: string; targetStepId?: string; targetColumnSlug?: string; targetResponsibleId?: string; message?: string } }>;
   }>;
   
   if (passosCronologicos.length === 0) return '';
@@ -4110,15 +4112,60 @@ ${allMediaSteps}
 ` : ''}
 `;
   
+  // Helper to build menu instructions for a step
+  const buildMenuInstructions = (passo: typeof passosCronologicos[0], allPassos: typeof passosCronologicos) => {
+    if (!passo.menuOptions || passo.menuOptions.length === 0) return '';
+    
+    let menuText = '\n📋 **MENU DE OPÇÕES — Apresente ao lead:**\n';
+    const goToStepIds: string[] = [];
+    
+    for (let i = 0; i < passo.menuOptions.length; i++) {
+      const opt = passo.menuOptions[i];
+      const num = i + 1;
+      
+      switch (opt.action.type) {
+        case 'go_to_step': {
+          const target = allPassos.find(p => p.id === opt.action.targetStepId);
+          menuText += `${num}. ${opt.label} → Execute o PASSO ${target?.ordem || '?'} (${target?.titulo || 'desconhecido'})\n`;
+          if (opt.action.targetStepId) goToStepIds.push(opt.action.targetStepId);
+          break;
+        }
+        case 'move_kanban':
+          menuText += `${num}. ${opt.label} → Use mover_lead_para_etapa(nova_etapa="${opt.action.targetColumnSlug || ''}", motivo="Lead escolheu: ${opt.label}")`;
+          if (opt.action.targetResponsibleId) {
+            menuText += ` e transfira para o responsável`;
+          }
+          menuText += '\n';
+          break;
+        case 'transfer_human':
+          menuText += `${num}. ${opt.label} → Use transfer_to_human(reason="Lead escolheu: ${opt.label}")\n`;
+          break;
+        case 'send_message':
+          menuText += `${num}. ${opt.label} → Responda: "${opt.action.message || ''}"\n`;
+          break;
+      }
+    }
+    
+    menuText += '\n⚠️ AGUARDE a escolha do lead antes de prosseguir. NÃO avance automaticamente.\n';
+    if (goToStepIds.length > 0) {
+      menuText += '⚠️ Se o lead escolher uma opção que direciona para outro passo, PULE direto para esse passo.\n';
+    }
+    
+    return menuText;
+  };
+
+  const allPassos = [...passosCronologicos, ...passosExtras];
+
   for (const passo of passosCronologicos) {
     const stepHasMedia = passo.media || (passo.mediaVariations && passo.mediaVariations.length > 0);
     const mediaName = passo.mediaVariations?.length ? passo.mediaVariations[0].type : (passo.media?.name || passo.media?.type || '');
     const mediaInstruction = stepHasMedia 
       ? `\n⚠️ **TOOL CALL OBRIGATÓRIA**: Inclua send_fluxo_media(step_id="${passo.id}") na sua resposta. PROIBIDO escrever "${mediaName}", "Vídeo do fluxo", "Áudio do fluxo" ou qualquer referência à mídia no texto.`
       : '';
+    const menuInstruction = buildMenuInstructions(passo, allPassos);
     instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
 ${passo.descricao}
-${passo.exemploMensagem ? `📝 Referência de intenção (REESCREVA com suas palavras, NÃO copie): "${passo.exemploMensagem}"` : ''}${mediaInstruction}
+${passo.exemploMensagem ? `📝 Referência de intenção (REESCREVA com suas palavras, NÃO copie): "${passo.exemploMensagem}"` : ''}${mediaInstruction}${menuInstruction}
 
 `;
   }
@@ -4132,9 +4179,10 @@ ${passo.exemploMensagem ? `📝 Referência de intenção (REESCREVA com suas pa
       const mediaInstruction = extraHasMedia 
         ? `\n⚠️ **TOOL CALL OBRIGATÓRIA**: Inclua send_fluxo_media(step_id="${passo.id}") na sua resposta. PROIBIDO mencionar a mídia no texto.`
         : '';
+      const menuInstruction = buildMenuInstructions(passo, allPassos);
       instructions += `### ${passo.titulo.toUpperCase()}
 ${passo.descricao}
-${passo.exemploMensagem ? `📝 Referência de intenção (REESCREVA com suas palavras, NÃO copie): "${passo.exemploMensagem}"` : ''}${mediaInstruction}
+${passo.exemploMensagem ? `📝 Referência de intenção (REESCREVA com suas palavras, NÃO copie): "${passo.exemploMensagem}"` : ''}${mediaInstruction}${menuInstruction}
 
 `;
     }
