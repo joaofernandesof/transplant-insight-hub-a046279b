@@ -60,7 +60,7 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
 
   if (isMobile) {
     return (
-      <div className="flex flex-col min-h-screen bg-background">
+      <div className="flex flex-col h-screen overflow-hidden bg-background">
         {/* Mobile Header */}
         <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-primary to-primary/90 border-b border-primary/20">
           <div className="flex items-center gap-3">
