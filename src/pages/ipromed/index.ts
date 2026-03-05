@@ -5,10 +5,6 @@
 
 export { default as IpromedHome } from './IpromedHome';
 export { default as IpromedStudents } from './IpromedStudents';
-export { default as IpromedExams } from './IpromedExams';
-export { default as IpromedMentors } from './IpromedMentors';
-export { default as IpromedSurveys } from './IpromedSurveys';
-export { default as IpromedLeads } from './IpromedLeads';
 export { default as IpromedClients } from './IpromedClients';
 export { default as IpromedClientDetail } from './IpromedClientDetail';
 export { default as IpromedJourney } from './IpromedJourney';
