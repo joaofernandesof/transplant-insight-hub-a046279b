@@ -4310,6 +4310,7 @@ export type Database = {
           companion_name: string | null
           companion_phone: string | null
           contract_signed: boolean | null
+          contract_status: string | null
           created_at: string
           created_by: string | null
           d1_contact: boolean | null
@@ -4360,6 +4361,7 @@ export type Database = {
           companion_name?: string | null
           companion_phone?: string | null
           contract_signed?: boolean | null
+          contract_status?: string | null
           created_at?: string
           created_by?: string | null
           d1_contact?: boolean | null
@@ -4410,6 +4412,7 @@ export type Database = {
           companion_name?: string | null
           companion_phone?: string | null
           contract_signed?: boolean | null
+          contract_status?: string | null
           created_at?: string
           created_by?: string | null
           d1_contact?: boolean | null

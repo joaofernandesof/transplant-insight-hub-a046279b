@@ -323,19 +323,32 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
 
             <Separator />
 
-            {/* Status do Paciente */}
+            {/* Status do Contrato */}
             <div>
               <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                Status do Paciente
+                <FileText className="h-4 w-4 text-primary" />
+                Status do Contrato
               </h4>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-                <ToggleItem label="Contrato Assinado" checked={surgery.contractSigned} field="contractSigned" onToggle={handleToggle} />
-                <ToggleItem label="Exames Enviados" checked={surgery.examsSent} field="examsSent" onToggle={handleToggle} />
-                <ToggleItem label="Guias Enviadas" checked={surgery.guidesSent} field="guidesSent" onToggle={handleToggle} />
-                <ToggleItem label="Prontuário Pronto" checked={surgery.chartReady} field="chartReady" onToggle={handleToggle} />
-                <ToggleItem label="Cirurgia Confirmada" checked={surgery.surgeryConfirmed} field="surgeryConfirmed" onToggle={handleToggle} />
-              </div>
+              <Select
+                value={surgery.contractStatus || 'NAO_ENVIADO'}
+                onValueChange={(value) => {
+                  handleFieldSave('contractStatus', value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NAO_ENVIADO">Não Enviado</SelectItem>
+                  <SelectItem value="AGUARDANDO_ASS_PACIENTE">Aguardando Ass. Paciente</SelectItem>
+                  <SelectItem value="AGUARDANDO_ASS_EQUIPE">Aguardando Ass. Equipe</SelectItem>
+                  <SelectItem value="FINALIZADO">Finalizado</SelectItem>
+                  <SelectItem value="ASSINADO_FISICO">Assinado Físico</SelectItem>
+                  <SelectItem value="DISTRATADO">Distratado</SelectItem>
+                  <SelectItem value="CANCELADO">Cancelado</SelectItem>
+                  <SelectItem value="PENDENCIA">Pendência</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Separator />
