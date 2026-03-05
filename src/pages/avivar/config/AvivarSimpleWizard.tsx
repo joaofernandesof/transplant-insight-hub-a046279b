@@ -318,13 +318,7 @@ export default function AvivarSimpleWizard() {
         return true;
       case 5: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 6: {
-        // Imagens - se tiver imagens, todas precisam ter legenda
-        const allImages = Object.values(config.imageGallery || {}).flat();
-        if (allImages.length === 0) return true;
-        return allImages.every(img => img?.caption?.trim());
-      }
-      case 7: // Review
+      case 6: // Review
         return true;
       default:
         return true;
