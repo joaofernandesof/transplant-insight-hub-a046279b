@@ -376,7 +376,7 @@ export function StepFluxoSimple({
     });
   };
 
-  // Drag and drop handlers
+  // Drag and drop handlers - Custom keyboard sensor that ignores interactive elements
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -385,6 +385,11 @@ export function StepFluxoSimple({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
+      keyboardCodes: {
+        start: ['Enter'],
+        cancel: ['Escape'],
+        end: ['Enter'],
+      },
     })
   );
 
