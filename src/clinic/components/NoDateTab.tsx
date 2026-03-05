@@ -84,7 +84,7 @@ export function NoDateTab() {
   const isAdmin = isClinicAdmin || isUnifiedAdmin;
   const { allPatients, isLoading } = useNoDatePatients();
   const { createSurgery, updateSurgery } = useClinicSurgeries();
-  const { branches: allowedBranches } = useBranches();
+  const { branches: allowedBranches } = useBranches({ showAll: true });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
@@ -161,8 +161,8 @@ export function NoDateTab() {
   };
 
   const branchOptions = useMemo(() => {
-    return [...new Set(allPatients.map(p => p.branch))].filter(Boolean).sort();
-  }, [allPatients]);
+    return allowedBranches.filter(Boolean).sort();
+  }, [allowedBranches]);
 
   if (isLoading) {
     return (
