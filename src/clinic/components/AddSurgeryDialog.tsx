@@ -22,7 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Lock, AlertCircle, Check } from 'lucide-react';
+import { CalendarIcon, Plus, Lock, AlertCircle, Check, Scissors, Star } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -478,6 +478,40 @@ export function AddSurgeryDialog({
             value={procedure}
             onChange={(val) => setSelectedProcedures(val ? val.split(' + ') : [])}
           />
+
+          {/* Trichotomy & Grade */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5">
+                <Scissors className="h-3.5 w-3.5" />
+                Tricotomia
+              </Label>
+              <Input
+                value={patientTrichotomy || ''}
+                onChange={(e) => setPatientTrichotomy(e.target.value || null)}
+                placeholder="Ex: 31/01 16:00"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5" />
+                Grau do Paciente
+              </Label>
+              <Select
+                value={patientGrade?.toString() || ''}
+                onValueChange={(val) => setPatientGrade(val ? parseInt(val) : null)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o grau" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7].map((g) => (
+                    <SelectItem key={g} value={g.toString()}>Grau {g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           {weekLockMessage && (
             <Alert variant="destructive">
