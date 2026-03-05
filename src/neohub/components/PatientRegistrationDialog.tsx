@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, UserPlus, Mail, MessageSquare, User, FileText, DollarSign, CalendarDays, CalendarOff, CalendarCheck } from 'lucide-react';
+import { Loader2, UserPlus, Mail, MessageSquare, User, FileText, DollarSign, CalendarDays, CalendarOff, CalendarCheck, Scissors, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ProcedureCheckboxField } from '@/clinic/components/ProcedureCheckboxField';
@@ -94,6 +94,8 @@ export function PatientRegistrationDialog({
     balance_due: '',
     contract_status: '',
     notes: '',
+    trichotomy_datetime: '',
+    grade: '',
     send_email: true,
     send_whatsapp: true,
   });
@@ -172,6 +174,8 @@ export function PatientRegistrationDialog({
           balance_due: parseCurrency(formData.balance_due),
           contract_status: formData.contract_status || undefined,
           notes: formData.notes || undefined,
+          trichotomy_datetime: formData.trichotomy_datetime || undefined,
+          grade: formData.grade ? parseInt(formData.grade) : undefined,
         }
       });
 
@@ -202,6 +206,13 @@ export function PatientRegistrationDialog({
       if (withDate && surgeryDate) {
         insertData.surgery_date = surgeryDate;
         insertData.surgery_time = surgeryTime || null;
+      }
+
+      if (formData.trichotomy_datetime) {
+        insertData.trichotomy_datetime = formData.trichotomy_datetime;
+      }
+      if (formData.grade) {
+        insertData.grade = parseInt(formData.grade);
       }
 
       const { error: surgeryError } = await supabase
@@ -259,6 +270,8 @@ export function PatientRegistrationDialog({
       balance_due: '',
       contract_status: '',
       notes: '',
+      trichotomy_datetime: '',
+      grade: '',
       send_email: true,
       send_whatsapp: true,
     });
@@ -429,6 +442,39 @@ export function PatientRegistrationDialog({
                     <SelectContent>
                       {LEAD_SOURCES.map(source => (
                         <SelectItem key={source} value={source}>{source}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="trichotomy_datetime" className="flex items-center gap-1.5">
+                    <Scissors className="h-3.5 w-3.5" />
+                    Tricotomia
+                  </Label>
+                  <Input
+                    id="trichotomy_datetime"
+                    value={formData.trichotomy_datetime}
+                    onChange={(e) => setFormData({ ...formData, trichotomy_datetime: e.target.value })}
+                    placeholder="Ex: 31/01 16:00"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="grade" className="flex items-center gap-1.5">
+                    <Star className="h-3.5 w-3.5" />
+                    Grau do Paciente
+                  </Label>
+                  <Select
+                    value={formData.grade}
+                    onValueChange={(value) => setFormData({ ...formData, grade: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o grau" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7].map((g) => (
+                        <SelectItem key={g} value={g.toString()}>Grau {g}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
