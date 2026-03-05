@@ -739,6 +739,8 @@ export const INITIAL_CONFIG: AgentConfig = {
   consultationDuration: 60,
   aiInstructions: '',
   aiRestrictions: '',
+  attendanceMode: 'humanized',
+  chatbotFlows: [],
   fluxoAtendimento: { passosCronologicos: [], passosExtras: [] },
   knowledgeFiles: [],
   welcomeMessage: '',
