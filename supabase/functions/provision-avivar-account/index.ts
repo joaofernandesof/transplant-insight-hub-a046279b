@@ -14,6 +14,10 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Parse body first
+    const body = await req.json()
+    const { email, password, full_name, account_name, account_slug, allowed_nichos } = body
+
     // Auth: admin JWT or service-level (anon key) calls
     const authHeader = req.headers.get('Authorization')
     let callerUserId = 'system'
@@ -30,7 +34,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { email, password, full_name, account_name, account_slug } = await req.json()
     if (!email || !password || !full_name) {
       return new Response(JSON.stringify({ error: 'email, password and full_name are required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
@@ -132,7 +135,7 @@ Deno.serve(async (req) => {
     // ========== 3. Create avivar_accounts + member ==========
     const { data: acc, error: accErr } = await sb.from('avivar_accounts').insert({
       name: accName, slug, owner_user_id: userId,
-      is_active: true, plan: 'free', allowed_nichos: ['saude'],
+      is_active: true, plan: 'free', allowed_nichos: allowed_nichos || ['saude'],
     }).select('id').single()
     if (accErr) throw new Error(`avivar_accounts: ${accErr.message}`)
     const accountId = acc.id
