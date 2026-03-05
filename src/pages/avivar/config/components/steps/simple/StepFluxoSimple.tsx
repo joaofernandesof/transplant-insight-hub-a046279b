@@ -545,7 +545,16 @@ export function StepFluxoSimple({
                     >
                       <Pencil className="h-3 w-3" /> Editar
                     </Button>
-                  </div>
+              </div>
+
+              {/* Menu de Opções (Ramificação) - logo após instrução */}
+              <FluxoMenuEditor
+                menuOptions={step.menuOptions || []}
+                onChange={(options) => handleMenuOptionsChange(step.id, type, options)}
+                allSteps={allSteps}
+                currentStepId={step.id}
+                kanbanColumns={kanbanColumns}
+              />
                 )}
               </div>
 
