@@ -67,7 +67,6 @@ const cpgNavItems: NavItem[] = [
   
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/cpg/agenda', tourId: 'sidebar-agenda' },
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/cpg/cases', tourId: 'sidebar-cases' },
-  { id: 'contracts-hub', label: 'Contratos', icon: FileBox, href: '/cpg/contracts-hub' },
   { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/cpg/ai', tourId: 'sidebar-ai' },
   { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/cpg/reports' },
   { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/cpg/logs' },
