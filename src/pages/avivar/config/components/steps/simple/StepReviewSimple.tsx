@@ -16,7 +16,6 @@ import {
   Bot, 
   
   Clock,
-  Image as ImageIcon,
   FileText,
   ChevronDown,
   ChevronUp,
