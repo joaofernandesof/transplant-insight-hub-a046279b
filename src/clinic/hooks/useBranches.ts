@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 
-export function useBranches() {
+export function useBranches(options?: { showAll?: boolean }) {
   const { user, isAdmin, isGestao } = useClinicAuth();
 
   const { data: allBranches = [], isLoading } = useQuery({
@@ -20,10 +20,10 @@ export function useBranches() {
     },
   });
 
-  // For non-admin users, return their allowed branches
-  const userBranches = user && !isAdmin && !isGestao
-    ? [user.branch, ...user.additionalBranches]
-    : allBranches;
+  // When showAll is true, bypass role restrictions
+  const userBranches = options?.showAll || !user || isAdmin || isGestao
+    ? allBranches
+    : [user.branch, ...user.additionalBranches];
 
   return {
     branches: userBranches,
