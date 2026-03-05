@@ -27,7 +27,7 @@ import {
   StepKnowledgeSimple,
   StepReviewSimple,
 } from './components/steps/simple';
-
+import { StepAttendanceMode } from './components/steps/StepAttendanceMode';
 import { autoGenerateConfig } from './utils/autoGenerateConfig';
 import { 
   AgentConfig, 
