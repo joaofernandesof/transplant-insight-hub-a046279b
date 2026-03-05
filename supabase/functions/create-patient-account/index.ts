@@ -88,23 +88,41 @@ Deno.serve(async (req) => {
 
     // Only create auth user if email is provided
     if (data.email) {
-      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-      const existingUser = existingUsers?.users?.find(u => u.email === data.email);
+      // First, try to create the user. If it already exists, fetch by email.
+      tempPassword = `Neo${Math.random().toString(36).slice(-6)}!${Math.floor(Math.random() * 100)}`;
 
-      if (existingUser) {
-        userId = existingUser.id;
-        tempPassword = null;
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: data.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { full_name: data.full_name }
+      });
+
+      if (authError) {
+        if (authError.message?.includes('already been registered') || (authError as any).code === 'email_exists') {
+          // User already exists – find them by paginating through listUsers
+          tempPassword = null;
+          let page = 1;
+          let found = false;
+          while (!found) {
+            const { data: pageData } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+            if (!pageData?.users?.length) break;
+            const match = pageData.users.find((u: any) => u.email === data.email);
+            if (match) {
+              userId = match.id;
+              found = true;
+            }
+            if (pageData.users.length < 1000) break;
+            page++;
+          }
+          if (!found) {
+            // Last resort: user exists but we can't find them
+            console.error("User exists but could not be found via listUsers for email:", data.email);
+          }
+        } else {
+          throw authError;
+        }
       } else {
-        tempPassword = `Neo${Math.random().toString(36).slice(-6)}!${Math.floor(Math.random() * 100)}`;
-
-        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-          email: data.email,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: { full_name: data.full_name }
-        });
-
-        if (authError) throw authError;
         userId = authData.user.id;
       }
     }
