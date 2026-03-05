@@ -323,6 +323,23 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
 
             <Separator />
 
+            {/* Status do Paciente */}
+            <div>
+              <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                Status do Paciente
+              </h4>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                <ToggleItem label="Contrato Assinado" checked={surgery.contractSigned} field="contractSigned" onToggle={handleToggle} />
+                <ToggleItem label="Exames Enviados" checked={surgery.examsSent} field="examsSent" onToggle={handleToggle} />
+                <ToggleItem label="Guias Enviadas" checked={surgery.guidesSent} field="guidesSent" onToggle={handleToggle} />
+                <ToggleItem label="Prontuário Pronto" checked={surgery.chartReady} field="chartReady" onToggle={handleToggle} />
+                <ToggleItem label="Cirurgia Confirmada" checked={surgery.surgeryConfirmed} field="surgeryConfirmed" onToggle={handleToggle} />
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Upsells & Upgrades - always show for editing */}
             <div>
               <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
