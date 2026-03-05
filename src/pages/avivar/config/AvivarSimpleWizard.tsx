@@ -633,6 +633,15 @@ export default function AvivarSimpleWizard() {
         );
       case 4:
         return (
+          <StepAttendanceMode
+            attendanceMode={config.attendanceMode}
+            chatbotFlows={config.chatbotFlows}
+            onAttendanceModeChange={(mode) => updateConfig({ attendanceMode: mode })}
+            onChatbotFlowsChange={(flows) => updateConfig({ chatbotFlows: flows })}
+          />
+        );
+      case 5:
+        return (
           <StepFAQGenerator
             nicho={config.nicho}
             subnicho={config.subnicho}
@@ -654,7 +663,7 @@ export default function AvivarSimpleWizard() {
             faqAddedToKnowledge={faqAddedToKnowledge}
           />
         );
-      case 5:
+      case 6:
         return (
           <StepKnowledgeSimple
             knowledgeFiles={config.knowledgeFiles || []}
@@ -662,7 +671,7 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 6:
+      case 7:
         return (
           <StepReviewSimple
             config={config}
