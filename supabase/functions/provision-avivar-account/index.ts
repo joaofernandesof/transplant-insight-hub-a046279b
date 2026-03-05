@@ -14,28 +14,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check - only admins
+    // Auth check - admins or service role
     const authHeader = req.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const supabaseAuth = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    )
-
     const token = authHeader.replace('Bearer ', '')
-    const { data: claims, error: claimsError } = await supabaseAuth.auth.getClaims(token)
-    if (claimsError || !claims?.claims) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    let callerUserId = 'service-role'
 
-    const callerUserId = claims.claims.sub as string
-    const { data: isAdmin } = await supabaseAuth.rpc('is_neohub_admin', { _user_id: callerUserId })
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: 'Forbidden - admin only' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    // Allow service role key to bypass admin check
+    if (token !== serviceRoleKey) {
+      const supabaseAuth = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } }
+      )
+
+      const { data: claims, error: claimsError } = await supabaseAuth.auth.getClaims(token)
+      if (claimsError || !claims?.claims) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      callerUserId = claims.claims.sub as string
+      const { data: isAdmin } = await supabaseAuth.rpc('is_neohub_admin', { _user_id: callerUserId })
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: 'Forbidden - admin only' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
     }
 
     const { email, password, full_name, account_name, account_slug } = await req.json()
