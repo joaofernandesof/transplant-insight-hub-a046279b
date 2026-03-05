@@ -15,7 +15,7 @@ import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailabil
 interface SurgeryWeekTableProps {
   surgeries: ClinicSurgery[];
   onUpdate?: (id: string, updates: Partial<ClinicSurgery>) => void;
-  onReschedule?: (id: string, newDate: string | null) => void;
+  onReschedule?: (id: string, newDate: string | null, newTime?: string | null) => void;
   onDelete?: (id: string) => void;
   canDelete?: boolean;
   title?: string;
