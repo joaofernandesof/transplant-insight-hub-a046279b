@@ -56,7 +56,6 @@ interface NavItem {
 // CPG - Escritório Jurídico
 const cpgNavItems: NavItem[] = [
   { id: 'home', label: 'Início', icon: Home, href: '/cpg', tourId: 'sidebar-home' },
-  { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/cpg/dashboard', tourId: 'sidebar-dashboard' },
   { id: 'clients', label: 'Clientes', icon: Users, href: '/cpg/clients', tourId: 'sidebar-clients' },
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/cpg/contracts', tourId: 'sidebar-contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/cpg/journey' },

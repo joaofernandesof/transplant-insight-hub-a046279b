@@ -126,7 +126,6 @@ const BannersAdmin = lazy(() => import("./pages/BannersAdmin"));
 // Pages - IPROMED (Instituto de Proteção Médica)
 // ====================================
 const IpromedHome = lazy(() => import("./pages/ipromed/IpromedHome"));
-const IpromedDashboard = lazy(() => import("./pages/ipromed/IpromedDashboard"));
 const IpromedStudents = lazy(() => import("./pages/ipromed/IpromedStudents"));
 const IpromedExams = lazy(() => import("./pages/ipromed/IpromedExams"));
 const IpromedMentors = lazy(() => import("./pages/ipromed/IpromedMentors"));
@@ -941,7 +940,6 @@ function AppRoutes() {
           CPG Advocacia Médica
           ==================================== */}
       <Route path="/cpg" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedHome /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/dashboard" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedDashboard /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/students" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedStudents /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/exams" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedExams /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/mentors" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedMentors /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />

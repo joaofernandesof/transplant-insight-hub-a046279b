@@ -4,7 +4,6 @@
  */
 
 export { default as IpromedHome } from './IpromedHome';
-export { default as IpromedDashboard } from './IpromedDashboard';
 export { default as IpromedStudents } from './IpromedStudents';
 export { default as IpromedExams } from './IpromedExams';
 export { default as IpromedMentors } from './IpromedMentors';
