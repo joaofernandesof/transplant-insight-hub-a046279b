@@ -60,7 +60,6 @@ const SIMPLE_STEPS = [
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
   { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
   { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
-  { id: 'images', title: 'Imagens', description: 'Galeria para envio (opcional)' },
   { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
 ];
 
