@@ -21298,6 +21298,39 @@ export type Database = {
         }
         Relationships: []
       }
+      surgery_agenda_availability: {
+        Row: {
+          blocked_reason: string | null
+          branch: string
+          created_at: string | null
+          date: string
+          id: string
+          is_blocked: boolean
+          max_slots: number
+          updated_at: string | null
+        }
+        Insert: {
+          blocked_reason?: string | null
+          branch: string
+          created_at?: string | null
+          date: string
+          id?: string
+          is_blocked?: boolean
+          max_slots?: number
+          updated_at?: string | null
+        }
+        Update: {
+          blocked_reason?: string | null
+          branch?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_blocked?: boolean
+          max_slots?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       surgery_schedule: {
         Row: {
           balance_due: number | null

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, ShieldAlert, Lock } from 'lucide-react';
+import { CalendarIcon, ShieldAlert, Lock, Ban } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailability';
 import {
   Dialog,
   DialogContent,
@@ -46,10 +47,33 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
     patient?.branch || ''
   );
 
+  // Agenda availability check
+  const availMonth = date || new Date();
+  const { getDayAvailability } = useSurgeryAgendaAvailability(patient?.branch || '', availMonth);
+  
+  const selectedDayAvail = useMemo(() => {
+    if (!date || !patient?.branch) return null;
+    return getDayAvailability(format(date, 'yyyy-MM-dd'));
+  }, [date, patient?.branch, getDayAvailability]);
+
+  const availabilityWarning = useMemo(() => {
+    if (!selectedDayAvail || selectedDayAvail.status === 'not_configured') return null;
+    if (selectedDayAvail.status === 'blocked') return `🔒 Este dia está bloqueado${selectedDayAvail.blockedReason ? `: ${selectedDayAvail.blockedReason}` : ''}`;
+    if (selectedDayAvail.status === 'full') return `⚠️ Dia lotado — ${selectedDayAvail.scheduledCount}/${selectedDayAvail.maxSlots} vagas ocupadas`;
+    return null;
+  }, [selectedDayAvail]);
+
+  const isDateBlocked = selectedDayAvail?.status === 'blocked';
+
   const handleSubmit = async () => {
     if (!patient || !date) return;
     if (!doctor) return;
 
+    // Agenda availability block check
+    if (isDateBlocked) {
+      setWeekLockMessage('Esta data está bloqueada para agendamentos.');
+      return;
+    }
     // Final block check
     const cat = patient.category || '';
     if (cat && isCategoryBlocked(cat, doctor)) {
@@ -145,6 +169,14 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
             </Popover>
           </div>
 
+           {/* Agenda availability warning */}
+          {availabilityWarning && (
+            <Alert variant={isDateBlocked ? 'destructive' : undefined}>
+              <Ban className="h-4 w-4" />
+              <AlertDescription className="text-xs">{availabilityWarning}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Lock availability info */}
           {hasLockInfo && (
             <Alert>
@@ -212,7 +244,7 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={handleSubmit}
-            disabled={!date || !doctor || createSurgery.isPending}
+            disabled={!date || !doctor || createSurgery.isPending || isDateBlocked}
           >
             {createSurgery.isPending ? 'Agendando...' : 'Confirmar Agendamento'}
           </Button>

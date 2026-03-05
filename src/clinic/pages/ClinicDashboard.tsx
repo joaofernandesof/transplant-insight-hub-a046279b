@@ -40,6 +40,8 @@ import { NoDateRiskQueue } from '../components/NoDateRiskQueue';
 import { NoDateTab } from '../components/NoDateTab';
 import { AddSurgeryDialog } from '../components/AddSurgeryDialog';
 import { ImportSurgeriesDialog } from '../components/ImportSurgeriesDialog';
+import { AgendaAvailabilityConfig } from '../components/AgendaAvailabilityConfig';
+import { AgendaAvailabilityView } from '../components/AgendaAvailabilityView';
 
 import type { DateRange } from 'react-day-picker';
 
@@ -79,9 +81,11 @@ export default function ClinicDashboard() {
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeDFilters, setActiveDFilters] = useState<Set<DFilter>>(new Set());
-  const [activeTab, setActiveTab] = useState<'agenda' | 'sem-data'>(() => {
+  const [activeTab, setActiveTab] = useState<'agenda' | 'sem-data' | 'config'>(() => {
     const tabParam = searchParams.get('tab');
-    return tabParam === 'sem-data' ? 'sem-data' : 'agenda';
+    if (tabParam === 'sem-data') return 'sem-data';
+    if (tabParam === 'config') return 'config';
+    return 'agenda';
   });
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -91,6 +95,7 @@ export default function ClinicDashboard() {
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'sem-data') setActiveTab('sem-data');
+    else if (tabParam === 'config') setActiveTab('config');
     else if (tabParam === 'agenda') setActiveTab('agenda');
   }, [searchParams]);
 
@@ -343,11 +348,24 @@ export default function ClinicDashboard() {
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 )}
               >
-                🔴 Sem Data Definida
+               🔴 Sem Data Definida
                 {noDateStats.total > 0 && (
                   <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{noDateStats.total}</Badge>
                 )}
               </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setActiveTab('config')}
+                  className={cn(
+                    'text-xs font-medium px-3 py-1 rounded-md transition-colors',
+                    activeTab === 'config'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  )}
+                >
+                  ⚙️ Configuração
+                </button>
+              )}
             </div>
           </div>
            {activeTab === 'agenda' && (
@@ -660,6 +678,7 @@ export default function ClinicDashboard() {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-4 pb-6 space-y-4">
         {activeTab === 'agenda' ? (
           <>
+            <AgendaAvailabilityView />
             <SurgeryWeekTable
               surgeries={filteredSurgeries}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
@@ -679,6 +698,8 @@ export default function ClinicDashboard() {
               canDelete={isAdmin}
             />
           </>
+        ) : activeTab === 'config' && isAdmin ? (
+          <AgendaAvailabilityConfig />
         ) : (
           <NoDateTab />
         )}
