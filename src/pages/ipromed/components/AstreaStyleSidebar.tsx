@@ -72,7 +72,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/cpg/logs' },
   { id: 'functions', label: 'Funções', icon: Briefcase, href: '/cpg/functions', isNew: true },
   { id: 'forms', label: 'Formulários', icon: ClipboardList, href: '/cpg/forms' },
-  { id: 'access', label: 'Gestão de Acessos', icon: Shield, href: '/cpg/access' },
+  
 ];
 
 // CPG Advocacia Médica - Educacional
