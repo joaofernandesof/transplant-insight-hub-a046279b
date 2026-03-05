@@ -7,6 +7,7 @@ import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -16,13 +17,15 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { UserPlus, Loader2, CheckCircle2 } from 'lucide-react';
+import { UserPlus, Loader2, CheckCircle2, Scissors, Star } from 'lucide-react';
 
 const patientSchema = z.object({
   fullName: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
   phone: z.string().min(10, 'Telefone inválido').optional().or(z.literal('')),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   cpf: z.string().min(11, 'CPF inválido').max(14).optional().or(z.literal('')),
+  trichotomyDatetime: z.string().optional().or(z.literal('')),
+  grade: z.string().optional().or(z.literal('')),
   notes: z.string().optional(),
 });
 
@@ -40,6 +43,8 @@ export default function RegisterPatient() {
       phone: '',
       email: '',
       cpf: '',
+      trichotomyDatetime: '',
+      grade: '',
       notes: '',
     },
   });
@@ -51,6 +56,8 @@ export default function RegisterPatient() {
         phone: data.phone || undefined,
         email: data.email || undefined,
         cpf: data.cpf || undefined,
+        trichotomyDatetime: data.trichotomyDatetime || undefined,
+        grade: data.grade ? parseInt(data.grade) : undefined,
         notes: data.notes || undefined,
       });
       
@@ -190,6 +197,54 @@ export default function RegisterPatient() {
                   </FormItem>
                 )}
               />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="trichotomyDatetime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5">
+                        <Scissors className="h-3.5 w-3.5" />
+                        Tricotomia
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: 31/01 16:00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="grade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5">
+                        <Star className="h-3.5 w-3.5" />
+                        Grau do Paciente
+                      </FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o grau" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5, 6, 7].map((g) => (
+                            <SelectItem key={g} value={g.toString()}>Grau {g}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}

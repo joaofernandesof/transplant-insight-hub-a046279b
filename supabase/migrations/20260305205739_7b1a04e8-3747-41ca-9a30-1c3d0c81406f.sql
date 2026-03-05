@@ -1,0 +1,3 @@
+ALTER TABLE public.clinic_patients
+  ADD COLUMN IF NOT EXISTS trichotomy_datetime TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS grade INTEGER DEFAULT NULL;

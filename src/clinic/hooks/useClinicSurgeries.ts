@@ -75,6 +75,7 @@ export interface SurgeryInput {
   doctorOnDuty?: string;
   companionName?: string;
   companionPhone?: string;
+  trichotomyDatetime?: string;
   notes?: string;
 }
 
@@ -178,6 +179,7 @@ export function useClinicSurgeries() {
           companion_name: input.companionName || null,
           companion_phone: input.companionPhone || null,
           notes: input.notes || null,
+          trichotomy_datetime: input.trichotomyDatetime || null,
           created_by: user?.userId,
         } as any)
         .select()
