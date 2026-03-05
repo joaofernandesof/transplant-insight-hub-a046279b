@@ -636,8 +636,8 @@ export default function AvivarSimpleWizard() {
           <StepAttendanceMode
             attendanceMode={config.attendanceMode}
             chatbotFlows={config.chatbotFlows}
-            onAttendanceModeChange={(mode) => updateConfig({ attendanceMode: mode })}
-            onChatbotFlowsChange={(flows) => updateConfig({ chatbotFlows: flows })}
+            onChange={(mode) => updateConfig({ attendanceMode: mode })}
+            onFlowsChange={(flows) => updateConfig({ chatbotFlows: flows })}
           />
         );
       case 5:
