@@ -23,14 +23,6 @@ import {
 
 const quickAccessModules = [
   {
-    id: 'dashboard',
-    title: 'Dashboard Jurídico',
-    description: 'Visão geral das métricas',
-    icon: BarChart3,
-    route: '/cpg/dashboard',
-    color: 'bg-gradient-to-br from-[#00629B] to-[#004d7a]',
-  },
-  {
     id: 'clients',
     title: 'Clientes',
     description: 'Gestão de clientes e casos',
