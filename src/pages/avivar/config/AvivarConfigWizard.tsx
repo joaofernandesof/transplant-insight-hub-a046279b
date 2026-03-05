@@ -251,7 +251,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 12:
+      case 11:
         return (
           <StepPersonalization
             aiIdentity={config.aiIdentity}
@@ -266,7 +266,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 13:
+      case 12:
         return (
           <StepInstructions
             aiInstructions={config.aiInstructions}
@@ -279,7 +279,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 14:
+      case 13:
         return (
           <StepFluxoAtendimento
             fluxoAtendimento={config.fluxoAtendimento}
@@ -291,7 +291,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 15:
+      case 14:
         return (
           <StepKnowledge
             knowledgeFiles={config.knowledgeFiles}
@@ -299,7 +299,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 16:
+      case 15:
         return (
           <StepReview
             config={config}
