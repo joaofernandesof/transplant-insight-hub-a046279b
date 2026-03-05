@@ -270,6 +270,8 @@ Deno.serve(async (req) => {
           phone: data.phone || null,
           cpf: data.cpf || null,
           notes: clinicNotes.length > 0 ? clinicNotes.join(' | ') : null,
+          trichotomy_datetime: (data as any).trichotomy_datetime || null,
+          grade: (data as any).grade ?? null,
           created_by: userId,
         })
         .select()
