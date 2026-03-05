@@ -4146,7 +4146,7 @@ ${allMediaSteps}
       }
     }
     
-    menuText += '\n⚠️ AGUARDE a escolha do lead antes de prosseguir. NÃO avance automaticamente.\n';
+    menuText += '\n⚠️ Após apresentar o menu, AGUARDE a escolha do lead. NÃO avance para o próximo passo até o lead escolher.\n';
     if (goToStepIds.length > 0) {
       menuText += '⚠️ Se o lead escolher uma opção que direciona para outro passo, PULE direto para esse passo.\n';
     }
