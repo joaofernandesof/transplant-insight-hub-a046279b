@@ -3737,11 +3737,18 @@ function buildHybridSystemPrompt(
   const identity = agent.ai_identity || agent.personality || 
     `Você é ${agent.agent_name}, assistente virtual da ${agent.company_name || "clínica"}.`;
 
-  // Agent objective based on stage
-  const objective = agent.ai_objective || getDefaultObjectiveForStage(leadStage);
+  // Check if agent has a custom flow configured
+  const hasCustomFlow = fluxo && Array.isArray((fluxo as Record<string, unknown>).passosCronologicos) && ((fluxo as Record<string, unknown>).passosCronologicos as unknown[]).length > 0;
 
-  // Agent instructions
-  const instructions = agent.ai_instructions || getDefaultInstructions();
+  // Agent objective based on stage — when custom flow exists, use neutral objective
+  const objective = agent.ai_objective || (hasCustomFlow 
+    ? getFlowAwareObjective(leadStage) 
+    : getDefaultObjectiveForStage(leadStage));
+
+  // Agent instructions — when custom flow exists, don't inject generic instructions
+  const instructions = agent.ai_instructions || (hasCustomFlow 
+    ? getFlowFidelityInstructions() 
+    : getDefaultInstructions());
 
   // Agent restrictions
   const restrictions = agent.ai_restrictions || "";
