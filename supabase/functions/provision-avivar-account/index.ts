@@ -24,7 +24,8 @@ Deno.serve(async (req) => {
 
     const sb = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
     const slug = account_slug || email.split('@')[0].replace(/[^a-z0-9]/gi, '-').toLowerCase()
