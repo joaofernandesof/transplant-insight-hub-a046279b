@@ -35,6 +35,8 @@ import {
   PaymentMethod, 
   ConsultationType,
   AgentObjectives,
+  AttendanceMode,
+  ChatbotFlow,
   WeekSchedule, 
   TomVoz,
   FluxoAtendimento,
