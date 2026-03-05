@@ -227,6 +227,8 @@ export default function AvivarSimpleWizard() {
               consultationDuration: agent.consultation_duration || 60,
               knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
               fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+              attendanceMode: (agent.attendance_mode as unknown as AgentConfig['attendanceMode']) || 'humanized',
+              chatbotFlows: (agent.chatbot_flows as unknown as AgentConfig['chatbotFlows']) || [],
             }));
             setCurrentStep(SIMPLE_STEPS.length - 1);
           }
@@ -272,6 +274,8 @@ export default function AvivarSimpleWizard() {
             attendantName: draft.name || '',
             knowledgeFiles: (draft.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
             fluxoAtendimento: (draft.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+            attendanceMode: (draft.attendance_mode as unknown as AgentConfig['attendanceMode']) || 'humanized',
+            chatbotFlows: (draft.chatbot_flows as unknown as AgentConfig['chatbotFlows']) || [],
           }));
           toast.info('Rascunho encontrado! Continuando de onde parou.');
         }
@@ -418,6 +422,8 @@ export default function AvivarSimpleWizard() {
         fluxo_atendimento: (config.fluxoAtendimento?.passosCronologicos?.length > 0) 
           ? config.fluxoAtendimento 
           : autoConfig.fluxoAtendimento,
+        attendance_mode: config.attendanceMode || 'humanized',
+        chatbot_flows: config.chatbotFlows || [],
         personality: autoConfig.aiIdentity,
         knowledge_files: config.knowledgeFiles || [],
         is_active: true,

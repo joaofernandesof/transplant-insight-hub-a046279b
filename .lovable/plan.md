@@ -1,127 +1,68 @@
 
 
-# Modo Chatbot com Botões Interativos para o Avivar
+## Diagnóstico: Por que a IA oferece presencial e online juntos
 
-## Recomendação de UX
+### Como funciona hoje
 
-Recomendo **integrar dentro da pagina "Configurar IA" existente**, e não criar uma nova pagina no sidebar. Motivos:
+O prompt do agente é montado em **dois lugares**:
 
-- O modo de atendimento (chatbot vs humanizado vs hibrido) e uma configuracao **do agente de IA**, faz sentido estar junto
-- Evita poluir o sidebar com mais um item
-- O usuario ja sabe que "Configurar IA" e onde define o comportamento do agente
-- Pode ser uma nova aba/secao dentro do wizard ou uma opcao no inicio da configuracao
+1. **Frontend (preview)** — `usePromptGenerator.ts`: gera um prompt de visualização com a instrução fraca:
+   > "Priorize atendimento presencial, mas ofereça online quando necessário"
+   
+2. **Backend (edge function)** — `avivar-ai-agent/index.ts` → `buildHybridSystemPrompt()`: monta o prompt real enviado à IA. Ele injeta:
+   - `agent.ai_instructions` (instruções livres do agente)
+   - `fluxoInstructions` (passos cronológicos + passos extras)
+   - Regras de agendamento genéricas
 
-## Os 3 Modos de Atendimento
+**O problema**: Nenhum dos dois locais tem uma regra explícita dizendo "NUNCA ofereça consulta online na mesma mensagem que a presencial. Online só deve ser oferecido quando o lead recusar a presencial."
 
-1. **IA Humanizada** (atual) — responde em texto livre seguindo o fluxo de atendimento
-2. **Chatbot com Botoes** — usa a API `/send/menu` da UaZapi para enviar botoes/listas interativas, guiando o lead por um caminho pre-definido
-3. **Hibrido** (recomendado como default) — inicia com botoes interativos, mas quando o lead envia texto livre com duvidas, a IA responde de forma humanizada
+A IA vê que o agente tem objetivo principal "Agendar Consulta Presencial" e secundário "Agendar Consulta Online", e como ambos estão disponíveis, ela os apresenta juntos por padrão.
 
-## Alteracoes Necessarias
+### Onde resolver
 
-### 1. Novo campo no AgentConfig (`types.ts`)
+A solução deve ser implementada **internamente no prompt do backend** (edge function), não nas instruções dos passos do fluxo. Motivos:
+- É uma regra de comportamento global, não específica de um passo
+- Precisa ser aplicada automaticamente com base na configuração de `consultationType`
+- O usuário não deveria precisar digitar essa regra manualmente
 
-Adicionar tipo e campo:
-```typescript
-type AttendanceMode = 'humanized' | 'chatbot' | 'hybrid';
+### Plano de implementação
 
-// No AgentConfig:
-attendanceMode: AttendanceMode; // default: 'hybrid'
-chatbotFlows: ChatbotFlow[]; // arvore de botoes/menus configurados
-```
+**1. Adicionar regra de priorização no `buildHybridSystemPrompt`** (edge function)
 
-Estrutura do `ChatbotFlow`:
-```typescript
-interface ChatbotFlowNode {
-  id: string;
-  type: 'button' | 'list';
-  text: string; // mensagem principal
-  footerText?: string;
-  listButton?: string; // para type: 'list'
-  choices: ChatbotChoice[];
-}
+Na função `buildHybridSystemPrompt` em `supabase/functions/avivar-ai-agent/index.ts`, após a seção `<fluxo_agendamento>`, adicionar uma nova seção `<regra_modalidade_atendimento>` que será gerada dinamicamente com base na configuração do agente:
 
-interface ChatbotChoice {
-  label: string;
-  id: string;
-  description?: string; // para listas
-  action: 'next_node' | 'transfer_human' | 'switch_to_ai' | 'send_message';
-  nextNodeId?: string; // qual no seguir
-  messageContent?: string; // mensagem a enviar se action = send_message
-}
-```
+- Carregar `consultation_type` do agente (campo já existente na tabela `avivar_agents`)
+- Se `presencial=true` E `online=true`:
+  ```
+  <regra_modalidade_atendimento>
+  REGRA OBRIGATÓRIA DE MODALIDADE:
+  - SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
+  - SOMENTE ofereça consulta ONLINE quando o lead:
+    • Disser que não pode comparecer presencialmente
+    • Informar que mora longe/em outra cidade/estado
+    • Pedir explicitamente por atendimento online
+  - NUNCA apresente as duas modalidades na mesma mensagem
+  - Se o lead aceitar presencial, NÃO mencione a opção online
+  </regra_modalidade_atendimento>
+  ```
+- Se apenas `online=true`: não adicionar restrição (oferecer online diretamente)
+- Se apenas `presencial=true`: não adicionar restrição
 
-### 2. Nova secao na pagina "Configurar IA"
+**2. Carregar `consultation_type` na query do agente**
 
-Dentro do wizard (simplificado e completo), adicionar **antes** do passo de "Fluxo de Atendimento":
-- Seletor de modo: 3 cards (Humanizado / Chatbot / Hibrido)
-- Se modo = chatbot ou hibrido: mostrar editor visual de fluxo de botoes (arvore de decisao)
-- Se modo = humanizado: manter fluxo atual sem alteracao
+Na query que carrega o agente roteado (função que popula `RoutedAgent`), incluir o campo `consultation_type` do `avivar_agents`. Adicionar o campo à interface `RoutedAgent`.
 
-### 3. Editor Visual de Fluxo de Chatbot
+**3. Atualizar o prompt de preview no frontend**
 
-Um editor simples para montar a arvore de menus:
-- Mensagem de boas-vindas com botoes
-- Cada botao leva a outro no (submenu ou acao final)
-- Acoes possiveis: ir para proximo menu, transferir para humano, ativar IA humanizada, enviar mensagem fixa
-- Preview em tempo real de como ficara no WhatsApp
+Em `usePromptGenerator.ts`, substituir a instrução fraca (linha 154) por uma regra mais clara e alinhada com o backend.
 
-### 4. Backend: Edge Function `avivar-ai-agent`
+### Arquivos a modificar
+- `supabase/functions/avivar-ai-agent/index.ts` — adicionar seção de modalidade no prompt + carregar consultation_type
+- `src/pages/avivar/config/hooks/usePromptGenerator.ts` — melhorar instrução de priorização no preview
 
-Alterar a logica principal para:
-- Verificar `attendanceMode` do agente
-- Se `chatbot`: usar `/send/menu` da UaZapi para enviar botoes; processar respostas do lead mapeando para o proximo no da arvore
-- Se `hybrid`: iniciar com chatbot, mas ao detectar mensagem de texto livre (que nao corresponde a nenhum botao), ativar modo IA humanizada para aquela conversa
-- Se `humanized`: manter comportamento atual
+### Resposta às perguntas
 
-Integrar com endpoint UaZapi `/send/menu`:
-```json
-{
-  "number": "5511999999999",
-  "type": "button",
-  "text": "Ola! Como posso ajudar?",
-  "choices": [
-    "Agendar Consulta|agendar",
-    "Ver Servicos|servicos",
-    "Falar com Atendente|humano"
-  ],
-  "footerText": "Escolha uma opcao"
-}
-```
-
-### 5. Tabela de estado de conversa
-
-Novo campo na tabela `crm_conversations` ou `crm_leads`:
-```sql
-ALTER TABLE crm_conversations ADD COLUMN current_chatbot_node_id text;
-ALTER TABLE crm_conversations ADD COLUMN attendance_mode_override text; -- para hybrid quando muda para AI
-```
-
-### 6. Migration SQL
-
-- Adicionar `attendance_mode` na tabela `avivar_agents` (default: 'humanized' para manter retrocompatibilidade)
-- Adicionar `chatbot_flows` (jsonb) na tabela `avivar_agents`
-- Adicionar campos de estado na `crm_conversations`
-
-### 7. Atualizar template de provisionamento
-
-Atualizar a edge function `provision-avivar-account` para incluir `attendance_mode: 'humanized'` como default para novas contas.
-
-## Ordem de Implementacao
-
-1. Migration SQL (novos campos)
-2. Tipos TypeScript (`types.ts`)
-3. Componente seletor de modo (3 cards)
-4. Editor visual de fluxo chatbot (arvore de botoes)
-5. Integrar no wizard simplificado e completo
-6. Backend: logica de chatbot no `avivar-ai-agent` usando `/send/menu`
-7. Logica hibrida: detectar texto livre e alternar para IA
-
-## Escopo Inicial Sugerido
-
-Para a primeira versao, sugiro comecar com:
-- Seletor de modo (3 cards) na config
-- Suporte a botoes simples (1 nivel, sem arvore profunda)
-- Modo hibrido basico
-- Depois iterar para arvores mais complexas e editor visual sofisticado
+- **Por que a IA oferece junto?** Porque não existe regra explícita no prompt impedindo isso. A instrução atual é apenas "priorize", o que é vago demais para a IA.
+- **Onde está configurado?** O prompt é montado na edge function `avivar-ai-agent`. As instruções do fluxo (passos) são injetadas, mas a regra de priorização de modalidade não existe em nenhum lugar.
+- **Devo configurar nos passos do fluxo?** Não. Vou implementar internamente no prompt do backend, aplicado automaticamente com base na sua configuração de tipo de consulta (presencial + online). Assim funciona para todos os agentes sem precisar escrever a regra manualmente.
 
