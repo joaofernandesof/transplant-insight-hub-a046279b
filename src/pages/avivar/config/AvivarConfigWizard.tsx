@@ -22,7 +22,6 @@ import {
   StepSchedule,
   StepPersonalization,
   StepInstructions,
-  StepAttendanceMode,
   StepFluxoAtendimento,
   StepKnowledge,
   StepReview,
@@ -35,8 +34,6 @@ import {
   PaymentMethod, 
   ConsultationType,
   AgentObjectives,
-  AttendanceMode,
-  ChatbotFlow,
   WeekSchedule, 
   TomVoz,
   FluxoAtendimento,
@@ -121,11 +118,10 @@ export default function AvivarConfigWizard() {
         return isEditMode || Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
       case 11: return true; // Personalization (optional)
       case 12: return true; // Instructions (optional)
-      case 13: return true; // Attendance Mode (optional)
-      case 14: return true; // Fluxo (optional)
-      case 15: return true; // Knowledge (optional)
-      case 16: return true; // Review
-      case 17: return true; // Prompt Review
+      case 13: return true; // Fluxo (optional)
+      case 14: return true; // Knowledge (optional)
+      case 15: return true; // Review
+      case 16: return true; // Prompt Review
       default: return true;
     }
   };
@@ -285,16 +281,6 @@ export default function AvivarConfigWizard() {
       
       case 13:
         return (
-          <StepAttendanceMode
-            attendanceMode={config.attendanceMode}
-            chatbotFlows={config.chatbotFlows}
-            onChange={(mode: AttendanceMode) => updateConfig({ attendanceMode: mode })}
-            onFlowsChange={(flows: ChatbotFlow[]) => updateConfig({ chatbotFlows: flows })}
-          />
-        );
-      
-      case 14:
-        return (
           <StepFluxoAtendimento
             fluxoAtendimento={config.fluxoAtendimento}
             attendantName={config.attendantName}
@@ -305,7 +291,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 15:
+      case 14:
         return (
           <StepKnowledge
             knowledgeFiles={config.knowledgeFiles}
@@ -313,7 +299,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 16:
+      case 15:
         return (
           <StepReview
             config={config}
@@ -330,10 +316,10 @@ export default function AvivarConfigWizard() {
 
   // In edit mode, skip welcome step
   const isWelcomeStep = currentStep === 0 && !isEditMode;
-  const isReviewStep = currentStep === 16;
+  const isReviewStep = currentStep === 15; // Step 15 is the final review step
   
   // Optional steps that can be skipped
-  const showSkip = currentStep === 11 || currentStep === 12 || currentStep === 13 || currentStep === 14 || currentStep === 15;
+  const showSkip = currentStep === 11 || currentStep === 12 || currentStep === 13 || currentStep === 14;
 
   // Show loading while fetching agent data in edit mode
   if (loading) {

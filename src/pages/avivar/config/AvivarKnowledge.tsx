@@ -194,8 +194,6 @@ export default function AvivarKnowledge() {
         ai_instructions: config.aiInstructions || null,
         ai_restrictions: config.aiRestrictions || null,
         fluxo_atendimento: config.fluxoAtendimento || {},
-        attendance_mode: config.attendanceMode || 'humanized',
-        chatbot_flows: config.chatbotFlows || [],
         company_name: config.companyName || null,
         professional_name: config.professionalName || null,
         services: config.services || [],

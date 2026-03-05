@@ -67,10 +67,6 @@ function mapAgentToConfig(agent: Record<string, unknown>): Partial<AgentConfig> 
     },
     knowledgeFiles: (agent.knowledge_files as AgentConfig['knowledgeFiles']) || [],
     
-    // Modo de atendimento
-    attendanceMode: (agent.attendance_mode as AgentConfig['attendanceMode']) || 'humanized',
-    chatbotFlows: (agent.chatbot_flows as AgentConfig['chatbotFlows']) || [],
-    
     // Horários e fluxo
     schedule: (agent.schedule as typeof DEFAULT_WEEK_SCHEDULE) || DEFAULT_WEEK_SCHEDULE,
     fluxoAtendimento: (agent.fluxo_atendimento as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },

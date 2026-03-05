@@ -114,35 +114,6 @@ export interface FluxoAtendimento {
 
 export type TomVoz = 'formal' | 'cordial' | 'casual';
 
-// Modo de Atendimento
-export type AttendanceMode = 'humanized' | 'chatbot' | 'hybrid';
-
-// Chatbot Flow Types
-export interface ChatbotChoice {
-  id: string;
-  label: string;
-  description?: string;
-  action: 'next_node' | 'transfer_human' | 'switch_to_ai' | 'send_message';
-  nextNodeId?: string;
-  messageContent?: string;
-}
-
-export interface ChatbotFlowNode {
-  id: string;
-  type: 'button' | 'list';
-  text: string;
-  footerText?: string;
-  listButton?: string;
-  choices: ChatbotChoice[];
-}
-
-export interface ChatbotFlow {
-  id: string;
-  name: string;
-  nodes: ChatbotFlowNode[];
-  rootNodeId: string;
-}
-
 export interface TimeInterval {
   start: string; // "08:00"
   end: string;   // "12:00"
@@ -298,10 +269,6 @@ export interface AgentConfig {
   // Instruções e Restrições da IA
   aiInstructions: string;
   aiRestrictions: string;
-  
-  // Modo de Atendimento
-  attendanceMode: AttendanceMode;
-  chatbotFlows: ChatbotFlow[];
   
   // Fluxo de Atendimento
   fluxoAtendimento: FluxoAtendimento;
@@ -739,8 +706,6 @@ export const INITIAL_CONFIG: AgentConfig = {
   consultationDuration: 60,
   aiInstructions: '',
   aiRestrictions: '',
-  attendanceMode: 'humanized',
-  chatbotFlows: [],
   fluxoAtendimento: { passosCronologicos: [], passosExtras: [] },
   knowledgeFiles: [],
   welcomeMessage: '',
@@ -764,7 +729,6 @@ export const WIZARD_STEPS = [
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
   { id: 'personalization', title: 'Personalidade', description: 'Identidade e objetivo da IA' },
   { id: 'instructions', title: 'Instruções', description: 'O que a IA pode e não pode fazer' },
-  { id: 'attendance_mode', title: 'Modo', description: 'Modo de atendimento' },
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
   { id: 'knowledge', title: 'Conhecimento', description: 'Base de conhecimento da IA' },
   { id: 'review', title: 'Revisão', description: 'Confirme as configurações' },

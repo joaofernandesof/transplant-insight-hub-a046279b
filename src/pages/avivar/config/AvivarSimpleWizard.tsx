@@ -1,5 +1,5 @@
 /**
- * AvivarSimpleWizard - Wizard Simplificado de 8 etapas
+ * AvivarSimpleWizard - Wizard Simplificado de 7 etapas
  * Substitui o wizard de 15 etapas para facilitar para PMEs
  */
 
@@ -27,7 +27,7 @@ import {
   StepKnowledgeSimple,
   StepReviewSimple,
 } from './components/steps/simple';
-import { StepAttendanceMode } from './components/steps/StepAttendanceMode';
+
 import { autoGenerateConfig } from './utils/autoGenerateConfig';
 import { 
   AgentConfig, 
@@ -58,7 +58,6 @@ const SIMPLE_STEPS = [
   { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
   { id: 'objectives', title: 'Objetivos', description: 'Foco do agente' },
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
-  { id: 'attendance', title: 'Modo IA', description: 'Chatbot ou humanizado' },
   { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
   { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
   { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
@@ -154,6 +153,9 @@ export default function AvivarSimpleWizard() {
           };
           break;
         case 2:
+          // agentObjectives não tem coluna dedicada, salvar como parte do fluxo genérico
+          // Salvamos no campo agent_objectives (campo JSON genérico via knowledge_files ou similar)
+          // Na verdade, o objectives é usado para gerar o autoConfig no final, então vamos guardar em um campo JSON
           break;
         case 3:
           payload = {
@@ -162,14 +164,7 @@ export default function AvivarSimpleWizard() {
           };
           break;
         case 4:
-          payload = {
-            ...payload,
-            attendance_mode: config.attendanceMode || 'humanized',
-            chatbot_flows: config.chatbotFlows || [],
-          };
-          break;
         case 5:
-        case 6:
           payload = {
             ...payload,
             knowledge_files: config.knowledgeFiles || [],
@@ -232,8 +227,6 @@ export default function AvivarSimpleWizard() {
               consultationDuration: agent.consultation_duration || 60,
               knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
               fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
-              attendanceMode: (agent.attendance_mode as unknown as AgentConfig['attendanceMode']) || 'humanized',
-              chatbotFlows: (agent.chatbot_flows as unknown as AgentConfig['chatbotFlows']) || [],
             }));
             setCurrentStep(SIMPLE_STEPS.length - 1);
           }
@@ -279,8 +272,6 @@ export default function AvivarSimpleWizard() {
             attendantName: draft.name || '',
             knowledgeFiles: (draft.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
             fluxoAtendimento: (draft.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
-            attendanceMode: (draft.attendance_mode as unknown as AgentConfig['attendanceMode']) || 'humanized',
-            chatbotFlows: (draft.chatbot_flows as unknown as AgentConfig['chatbotFlows']) || [],
           }));
           toast.info('Rascunho encontrado! Continuando de onde parou.');
         }
@@ -308,16 +299,14 @@ export default function AvivarSimpleWizard() {
         return !!config.agentObjectives?.primary && !!config.agentObjectives?.secondaryConfirmed;
       case 3: // Fluxo de atendimento - sempre pode prosseguir (template já carregado)
         return true;
-      case 4: // Modo de atendimento - sempre pode prosseguir
-        return true;
-      case 5: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
+      case 4: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
         if (generatedFAQ.length > 0 && !faqAddedToKnowledge) {
           return false;
         }
         return true;
-      case 6: // Knowledge (opcional - sempre pode prosseguir)
+      case 5: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 7: // Review
+      case 6: // Review
         return true;
       default:
         return true;
@@ -429,8 +418,6 @@ export default function AvivarSimpleWizard() {
         fluxo_atendimento: (config.fluxoAtendimento?.passosCronologicos?.length > 0) 
           ? config.fluxoAtendimento 
           : autoConfig.fluxoAtendimento,
-        attendance_mode: config.attendanceMode || 'humanized',
-        chatbot_flows: config.chatbotFlows || [],
         personality: autoConfig.aiIdentity,
         knowledge_files: config.knowledgeFiles || [],
         is_active: true,
@@ -633,15 +620,6 @@ export default function AvivarSimpleWizard() {
         );
       case 4:
         return (
-          <StepAttendanceMode
-            attendanceMode={config.attendanceMode}
-            chatbotFlows={config.chatbotFlows}
-            onChange={(mode) => updateConfig({ attendanceMode: mode })}
-            onFlowsChange={(flows) => updateConfig({ chatbotFlows: flows })}
-          />
-        );
-      case 5:
-        return (
           <StepFAQGenerator
             nicho={config.nicho}
             subnicho={config.subnicho}
@@ -663,7 +641,7 @@ export default function AvivarSimpleWizard() {
             faqAddedToKnowledge={faqAddedToKnowledge}
           />
         );
-      case 6:
+      case 5:
         return (
           <StepKnowledgeSimple
             knowledgeFiles={config.knowledgeFiles || []}
@@ -671,7 +649,7 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 7:
+      case 6:
         return (
           <StepReviewSimple
             config={config}
@@ -735,7 +713,7 @@ export default function AvivarSimpleWizard() {
           {/* Logic for FAQ step (currentStep === 4):
               - If no FAQ generated: show normal Próximo button
               - If FAQ generated but not added to knowledge: hide button completely */}
-          {currentStep === 5 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
+          {currentStep === 4 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
             // Hide button completely when FAQ generated but not added to knowledge
             null
           ) : (
