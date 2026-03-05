@@ -204,7 +204,7 @@ export function WorkspaceAgenda() {
         allAppointments.push({
           id: `task-${task.id}`,
           title: `${priorityLabel} ${task.title}`.trim(),
-          start_datetime: `${task.due_date}T07:00:00`,
+          start_datetime: `${task.due_date}T08:00:00`,
           end_datetime: null,
           location: null,
           is_virtual: false,
