@@ -420,12 +420,6 @@ export default function AvivarSimpleWizard() {
         schedule: config.schedule,
         consultation_type: config.consultationType,
         consultation_duration: config.consultationDuration,
-        // Imagens (novo formato) + compatibilidade com legado
-        image_gallery: config.imageGallery || EMPTY_IMAGE_GALLERY,
-        before_after_images: (config.imageGallery?.before_after?.length
-          ? config.imageGallery.before_after.map((img) => img.url)
-          : (config.beforeAfterImages || []))
-          .filter(Boolean),
         tone_of_voice: autoConfig.toneOfVoice,
         ai_identity: autoConfig.aiIdentity,
         ai_objective: autoConfig.aiObjective,
