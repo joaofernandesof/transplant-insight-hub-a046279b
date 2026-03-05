@@ -1,19 +1,20 @@
 import React, { useState, useMemo } from 'react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Lock, Unlock, Settings2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Lock, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailability';
 import { useBranches } from '../hooks/useBranches';
+import { toast } from 'sonner';
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
@@ -22,9 +23,9 @@ export function AgendaAvailabilityConfig() {
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [editingDay, setEditingDay] = useState<string | null>(null);
-  const [editMaxSlots, setEditMaxSlots] = useState(5);
   const [editBlocked, setEditBlocked] = useState(false);
   const [editReason, setEditReason] = useState('');
+  const [globalMaxSlots, setGlobalMaxSlots] = useState(5);
 
   const { dayAvailabilityMap, getDayAvailability, upsertAvailability, deleteAvailability, isLoading } =
     useSurgeryAgendaAvailability(selectedBranch, currentMonth);
@@ -35,16 +36,33 @@ export function AgendaAvailabilityConfig() {
     return eachDayOfInterval({ start, end });
   }, [currentMonth]);
 
-  // Offset for first day (Monday=0)
   const firstDayOffset = useMemo(() => {
     const dow = getDay(startOfMonth(currentMonth));
     return dow === 0 ? 6 : dow - 1;
   }, [currentMonth]);
 
+  // Apply global max_slots to all days of the month
+  const handleApplyGlobalSlots = async () => {
+    if (!selectedBranch || globalMaxSlots < 1) return;
+    
+    for (const day of days) {
+      const dateStr = format(day, 'yyyy-MM-dd');
+      const existing = getDayAvailability(dateStr);
+      // Keep blocked state if already configured, just update max_slots
+      await upsertAvailability.mutateAsync({
+        branch: selectedBranch,
+        date: dateStr,
+        max_slots: globalMaxSlots,
+        is_blocked: existing.isBlocked,
+        blocked_reason: existing.blockedReason || undefined,
+      });
+    }
+    toast.success(`Limite de ${globalMaxSlots} agendamentos aplicado para todo o mês`);
+  };
+
   const handleDayClick = (dateStr: string) => {
     if (!selectedBranch) return;
     const existing = getDayAvailability(dateStr);
-    setEditMaxSlots(existing.status !== 'not_configured' ? existing.maxSlots : 5);
     setEditBlocked(existing.isBlocked);
     setEditReason(existing.blockedReason || '');
     setEditingDay(dateStr);
@@ -52,10 +70,12 @@ export function AgendaAvailabilityConfig() {
 
   const handleSave = () => {
     if (!editingDay || !selectedBranch) return;
+    const existing = getDayAvailability(editingDay);
+    const maxSlots = existing.status !== 'not_configured' ? existing.maxSlots : globalMaxSlots;
     upsertAvailability.mutate({
       branch: selectedBranch,
       date: editingDay,
-      max_slots: editMaxSlots,
+      max_slots: maxSlots,
       is_blocked: editBlocked,
       blocked_reason: editBlocked ? editReason : undefined,
     });
@@ -90,7 +110,7 @@ export function AgendaAvailabilityConfig() {
           <div className="space-y-1.5">
             <Label className="text-xs">Filial</Label>
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-full max-w-xs h-8 text-sm">
+              <SelectTrigger className="w-full h-8 text-sm">
                 <SelectValue placeholder="Selecione a filial" />
               </SelectTrigger>
               <SelectContent>
@@ -103,6 +123,29 @@ export function AgendaAvailabilityConfig() {
 
           {selectedBranch && (
             <>
+              {/* Global max slots */}
+              <div className="flex items-end gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                <div className="space-y-1.5 flex-1">
+                  <Label className="text-xs font-medium">Agendamentos por dia</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={globalMaxSlots}
+                    onChange={(e) => setGlobalMaxSlots(Number(e.target.value))}
+                    className="h-8 w-24 text-sm"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={handleApplyGlobalSlots}
+                  disabled={upsertAvailability.isPending}
+                >
+                  Aplicar para o mês
+                </Button>
+              </div>
+
               {/* Month navigation */}
               <div className="flex items-center justify-between">
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
@@ -179,12 +222,12 @@ export function AgendaAvailabilityConfig() {
         </CardContent>
       </Card>
 
-      {/* Edit day dialog */}
+      {/* Edit day dialog - now only for blocking/unblocking */}
       <Dialog open={!!editingDay} onOpenChange={(open) => !open && setEditingDay(null)}>
         <DialogContent className="sm:max-w-[380px]">
           <DialogHeader>
             <DialogTitle className="text-base">
-              Configurar {editingDay ? format(new Date(editingDay + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR }) : ''}
+              {editingDay ? format(new Date(editingDay + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR }) : ''}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -201,19 +244,6 @@ export function AgendaAvailabilityConfig() {
                   onChange={(e) => setEditReason(e.target.value)}
                   placeholder="Ex: Feriado, manutenção..."
                   className="h-16 text-sm"
-                />
-              </div>
-            )}
-            {!editBlocked && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Máximo de agendamentos</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={editMaxSlots}
-                  onChange={(e) => setEditMaxSlots(Number(e.target.value))}
-                  className="h-8 w-24 text-sm"
                 />
               </div>
             )}
