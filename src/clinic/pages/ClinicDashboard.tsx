@@ -43,6 +43,7 @@ import { NoDateTab } from '../components/NoDateTab';
 import { AddSurgeryDialog } from '../components/AddSurgeryDialog';
 import { ImportSurgeriesDialog } from '../components/ImportSurgeriesDialog';
 import { AgendaAvailabilityConfig } from '../components/AgendaAvailabilityConfig';
+import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailability';
 
 
 import type { DateRange } from 'react-day-picker';
@@ -92,6 +93,7 @@ export default function ClinicDashboard() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'full' | 'blocked'>('all');
 
   // Sync tab from URL params
   useEffect(() => {
@@ -101,6 +103,8 @@ export default function ClinicDashboard() {
   }, [searchParams]);
 
   const canFilterBranch = isAdmin || isGestao || isNeoTeamContext;
+  const effectiveBranchForAvail = selectedBranch && selectedBranch !== 'all' ? selectedBranch : '';
+  const { getDayAvailability } = useSurgeryAgendaAvailability(effectiveBranchForAvail, new Date());
 
   const branchOptions = useMemo(() => {
     if (!canFilterBranch && allowedBranches.length > 0) {
@@ -229,7 +233,16 @@ export default function ClinicDashboard() {
       items = items.filter(s => violatedIds.has(s.id));
     }
 
-    // Sort: Today first, then tomorrow, then ascending, then past
+    // Availability filter
+    if (availabilityFilter !== 'all' && effectiveBranchForAvail) {
+      items = items.filter(s => {
+        if (!s.surgeryDate) return false;
+        const avail = getDayAvailability(s.surgeryDate);
+        if (avail.status === 'not_configured') return availabilityFilter === 'available';
+        return avail.status === availabilityFilter;
+      });
+    }
+
     items.sort((a, b) => {
       const aDate = a.surgeryDate ? parseISO(a.surgeryDate) : new Date(9999, 0);
       const bDate = b.surgeryDate ? parseISO(b.surgeryDate) : new Date(9999, 0);
@@ -254,7 +267,7 @@ export default function ClinicDashboard() {
     });
 
     return items;
-  }, [scheduledSurgeries, selectedBranch, periodRange, searchTerm, activeDFilters]);
+  }, [scheduledSurgeries, selectedBranch, periodRange, searchTerm, activeDFilters, availabilityFilter, effectiveBranchForAvail, getDayAvailability]);
 
   // KPIs computed from filteredSurgeries (driven by active filters)
   const kpiStats = useMemo(() => {
@@ -610,6 +623,30 @@ export default function ClinicDashboard() {
                     Limpar
                   </Button>
                 )}
+              </div>
+
+              {/* Availability Filter */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] text-muted-foreground font-medium mr-1">Disponibilidade:</span>
+                {([
+                  { value: 'all' as const, label: 'Todas', color: '' },
+                  { value: 'available' as const, label: '🟢 Disponível', color: 'bg-emerald-600 text-white hover:bg-emerald-700' },
+                  { value: 'full' as const, label: '🟡 Lotado', color: 'bg-amber-500 text-white hover:bg-amber-600' },
+                  { value: 'blocked' as const, label: '🔴 Bloqueado', color: 'bg-destructive text-destructive-foreground hover:bg-destructive/90' },
+                ] as const).map((opt) => (
+                  <Button
+                    key={opt.value}
+                    variant={availabilityFilter === opt.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setAvailabilityFilter(opt.value)}
+                    className={cn(
+                      'h-6 px-2 text-[11px] rounded-full',
+                      availabilityFilter === opt.value && opt.color
+                    )}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
               </div>
             </div>
 
