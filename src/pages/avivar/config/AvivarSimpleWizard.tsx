@@ -272,8 +272,6 @@ export default function AvivarSimpleWizard() {
             attendantName: draft.name || '',
             knowledgeFiles: (draft.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
             fluxoAtendimento: (draft.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
-            imageGallery: (draft.image_gallery as unknown as AgentConfig['imageGallery']) || EMPTY_IMAGE_GALLERY,
-            beforeAfterImages: (draft.before_after_images as unknown as string[]) || [],
           }));
           toast.info('Rascunho encontrado! Continuando de onde parou.');
         }
