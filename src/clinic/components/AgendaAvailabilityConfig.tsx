@@ -26,6 +26,7 @@ export function AgendaAvailabilityConfig() {
   const [editBlocked, setEditBlocked] = useState(false);
   const [editReason, setEditReason] = useState('');
   const [globalMaxSlots, setGlobalMaxSlots] = useState(5);
+  const [editMaxSlots, setEditMaxSlots] = useState(5);
 
   const { dayAvailabilityMap, getDayAvailability, upsertAvailability, deleteAvailability, isLoading } =
     useSurgeryAgendaAvailability(selectedBranch, currentMonth);
@@ -65,13 +66,14 @@ export function AgendaAvailabilityConfig() {
     const existing = getDayAvailability(dateStr);
     setEditBlocked(existing.isBlocked);
     setEditReason(existing.blockedReason || '');
+    setEditMaxSlots(existing.status !== 'not_configured' ? existing.maxSlots : globalMaxSlots);
     setEditingDay(dateStr);
   };
 
   const handleSave = () => {
     if (!editingDay || !selectedBranch) return;
     const existing = getDayAvailability(editingDay);
-    const maxSlots = existing.status !== 'not_configured' ? existing.maxSlots : globalMaxSlots;
+    const maxSlots = editMaxSlots;
     upsertAvailability.mutate({
       branch: selectedBranch,
       date: editingDay,
@@ -244,6 +246,19 @@ export function AgendaAvailabilityConfig() {
                   onChange={(e) => setEditReason(e.target.value)}
                   placeholder="Ex: Feriado, manutenção..."
                   className="h-16 text-sm"
+                />
+              </div>
+            )}
+            {!editBlocked && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">Máximo de agendamentos neste dia</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={editMaxSlots}
+                  onChange={(e) => setEditMaxSlots(Number(e.target.value))}
+                  className="h-8 w-24 text-sm"
                 />
               </div>
             )}
