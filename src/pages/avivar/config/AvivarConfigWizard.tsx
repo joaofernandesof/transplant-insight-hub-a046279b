@@ -18,7 +18,7 @@ import {
   StepConsultation,
   StepObjectives,
   StepPayment,
-  StepImages,
+  
   StepSchedule,
   StepPersonalization,
   StepInstructions,
