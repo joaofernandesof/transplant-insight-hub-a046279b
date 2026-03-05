@@ -62,10 +62,10 @@ export default function ClinicDashboard() {
   const { scheduledSurgeries, noDateSurgeries, updateSurgery, rescheduleSurgery, deleteSurgery } = useClinicSurgeries();
   const { violatedIds } = useLockViolations(scheduledSurgeries);
   const { allPatients: noDatePatients } = useNoDatePatients();
-  const { branches: allowedBranches } = useBranches();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const isNeoTeamContext = location.pathname.includes('/neoteam/');
+  const { branches: allowedBranches } = useBranches({ showAll: isNeoTeamContext });
 
   const [selectedBranch, setSelectedBranchState] = useState<string>(() => {
     return localStorage.getItem('clinic-selected-branch') || 'all';
@@ -94,7 +94,7 @@ export default function ClinicDashboard() {
     else if (tabParam === 'agenda') setActiveTab('agenda');
   }, [searchParams]);
 
-  const canFilterBranch = isAdmin || isGestao;
+  const canFilterBranch = isAdmin || isGestao || isNeoTeamContext;
 
   const branchOptions = useMemo(() => {
     if (!canFilterBranch && allowedBranches.length > 0) {
