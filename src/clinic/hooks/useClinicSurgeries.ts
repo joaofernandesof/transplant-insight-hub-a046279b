@@ -142,7 +142,7 @@ export function useClinicSurgeries() {
           saleDate: null,
           vgv: s.vgv ? Number(s.vgv) : null,
           seller: null,
-          contractStatus: null,
+          contractStatus: s.contract_status || 'NAO_ENVIADO',
           daysSinceSale: null,
           upgradeValue: Number(s.upgrade_value) || 0,
           upgradeCategory: (s as any).upgrade_category || null,
@@ -242,6 +242,7 @@ export function useClinicSurgeries() {
       if (updates.upsellValue !== undefined) dbUpdates.upsell_value = updates.upsellValue;
       if (updates.upsellCategory !== undefined) dbUpdates.upsell_category = updates.upsellCategory;
       if (updates.trichotomyDatetime !== undefined) dbUpdates.trichotomy_datetime = updates.trichotomyDatetime;
+      if (updates.contractStatus !== undefined) dbUpdates.contract_status = updates.contractStatus;
 
       // Find current surgery to capture old values for audit log
       const currentSurgery = surgeries.find(s => s.id === id);

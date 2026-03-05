@@ -14,6 +14,7 @@ const FIELD_LABELS: Record<string, string> = {
   notes: 'Observações',
   examsSent: 'Exames Enviados',
   contractSigned: 'Contrato Assinado',
+  contractStatus: 'Status do Contrato',
   surgeryConfirmed: 'Cirurgia Confirmada',
   guidesSent: 'Guias Enviados',
   upgradeCategory: 'Upgrade Categoria',

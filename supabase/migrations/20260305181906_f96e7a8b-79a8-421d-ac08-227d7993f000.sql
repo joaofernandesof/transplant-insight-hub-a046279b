@@ -1,0 +1,1 @@
+ALTER TABLE public.clinic_surgeries ADD COLUMN contract_status text DEFAULT 'NAO_ENVIADO';
