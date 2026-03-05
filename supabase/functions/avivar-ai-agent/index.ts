@@ -4581,7 +4581,7 @@ serve(async (req) => {
     console.log(`[AI Agent] hasGoogleCalendar: ${hasGoogleCalendar} for account ${accountId}`);
 
     // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist + language)
-    let systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage, hasGoogleCalendar);
+    let systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage, hasGoogleCalendar, routedAgent.fluxo_atendimento as Record<string, unknown> | null);
 
     // 4.1 Anti-duplication: detect already-sent fluxo media and inject into prompt
     try {
