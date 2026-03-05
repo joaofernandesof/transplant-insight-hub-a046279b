@@ -1,68 +1,62 @@
 
+# Fix: Lembretes do Avivar enviados no horário errado e duplicados
 
-## Diagnóstico: Por que a IA oferece presencial e online juntos
+## Problemas Identificados
 
-### Como funciona hoje
+**1. Mensagens duplicadas** — Existem **3 triggers** na tabela `avivar_appointments` que chamam a mesma função `generate_reminders_for_appointment()`:
+- `trg_generate_reminders_on_insert` (INSERT)
+- `trg_generate_reminders_on_update` (UPDATE)
+- `generate_reminders_on_appointment` (INSERT OR UPDATE)
 
-O prompt do agente é montado em **dois lugares**:
+No INSERT, a função dispara **2 vezes** (trigger 1 + trigger 3). No UPDATE, também 2 vezes (trigger 2 + trigger 3). Confirmado nos dados: cada regra gerou 2 lembretes idênticos.
 
-1. **Frontend (preview)** — `usePromptGenerator.ts`: gera um prompt de visualização com a instrução fraca:
-   > "Priorize atendimento presencial, mas ofereça online quando necessário"
-   
-2. **Backend (edge function)** — `avivar-ai-agent/index.ts` → `buildHybridSystemPrompt()`: monta o prompt real enviado à IA. Ele injeta:
-   - `agent.ai_instructions` (instruções livres do agente)
-   - `fluxoInstructions` (passos cronológicos + passos extras)
-   - Regras de agendamento genéricas
+**2. Horário errado (timezone)** — A função calcula o horário assim:
+```sql
+v_appointment_datetime := (appointment_date || ' ' || start_time)::TIMESTAMP WITH TIME ZONE;
+```
+O servidor Supabase roda em UTC. Um agendamento às 12:00 em Fortaleza (UTC-3) é interpretado como 12:00 UTC, resultando em lembretes 3 horas adiantados.
 
-**O problema**: Nenhum dos dois locais tem uma regra explícita dizendo "NUNCA ofereça consulta online na mesma mensagem que a presencial. Online só deve ser oferecido quando o lead recusar a presencial."
+## Plano de Correção
 
-A IA vê que o agente tem objetivo principal "Agendar Consulta Presencial" e secundário "Agendar Consulta Online", e como ambos estão disponíveis, ela os apresenta juntos por padrão.
+### 1. Migration SQL: Remover triggers duplicados e corrigir timezone
 
-### Onde resolver
+- **DROP** os dois triggers antigos (`trg_generate_reminders_on_insert` e `trg_generate_reminders_on_update`), mantendo apenas `generate_reminders_on_appointment`
+- **Atualizar** a função `generate_reminders_for_appointment()` para:
+  - Buscar o timezone da conta via `avivar_schedule_config` (fallback: `America/Sao_Paulo`)
+  - Calcular `v_appointment_datetime` com timezone correto: `(date || ' ' || time)::TIMESTAMP AT TIME ZONE v_timezone`
+  - Adicionar check de unicidade antes do INSERT: `NOT EXISTS (SELECT 1 FROM avivar_appointment_reminders WHERE appointment_id = NEW.id AND rule_id = v_rule.id AND status = 'scheduled')`
 
-A solução deve ser implementada **internamente no prompt do backend** (edge function), não nas instruções dos passos do fluxo. Motivos:
-- É uma regra de comportamento global, não específica de um passo
-- Precisa ser aplicada automaticamente com base na configuração de `consultationType`
-- O usuário não deveria precisar digitar essa regra manualmente
+### 2. Limpeza de dados duplicados
 
-### Plano de implementação
+- Migration para deletar lembretes duplicados existentes (manter apenas 1 por combinação `appointment_id + rule_id`)
 
-**1. Adicionar regra de priorização no `buildHybridSystemPrompt`** (edge function)
+### 3. Adicionar constraint UNIQUE
 
-Na função `buildHybridSystemPrompt` em `supabase/functions/avivar-ai-agent/index.ts`, após a seção `<fluxo_agendamento>`, adicionar uma nova seção `<regra_modalidade_atendimento>` que será gerada dinamicamente com base na configuração do agente:
+- Criar unique index em `(appointment_id, rule_id)` com filtro `WHERE status IN ('scheduled', 'processing')` para prevenir futuros duplicados
 
-- Carregar `consultation_type` do agente (campo já existente na tabela `avivar_agents`)
-- Se `presencial=true` E `online=true`:
-  ```
-  <regra_modalidade_atendimento>
-  REGRA OBRIGATÓRIA DE MODALIDADE:
-  - SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
-  - SOMENTE ofereça consulta ONLINE quando o lead:
-    • Disser que não pode comparecer presencialmente
-    • Informar que mora longe/em outra cidade/estado
-    • Pedir explicitamente por atendimento online
-  - NUNCA apresente as duas modalidades na mesma mensagem
-  - Se o lead aceitar presencial, NÃO mencione a opção online
-  </regra_modalidade_atendimento>
-  ```
-- Se apenas `online=true`: não adicionar restrição (oferecer online diretamente)
-- Se apenas `presencial=true`: não adicionar restrição
+## Detalhes Técnicos
 
-**2. Carregar `consultation_type` na query do agente**
+A função corrigida ficará assim (parte chave):
 
-Na query que carrega o agente roteado (função que popula `RoutedAgent`), incluir o campo `consultation_type` do `avivar_agents`. Adicionar o campo à interface `RoutedAgent`.
+```sql
+-- Buscar timezone da conta
+SELECT COALESCE(sc.timezone, 'America/Sao_Paulo') INTO v_timezone
+FROM avivar_schedule_config sc WHERE sc.account_id = NEW.account_id LIMIT 1;
 
-**3. Atualizar o prompt de preview no frontend**
+-- Interpretar data/hora no timezone correto
+v_appointment_datetime := ((NEW.appointment_date || ' ' || NEW.start_time)::TIMESTAMP) 
+                          AT TIME ZONE v_timezone;
 
-Em `usePromptGenerator.ts`, substituir a instrução fraca (linha 154) por uma regra mais clara e alinhada com o backend.
+-- Anti-duplicação
+IF NOT EXISTS (
+  SELECT 1 FROM avivar_appointment_reminders 
+  WHERE appointment_id = NEW.id AND rule_id = v_rule.id 
+    AND status IN ('scheduled', 'processing', 'sent')
+) THEN
+  INSERT INTO avivar_appointment_reminders (...) VALUES (...);
+END IF;
+```
 
-### Arquivos a modificar
-- `supabase/functions/avivar-ai-agent/index.ts` — adicionar seção de modalidade no prompt + carregar consultation_type
-- `src/pages/avivar/config/hooks/usePromptGenerator.ts` — melhorar instrução de priorização no preview
-
-### Resposta às perguntas
-
-- **Por que a IA oferece junto?** Porque não existe regra explícita no prompt impedindo isso. A instrução atual é apenas "priorize", o que é vago demais para a IA.
-- **Onde está configurado?** O prompt é montado na edge function `avivar-ai-agent`. As instruções do fluxo (passos) são injetadas, mas a regra de priorização de modalidade não existe em nenhum lugar.
-- **Devo configurar nos passos do fluxo?** Não. Vou implementar internamente no prompt do backend, aplicado automaticamente com base na sua configuração de tipo de consulta (presencial + online). Assim funciona para todos os agentes sem precisar escrever a regra manualmente.
-
+Isso garante que:
+- Os lembretes sejam agendados para o horário correto (ex: 11:45 no fuso do cliente)
+- Nunca sejam criados duplicados para a mesma combinação agendamento + regra
