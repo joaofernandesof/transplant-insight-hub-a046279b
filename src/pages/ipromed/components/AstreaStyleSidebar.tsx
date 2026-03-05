@@ -69,7 +69,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/cpg/cases', tourId: 'sidebar-cases' },
   { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/cpg/ai', tourId: 'sidebar-ai' },
   { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/cpg/reports' },
-  { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/cpg/logs' },
+  
   
   { id: 'forms', label: 'Formulários', icon: ClipboardList, href: '/cpg/forms' },
   
