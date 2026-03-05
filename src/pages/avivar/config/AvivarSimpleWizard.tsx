@@ -274,6 +274,8 @@ export default function AvivarSimpleWizard() {
             attendantName: draft.name || '',
             knowledgeFiles: (draft.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
             fluxoAtendimento: (draft.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+            attendanceMode: (draft.attendance_mode as unknown as AgentConfig['attendanceMode']) || 'humanized',
+            chatbotFlows: (draft.chatbot_flows as unknown as AgentConfig['chatbotFlows']) || [],
           }));
           toast.info('Rascunho encontrado! Continuando de onde parou.');
         }
