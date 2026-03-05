@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
     // ========== 3. Create avivar_accounts + member ==========
     const { data: acc, error: accErr } = await sb.from('avivar_accounts').insert({
       name: accName, slug, owner_user_id: userId,
-      is_active: true, plan: 'free', allowed_nichos: ['saude'],
+      is_active: true, plan: 'free', allowed_nichos: allowed_nichos || ['saude'],
     }).select('id').single()
     if (accErr) throw new Error(`avivar_accounts: ${accErr.message}`)
     const accountId = acc.id
