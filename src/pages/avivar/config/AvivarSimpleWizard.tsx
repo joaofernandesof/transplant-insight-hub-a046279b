@@ -25,7 +25,6 @@ import {
   StepFluxoSimple,
   StepFAQGenerator,
   StepKnowledgeSimple,
-  StepImagesSimple,
   StepReviewSimple,
 } from './components/steps/simple';
 
