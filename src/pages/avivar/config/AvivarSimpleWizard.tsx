@@ -170,16 +170,6 @@ export default function AvivarSimpleWizard() {
             knowledge_files: config.knowledgeFiles || [],
           };
           break;
-        case 6:
-          payload = {
-            ...payload,
-            image_gallery: config.imageGallery || EMPTY_IMAGE_GALLERY,
-            before_after_images: (config.imageGallery?.before_after?.length
-              ? config.imageGallery.before_after.map((img) => img.url)
-              : (config.beforeAfterImages || []))
-              .filter(Boolean),
-          };
-          break;
       }
 
       const { error } = await supabase
