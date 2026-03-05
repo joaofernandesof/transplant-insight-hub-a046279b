@@ -1,68 +1,53 @@
 
 
-## Diagnóstico: Por que a IA oferece presencial e online juntos
+# Replicar configurações da conta Lucas para todas as contas Avivar (exceto Karine)
 
-### Como funciona hoje
+## Contexto
 
-O prompt do agente é montado em **dois lugares**:
+**Conta modelo**: `a0000001-0000-0000-0000-000000000002` (Lucas Araujo, `lucasaraujo.neofolic@gmail.com`)
+**Contas destino**:
+- `a0000001-0000-0000-0000-000000000001` (ByNeofolic, owner: `00294ac4...` / `adm@neofolic.com.br`)
+- `a0000001-0000-0000-0000-000000000003` (TI Neo Folic, owner: `1b58da47...` / `ti@neofolic.com.br`)
 
-1. **Frontend (preview)** — `usePromptGenerator.ts`: gera um prompt de visualização com a instrução fraca:
-   > "Priorize atendimento presencial, mas ofereça online quando necessário"
-   
-2. **Backend (edge function)** — `avivar-ai-agent/index.ts` → `buildHybridSystemPrompt()`: monta o prompt real enviado à IA. Ele injeta:
-   - `agent.ai_instructions` (instruções livres do agente)
-   - `fluxoInstructions` (passos cronológicos + passos extras)
-   - Regras de agendamento genéricas
+**Excluída**: `b0317d67-fda3-46dd-8dbc-c69bf3821938` (Karine Mendes)
 
-**O problema**: Nenhum dos dois locais tem uma regra explícita dizendo "NUNCA ofereça consulta online na mesma mensagem que a presencial. Online só deve ser oferecido quando o lead recusar a presencial."
+## Dados a replicar (da conta Lucas)
 
-A IA vê que o agente tem objetivo principal "Agendar Consulta Presencial" e secundário "Agendar Consulta Online", e como ambos estão disponíveis, ela os apresenta juntos por padrão.
+| Tabela | Registros | Ação |
+|--------|-----------|------|
+| `avivar_agents` | 1 (Iza) | Atualizar agentes existentes (Mel, Nia) com mesmas configs de IA, fluxo, prompts, serviços, etc. |
+| `avivar_kanbans` | 2 (Comercial, Pós-Venda) | Limpar existentes e recriar com mesma estrutura |
+| `avivar_kanban_columns` | 11 colunas | Recriar vinculadas aos novos kanbans |
+| `avivar_column_checklists` | 5 campos | Recriar vinculados às novas colunas |
+| `avivar_reminder_rules` | 5 regras | Limpar existentes e recriar idênticas |
+| `avivar_followup_rules` | ~4 regras | Limpar existentes e recriar (ajustando `applicable_kanban_ids` e `applicable_column_ids` para novos IDs) |
+| `avivar_knowledge_documents` | 2 docs + 27 chunks | Limpar existentes e recriar docs + chunks |
+| `avivar_onboarding_progress` | 1 registro | Upsert com mesmos steps |
 
-### Onde resolver
+## Processo (passo a passo)
 
-A solução deve ser implementada **internamente no prompt do backend** (edge function), não nas instruções dos passos do fluxo. Motivos:
-- É uma regra de comportamento global, não específica de um passo
-- Precisa ser aplicada automaticamente com base na configuração de `consultationType`
-- O usuário não deveria precisar digitar essa regra manualmente
+Para **cada conta destino**, executar via SQL (insert tool):
 
-### Plano de implementação
+1. **Agente IA**: UPDATE do agente existente com todos os campos de configuração do agente Iza (ai_identity, ai_objective, ai_instructions, ai_restrictions, fluxo_atendimento, tone_of_voice, services, consultation_type, consultation_duration, payment_methods, nicho, subnicho, schedule, knowledge_files, image_gallery, before_after_images, crm, address, city, state, company_name, professional_name)
 
-**1. Adicionar regra de priorização no `buildHybridSystemPrompt`** (edge function)
+2. **Kanbans + Colunas**: DELETE existentes, INSERT novos kanbans (novos UUIDs), INSERT novas colunas (novos UUIDs) com mesmos nomes, cores, order_index. Guardar mapeamento de IDs antigos→novos para referências cruzadas.
 
-Na função `buildHybridSystemPrompt` em `supabase/functions/avivar-ai-agent/index.ts`, após a seção `<fluxo_agendamento>`, adicionar uma nova seção `<regra_modalidade_atendimento>` que será gerada dinamicamente com base na configuração do agente:
+3. **Checklists**: DELETE existentes, INSERT novos vinculados às novas column IDs
 
-- Carregar `consultation_type` do agente (campo já existente na tabela `avivar_agents`)
-- Se `presencial=true` E `online=true`:
-  ```
-  <regra_modalidade_atendimento>
-  REGRA OBRIGATÓRIA DE MODALIDADE:
-  - SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
-  - SOMENTE ofereça consulta ONLINE quando o lead:
-    • Disser que não pode comparecer presencialmente
-    • Informar que mora longe/em outra cidade/estado
-    • Pedir explicitamente por atendimento online
-  - NUNCA apresente as duas modalidades na mesma mensagem
-  - Se o lead aceitar presencial, NÃO mencione a opção online
-  </regra_modalidade_atendimento>
-  ```
-- Se apenas `online=true`: não adicionar restrição (oferecer online diretamente)
-- Se apenas `presencial=true`: não adicionar restrição
+4. **Reminder Rules**: DELETE existentes, INSERT novos com mesmos templates e configurações
 
-**2. Carregar `consultation_type` na query do agente**
+5. **Follow-up Rules**: DELETE existentes, INSERT novos com `applicable_kanban_ids` e `applicable_column_ids` apontando para os novos IDs de kanban/coluna
 
-Na query que carrega o agente roteado (função que popula `RoutedAgent`), incluir o campo `consultation_type` do `avivar_agents`. Adicionar o campo à interface `RoutedAgent`.
+6. **Knowledge Base**: DELETE chunks e docs existentes, INSERT docs e chunks com conteúdo idêntico (vinculados ao agent_id da conta destino)
 
-**3. Atualizar o prompt de preview no frontend**
+7. **Onboarding Progress**: UPSERT com mesmos flags
 
-Em `usePromptGenerator.ts`, substituir a instrução fraca (linha 154) por uma regra mais clara e alinhada com o backend.
+## Observações importantes
 
-### Arquivos a modificar
-- `supabase/functions/avivar-ai-agent/index.ts` — adicionar seção de modalidade no prompt + carregar consultation_type
-- `src/pages/avivar/config/hooks/usePromptGenerator.ts` — melhorar instrução de priorização no preview
-
-### Resposta às perguntas
-
-- **Por que a IA oferece junto?** Porque não existe regra explícita no prompt impedindo isso. A instrução atual é apenas "priorize", o que é vago demais para a IA.
-- **Onde está configurado?** O prompt é montado na edge function `avivar-ai-agent`. As instruções do fluxo (passos) são injetadas, mas a regra de priorização de modalidade não existe em nenhum lugar.
-- **Devo configurar nos passos do fluxo?** Não. Vou implementar internamente no prompt do backend, aplicado automaticamente com base na sua configuração de tipo de consulta (presencial + online). Assim funciona para todos os agentes sem precisar escrever a regra manualmente.
+- Cada conta destino manterá seu próprio `user_id` (owner) nos registros
+- Dados transacionais (leads, appointments, messages, contacts) NÃO serão tocados
+- WhatsApp instances (`avivar_uazapi_instances`) NÃO serão copiadas (são específicas por conta/dispositivo)
+- API tokens e webhooks NÃO serão copiados (Lucas não tem nenhum configurado)
+- Os novos kanbans/colunas receberão UUIDs novos gerados via `gen_random_uuid()`
+- Follow-up rules que referenciam kanban/column IDs serão ajustadas para os novos IDs correspondentes
 
