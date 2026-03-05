@@ -720,7 +720,7 @@ export default function ClinicDashboard() {
             <SurgeryWeekTable
               surgeries={filteredSurgeries}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-              onReschedule={(id, newDate) => rescheduleSurgery.mutate({ id, newDate })}
+              onReschedule={(id, newDate, newTime) => rescheduleSurgery.mutate({ id, newDate, newTime })}
               onDelete={(id) => deleteSurgery.mutate(id)}
               canDelete={isAdmin}
               title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
@@ -732,7 +732,7 @@ export default function ClinicDashboard() {
               open={!!selectedPendingSurgery}
               onOpenChange={(open) => !open && setSelectedPendingSurgery(null)}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
-              onReschedule={(id, newDate) => rescheduleSurgery.mutate({ id, newDate })}
+              onReschedule={(id, newDate, newTime) => rescheduleSurgery.mutate({ id, newDate, newTime })}
               onDelete={(id) => deleteSurgery.mutate(id)}
               canDelete={isAdmin}
             />

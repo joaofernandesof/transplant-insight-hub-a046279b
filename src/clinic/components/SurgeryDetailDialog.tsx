@@ -53,7 +53,7 @@ interface SurgeryDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdate?: (id: string, updates: Partial<ClinicSurgery>) => void;
-  onReschedule?: (id: string, newDate: string | null) => void;
+  onReschedule?: (id: string, newDate: string | null, newTime?: string | null) => void;
   onDelete?: (id: string) => void;
   canDelete?: boolean;
 }
@@ -65,6 +65,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
   const { isAdmin } = useUnifiedAuth();
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleTime, setRescheduleTime] = useState('');
   const [editingResponsibleTaskId, setEditingResponsibleTaskId] = useState<string | null>(null);
 
   // Template is now auto-resolved from branch — no manual selector needed
@@ -173,7 +174,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                   </ScrollArea>
                 </PopoverContent>
               </Popover>
-              <Popover open={rescheduleOpen} onOpenChange={(o) => { setRescheduleOpen(o); if (o) setRescheduleDate(''); }}>
+              <Popover open={rescheduleOpen} onOpenChange={(o) => { setRescheduleOpen(o); if (o) { setRescheduleDate(''); setRescheduleTime(''); } }}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                     <CalendarClock className="h-3.5 w-3.5" />
@@ -184,7 +185,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                   <div className="space-y-3">
                     <h4 className="font-semibold text-sm">Reagendar Cirurgia</h4>
                     <p className="text-xs text-muted-foreground">
-                      Escolha uma nova data ou mova para "A definir".
+                      Escolha uma nova data e horário ou mova para "A definir".
                     </p>
                     
                     <div className="space-y-2">
@@ -197,13 +198,24 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                       />
                     </div>
 
+                    <div className="space-y-2">
+                      <Label className="text-xs">Horário</Label>
+                      <Input
+                        type="time"
+                        value={rescheduleTime}
+                        onChange={(e) => setRescheduleTime(e.target.value)}
+                        className="h-9"
+                        placeholder="00:00"
+                      />
+                    </div>
+
                     <div className="flex gap-2">
                       <Button
                         size="sm"
                         className="flex-1 gap-1.5"
                         disabled={!rescheduleDate}
                         onClick={() => {
-                          onReschedule?.(surgery.id, rescheduleDate);
+                          onReschedule?.(surgery.id, rescheduleDate, rescheduleTime || null);
                           setRescheduleOpen(false);
                         }}
                       >
@@ -215,7 +227,7 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                         variant="destructive"
                         className="flex-1 gap-1.5"
                         onClick={() => {
-                          onReschedule?.(surgery.id, null);
+                          onReschedule?.(surgery.id, null, null);
                           setRescheduleOpen(false);
                         }}
                       >

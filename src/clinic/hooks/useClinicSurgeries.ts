@@ -281,13 +281,14 @@ export function useClinicSurgeries() {
 
   // Reschedule surgery: new date or "a definir"
   const rescheduleSurgery = useMutation({
-    mutationFn: async ({ id, newDate }: { id: string; newDate: string | null }) => {
+    mutationFn: async ({ id, newDate, newTime }: { id: string; newDate: string | null; newTime?: string | null }) => {
       const currentSurgery = surgeries.find(s => s.id === id);
       const oldDate = currentSurgery?.surgeryDate || null;
 
-      // 1. Update surgery date & status
+      // 1. Update surgery date, time & status
       const dbUpdates: Record<string, any> = {
         surgery_date: newDate,
+        surgery_time: newDate ? (newTime || null) : null,
         schedule_status: newDate ? 'agendado' : 'sem_data',
         surgery_confirmed: false, // Reset confirmation on reschedule
       };
