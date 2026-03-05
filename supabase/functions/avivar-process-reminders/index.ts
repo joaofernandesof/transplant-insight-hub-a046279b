@@ -102,29 +102,64 @@ serve(async (req) => {
           }
         }
 
-        // Fallback: resolve {{checklist.*}} variables if still present
+        // Resolve {{checklist.*}} variables at send-time (custom_fields may not exist at creation)
         let messageToSend = reminder.message;
         if (messageToSend && messageToSend.includes("{{checklist.")) {
           try {
-            const { data: kanbanLead } = await supabase
-              .from("avivar_kanban_leads")
-              .select("custom_fields")
-              .eq("phone", appointment.patient_phone)
-              .eq("account_id", reminder.account_id)
-              .not("custom_fields", "is", null)
-              .order("updated_at", { ascending: false })
-              .limit(1)
-              .maybeSingle();
+            let customFields: Record<string, unknown> | null = null;
 
-            if (kanbanLead?.custom_fields && typeof kanbanLead.custom_fields === "object") {
-              const cf = kanbanLead.custom_fields as Record<string, unknown>;
-              for (const [key, value] of Object.entries(cf)) {
+            // Strategy 1: Use lead_id directly (most reliable)
+            if (appointment.lead_id) {
+              const { data: leadRecord } = await supabase
+                .from("leads")
+                .select("phone")
+                .eq("id", appointment.lead_id)
+                .single();
+
+              if (leadRecord?.phone) {
+                const { data: kanbanLead } = await supabase
+                  .from("avivar_kanban_leads")
+                  .select("custom_fields")
+                  .eq("phone", leadRecord.phone)
+                  .eq("account_id", reminder.account_id)
+                  .not("custom_fields", "is", null)
+                  .order("updated_at", { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+
+                if (kanbanLead?.custom_fields && typeof kanbanLead.custom_fields === "object") {
+                  customFields = kanbanLead.custom_fields as Record<string, unknown>;
+                }
+              }
+            }
+
+            // Strategy 2: Fallback to patient_phone
+            if (!customFields && appointment.patient_phone) {
+              const { data: kanbanLead } = await supabase
+                .from("avivar_kanban_leads")
+                .select("custom_fields")
+                .eq("phone", appointment.patient_phone)
+                .eq("account_id", reminder.account_id)
+                .not("custom_fields", "is", null)
+                .order("updated_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (kanbanLead?.custom_fields && typeof kanbanLead.custom_fields === "object") {
+                customFields = kanbanLead.custom_fields as Record<string, unknown>;
+              }
+            }
+
+            if (customFields) {
+              for (const [key, value] of Object.entries(customFields)) {
                 messageToSend = messageToSend.replace(
                   `{{checklist.${key}}}`,
                   String(value ?? "")
                 );
               }
+              console.log(`[Reminders] Resolved checklist vars for reminder ${reminder.id}`);
             }
+
             // Remove any remaining unresolved checklist placeholders
             messageToSend = messageToSend.replace(/\{\{checklist\.[^}]+\}\}/g, "");
           } catch (cfErr) {
