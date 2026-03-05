@@ -285,6 +285,16 @@ export default function AvivarConfigWizard() {
       
       case 13:
         return (
+          <StepAttendanceMode
+            attendanceMode={config.attendanceMode}
+            chatbotFlows={config.chatbotFlows}
+            onChange={(mode: AttendanceMode) => updateConfig({ attendanceMode: mode })}
+            onFlowsChange={(flows: ChatbotFlow[]) => updateConfig({ chatbotFlows: flows })}
+          />
+        );
+      
+      case 14:
+        return (
           <StepFluxoAtendimento
             fluxoAtendimento={config.fluxoAtendimento}
             attendantName={config.attendantName}
@@ -295,7 +305,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 14:
+      case 15:
         return (
           <StepKnowledge
             knowledgeFiles={config.knowledgeFiles}
@@ -303,7 +313,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 15:
+      case 16:
         return (
           <StepReview
             config={config}
