@@ -4072,6 +4072,7 @@ Você DEVE executar APENAS UM passo do fluxo por resposta. NUNCA avance múltipl
 - Exemplo: se o lead respondeu ao passo 2 (interesse), execute APENAS o passo 3 (qualificação). NÃO pule para o passo 4 ou 5
 - PROIBIDO: Enviar mídia de um passo + texto de outro passo na mesma resposta
 - Se o passo tem mídia E texto, envie ambos, mas APENAS do passo atual
+- Se o passo tiver um MENU DE OPÇÕES, o menu DEVE ser apresentado junto com o texto do passo — ambos são parte do mesmo passo
 
 **⚠️ REGRA ANTI-SPAM OBRIGATÓRIA — VARIAÇÃO DE MENSAGENS:**
 Os exemplos fornecidos são REFERÊNCIAS DE INTENÇÃO, NUNCA textos para copiar. Para CADA mensagem que você enviar:
@@ -4116,7 +4117,7 @@ ${allMediaSteps}
   const buildMenuInstructions = (passo: typeof passosCronologicos[0], allPassos: typeof passosCronologicos) => {
     if (!passo.menuOptions || passo.menuOptions.length === 0) return '';
     
-    let menuText = '\n📋 **MENU DE OPÇÕES — Apresente ao lead:**\n';
+    let menuText = '\n📋 **MENU DE OPÇÕES — OBRIGATÓRIO: Apresente este menu NA MESMA MENSAGEM deste passo. O menu é parte integrante deste passo, NÃO é um passo separado.**\n';
     const goToStepIds: string[] = [];
     
     for (let i = 0; i < passo.menuOptions.length; i++) {
@@ -4146,7 +4147,7 @@ ${allMediaSteps}
       }
     }
     
-    menuText += '\n⚠️ AGUARDE a escolha do lead antes de prosseguir. NÃO avance automaticamente.\n';
+    menuText += '\n⚠️ Após apresentar o menu, AGUARDE a escolha do lead. NÃO avance para o próximo passo até o lead escolher.\n';
     if (goToStepIds.length > 0) {
       menuText += '⚠️ Se o lead escolher uma opção que direciona para outro passo, PULE direto para esse passo.\n';
     }
