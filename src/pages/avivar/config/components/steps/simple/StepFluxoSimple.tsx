@@ -376,12 +376,7 @@ export function StepFluxoSimple({
     });
   };
 
-  // Drag and drop handlers
-  const shouldHandleEvent = (element: HTMLElement) => {
-    const interactiveElements = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'];
-    return !interactiveElements.includes(element.tagName) && !element.isContentEditable;
-  };
-
+  // Drag and drop handlers - Custom keyboard sensor that ignores interactive elements
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -391,15 +386,9 @@ export function StepFluxoSimple({
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
       keyboardCodes: {
-        start: ['Space', 'Enter'],
+        start: ['Enter'],
         cancel: ['Escape'],
-        end: ['Space', 'Enter'],
-      },
-      onActivation: ({ event }) => {
-        const target = event.target as HTMLElement;
-        if (!shouldHandleEvent(target)) {
-          return false;
-        }
+        end: ['Enter'],
       },
     })
   );
