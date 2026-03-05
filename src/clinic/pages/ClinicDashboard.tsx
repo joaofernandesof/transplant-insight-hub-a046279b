@@ -413,91 +413,95 @@ export default function ClinicDashboard() {
 
         {activeTab === 'agenda' && (
           <>
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <Card className="border-l-4 border-l-primary">
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium">Total Agendadas</p>
-                  <p className="text-xl font-bold mt-0.5">{kpiStats.total}</p>
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-emerald-500">
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium">Confirmadas</p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-xl font-bold mt-0.5 text-emerald-600">{kpiStats.confirmed}</p>
-                    <span className="text-xs text-muted-foreground">{kpiStats.confirmationRate}%</span>
-                  </div>
-                  <Progress value={kpiStats.confirmationRate} className="h-1 mt-1" />
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-amber-500">
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium">Exames Pendentes</p>
-                  <p className="text-xl font-bold mt-0.5">{kpiStats.pendingExams}</p>
-                  {kpiStats.pendingExams > 0 && (
-                    <p className="text-[10px] text-amber-600 flex items-center gap-1 mt-0.5">
-                      <AlertTriangle className="h-3 w-3" /> Ação necessária
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-blue-500">
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium">Termos Assinados</p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-xl font-bold mt-0.5 text-blue-600">{kpiStats.contractsSigned}</p>
-                    <span className="text-xs text-muted-foreground">{kpiStats.contractRate}%</span>
-                  </div>
-                  <Progress value={kpiStats.contractRate} className="h-1 mt-1" />
-                </CardContent>
-              </Card>
-            </div>
+            {/* KPI Cards - Admin only */}
+            {isAdmin && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Card className="border-l-4 border-l-primary">
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium">Total Agendadas</p>
+                      <p className="text-xl font-bold mt-0.5">{kpiStats.total}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-l-4 border-l-emerald-500">
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium">Confirmadas</p>
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-xl font-bold mt-0.5 text-emerald-600">{kpiStats.confirmed}</p>
+                        <span className="text-xs text-muted-foreground">{kpiStats.confirmationRate}%</span>
+                      </div>
+                      <Progress value={kpiStats.confirmationRate} className="h-1 mt-1" />
+                    </CardContent>
+                  </Card>
+                  <Card className="border-l-4 border-l-amber-500">
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium">Exames Pendentes</p>
+                      <p className="text-xl font-bold mt-0.5">{kpiStats.pendingExams}</p>
+                      {kpiStats.pendingExams > 0 && (
+                        <p className="text-[10px] text-amber-600 flex items-center gap-1 mt-0.5">
+                          <AlertTriangle className="h-3 w-3" /> Ação necessária
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card className="border-l-4 border-l-blue-500">
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium">Termos Assinados</p>
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-xl font-bold mt-0.5 text-blue-600">{kpiStats.contractsSigned}</p>
+                        <span className="text-xs text-muted-foreground">{kpiStats.contractRate}%</span>
+                      </div>
+                      <Progress value={kpiStats.contractRate} className="h-1 mt-1" />
+                    </CardContent>
+                  </Card>
+                </div>
 
-            {/* Financial KPIs */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-              <Card className="border-l-4 border-l-emerald-600">
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
-                    <DollarSign className="h-3 w-3" /> VGV Total
-                  </p>
-                  <p className="text-lg font-bold mt-0.5 text-emerald-600">{formatCurrency(kpiStats.totalVgv)}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3" /> Upgrades
-                  </p>
-                  <p className="text-lg font-bold mt-0.5">{formatCurrency(kpiStats.totalUpgrade)}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3" /> Upsells
-                  </p>
-                  <p className="text-lg font-bold mt-0.5">{formatCurrency(kpiStats.totalUpsell)}</p>
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-emerald-500">
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3" /> Recebido
-                  </p>
-                  <p className="text-lg font-bold mt-0.5 text-emerald-600">{formatCurrency(kpiStats.totalReceived)}</p>
-                  <Progress value={kpiStats.paymentProgress} className="h-1 mt-1" />
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-destructive">
-                <CardContent className="p-2.5">
-                  <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" /> Saldo Devedor
-                  </p>
-                  <p className="text-lg font-bold mt-0.5 text-destructive">{formatCurrency(kpiStats.totalBalanceDue)}</p>
-                </CardContent>
-              </Card>
-            </div>
+                {/* Financial KPIs */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <Card className="border-l-4 border-l-emerald-600">
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                        <DollarSign className="h-3 w-3" /> VGV Total
+                      </p>
+                      <p className="text-lg font-bold mt-0.5 text-emerald-600">{formatCurrency(kpiStats.totalVgv)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" /> Upgrades
+                      </p>
+                      <p className="text-lg font-bold mt-0.5">{formatCurrency(kpiStats.totalUpgrade)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" /> Upsells
+                      </p>
+                      <p className="text-lg font-bold mt-0.5">{formatCurrency(kpiStats.totalUpsell)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-l-4 border-l-emerald-500">
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" /> Recebido
+                      </p>
+                      <p className="text-lg font-bold mt-0.5 text-emerald-600">{formatCurrency(kpiStats.totalReceived)}</p>
+                      <Progress value={kpiStats.paymentProgress} className="h-1 mt-1" />
+                    </CardContent>
+                  </Card>
+                  <Card className="border-l-4 border-l-destructive">
+                    <CardContent className="p-2.5">
+                      <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" /> Saldo Devedor
+                      </p>
+                      <p className="text-lg font-bold mt-0.5 text-destructive">{formatCurrency(kpiStats.totalBalanceDue)}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            )}
 
             {/* Search + Quick Filters */}
             <div className="flex flex-col gap-2">
