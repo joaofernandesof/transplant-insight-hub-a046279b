@@ -1,53 +1,48 @@
 
 
-# Replicar configurações da conta Lucas para todas as contas Avivar (exceto Karine)
+# Remover Etapa de Imagens do Wizard de Configuração do Agente
 
-## Contexto
+## O que muda
 
-**Conta modelo**: `a0000001-0000-0000-0000-000000000002` (Lucas Araujo, `lucasaraujo.neofolic@gmail.com`)
-**Contas destino**:
-- `a0000001-0000-0000-0000-000000000001` (ByNeofolic, owner: `00294ac4...` / `adm@neofolic.com.br`)
-- `a0000001-0000-0000-0000-000000000003` (TI Neo Folic, owner: `1b58da47...` / `ti@neofolic.com.br`)
+Remover a etapa 7 ("Imagens") dos dois wizards de configuração do agente Avivar:
+1. **Wizard Simplificado** (`AvivarSimpleWizard.tsx`) — passa de 8 para 7 etapas
+2. **Wizard Completo** (`AvivarConfigWizard.tsx`) — remove step 10 ("Imagens")
 
-**Excluída**: `b0317d67-fda3-46dd-8dbc-c69bf3821938` (Karine Mendes)
+As imagens continuarão sendo gerenciadas via FAQ (Perguntas e Respostas com mídia), que é mais intuitivo e dá à IA melhor contexto para decidir qual imagem enviar.
 
-## Dados a replicar (da conta Lucas)
+## Alterações
 
-| Tabela | Registros | Ação |
-|--------|-----------|------|
-| `avivar_agents` | 1 (Iza) | Atualizar agentes existentes (Mel, Nia) com mesmas configs de IA, fluxo, prompts, serviços, etc. |
-| `avivar_kanbans` | 2 (Comercial, Pós-Venda) | Limpar existentes e recriar com mesma estrutura |
-| `avivar_kanban_columns` | 11 colunas | Recriar vinculadas aos novos kanbans |
-| `avivar_column_checklists` | 5 campos | Recriar vinculados às novas colunas |
-| `avivar_reminder_rules` | 5 regras | Limpar existentes e recriar idênticas |
-| `avivar_followup_rules` | ~4 regras | Limpar existentes e recriar (ajustando `applicable_kanban_ids` e `applicable_column_ids` para novos IDs) |
-| `avivar_knowledge_documents` | 2 docs + 27 chunks | Limpar existentes e recriar docs + chunks |
-| `avivar_onboarding_progress` | 1 registro | Upsert com mesmos steps |
+### 1. `AvivarSimpleWizard.tsx`
+- Remover import de `StepImagesSimple`
+- Remover `{ id: 'images', ... }` do array `SIMPLE_STEPS` (fica com 7 etapas)
+- Remover `case 6` (StepImagesSimple) do `renderStepContent`
+- Ajustar `case 7` (review) para `case 6`
+- Remover validação de imagens do `canProceed()` (case 6)
+- Remover referência a `EMPTY_IMAGE_GALLERY` no import se não usado em outro lugar
+- Remover `image_gallery` e `before_after_images` do payload de save/update (linhas ~177 e ~441)
 
-## Processo (passo a passo)
+### 2. `AvivarConfigWizard.tsx`
+- Remover import de `StepImages`
+- Remover `case 10` (StepImages) do switch de renderização
+- Remover validação de imagens do `canProceed()` (case 10)
+- Ajustar numeração dos cases subsequentes (11→10, 12→11, etc.)
 
-Para **cada conta destino**, executar via SQL (insert tool):
+### 3. `types.ts`
+- Remover `{ id: 'images', ... }` do array `WIZARD_STEPS`
 
-1. **Agente IA**: UPDATE do agente existente com todos os campos de configuração do agente Iza (ai_identity, ai_objective, ai_instructions, ai_restrictions, fluxo_atendimento, tone_of_voice, services, consultation_type, consultation_duration, payment_methods, nicho, subnicho, schedule, knowledge_files, image_gallery, before_after_images, crm, address, city, state, company_name, professional_name)
+### 4. Componentes de steps
+- Não precisa deletar os arquivos `StepImagesSimple.tsx` e `StepImages.tsx` (podem ficar como código morto), mas remover dos exports em `index.ts`
 
-2. **Kanbans + Colunas**: DELETE existentes, INSERT novos kanbans (novos UUIDs), INSERT novas colunas (novos UUIDs) com mesmos nomes, cores, order_index. Guardar mapeamento de IDs antigos→novos para referências cruzadas.
+### 5. `StepReviewSimple.tsx`
+- Remover seção que mostra resumo de imagens na revisão (se existir)
 
-3. **Checklists**: DELETE existentes, INSERT novos vinculados às novas column IDs
+### 6. Migration SQL — Limpar image_gallery das contas existentes
+- `UPDATE avivar_agents SET image_gallery = '{}', before_after_images = '[]' WHERE account_id != 'b0317d67-fda3-46dd-8dbc-c69bf3821938';`
+- Isso garante que contas existentes não tenham dados órfãos de imagem (exceto Karine)
 
-4. **Reminder Rules**: DELETE existentes, INSERT novos com mesmos templates e configurações
-
-5. **Follow-up Rules**: DELETE existentes, INSERT novos com `applicable_kanban_ids` e `applicable_column_ids` apontando para os novos IDs de kanban/coluna
-
-6. **Knowledge Base**: DELETE chunks e docs existentes, INSERT docs e chunks com conteúdo idêntico (vinculados ao agent_id da conta destino)
-
-7. **Onboarding Progress**: UPSERT com mesmos flags
-
-## Observações importantes
-
-- Cada conta destino manterá seu próprio `user_id` (owner) nos registros
-- Dados transacionais (leads, appointments, messages, contacts) NÃO serão tocados
-- WhatsApp instances (`avivar_uazapi_instances`) NÃO serão copiadas (são específicas por conta/dispositivo)
-- API tokens e webhooks NÃO serão copiados (Lucas não tem nenhum configurado)
-- Os novos kanbans/colunas receberão UUIDs novos gerados via `gen_random_uuid()`
-- Follow-up rules que referenciam kanban/column IDs serão ajustadas para os novos IDs correspondentes
+## Impacto
+- O wizard simplificado fica com 7 etapas (ao invés de 8)
+- O wizard completo perde 1 etapa
+- A funcionalidade de envio de imagens pela IA **continua funcionando** via FAQ/Knowledge Base (sistema de mídia já implementado)
+- Nenhuma lógica de backend de envio de imagens é afetada
 
