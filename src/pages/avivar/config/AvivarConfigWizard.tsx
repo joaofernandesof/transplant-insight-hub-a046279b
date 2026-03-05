@@ -38,7 +38,6 @@ import {
   TomVoz,
   FluxoAtendimento,
   KnowledgeFile,
-  ImageGallery
 } from './types';
 import { getProfessionalFieldConfig } from './nichoConfig';
 import { useNavigate } from 'react-router-dom';
