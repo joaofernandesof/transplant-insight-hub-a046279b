@@ -83,7 +83,7 @@ const PORTAL_CONFIG: Record<string, { name: string; icon: any; color: string }> 
   'admin': { name: 'Administrador', icon: Crown, color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/50 dark:text-slate-300' },
   'neoteam': { name: 'NeoTeam', icon: Users, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
   'neocare': { name: 'NeoCare', icon: Heart, color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300' },
-  'academy': { name: 'NeoAcademy', icon: GraduationCap, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' },
+  'academy': { name: 'Conecta Capilar', icon: GraduationCap, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
   'neolicense': { name: 'NeoLicense', icon: Building2, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
   'avivar': { name: 'Avivar', icon: TrendingUp, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300' },
   'ipromed': { name: 'CPG Advocacia', icon: Scale, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },

@@ -36,7 +36,7 @@ type ViewMode = 'login' | 'forgot-password' | 'signup';
 const modules = [
 { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Pacientes' },
 { id: 'neoteam', name: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-500', description: 'Colaboradores' },
-{ id: 'neoacademy', name: 'NeoAcademy', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Alunos' },
+{ id: 'neoacademy', name: 'Conecta Capilar', icon: GraduationCap, gradient: 'from-blue-500 to-blue-500', description: 'Alunos' },
 { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
 { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
 { id: 'ipromed', name: 'CPG Advocacia', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },

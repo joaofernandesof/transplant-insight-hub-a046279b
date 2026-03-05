@@ -46,9 +46,9 @@ const modules = [
   },
   { 
     id: 'neoacademy', 
-    name: 'NeoAcademy', 
+    name: 'Conecta Capilar', 
     icon: GraduationCap, 
-    gradient: 'from-emerald-500 to-green-500',
+    gradient: 'from-blue-500 to-blue-500',
     description: 'Academia de Ensino',
     features: [
       'Cursos certificados',
