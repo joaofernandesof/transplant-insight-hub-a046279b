@@ -58,25 +58,55 @@ Deno.serve(async (req) => {
       console.log(`[1/12] Auth user created: ${userId}`)
     }
 
-    // ========== 2. Create neohub_users + profiles ==========
-    const { data: nu, error: nuErr } = await sb.from('neohub_users').insert({
-      user_id: userId, email, full_name, is_active: true,
-      allowed_portals: ['avivar'],
-    }).select('id').single()
-    if (nuErr) throw new Error(`neohub_users: ${nuErr.message}`)
+    // ========== 2. Create/update neohub_users + profiles ==========
+    let neohubUserId: string
 
-    await sb.from('neohub_user_profiles').insert({ neohub_user_id: nu.id, profile: 'cliente_avivar', is_active: true })
+    const { data: existingNu } = await sb.from('neohub_users').select('id, allowed_portals')
+      .eq('user_id', userId).maybeSingle()
+
+    if (existingNu) {
+      neohubUserId = existingNu.id
+      // Add 'avivar' to allowed_portals if not present
+      const portals = existingNu.allowed_portals || []
+      if (!portals.includes('avivar')) {
+        await sb.from('neohub_users').update({
+          allowed_portals: [...portals, 'avivar'],
+        }).eq('id', neohubUserId)
+      }
+      console.log(`[2/12] Existing NeoHub user updated: ${neohubUserId}`)
+    } else {
+      const { data: nu, error: nuErr } = await sb.from('neohub_users').insert({
+        user_id: userId, email, full_name, is_active: true,
+        allowed_portals: ['avivar'],
+      }).select('id').single()
+      if (nuErr) throw new Error(`neohub_users: ${nuErr.message}`)
+      neohubUserId = nu.id
+      console.log(`[2/12] NeoHub user created: ${neohubUserId}`)
+    }
+
+    // Ensure profile exists
+    await sb.from('neohub_user_profiles').upsert(
+      { neohub_user_id: neohubUserId, profile: 'cliente_avivar', is_active: true },
+      { onConflict: 'neohub_user_id,profile', ignoreDuplicates: true }
+    )
     await sb.from('profiles').upsert({ id: userId, email, name: full_name })
 
-    // Assign portal role (operador for avivar)
-    await sb.from('user_portal_roles').insert({
-      user_id: userId,
-      portal_id: 'f6d9742b-84b1-4cad-8c76-2024c269aed8', // avivar portal
-      role_id: '090ee82e-721e-4f1a-b094-f5f975c15d7a', // operador
-      is_active: true,
-      assigned_by: callerUserId,
-    })
-    console.log(`[2/12] NeoHub user + profiles created`)
+    // Ensure portal role exists
+    const { data: existingRole } = await sb.from('user_portal_roles').select('id')
+      .eq('user_id', userId)
+      .eq('portal_id', 'f6d9742b-84b1-4cad-8c76-2024c269aed8')
+      .maybeSingle()
+
+    if (!existingRole) {
+      await sb.from('user_portal_roles').insert({
+        user_id: userId,
+        portal_id: 'f6d9742b-84b1-4cad-8c76-2024c269aed8',
+        role_id: '090ee82e-721e-4f1a-b094-f5f975c15d7a',
+        is_active: true,
+        assigned_by: callerUserId,
+      })
+    }
+    console.log(`[2/12] NeoHub user + profiles ready`)
 
     // ========== 3. Create avivar_accounts + member ==========
     const { data: acc, error: accErr } = await sb.from('avivar_accounts').insert({
