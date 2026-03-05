@@ -359,6 +359,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_team_roster', code: 'neoteam_team_roster', title: 'Equipe', icon: Users, route: '/neoteam/equipe', adminOnly: true },
       { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/staff-roles', adminOnly: true },
+      { id: 'neoteam_performance', code: 'neoteam_performance', title: 'Gestão de Performance', icon: TrendingUp, route: '/neorh/performance', adminOnly: true },
     ],
   },
   {
