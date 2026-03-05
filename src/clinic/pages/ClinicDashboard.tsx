@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
@@ -31,6 +32,7 @@ import {
   X,
   Plus,
   Upload,
+  Settings2,
 } from 'lucide-react';
 import { format, parseISO, differenceInCalendarDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, subDays, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -81,21 +83,20 @@ export default function ClinicDashboard() {
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeDFilters, setActiveDFilters] = useState<Set<DFilter>>(new Set());
-  const [activeTab, setActiveTab] = useState<'agenda' | 'sem-data' | 'config'>(() => {
+  const [activeTab, setActiveTab] = useState<'agenda' | 'sem-data'>(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'sem-data') return 'sem-data';
-    if (tabParam === 'config') return 'config';
     return 'agenda';
   });
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
+  const [showConfigDialog, setShowConfigDialog] = useState(false);
 
   // Sync tab from URL params
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'sem-data') setActiveTab('sem-data');
-    else if (tabParam === 'config') setActiveTab('config');
     else if (tabParam === 'agenda') setActiveTab('agenda');
   }, [searchParams]);
 
@@ -322,10 +323,23 @@ export default function ClinicDashboard() {
         {/* Title + Period */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <Stethoscope className="h-5 w-5 text-primary" />
-              Agenda Cirúrgica
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                <Stethoscope className="h-5 w-5 text-primary" />
+                Agenda Cirúrgica
+              </h1>
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowConfigDialog(true)}
+                  title="Configuração da Agenda"
+                >
+                  <Settings2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
             {/* Tabs */}
             <div className="flex gap-1 mt-1.5">
               <button
@@ -353,19 +367,6 @@ export default function ClinicDashboard() {
                   <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{noDateStats.total}</Badge>
                 )}
               </button>
-              {isAdmin && (
-                <button
-                  onClick={() => setActiveTab('config')}
-                  className={cn(
-                    'text-xs font-medium px-3 py-1 rounded-md transition-colors',
-                    activeTab === 'config'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  )}
-                >
-                  ⚙️ Configuração
-                </button>
-              )}
             </div>
           </div>
            {activeTab === 'agenda' && (
@@ -698,8 +699,6 @@ export default function ClinicDashboard() {
               canDelete={isAdmin}
             />
           </>
-        ) : activeTab === 'config' && isAdmin ? (
-          <AgendaAvailabilityConfig />
         ) : (
           <NoDateTab />
         )}
@@ -716,6 +715,21 @@ export default function ClinicDashboard() {
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
       />
+
+      {/* Config Dialog - Admin only */}
+      {isAdmin && (
+        <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
+          <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-base flex items-center gap-2">
+                <Settings2 className="h-4 w-4" />
+                Configuração da Agenda
+              </DialogTitle>
+            </DialogHeader>
+            <AgendaAvailabilityConfig />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
