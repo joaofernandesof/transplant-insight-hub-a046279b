@@ -666,9 +666,9 @@ export function StepFluxoSimple({
                 </div>
               )}
 
-              {/* Botão para adicionar exemplo se não tiver */}
+              {/* Botões de ação: exemplo, mídia, menu */}
               {!step.exemploMensagem && !(editing && editing.stepId === step.id && editing.field === 'exemploMensagem') && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Button
                     variant="outline"
                     size="sm"
@@ -683,17 +683,19 @@ export function StepFluxoSimple({
                     mediaVariations={step.mediaVariations}
                     onChange={(media, variations) => handleMediaChange(step.id, type, media, variations)}
                   />
+                  {(!step.menuOptions || step.menuOptions.length === 0) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1"
+                      onClick={() => handleMenuOptionsChange(step.id, type, [{ id: `opt_${Date.now()}`, label: '', action: { type: 'go_to_step' } }])}
+                      disabled={isAnyEditing}
+                    >
+                      <GitBranch className="h-3 w-3" /> Menu de Opções
+                    </Button>
+                  )}
                 </div>
               )}
-
-              {/* Menu de Opções (Ramificação) */}
-              <FluxoMenuEditor
-                menuOptions={step.menuOptions || []}
-                onChange={(options) => handleMenuOptionsChange(step.id, type, options)}
-                allSteps={allSteps}
-                currentStepId={step.id}
-                kanbanColumns={kanbanColumns}
-              />
             </div>
           </CollapsibleContent>
         </Collapsible>
