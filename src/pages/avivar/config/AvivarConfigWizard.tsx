@@ -113,21 +113,15 @@ export default function AvivarConfigWizard() {
       case 9: 
         // No modo edição, pagamento é opcional
         return isEditMode || config.paymentMethods.some(m => m.enabled);
-      case 10: {
-        // Images - se tiver imagens, todas precisam ter legenda (mesmo no modo edição)
-        const allImages = Object.values(config.imageGallery || {}).flat();
-        if (allImages.length === 0) return true; // Sem imagens, pode prosseguir
-        return allImages.every(img => img?.caption?.trim()); // Todas precisam ter legenda
-      }
-      case 11: 
+      case 10: 
         // No modo edição, schedule é opcional
         return isEditMode || Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
-      case 12: return true; // Personalization (optional)
-      case 13: return true; // Instructions (optional)
-      case 14: return true; // Fluxo (optional)
-      case 15: return true; // Knowledge (optional)
-      case 16: return true; // Review
-      case 17: return true; // Prompt Review
+      case 11: return true; // Personalization (optional)
+      case 12: return true; // Instructions (optional)
+      case 13: return true; // Fluxo (optional)
+      case 14: return true; // Knowledge (optional)
+      case 15: return true; // Review
+      case 16: return true; // Prompt Review
       default: return true;
     }
   };
