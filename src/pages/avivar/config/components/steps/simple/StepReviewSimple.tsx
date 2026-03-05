@@ -16,7 +16,6 @@ import {
   Bot, 
   
   Clock,
-  Image as ImageIcon,
   FileText,
   ChevronDown,
   ChevronUp,
@@ -51,12 +50,6 @@ export function StepReviewSimple({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   
-
-  const imagesCount =
-    (config.imageGallery?.before_after?.length || 0) +
-    (config.imageGallery?.catalog?.length || 0) +
-    (config.imageGallery?.location?.length || 0) +
-    (config.imageGallery?.general?.length || 0);
   
   const getEnabledDays = (schedule: WeekSchedule): string => {
     const days = Object.entries(schedule)
@@ -79,7 +72,7 @@ export function StepReviewSimple({
 
   // Step indices matching SIMPLE_STEPS:
   // 0: Tipo de Negócio, 1: Sua Empresa, 2: Objetivos, 3: Fluxo,
-  // 4: FAQ, 5: Documentos, 6: Imagens, 7: Finalizar (review)
+  // 4: FAQ, 5: Documentos, 6: Finalizar (review)
 
   const ReviewRow = ({ icon: Icon, children, stepIndex }: { icon: React.ElementType; children: React.ReactNode; stepIndex: number }) => (
     <>
@@ -197,15 +190,6 @@ export function StepReviewSimple({
               </p>
             </ReviewRow>
 
-            {/* Imagens - step 6 */}
-            <ReviewRow icon={ImageIcon} stepIndex={6}>
-              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                Galeria de Imagens
-              </p>
-              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                {imagesCount} imagem(ns) adicionada(s)
-              </p>
-            </ReviewRow>
           </CardContent>
         </Card>
 

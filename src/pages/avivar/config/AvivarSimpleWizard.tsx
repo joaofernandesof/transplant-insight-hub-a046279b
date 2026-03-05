@@ -1,5 +1,5 @@
 /**
- * AvivarSimpleWizard - Wizard Simplificado de 8 etapas
+ * AvivarSimpleWizard - Wizard Simplificado de 7 etapas
  * Substitui o wizard de 15 etapas para facilitar para PMEs
  */
 
@@ -25,7 +25,6 @@ import {
   StepFluxoSimple,
   StepFAQGenerator,
   StepKnowledgeSimple,
-  StepImagesSimple,
   StepReviewSimple,
 } from './components/steps/simple';
 
@@ -33,7 +32,6 @@ import { autoGenerateConfig } from './utils/autoGenerateConfig';
 import { 
   AgentConfig, 
   INITIAL_CONFIG, 
-  EMPTY_IMAGE_GALLERY,
   PAYMENT_METHODS,
   DEFAULT_WEEK_SCHEDULE,
   NichoType,
@@ -62,7 +60,6 @@ const SIMPLE_STEPS = [
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
   { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
   { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
-  { id: 'images', title: 'Imagens', description: 'Galeria para envio (opcional)' },
   { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
 ];
 
@@ -173,16 +170,6 @@ export default function AvivarSimpleWizard() {
             knowledge_files: config.knowledgeFiles || [],
           };
           break;
-        case 6:
-          payload = {
-            ...payload,
-            image_gallery: config.imageGallery || EMPTY_IMAGE_GALLERY,
-            before_after_images: (config.imageGallery?.before_after?.length
-              ? config.imageGallery.before_after.map((img) => img.url)
-              : (config.beforeAfterImages || []))
-              .filter(Boolean),
-          };
-          break;
       }
 
       const { error } = await supabase
@@ -238,16 +225,6 @@ export default function AvivarSimpleWizard() {
               aiRestrictions: agent.ai_restrictions || '',
               consultationType: (agent.consultation_type as unknown as AgentConfig['consultationType']) || { presencial: true, online: false, domicilio: false },
               consultationDuration: agent.consultation_duration || 60,
-              beforeAfterImages: (agent.before_after_images as unknown as string[]) || [],
-              imageGallery: (agent.image_gallery as unknown as AgentConfig['imageGallery']) || {
-                ...EMPTY_IMAGE_GALLERY,
-                before_after: (((agent.before_after_images as unknown as string[]) || [])).map((url, i) => ({
-                  id: `legacy_${i}`,
-                  url,
-                  caption: '',
-                  category: 'before_after' as const,
-                })),
-              },
               knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
               fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
             }));
@@ -295,8 +272,6 @@ export default function AvivarSimpleWizard() {
             attendantName: draft.name || '',
             knowledgeFiles: (draft.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
             fluxoAtendimento: (draft.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
-            imageGallery: (draft.image_gallery as unknown as AgentConfig['imageGallery']) || EMPTY_IMAGE_GALLERY,
-            beforeAfterImages: (draft.before_after_images as unknown as string[]) || [],
           }));
           toast.info('Rascunho encontrado! Continuando de onde parou.');
         }
@@ -331,13 +306,7 @@ export default function AvivarSimpleWizard() {
         return true;
       case 5: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 6: {
-        // Imagens - se tiver imagens, todas precisam ter legenda
-        const allImages = Object.values(config.imageGallery || {}).flat();
-        if (allImages.length === 0) return true;
-        return allImages.every(img => img?.caption?.trim());
-      }
-      case 7: // Review
+      case 6: // Review
         return true;
       default:
         return true;
@@ -439,12 +408,6 @@ export default function AvivarSimpleWizard() {
         schedule: config.schedule,
         consultation_type: config.consultationType,
         consultation_duration: config.consultationDuration,
-        // Imagens (novo formato) + compatibilidade com legado
-        image_gallery: config.imageGallery || EMPTY_IMAGE_GALLERY,
-        before_after_images: (config.imageGallery?.before_after?.length
-          ? config.imageGallery.before_after.map((img) => img.url)
-          : (config.beforeAfterImages || []))
-          .filter(Boolean),
         tone_of_voice: autoConfig.toneOfVoice,
         ai_identity: autoConfig.aiIdentity,
         ai_objective: autoConfig.aiObjective,
@@ -687,13 +650,6 @@ export default function AvivarSimpleWizard() {
           />
         );
       case 6:
-        return (
-          <StepImagesSimple
-            gallery={config.imageGallery}
-            onChange={(imageGallery) => updateConfig({ imageGallery })}
-          />
-        );
-      case 7:
         return (
           <StepReviewSimple
             config={config}

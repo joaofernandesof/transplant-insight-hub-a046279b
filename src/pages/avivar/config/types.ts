@@ -726,7 +726,6 @@ export const WIZARD_STEPS = [
   
   { id: 'consultation', title: 'Atendimento', description: 'Tipos de atendimento' },
   { id: 'objectives', title: 'Objetivos', description: 'Objetivo principal da IA' },
-  { id: 'images', title: 'Imagens', description: 'Fotos e portfólio' },
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
   { id: 'personalization', title: 'Personalidade', description: 'Identidade e objetivo da IA' },
   { id: 'instructions', title: 'Instruções', description: 'O que a IA pode e não pode fazer' },

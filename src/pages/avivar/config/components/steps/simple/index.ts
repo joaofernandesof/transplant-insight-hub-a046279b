@@ -9,7 +9,7 @@ export { StepObjectivesSimple } from './StepObjectivesSimple';
 export { StepFluxoSimple } from './StepFluxoSimple';
 export { StepFAQGenerator } from './StepFAQGenerator';
 export { StepKnowledgeSimple } from './StepKnowledgeSimple';
-export { StepImagesSimple } from './StepImagesSimple';
+// StepImagesSimple removed - images managed via FAQ/Knowledge Base
 export { StepReviewSimple } from './StepReviewSimple';
 
 // Legado - mantido para compatibilidade

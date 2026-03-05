@@ -9,7 +9,7 @@ export { StepServices } from './StepServices';
 export { StepConsultation } from './StepConsultation';
 export { StepObjectives } from './StepObjectives';
 export { StepPayment } from './StepPayment';
-export { StepImages } from './StepImages';
+// StepImages removed - images managed via FAQ/Knowledge Base
 export { StepSchedule } from './StepSchedule';
 export { StepPersonalization } from './StepPersonalization';
 export { StepInstructions } from './StepInstructions';
