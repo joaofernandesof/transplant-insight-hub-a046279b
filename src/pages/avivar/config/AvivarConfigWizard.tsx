@@ -330,10 +330,10 @@ export default function AvivarConfigWizard() {
 
   // In edit mode, skip welcome step
   const isWelcomeStep = currentStep === 0 && !isEditMode;
-  const isReviewStep = currentStep === 15; // Step 15 is the final review step
+  const isReviewStep = currentStep === 16;
   
   // Optional steps that can be skipped
-  const showSkip = currentStep === 11 || currentStep === 12 || currentStep === 13 || currentStep === 14;
+  const showSkip = currentStep === 11 || currentStep === 12 || currentStep === 13 || currentStep === 14 || currentStep === 15;
 
   // Show loading while fetching agent data in edit mode
   if (loading) {
