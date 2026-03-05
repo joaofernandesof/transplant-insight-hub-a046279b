@@ -22,6 +22,7 @@ import {
   StepSchedule,
   StepPersonalization,
   StepInstructions,
+  StepAttendanceMode,
   StepFluxoAtendimento,
   StepKnowledge,
   StepReview,
