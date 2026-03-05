@@ -46,21 +46,33 @@ Deno.serve(async (req) => {
 
     const callerUserId = claims.claims.sub as string;
 
+    // Allow admins OR any active NeoTeam member to create patients
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
     const { data: isAdmin } = await supabaseAuth.rpc("is_neohub_admin", { _user_id: callerUserId });
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden - admin only" }), {
+    
+    // Check if user is a NeoTeam member
+    const { data: isNeoteamMember } = await supabaseAdmin
+      .from("neoteam_team_members")
+      .select("id")
+      .eq("user_id", callerUserId)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+
+    if (!isAdmin && !isNeoteamMember) {
+      return new Response(JSON.stringify({ error: "Forbidden - sem permissão para cadastrar pacientes" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
 
     const data: CreatePatientRequest = await req.json();
     
