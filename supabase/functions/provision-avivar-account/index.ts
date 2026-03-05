@@ -30,14 +30,33 @@ Deno.serve(async (req) => {
     const slug = account_slug || email.split('@')[0].replace(/[^a-z0-9]/gi, '-').toLowerCase()
     const accName = account_name || full_name
 
-    // ========== 1. Create Auth User ==========
-    const { data: authData, error: authError } = await sb.auth.admin.createUser({
-      email, password, email_confirm: true,
-      user_metadata: { full_name },
-    })
-    if (authError) throw new Error(`Auth: ${authError.message}`)
-    const userId = authData.user.id
-    console.log(`[1/12] Auth user created: ${userId}`)
+    // ========== 1. Create Auth User (or use existing) ==========
+    let userId: string
+
+    // Check if user already exists
+    const { data: existingUsers } = await sb.auth.admin.listUsers({ perPage: 1, page: 1 })
+    const { data: existingUser } = await sb.rpc('get_user_id_by_email', { p_email: email }).maybeSingle()
+
+    // Try to find existing user by email
+    const { data: existingAuth } = await sb.auth.admin.listUsers()
+    const found = existingAuth?.users?.find((u: any) => u.email === email)
+
+    if (found) {
+      userId = found.id
+      console.log(`[1/12] Existing auth user found: ${userId}`)
+      // Update password if provided
+      if (password) {
+        await sb.auth.admin.updateUserById(userId, { password })
+      }
+    } else {
+      const { data: authData, error: authError } = await sb.auth.admin.createUser({
+        email, password, email_confirm: true,
+        user_metadata: { full_name },
+      })
+      if (authError) throw new Error(`Auth: ${authError.message}`)
+      userId = authData.user.id
+      console.log(`[1/12] Auth user created: ${userId}`)
+    }
 
     // ========== 2. Create neohub_users + profiles ==========
     const { data: nu, error: nuErr } = await sb.from('neohub_users').insert({
