@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Lock, Settings2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Lock, Settings2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,13 +22,14 @@ export function AgendaAvailabilityConfig() {
   const { branches } = useBranches({ showAll: true });
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [editingDay, setEditingDay] = useState<string | null>(null);
+  const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set());
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [editBlocked, setEditBlocked] = useState(false);
   const [editReason, setEditReason] = useState('');
   const [globalMaxSlots, setGlobalMaxSlots] = useState(5);
   const [editMaxSlots, setEditMaxSlots] = useState(5);
 
-  const { dayAvailabilityMap, getDayAvailability, upsertAvailability, deleteAvailability, isLoading } =
+  const { getDayAvailability, upsertAvailability, deleteAvailability, isLoading } =
     useSurgeryAgendaAvailability(selectedBranch, currentMonth);
 
   const days = useMemo(() => {
@@ -45,11 +46,9 @@ export function AgendaAvailabilityConfig() {
   // Apply global max_slots to all days of the month
   const handleApplyGlobalSlots = async () => {
     if (!selectedBranch || globalMaxSlots < 1) return;
-    
     for (const day of days) {
       const dateStr = format(day, 'yyyy-MM-dd');
       const existing = getDayAvailability(dateStr);
-      // Keep blocked state if already configured, just update max_slots
       await upsertAvailability.mutateAsync({
         branch: selectedBranch,
         date: dateStr,
@@ -61,33 +60,58 @@ export function AgendaAvailabilityConfig() {
     toast.success(`Limite de ${globalMaxSlots} agendamentos aplicado para todo o mês`);
   };
 
+  // Toggle day selection
   const handleDayClick = (dateStr: string) => {
     if (!selectedBranch) return;
-    const existing = getDayAvailability(dateStr);
+    setSelectedDays(prev => {
+      const next = new Set(prev);
+      if (next.has(dateStr)) {
+        next.delete(dateStr);
+      } else {
+        next.add(dateStr);
+      }
+      return next;
+    });
+  };
+
+  // Open edit dialog for selected days
+  const handleOpenEdit = () => {
+    if (selectedDays.size === 0) return;
+    // Pre-fill from first selected day
+    const firstDay = Array.from(selectedDays).sort()[0];
+    const existing = getDayAvailability(firstDay);
     setEditBlocked(existing.isBlocked);
     setEditReason(existing.blockedReason || '');
     setEditMaxSlots(existing.status !== 'not_configured' ? existing.maxSlots : globalMaxSlots);
-    setEditingDay(dateStr);
+    setShowEditDialog(true);
   };
 
-  const handleSave = () => {
-    if (!editingDay || !selectedBranch) return;
-    const existing = getDayAvailability(editingDay);
-    const maxSlots = editMaxSlots;
-    upsertAvailability.mutate({
-      branch: selectedBranch,
-      date: editingDay,
-      max_slots: maxSlots,
-      is_blocked: editBlocked,
-      blocked_reason: editBlocked ? editReason : undefined,
-    });
-    setEditingDay(null);
+  // Save config for all selected days
+  const handleSave = async () => {
+    if (selectedDays.size === 0 || !selectedBranch) return;
+    for (const dateStr of Array.from(selectedDays)) {
+      await upsertAvailability.mutateAsync({
+        branch: selectedBranch,
+        date: dateStr,
+        max_slots: editMaxSlots,
+        is_blocked: editBlocked,
+        blocked_reason: editBlocked ? editReason : undefined,
+      });
+    }
+    toast.success(`Configuração aplicada para ${selectedDays.size} dia(s)`);
+    setShowEditDialog(false);
+    setSelectedDays(new Set());
   };
 
-  const handleRemoveConfig = () => {
-    if (!editingDay || !selectedBranch) return;
-    deleteAvailability.mutate({ branch: selectedBranch, date: editingDay });
-    setEditingDay(null);
+  // Remove config for all selected days
+  const handleRemoveConfig = async () => {
+    if (selectedDays.size === 0 || !selectedBranch) return;
+    for (const dateStr of Array.from(selectedDays)) {
+      await deleteAvailability.mutateAsync({ branch: selectedBranch, date: dateStr });
+    }
+    toast.success(`Configuração removida de ${selectedDays.size} dia(s)`);
+    setShowEditDialog(false);
+    setSelectedDays(new Set());
   };
 
   const getStatusColor = (dateStr: string) => {
@@ -97,6 +121,21 @@ export function AgendaAvailabilityConfig() {
     if (avail.status === 'available') return 'bg-emerald-500/20 border-emerald-500/40 text-emerald-700';
     return 'bg-muted/50 border-border text-muted-foreground';
   };
+
+  // Check if any selected day has config
+  const anySelectedHasConfig = Array.from(selectedDays).some(
+    d => getDayAvailability(d).status !== 'not_configured'
+  );
+
+  // Format selected days for dialog title
+  const selectedDaysLabel = useMemo(() => {
+    const sorted = Array.from(selectedDays).sort();
+    if (sorted.length === 0) return '';
+    if (sorted.length === 1) {
+      return format(new Date(sorted[0] + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR });
+    }
+    return `${sorted.length} dias selecionados`;
+  }, [selectedDays]);
 
   return (
     <div className="space-y-4">
@@ -111,7 +150,7 @@ export function AgendaAvailabilityConfig() {
           {/* Branch selector */}
           <div className="space-y-1.5">
             <Label className="text-xs">Filial</Label>
-            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+            <Select value={selectedBranch} onValueChange={(v) => { setSelectedBranch(v); setSelectedDays(new Set()); }}>
               <SelectTrigger className="w-full h-8 text-sm">
                 <SelectValue placeholder="Selecione a filial" />
               </SelectTrigger>
@@ -150,16 +189,33 @@ export function AgendaAvailabilityConfig() {
 
               {/* Month navigation */}
               <div className="flex items-center justify-between">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setCurrentMonth(subMonths(currentMonth, 1)); setSelectedDays(new Set()); }}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <h3 className="text-sm font-semibold capitalize">
                   {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
                 </h3>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setCurrentMonth(addMonths(currentMonth, 1)); setSelectedDays(new Set()); }}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
+
+              {/* Selection actions bar */}
+              {selectedDays.size > 0 && (
+                <div className="flex items-center justify-between p-2 rounded-lg border border-primary/30 bg-primary/5">
+                  <span className="text-xs font-medium text-primary">
+                    {selectedDays.size} dia{selectedDays.size > 1 ? 's' : ''} selecionado{selectedDays.size > 1 ? 's' : ''}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setSelectedDays(new Set())}>
+                      Limpar
+                    </Button>
+                    <Button size="sm" className="h-7 text-xs" onClick={handleOpenEdit}>
+                      Configurar
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Calendar grid */}
               <div className="grid grid-cols-7 gap-1">
@@ -173,6 +229,7 @@ export function AgendaAvailabilityConfig() {
                   const dateStr = format(day, 'yyyy-MM-dd');
                   const avail = getDayAvailability(dateStr);
                   const isConfigured = avail.status !== 'not_configured';
+                  const isSelected = selectedDays.has(dateStr);
 
                   return (
                     <button
@@ -180,9 +237,15 @@ export function AgendaAvailabilityConfig() {
                       onClick={() => handleDayClick(dateStr)}
                       className={cn(
                         'relative p-1.5 rounded-md border text-center transition-colors hover:ring-2 hover:ring-primary/30 min-h-[52px] flex flex-col items-center justify-start gap-0.5',
-                        getStatusColor(dateStr)
+                        getStatusColor(dateStr),
+                        isSelected && 'ring-2 ring-primary border-primary'
                       )}
                     >
+                      {isSelected && (
+                        <div className="absolute top-0.5 right-0.5">
+                          <Check className="h-3 w-3 text-primary" />
+                        </div>
+                      )}
                       <span className="text-xs font-medium">{format(day, 'd')}</span>
                       {isConfigured && (
                         <>
@@ -224,19 +287,19 @@ export function AgendaAvailabilityConfig() {
         </CardContent>
       </Card>
 
-      {/* Edit day dialog - now only for blocking/unblocking */}
-      <Dialog open={!!editingDay} onOpenChange={(open) => !open && setEditingDay(null)}>
+      {/* Edit selected days dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="sm:max-w-[380px]">
           <DialogHeader>
             <DialogTitle className="text-base">
-              {editingDay ? format(new Date(editingDay + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR }) : ''}
+              Configurar — {selectedDaysLabel}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="flex items-center gap-3">
               <Label className="text-sm">Bloqueado</Label>
               <Switch checked={editBlocked} onCheckedChange={setEditBlocked} />
-              {editBlocked && <Badge variant="destructive" className="text-[10px]">Dia bloqueado</Badge>}
+              {editBlocked && <Badge variant="destructive" className="text-[10px]">Dia(s) bloqueado(s)</Badge>}
             </div>
             {editBlocked && (
               <div className="space-y-1.5">
@@ -251,7 +314,7 @@ export function AgendaAvailabilityConfig() {
             )}
             {!editBlocked && (
               <div className="space-y-1.5">
-                <Label className="text-xs">Máximo de agendamentos neste dia</Label>
+                <Label className="text-xs">Máximo de agendamentos por dia</Label>
                 <Input
                   type="number"
                   min={1}
@@ -264,8 +327,8 @@ export function AgendaAvailabilityConfig() {
             )}
           </div>
           <DialogFooter className="gap-2">
-            {getDayAvailability(editingDay || '').status !== 'not_configured' && (
-              <Button variant="outline" size="sm" className="text-xs" onClick={handleRemoveConfig}>
+            {anySelectedHasConfig && (
+              <Button variant="outline" size="sm" className="text-xs" onClick={handleRemoveConfig} disabled={upsertAvailability.isPending}>
                 Remover configuração
               </Button>
             )}
