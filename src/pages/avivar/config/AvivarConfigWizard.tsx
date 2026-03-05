@@ -121,10 +121,11 @@ export default function AvivarConfigWizard() {
         return isEditMode || Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
       case 11: return true; // Personalization (optional)
       case 12: return true; // Instructions (optional)
-      case 13: return true; // Fluxo (optional)
-      case 14: return true; // Knowledge (optional)
-      case 15: return true; // Review
-      case 16: return true; // Prompt Review
+      case 13: return true; // Attendance Mode (optional)
+      case 14: return true; // Fluxo (optional)
+      case 15: return true; // Knowledge (optional)
+      case 16: return true; // Review
+      case 17: return true; // Prompt Review
       default: return true;
     }
   };
