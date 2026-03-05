@@ -107,3 +107,6 @@ verify_jwt = false
 
 [functions.create-patient-account]
 verify_jwt = false
+
+[functions.provision-avivar-account]
+verify_jwt = false
