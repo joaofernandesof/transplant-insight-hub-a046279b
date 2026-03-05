@@ -1,68 +1,87 @@
 
 
-## Diagnóstico: Por que a IA oferece presencial e online juntos
+# Menu de Opções com Ramificação por Passo no Fluxo de Atendimento
 
-### Como funciona hoje
+## Conceito
 
-O prompt do agente é montado em **dois lugares**:
+Adicionar a cada passo do fluxo a capacidade de definir um **menu de opções numeradas** que o lead pode escolher. Cada opção tem uma **ação** associada: ir para outro passo, mover no kanban, transferir para humano, ou enviar mensagem específica.
 
-1. **Frontend (preview)** — `usePromptGenerator.ts`: gera um prompt de visualização com a instrução fraca:
-   > "Priorize atendimento presencial, mas ofereça online quando necessário"
-   
-2. **Backend (edge function)** — `avivar-ai-agent/index.ts` → `buildHybridSystemPrompt()`: monta o prompt real enviado à IA. Ele injeta:
-   - `agent.ai_instructions` (instruções livres do agente)
-   - `fluxoInstructions` (passos cronológicos + passos extras)
-   - Regras de agendamento genéricas
+## Modelo de Dados
 
-**O problema**: Nenhum dos dois locais tem uma regra explícita dizendo "NUNCA ofereça consulta online na mesma mensagem que a presencial. Online só deve ser oferecido quando o lead recusar a presencial."
+Adicionar ao `FluxoStep` um campo opcional `menuOptions`:
 
-A IA vê que o agente tem objetivo principal "Agendar Consulta Presencial" e secundário "Agendar Consulta Online", e como ambos estão disponíveis, ela os apresenta juntos por padrão.
+```typescript
+export interface FluxoMenuAction {
+  type: 'go_to_step' | 'move_kanban' | 'transfer_human' | 'send_message';
+  // go_to_step
+  targetStepId?: string;
+  // move_kanban
+  targetColumnSlug?: string;
+  targetResponsibleId?: string;
+  // send_message
+  message?: string;
+}
 
-### Onde resolver
+export interface FluxoMenuOption {
+  id: string;
+  label: string;        // "Agendar consulta"
+  action: FluxoMenuAction;
+}
 
-A solução deve ser implementada **internamente no prompt do backend** (edge function), não nas instruções dos passos do fluxo. Motivos:
-- É uma regra de comportamento global, não específica de um passo
-- Precisa ser aplicada automaticamente com base na configuração de `consultationType`
-- O usuário não deveria precisar digitar essa regra manualmente
+export interface FluxoStep {
+  // ... campos existentes
+  menuOptions?: FluxoMenuOption[]; // NOVO
+}
+```
 
-### Plano de implementação
+Sem migration SQL — `fluxo_atendimento` é JSONB.
 
-**1. Adicionar regra de priorização no `buildHybridSystemPrompt`** (edge function)
+## Alterações
 
-Na função `buildHybridSystemPrompt` em `supabase/functions/avivar-ai-agent/index.ts`, após a seção `<fluxo_agendamento>`, adicionar uma nova seção `<regra_modalidade_atendimento>` que será gerada dinamicamente com base na configuração do agente:
+### 1. `src/pages/avivar/config/types.ts`
+- Adicionar interfaces `FluxoMenuAction` e `FluxoMenuOption`
+- Adicionar `menuOptions?: FluxoMenuOption[]` ao `FluxoStep`
 
-- Carregar `consultation_type` do agente (campo já existente na tabela `avivar_agents`)
-- Se `presencial=true` E `online=true`:
-  ```
-  <regra_modalidade_atendimento>
-  REGRA OBRIGATÓRIA DE MODALIDADE:
-  - SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
-  - SOMENTE ofereça consulta ONLINE quando o lead:
-    • Disser que não pode comparecer presencialmente
-    • Informar que mora longe/em outra cidade/estado
-    • Pedir explicitamente por atendimento online
-  - NUNCA apresente as duas modalidades na mesma mensagem
-  - Se o lead aceitar presencial, NÃO mencione a opção online
-  </regra_modalidade_atendimento>
-  ```
-- Se apenas `online=true`: não adicionar restrição (oferecer online diretamente)
-- Se apenas `presencial=true`: não adicionar restrição
+### 2. `src/pages/avivar/config/components/steps/simple/StepFluxoSimple.tsx`
+- Dentro de cada passo expandido, adicionar seção "Menu de Opções" com botão para ativar
+- UI para cada opção: campo de texto (label) + dropdown de ação (Ir para passo X, Mover no Kanban, Transferir, Enviar mensagem)
+- Para "Ir para passo": dropdown listando os outros passos do fluxo pelo título
+- Para "Mover no Kanban": dropdown de colunas (buscar do banco)
+- Para "Transferir": apenas checkbox (usa tool existente `transfer_to_human`)
+- Para "Enviar mensagem": textarea com a mensagem
+- Botão (+) para adicionar opções, (x) para remover
 
-**2. Carregar `consultation_type` na query do agente**
+### 3. `supabase/functions/avivar-ai-agent/index.ts` — `buildFluxoInstructions()`
+- Para cada passo que tenha `menuOptions`, gerar no prompt:
+```
+### PASSO 2: SAUDAÇÃO E MENU
+Apresente as opções ao lead:
+1. Agendar consulta → Execute o PASSO 4 (Oferecer Datas)
+2. Falar com atendente → Use transfer_to_human()
+3. Endereço da clínica → Responda: "Rua X, nº Y..."
+4. Financeiro → Use mover_lead_para_etapa(nova_etapa="financeiro") e transfer_to_human()
+5. Pós-venda → Use mover_lead_para_etapa(nova_etapa="pos_venda")
 
-Na query que carrega o agente roteado (função que popula `RoutedAgent`), incluir o campo `consultation_type` do `avivar_agents`. Adicionar o campo à interface `RoutedAgent`.
+⚠️ AGUARDE a escolha do lead. Se escolher opção 1, PULE direto para o PASSO 4.
+```
 
-**3. Atualizar o prompt de preview no frontend**
+### 4. Componente auxiliar `FluxoMenuEditor.tsx`
+- Novo componente em `src/pages/avivar/config/components/steps/simple/`
+- Encapsula a lógica do editor de menu (lista de opções + ações)
+- Recebe `menuOptions`, `onChange`, lista de passos disponíveis, e lista de colunas do kanban
 
-Em `usePromptGenerator.ts`, substituir a instrução fraca (linha 154) por uma regra mais clara e alinhada com o backend.
+## Como funciona end-to-end
 
-### Arquivos a modificar
-- `supabase/functions/avivar-ai-agent/index.ts` — adicionar seção de modalidade no prompt + carregar consultation_type
-- `src/pages/avivar/config/hooks/usePromptGenerator.ts` — melhorar instrução de priorização no preview
+1. Usuário abre o passo no wizard e clica "Adicionar Menu de Opções"
+2. Define as opções (1. Agendar, 2. Financeiro, etc.) e escolhe a ação de cada uma
+3. Ao salvar o agente, o `menuOptions` é persistido no JSONB `fluxo_atendimento`
+4. Quando a IA processa uma conversa, o `buildFluxoInstructions` gera instruções claras de ramificação
+5. A IA apresenta o menu, espera a resposta, e executa a ação correspondente (pular passo, mover kanban, transferir)
 
-### Resposta às perguntas
+## Ferramentas já existentes no agente
 
-- **Por que a IA oferece junto?** Porque não existe regra explícita no prompt impedindo isso. A instrução atual é apenas "priorize", o que é vago demais para a IA.
-- **Onde está configurado?** O prompt é montado na edge function `avivar-ai-agent`. As instruções do fluxo (passos) são injetadas, mas a regra de priorização de modalidade não existe em nenhum lugar.
-- **Devo configurar nos passos do fluxo?** Não. Vou implementar internamente no prompt do backend, aplicado automaticamente com base na sua configuração de tipo de consulta (presencial + online). Assim funciona para todos os agentes sem precisar escrever a regra manualmente.
+- `transfer_to_human(reason)` — transferência para humano
+- `mover_lead_para_etapa(nova_etapa, motivo)` — mover lead no kanban
+
+Não precisa criar novas tools — apenas instruir a IA a usar as existentes baseado na opção escolhida.
 
