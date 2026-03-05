@@ -34,8 +34,10 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { FluxoAtendimento, FluxoStep, FluxoStepMedia, AgentObjectives, AgentObjective, CustomObjective } from '../../../types';
+import { FluxoAtendimento, FluxoStep, FluxoStepMedia, FluxoMenuOption, AgentObjectives, AgentObjective, CustomObjective } from '../../../types';
 import { FluxoStepMediaPicker } from './FluxoStepMediaPicker';
+import { FluxoMenuEditor } from './FluxoMenuEditor';
+import { useKanbanBoards } from '@/hooks/useKanbanBoards';
 import { getFluxoByObjective, OBJECTIVE_TEMPLATE_LABELS } from '../../../fluxoTemplates';
 
 // Mapeamento de objetivos secundários para passos extras
@@ -185,6 +187,7 @@ export function StepFluxoSimple({
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editValue, setEditValue] = useState('');
+  const { columns: kanbanColumns } = useKanbanBoards();
   // Efeito unificado: carrega template E aplica objetivos secundários em uma única chamada
   // Isso elimina a race condition entre dois useEffects separados
   useEffect(() => {
@@ -303,6 +306,22 @@ export function StepFluxoSimple({
       onChange({ ...fluxoAtendimento, [type]: steps });
     }
   };
+
+  // Handle menu options change for a step
+  const handleMenuOptionsChange = (stepId: string, type: 'passosCronologicos' | 'passosExtras', menuOptions: FluxoMenuOption[]) => {
+    const steps = [...fluxoAtendimento[type]];
+    const stepIndex = steps.findIndex(s => s.id === stepId);
+    if (stepIndex !== -1) {
+      steps[stepIndex] = { ...steps[stepIndex], menuOptions: menuOptions.length > 0 ? menuOptions : undefined };
+      onChange({ ...fluxoAtendimento, [type]: steps });
+    }
+  };
+
+  // All steps combined for "go_to_step" target selection
+  const allSteps = [
+    ...(fluxoAtendimento.passosCronologicos || []),
+    ...(fluxoAtendimento.passosExtras || []),
+  ];
 
   // Determine step type helper
   const getStepType = (stepId: string): 'passosCronologicos' | 'passosExtras' => {
@@ -652,6 +671,15 @@ export function StepFluxoSimple({
                   />
                 </div>
               )}
+
+              {/* Menu de Opções (Ramificação) */}
+              <FluxoMenuEditor
+                menuOptions={step.menuOptions || []}
+                onChange={(options) => handleMenuOptionsChange(step.id, type, options)}
+                allSteps={allSteps}
+                currentStepId={step.id}
+                kanbanColumns={kanbanColumns}
+              />
             </div>
           </CollapsibleContent>
         </Collapsible>

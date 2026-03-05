@@ -97,14 +97,29 @@ export interface FluxoStepMedia {
   audio_forward?: boolean; // encaminhada
 }
 
+export interface FluxoMenuAction {
+  type: 'go_to_step' | 'move_kanban' | 'transfer_human' | 'send_message';
+  targetStepId?: string;
+  targetColumnSlug?: string;
+  targetResponsibleId?: string;
+  message?: string;
+}
+
+export interface FluxoMenuOption {
+  id: string;
+  label: string;
+  action: FluxoMenuAction;
+}
+
 export interface FluxoStep {
   id: string;
   ordem: number;
   titulo: string;
   descricao: string;
-  exemploMensagem?: string; // Exemplo opcional de mensagem para referência de tom
-  media?: FluxoStepMedia; // Mídia única (legado, compatibilidade)
-  mediaVariations?: FluxoStepMedia[]; // Múltiplas mídias para rotação anti-spam (max 5)
+  exemploMensagem?: string;
+  media?: FluxoStepMedia;
+  mediaVariations?: FluxoStepMedia[];
+  menuOptions?: FluxoMenuOption[];
 }
 
 export interface FluxoAtendimento {
