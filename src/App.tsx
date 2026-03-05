@@ -150,7 +150,7 @@ const IpromedProposalEditor = lazy(() => import("./pages/ipromed/IpromedProposal
 const IpromedLayout = lazy(() => import("./pages/ipromed/components/IpromedLayout"));
 const IpromedReports = lazy(() => import("./pages/ipromed/IpromedReports"));
 const IpromedFunctions = lazy(() => import("./pages/ipromed/IpromedFunctions"));
-const IpromedAccessManagement = lazy(() => import("./pages/ipromed/IpromedAccessManagement"));
+
 const IpromedOnboardingForms = lazy(() => import("./pages/ipromed/IpromedOnboardingForms"));
 const PublicFormPage = lazy(() => import("./pages/public/PublicFormPage"));
 
