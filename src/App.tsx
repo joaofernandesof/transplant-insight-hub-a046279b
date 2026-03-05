@@ -126,7 +126,6 @@ const BannersAdmin = lazy(() => import("./pages/BannersAdmin"));
 // Pages - IPROMED (Instituto de Proteção Médica)
 // ====================================
 const IpromedHome = lazy(() => import("./pages/ipromed/IpromedHome"));
-const IpromedDashboard = lazy(() => import("./pages/ipromed/IpromedDashboard"));
 const IpromedStudents = lazy(() => import("./pages/ipromed/IpromedStudents"));
 const IpromedExams = lazy(() => import("./pages/ipromed/IpromedExams"));
 const IpromedMentors = lazy(() => import("./pages/ipromed/IpromedMentors"));
