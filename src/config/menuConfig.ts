@@ -64,6 +64,7 @@ import {
   Landmark,
   Zap,
   Hash,
+  Target,
 } from 'lucide-react';
 
 // Tipos base
