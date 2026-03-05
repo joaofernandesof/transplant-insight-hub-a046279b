@@ -14,19 +14,25 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check - admins via JWT or service-level calls
+    // Auth: validate admin JWT when called from frontend
+    // Service-level calls (internal tools) bypass auth
     const authHeader = req.headers.get('Authorization')
     let callerUserId = 'system'
+    console.log('Auth header present:', !!authHeader)
 
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '')
-      const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+      const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
-      // If token is NOT the anon key, validate as user JWT
-      if (token !== anonKey) {
+      console.log('Token matches anon:', token === anonKey)
+      console.log('Token matches service:', token === serviceKey)
+
+      // Skip admin check for service-level keys
+      if (token !== anonKey && token !== serviceKey) {
         const supabaseAuth = createClient(
           Deno.env.get('SUPABASE_URL')!,
-          anonKey!,
+          anonKey,
           { global: { headers: { Authorization: authHeader } } }
         )
         const { data: claims } = await supabaseAuth.auth.getClaims(token)
@@ -40,7 +46,6 @@ Deno.serve(async (req) => {
           return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         }
       }
-      // If token IS anon key, it's an internal/service call — allowed
     }
 
     const { email, password, full_name, account_name, account_slug } = await req.json()
