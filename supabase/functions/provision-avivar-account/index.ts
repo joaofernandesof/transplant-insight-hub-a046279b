@@ -30,7 +30,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { email, password, full_name, account_name, account_slug } = await req.json()
+    const { email, password, full_name, account_name, account_slug, allowed_nichos, _service_key } = await req.json()
+
+    // Temporary service key bypass for provisioning
+    if (_service_key === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+      callerUserId = 'service'
+    } else if (callerUserId !== 'system') {
+      // callerUserId was already validated above
+    }
+
     if (!email || !password || !full_name) {
       return new Response(JSON.stringify({ error: 'email, password and full_name are required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
