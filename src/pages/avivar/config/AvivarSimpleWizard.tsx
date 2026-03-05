@@ -227,6 +227,8 @@ export default function AvivarSimpleWizard() {
               consultationDuration: agent.consultation_duration || 60,
               knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
               fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+              attendanceMode: (agent.attendance_mode as unknown as AgentConfig['attendanceMode']) || 'humanized',
+              chatbotFlows: (agent.chatbot_flows as unknown as AgentConfig['chatbotFlows']) || [],
             }));
             setCurrentStep(SIMPLE_STEPS.length - 1);
           }
