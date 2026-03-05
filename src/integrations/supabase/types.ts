@@ -19362,6 +19362,50 @@ export type Database = {
         }
         Relationships: []
       }
+      rh_cargo_kpis: {
+        Row: {
+          cargo_id: string
+          created_at: string
+          description: string | null
+          id: string
+          kpi_type: string
+          monthly_target: number | null
+          name: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          cargo_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          kpi_type?: string
+          monthly_target?: number | null
+          name: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          cargo_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          kpi_type?: string
+          monthly_target?: number | null
+          name?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_cargo_kpis_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "rh_cargos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rh_cargos: {
         Row: {
           competencias: string | null
@@ -19479,6 +19523,312 @@ export type Database = {
             columns: ["unidade_id"]
             isOneToOne: false
             referencedRelation: "rh_unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rh_performance_alerts: {
+        Row: {
+          alert_type: string
+          colaborador_id: string
+          created_at: string
+          cycle_id: string | null
+          grade: string | null
+          id: string
+          is_read: boolean
+          message: string
+        }
+        Insert: {
+          alert_type: string
+          colaborador_id: string
+          created_at?: string
+          cycle_id?: string | null
+          grade?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+        }
+        Update: {
+          alert_type?: string
+          colaborador_id?: string
+          created_at?: string
+          cycle_id?: string | null
+          grade?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_performance_alerts_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "rh_colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rh_performance_alerts_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "rh_performance_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rh_performance_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rh_performance_cycles: {
+        Row: {
+          auto_eval_weight: number
+          created_at: string
+          created_by: string | null
+          cycle_type: string
+          end_date: string
+          id: string
+          manager_eval_weight: number
+          name: string
+          rh_eval_weight: number
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auto_eval_weight?: number
+          created_at?: string
+          created_by?: string | null
+          cycle_type?: string
+          end_date: string
+          id?: string
+          manager_eval_weight?: number
+          name: string
+          rh_eval_weight?: number
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_eval_weight?: number
+          created_at?: string
+          created_by?: string | null
+          cycle_type?: string
+          end_date?: string
+          id?: string
+          manager_eval_weight?: number
+          name?: string
+          rh_eval_weight?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rh_performance_evaluations: {
+        Row: {
+          autonomia_score: number | null
+          colaborador_id: string
+          created_at: string
+          cultura_score: number | null
+          cycle_id: string
+          evaluator_id: string | null
+          evaluator_type: string
+          final_score: number | null
+          grade: string | null
+          id: string
+          kpi_score: number | null
+          notes: string | null
+          processos_score: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          autonomia_score?: number | null
+          colaborador_id: string
+          created_at?: string
+          cultura_score?: number | null
+          cycle_id: string
+          evaluator_id?: string | null
+          evaluator_type?: string
+          final_score?: number | null
+          grade?: string | null
+          id?: string
+          kpi_score?: number | null
+          notes?: string | null
+          processos_score?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          autonomia_score?: number | null
+          colaborador_id?: string
+          created_at?: string
+          cultura_score?: number | null
+          cycle_id?: string
+          evaluator_id?: string | null
+          evaluator_type?: string
+          final_score?: number | null
+          grade?: string | null
+          id?: string
+          kpi_score?: number | null
+          notes?: string | null
+          processos_score?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_performance_evaluations_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "rh_colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rh_performance_evaluations_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "rh_performance_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rh_performance_pdis: {
+        Row: {
+          actions: Json
+          colaborador_id: string
+          created_at: string
+          cycle_id: string | null
+          deadline: string
+          evaluation_id: string | null
+          grade: string
+          id: string
+          objective: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          colaborador_id: string
+          created_at?: string
+          cycle_id?: string | null
+          deadline: string
+          evaluation_id?: string | null
+          grade: string
+          id?: string
+          objective: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          colaborador_id?: string
+          created_at?: string
+          cycle_id?: string | null
+          deadline?: string
+          evaluation_id?: string | null
+          grade?: string
+          id?: string
+          objective?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_performance_pdis_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "rh_colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rh_performance_pdis_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "rh_performance_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rh_performance_pdis_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "rh_performance_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rh_talent_scores: {
+        Row: {
+          calculated_at: string
+          colaborador_id: string
+          created_at: string
+          financial_impact_score: number | null
+          financial_impact_weight: number
+          id: string
+          leadership_score: number | null
+          leadership_weight: number
+          performance_score: number | null
+          performance_weight: number
+          score: number
+          tenure_score: number | null
+          tenure_weight: number
+        }
+        Insert: {
+          calculated_at?: string
+          colaborador_id: string
+          created_at?: string
+          financial_impact_score?: number | null
+          financial_impact_weight?: number
+          id?: string
+          leadership_score?: number | null
+          leadership_weight?: number
+          performance_score?: number | null
+          performance_weight?: number
+          score?: number
+          tenure_score?: number | null
+          tenure_weight?: number
+        }
+        Update: {
+          calculated_at?: string
+          colaborador_id?: string
+          created_at?: string
+          financial_impact_score?: number | null
+          financial_impact_weight?: number
+          id?: string
+          leadership_score?: number | null
+          leadership_weight?: number
+          performance_score?: number | null
+          performance_weight?: number
+          score?: number
+          tenure_score?: number | null
+          tenure_weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_talent_scores_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "rh_colaboradores"
             referencedColumns: ["id"]
           },
         ]
