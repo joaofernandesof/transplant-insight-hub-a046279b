@@ -304,14 +304,16 @@ export default function AvivarSimpleWizard() {
         return !!config.agentObjectives?.primary && !!config.agentObjectives?.secondaryConfirmed;
       case 3: // Fluxo de atendimento - sempre pode prosseguir (template já carregado)
         return true;
-      case 4: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
+      case 4: // Modo de atendimento - sempre pode prosseguir
+        return true;
+      case 5: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
         if (generatedFAQ.length > 0 && !faqAddedToKnowledge) {
           return false;
         }
         return true;
-      case 5: // Knowledge (opcional - sempre pode prosseguir)
+      case 6: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 6: // Review
+      case 7: // Review
         return true;
       default:
         return true;
