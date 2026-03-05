@@ -72,7 +72,7 @@ export function StepReviewSimple({
 
   // Step indices matching SIMPLE_STEPS:
   // 0: Tipo de Negócio, 1: Sua Empresa, 2: Objetivos, 3: Fluxo,
-  // 4: FAQ, 5: Documentos, 6: Imagens, 7: Finalizar (review)
+  // 4: FAQ, 5: Documentos, 6: Finalizar (review)
 
   const ReviewRow = ({ icon: Icon, children, stepIndex }: { icon: React.ElementType; children: React.ReactNode; stepIndex: number }) => (
     <>
