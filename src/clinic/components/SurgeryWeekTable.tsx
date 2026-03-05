@@ -3,13 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, CheckCircle2, Flag } from 'lucide-react';
+import { Calendar, CheckCircle2, Flag, Lock } from 'lucide-react';
 import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { SurgeryDetailDialog } from './SurgeryDetailDialog';
 import { useSurgeryTaskChips } from '../hooks/useSurgeryTaskChips';
 import { SurgeryTaskChips } from './SurgeryTaskChips';
+import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailability';
 
 interface SurgeryWeekTableProps {
   surgeries: ClinicSurgery[];
@@ -19,12 +20,17 @@ interface SurgeryWeekTableProps {
   canDelete?: boolean;
   title?: string;
   violatedIds?: Set<string>;
+  selectedBranch?: string;
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
+
+  // Availability data - use selectedBranch or first surgery's branch
+  const effectiveBranch = selectedBranch && selectedBranch !== 'all' ? selectedBranch : '';
+  const { getDayAvailability } = useSurgeryAgendaAvailability(effectiveBranch, new Date());
 
   // Group by date
   const grouped = useMemo(() => {
@@ -114,13 +120,32 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
           ) : (
             <div>
               <div className="space-y-4">
-                {Array.from(grouped.entries()).map(([date, items]) => (
+                {Array.from(grouped.entries()).map(([date, items]) => {
+                  const dayAvail = effectiveBranch && date !== 'sem-data' ? getDayAvailability(date) : null;
+                  const isConfigured = dayAvail && dayAvail.status !== 'not_configured';
+
+                  return (
                   <div key={date}>
-                    <div className="sticky top-0 bg-background z-10 py-1.5 mb-1">
+                    <div className="sticky top-0 bg-background z-10 py-1.5 mb-1 flex items-center gap-2 flex-wrap">
                       <h4 className="text-sm font-semibold capitalize text-primary">
                         {formatDateHeader(date)}
                         <Badge variant="secondary" className="ml-2 text-xs">{items.length}</Badge>
                       </h4>
+                      {isConfigured && (
+                        dayAvail.isBlocked ? (
+                          <Badge variant="destructive" className="text-[10px] gap-1">
+                            <Lock className="h-3 w-3" /> Bloqueado
+                          </Badge>
+                        ) : dayAvail.remainingSlots > 0 ? (
+                          <Badge className="bg-emerald-600 hover:bg-emerald-700 text-[10px]">
+                            {dayAvail.remainingSlots} vaga{dayAvail.remainingSlots > 1 ? 's' : ''} disponível{dayAvail.remainingSlots > 1 ? 'eis' : ''}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">
+                            Lotado ({dayAvail.scheduledCount}/{dayAvail.maxSlots})
+                          </Badge>
+                        )
+                      )}
                     </div>
                     <div className="rounded-lg border overflow-hidden">
                       <Table>
@@ -210,7 +235,8 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                       </Table>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

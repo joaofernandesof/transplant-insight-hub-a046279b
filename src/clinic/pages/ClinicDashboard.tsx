@@ -688,6 +688,7 @@ export default function ClinicDashboard() {
               canDelete={isAdmin}
               title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
               violatedIds={violatedIds}
+              selectedBranch={selectedBranch}
             />
             <SurgeryDetailDialog
               surgery={selectedPendingSurgery}
