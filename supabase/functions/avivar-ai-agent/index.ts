@@ -3868,7 +3868,17 @@ IMPORTANTE: Todas as imagens na galeria (antes/depois, catálogo, localização)
 - Use search_term para encontrar fotos específicas (ex: "barba", "cabelo masculino", "sobrancelha feminino")
 </galeria_de_imagens>
 
-<fluxo_agendamento>
+${hasCustomFlow ? `<regra_fidelidade_fluxo>
+## REGRA CRÍTICA — FIDELIDADE ABSOLUTA AO FLUXO CONFIGURADO
+- O fluxo de atendimento configurado abaixo tem PRIORIDADE ABSOLUTA sobre qualquer instrução genérica acima.
+- Você NÃO DEVE adicionar perguntas, tópicos ou informações que NÃO estejam descritos no passo atual do fluxo.
+- Se o passo NÃO diz para perguntar o nome do lead, NÃO pergunte o nome.
+- Se o passo NÃO diz para qualificar, NÃO qualifique.
+- Se o passo tem MENU DE OPÇÕES, o conteúdo principal deve ser a apresentação + o menu. NÃO adicione perguntas extras.
+- A variação de palavras (regra anti-spam) deve mudar COMO você diz, nunca O QUE você diz ou pergunta.
+- Siga EXATAMENTE o que cada passo descreve — nada a mais, nada a menos.
+</regra_fidelidade_fluxo>
+` : ''}<fluxo_agendamento>
 ## TÉCNICA "OU/OU" - REGRA OBRIGATÓRIA
 
 ### PROIBIÇÃO ABSOLUTA DE HORÁRIOS INVENTADOS:
