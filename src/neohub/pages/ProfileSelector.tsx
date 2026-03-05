@@ -201,11 +201,15 @@ export default function ProfileSelector() {
     }
     
     // Para o portal neolicense, excluir neolicense_hotleads (pertence ao HotLeads)
-    const hasAnyReadableModule = user.permissions.some(p => 
-      p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads')
+    const relevantPermissions = user.permissions.filter(p => 
+      p.startsWith(portalPrefix) && !p.startsWith('neolicense_hotleads')
     );
-    
-    return hasAnyReadableModule;
+
+    // If no module_permissions exist for this portal, trust allowed_portals/profile access
+    if (relevantPermissions.length === 0) return hasBaseAccess;
+
+    // Otherwise, require at least one readable module
+    return relevantPermissions.some(p => p.endsWith(':read'));
   };
 
   const handleLogout = async () => {
