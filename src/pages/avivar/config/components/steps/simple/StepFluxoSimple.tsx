@@ -477,6 +477,11 @@ export function StepFluxoSimple({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {step.menuOptions && step.menuOptions.length > 0 && (
+                    <Badge variant="secondary" className="text-xs gap-1">
+                      <GitBranch className="h-3 w-3" /> Menu
+                    </Badge>
+                  )}
                   {step.exemploMensagem && (
                     <Badge variant="secondary" className="text-xs">
                       Exemplo
