@@ -345,31 +345,36 @@ export function WorkspaceAgenda() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="px-5 pb-5 space-y-3">
+      <CardContent className="px-3 sm:px-5 pb-5 space-y-3">
         {/* User filter buttons */}
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          <Button
-            variant={selectedUser === null ? 'default' : 'outline'}
-            size="sm"
-            className="text-xs h-7 px-3"
-            onClick={() => setSelectedUser(null)}
-          >
-            Geral
-          </Button>
-          {LAWYERS.map(lawyer => (
+        <ScrollArea className="w-full">
+          <div className="flex items-center justify-center gap-2 pb-1 min-w-max mx-auto">
             <Button
-              key={lawyer.userId}
-              variant={selectedUser === lawyer.userId ? 'default' : 'outline'}
+              variant={selectedUser === null ? 'default' : 'outline'}
               size="sm"
-              className="text-xs h-7 px-3"
-              onClick={() => setSelectedUser(lawyer.userId)}
+              className="text-xs h-7 px-3 whitespace-nowrap"
+              onClick={() => setSelectedUser(null)}
             >
-              {lawyer.name}
+              Geral
             </Button>
-          ))}
-        </div>
+            {LAWYERS.map(lawyer => (
+              <Button
+                key={lawyer.userId}
+                variant={selectedUser === lawyer.userId ? 'default' : 'outline'}
+                size="sm"
+                className="text-xs h-7 px-3 whitespace-nowrap"
+                onClick={() => setSelectedUser(lawyer.userId)}
+              >
+                {lawyer.name}
+              </Button>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
 
-        <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
+        {/* Days grid - scrollable on mobile */}
+        <ScrollArea className="w-full">
+          <div className="flex gap-3 min-w-max lg:min-w-0 lg:grid lg:gap-3" style={{ ['--cols' as string]: days.length }} >
             {days.map((day) => {
               const key = format(day, 'yyyy-MM-dd');
               const dayAppts = appointmentsByDay.get(key) || [];
@@ -380,7 +385,7 @@ export function WorkspaceAgenda() {
               return (
                 <div
                   key={key}
-                  className={`flex flex-col rounded-xl border min-w-0 ${
+                  className={`flex flex-col rounded-xl border w-[160px] sm:w-[180px] lg:w-auto lg:flex-1 shrink-0 ${
                     isToday
                       ? 'border-primary/40 bg-primary/5'
                       : 'border-border bg-muted/30'
@@ -443,6 +448,8 @@ export function WorkspaceAgenda() {
               );
             })}
           </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </CardContent>
     </Card>
   );
