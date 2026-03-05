@@ -4020,6 +4020,20 @@ function getDefaultObjectiveForStage(stage: string): string {
   return objectives[stage] || objectives["novo_lead"];
 }
 
+// Objective when custom flow exists — neutral, doesn't impose extra actions
+function getFlowAwareObjective(stage: string): string {
+  const objectives: Record<string, string> = {
+    "novo_lead": "Atender o lead seguindo EXCLUSIVAMENTE os passos do seu fluxo de atendimento configurado.",
+    "qualificacao": "Continuar o atendimento seguindo os passos do fluxo configurado.",
+    "agendado": "Confirmar agendamento e seguir orientações do fluxo.",
+    "compareceu": "Acompanhar o lead conforme o fluxo configurado.",
+    "pos_procedimento": "Orientar conforme o fluxo configurado.",
+    "acompanhamento": "Acompanhar conforme o fluxo configurado.",
+    "inativo": "Reengajar o lead seguindo o fluxo configurado."
+  };
+  return objectives[stage] || objectives["novo_lead"];
+}
+
 function getDefaultInstructions(): string {
   return `1. Qualifique o lead e entenda suas necessidades
 2. Use search_knowledge_base para consultar informações sobre procedimentos, preços, cuidados
@@ -4028,6 +4042,17 @@ function getDefaultInstructions(): string {
 5. Use get_available_slots e create_appointment para agendar consultas
 6. Use transfer_to_human quando necessário (negociação, dúvidas muito técnicas)
 7. SEMPRE use mover_lead_para_etapa após cada interação significativa para manter o funil atualizado`;
+}
+
+// Instructions when custom flow exists — forces strict flow adherence
+function getFlowFidelityInstructions(): string {
+  return `1. Siga EXCLUSIVAMENTE os passos do seu fluxo de atendimento configurado abaixo
+2. NÃO adicione perguntas ou etapas que NÃO estejam no fluxo (ex: não pergunte o nome se o fluxo não pede)
+3. Use search_knowledge_base quando o lead fizer perguntas sobre procedimentos, preços ou cuidados
+4. Use list_products quando perguntarem sobre produtos
+5. Use as ferramentas de agendamento conforme instruído no fluxo
+6. Use transfer_to_human quando necessário
+7. Use mover_lead_para_etapa conforme o progresso da conversa`;
 }
 
 // Gera instruções do fluxo de atendimento baseado nos passos configurados
