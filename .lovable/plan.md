@@ -1,68 +1,40 @@
 
 
-## Diagnóstico: Por que a IA oferece presencial e online juntos
+# Fix: Variáveis de checklist não resolvidas nos lembretes
 
-### Como funciona hoje
+## Problema Raiz
 
-O prompt do agente é montado em **dois lugares**:
+**Timing**: O agendamento é criado **antes** dos campos de checklist serem preenchidos. No caso do Lucas:
+- Agendamento criado: **21:43**
+- Custom fields preenchidos: **23:18** (1h35 depois)
 
-1. **Frontend (preview)** — `usePromptGenerator.ts`: gera um prompt de visualização com a instrução fraca:
-   > "Priorize atendimento presencial, mas ofereça online quando necessário"
-   
-2. **Backend (edge function)** — `avivar-ai-agent/index.ts` → `buildHybridSystemPrompt()`: monta o prompt real enviado à IA. Ele injeta:
-   - `agent.ai_instructions` (instruções livres do agente)
-   - `fluxoInstructions` (passos cronológicos + passos extras)
-   - Regras de agendamento genéricas
+A trigger `generate_reminders_for_appointment` tenta resolver `{{checklist.*}}` no momento do INSERT, quando `custom_fields` ainda está vazio. O fallback `regexp_replace` remove os placeholders não resolvidos, substituindo por string vazia. Quando o edge function `avivar-process-reminders` processa o lembrete na hora de enviar, os placeholders já foram eliminados da mensagem.
 
-**O problema**: Nenhum dos dois locais tem uma regra explícita dizendo "NUNCA ofereça consulta online na mesma mensagem que a presencial. Online só deve ser oferecido quando o lead recusar a presencial."
+## Solução
 
-A IA vê que o agente tem objetivo principal "Agendar Consulta Presencial" e secundário "Agendar Consulta Online", e como ambos estão disponíveis, ela os apresenta juntos por padrão.
+**Não resolver checklist na trigger. Resolver apenas no momento do envio (edge function).**
 
-### Onde resolver
+### 1. Migration SQL: Remover resolução de checklist da trigger
 
-A solução deve ser implementada **internamente no prompt do backend** (edge function), não nas instruções dos passos do fluxo. Motivos:
-- É uma regra de comportamento global, não específica de um passo
-- Precisa ser aplicada automaticamente com base na configuração de `consultationType`
-- O usuário não deveria precisar digitar essa regra manualmente
+Atualizar `generate_reminders_for_appointment()` para:
+- **Manter** a resolução de variáveis simples (`{{nome}}`, `{{data}}`, `{{hora}}`, etc.) — estes vêm do próprio appointment e estão disponíveis no INSERT
+- **Remover** o bloco que resolve `{{checklist.*}}` e o `regexp_replace` que limpa placeholders não resolvidos
+- Os placeholders `{{checklist.*}}` serão preservados na coluna `message` para resolução posterior
 
-### Plano de implementação
+### 2. Atualizar edge function `avivar-process-reminders`
 
-**1. Adicionar regra de priorização no `buildHybridSystemPrompt`** (edge function)
+O fallback de checklist já existe (linhas 105-134), mas precisa de ajustes:
+- Além de buscar por `patient_phone`, também buscar por `lead_id` diretamente na `avivar_kanban_leads` (o lead_id está disponível no reminder)
+- Garantir que a busca use `account_id` do reminder para escopo correto
+- Manter a limpeza de placeholders não resolvidos (`regexp_replace`) apenas aqui, no momento do envio
 
-Na função `buildHybridSystemPrompt` em `supabase/functions/avivar-ai-agent/index.ts`, após a seção `<fluxo_agendamento>`, adicionar uma nova seção `<regra_modalidade_atendimento>` que será gerada dinamicamente com base na configuração do agente:
+### 3. Recalcular mensagens de lembretes pendentes
 
-- Carregar `consultation_type` do agente (campo já existente na tabela `avivar_agents`)
-- Se `presencial=true` E `online=true`:
-  ```
-  <regra_modalidade_atendimento>
-  REGRA OBRIGATÓRIA DE MODALIDADE:
-  - SEMPRE ofereça PRIMEIRO a consulta PRESENCIAL
-  - SOMENTE ofereça consulta ONLINE quando o lead:
-    • Disser que não pode comparecer presencialmente
-    • Informar que mora longe/em outra cidade/estado
-    • Pedir explicitamente por atendimento online
-  - NUNCA apresente as duas modalidades na mesma mensagem
-  - Se o lead aceitar presencial, NÃO mencione a opção online
-  </regra_modalidade_atendimento>
-  ```
-- Se apenas `online=true`: não adicionar restrição (oferecer online diretamente)
-- Se apenas `presencial=true`: não adicionar restrição
+Uma query de update para corrigir lembretes que já estão `scheduled` com mensagens sem os valores de checklist: re-aplicar o template original da regra e resolver as variáveis do appointment, deixando `{{checklist.*}}` intactos para resolução no envio.
 
-**2. Carregar `consultation_type` na query do agente**
+## Impacto
 
-Na query que carrega o agente roteado (função que popula `RoutedAgent`), incluir o campo `consultation_type` do `avivar_agents`. Adicionar o campo à interface `RoutedAgent`.
-
-**3. Atualizar o prompt de preview no frontend**
-
-Em `usePromptGenerator.ts`, substituir a instrução fraca (linha 154) por uma regra mais clara e alinhada com o backend.
-
-### Arquivos a modificar
-- `supabase/functions/avivar-ai-agent/index.ts` — adicionar seção de modalidade no prompt + carregar consultation_type
-- `src/pages/avivar/config/hooks/usePromptGenerator.ts` — melhorar instrução de priorização no preview
-
-### Resposta às perguntas
-
-- **Por que a IA oferece junto?** Porque não existe regra explícita no prompt impedindo isso. A instrução atual é apenas "priorize", o que é vago demais para a IA.
-- **Onde está configurado?** O prompt é montado na edge function `avivar-ai-agent`. As instruções do fluxo (passos) são injetadas, mas a regra de priorização de modalidade não existe em nenhum lugar.
-- **Devo configurar nos passos do fluxo?** Não. Vou implementar internamente no prompt do backend, aplicado automaticamente com base na sua configuração de tipo de consulta (presencial + online). Assim funciona para todos os agentes sem precisar escrever a regra manualmente.
+- Variáveis simples (`{{nome}}`, `{{data}}`) continuam sendo resolvidas imediatamente (eficiente)
+- Variáveis de checklist (`{{checklist.data_e_hora}}`) são resolvidas no momento do envio, quando os dados já existem
+- Sem risco de mensagens com campos vazios
 
