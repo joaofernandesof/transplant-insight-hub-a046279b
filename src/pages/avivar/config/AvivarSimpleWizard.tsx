@@ -225,16 +225,6 @@ export default function AvivarSimpleWizard() {
               aiRestrictions: agent.ai_restrictions || '',
               consultationType: (agent.consultation_type as unknown as AgentConfig['consultationType']) || { presencial: true, online: false, domicilio: false },
               consultationDuration: agent.consultation_duration || 60,
-              beforeAfterImages: (agent.before_after_images as unknown as string[]) || [],
-              imageGallery: (agent.image_gallery as unknown as AgentConfig['imageGallery']) || {
-                ...EMPTY_IMAGE_GALLERY,
-                before_after: (((agent.before_after_images as unknown as string[]) || [])).map((url, i) => ({
-                  id: `legacy_${i}`,
-                  url,
-                  caption: '',
-                  category: 'before_after' as const,
-                })),
-              },
               knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
               fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
             }));
