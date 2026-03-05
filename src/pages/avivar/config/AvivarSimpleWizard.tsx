@@ -58,6 +58,7 @@ const SIMPLE_STEPS = [
   { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
   { id: 'objectives', title: 'Objetivos', description: 'Foco do agente' },
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
+  { id: 'attendance', title: 'Modo IA', description: 'Chatbot ou humanizado' },
   { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
   { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
   { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
