@@ -1,27 +1,39 @@
 
 
-# Correção: Todos os usuários NeoTeam veem todas as filiais na Agenda Cirúrgica
+# Correção: Espaço no teclado causa erro no Menu de Opções
 
 ## Problema
 
-O hook `useBranches()` restringe as filiais retornadas para usuários não-admin/não-gestão, mostrando apenas `user.branch` + `user.additionalBranches`. Isso faz com que alguns usuários vejam apenas "Todas" sem os filtros individuais por filial.
-
-Além disso, `ClinicDashboard.tsx` usa `canFilterBranch = isAdmin || isGestao` para decidir se mostra todas as opções — restringindo duplamente.
+O `KeyboardSensor` do `@dnd-kit` (drag-and-drop) intercepta a tecla **espaço** para iniciar o arrasto, mesmo quando o foco está em um `<input>` ou `<textarea>`. Isso impede o usuário de digitar espaços nos campos do Menu de Opções.
 
 ## Solução
 
-Duas alterações simples:
+Modificar o `KeyboardSensor` em `StepFluxoSimple.tsx` para **não ativar** quando o elemento focado for um input, textarea ou contenteditable.
 
-### 1. `src/clinic/hooks/useBranches.ts`
-- Adicionar parâmetro opcional `showAll?: boolean` ao hook
-- Quando `showAll` for `true`, retornar `allBranches` independente do perfil do usuário
-- Manter o comportamento atual como padrão para não quebrar outros usos
+### Alteração em `src/pages/avivar/config/components/steps/simple/StepFluxoSimple.tsx`
 
-### 2. `src/clinic/pages/ClinicDashboard.tsx`
-- Quando no contexto NeoTeam (`isNeoTeamContext` já existe no código, linha 68), chamar `useBranches()` com `showAll: true`
-- Remover a restrição de `canFilterBranch` para o contexto NeoTeam — todos os usuários verão todos os filtros de filial
+Adicionar uma função `shouldHandleEvent` customizada no `KeyboardSensor` que ignora eventos vindos de campos de texto:
 
-### Resultado
-- Usuários atuais e futuros do NeoTeam verão sempre: `Todas | Filial Fortaleza | Filial Juazeiro | São Paulo | Terceirização`
-- O comportamento em outros contextos (Clinic puro) permanece inalterado
+```typescript
+useSensor(KeyboardSensor, {
+  coordinateGetter: sortableKeyboardCoordinates,
+  keyboardCodes: {
+    start: ['Space', 'Enter'],
+    cancel: ['Escape'],
+    end: ['Space', 'Enter'],
+  },
+  onActivation: undefined,
+})
+```
+
+Na prática, a abordagem mais limpa é passar uma função de filtro que retorna `false` quando o `event.target` é um input/textarea:
+
+```typescript
+function shouldHandleEvent(element: HTMLElement) {
+  const interactiveElements = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'];
+  return !interactiveElements.includes(element.tagName) && !element.isContentEditable;
+}
+```
+
+Isso será aplicado apenas ao sensor de teclado, mantendo o drag-and-drop funcional via ponteiro (mouse/touch).
 
