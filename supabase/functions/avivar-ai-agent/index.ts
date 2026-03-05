@@ -3722,7 +3722,8 @@ function buildHybridSystemPrompt(
   fluxoInstructions: string,
   checklistInstructions: string = "",
   leadLanguage: string = "pt-BR",
-  hasGoogleCalendar: boolean = false
+  hasGoogleCalendar: boolean = false,
+  fluxo: Record<string, unknown> | null = null
 ): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
