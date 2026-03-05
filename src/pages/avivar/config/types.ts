@@ -764,6 +764,7 @@ export const WIZARD_STEPS = [
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
   { id: 'personalization', title: 'Personalidade', description: 'Identidade e objetivo da IA' },
   { id: 'instructions', title: 'Instruções', description: 'O que a IA pode e não pode fazer' },
+  { id: 'attendance_mode', title: 'Modo', description: 'Modo de atendimento' },
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
   { id: 'knowledge', title: 'Conhecimento', description: 'Base de conhecimento da IA' },
   { id: 'review', title: 'Revisão', description: 'Confirme as configurações' },
