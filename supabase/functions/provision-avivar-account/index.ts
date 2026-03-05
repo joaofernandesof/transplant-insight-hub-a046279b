@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
 
           for (const tc of templateCols || []) {
             const { data: newCol } = await sb.from('avivar_kanban_columns').insert({
-              kanban_id: newKanban.id, name: tc.name, color: tc.color, order_index: tc.order_index,
+              kanban_id: newKanban.id, name: tc.name, color: tc.color, order_index: tc.order_index, account_id: accountId,
             }).select('id').single()
             if (newCol) columnMap[tc.id] = newCol.id
           }
