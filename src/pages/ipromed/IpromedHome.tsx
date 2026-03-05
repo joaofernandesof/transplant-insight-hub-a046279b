@@ -14,7 +14,6 @@ import { WorkspaceAgenda } from './components/WorkspaceAgenda';
 import {
   Scale,
   Users,
-  BarChart3,
   FileSignature,
   TrendingUp,
   GraduationCap,
