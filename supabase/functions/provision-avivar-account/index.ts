@@ -18,20 +18,19 @@ Deno.serve(async (req) => {
     const body = await req.json()
     const { email, password, full_name, account_name, account_slug, allowed_nichos } = body
 
-    let callerUserId = 'system'
-
-    // Auth: admin JWT check (skip if no auth header)
+    // Auth: admin JWT or service-level (anon key) calls
     const authHeader = req.headers.get('Authorization')
+    let callerUserId = 'system'
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '')
       const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
       if (token !== anonKey) {
         const supabaseAuth = createClient(Deno.env.get('SUPABASE_URL')!, anonKey, { global: { headers: { Authorization: authHeader } } })
         const { data: claims } = await supabaseAuth.auth.getClaims(token)
-        if (claims?.claims) {
-          callerUserId = claims.claims.sub as string
-          // Admin check - allow all authenticated users to provision (admin check done at UI level)
-        }
+        if (!claims?.claims) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        callerUserId = claims.claims.sub as string
+        const { data: isAdmin } = await supabaseAuth.rpc('is_neohub_admin', { _user_id: callerUserId })
+        if (!isAdmin) return new Response(JSON.stringify({ error: 'Forbidden - admin only' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
     }
 
