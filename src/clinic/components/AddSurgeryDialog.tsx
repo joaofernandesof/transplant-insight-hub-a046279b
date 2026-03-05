@@ -62,6 +62,8 @@ export function AddSurgeryDialog({
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [patientGrade, setPatientGrade] = useState<number | null>(null);
+  const [patientTrichotomy, setPatientTrichotomy] = useState<string | null>(null);
   const [selectedProcedures, setSelectedProcedures] = useState<string[]>([]);
   const [branch, setBranch] = useState('');
   const [category, setCategory] = useState('');
@@ -94,6 +96,18 @@ export function AddSurgeryDialog({
     if (open && prefilledPatient) {
       setPatientName(prefilledPatient.name);
       setSelectedPatientId(prefilledPatient.id);
+      // Fetch patient grade/trichotomy
+      supabase
+        .from('clinic_patients')
+        .select('grade, trichotomy_datetime')
+        .eq('id', prefilledPatient.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setPatientGrade((data as any).grade ?? null);
+            setPatientTrichotomy((data as any).trichotomy_datetime ?? null);
+          }
+        });
     }
   }, [open, prefilledPatient]);
 
@@ -111,6 +125,8 @@ export function AddSurgeryDialog({
     setPatientName('');
     setPatientPhone('');
     setSelectedPatientId(null);
+    setPatientGrade(null);
+    setPatientTrichotomy(null);
     setSelectedProcedures([]);
     setBranch('');
     setCategory('');
@@ -183,6 +199,8 @@ export function AddSurgeryDialog({
         branch,
         procedure: procedure.trim(),
         category: category || undefined,
+        grade: patientGrade ?? undefined,
+        trichotomyDatetime: patientTrichotomy ?? undefined,
         doctorOnDuty: undefined,
         surgeryDate: withDate && surgeryDate ? format(surgeryDate, 'yyyy-MM-dd') : undefined,
         surgeryTime: withDate && surgeryTime ? surgeryTime : undefined,
@@ -238,6 +256,19 @@ export function AddSurgeryDialog({
                       setPatientName(patient.full_name);
                       setSelectedPatientId(patient.id);
                       if (patient.phone) setPatientPhone(patient.phone);
+
+                      // Fetch patient grade/trichotomy
+                      supabase
+                        .from('clinic_patients')
+                        .select('grade, trichotomy_datetime')
+                        .eq('id', patient.id)
+                        .maybeSingle()
+                        .then(({ data }) => {
+                          if (data) {
+                            setPatientGrade((data as any).grade ?? null);
+                            setPatientTrichotomy((data as any).trichotomy_datetime ?? null);
+                          }
+                        });
 
                       // Auto-fill from latest surgery of this patient (by ID or name fallback)
                       try {

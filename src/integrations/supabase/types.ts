@@ -4158,10 +4158,12 @@ export type Database = {
           created_by: string | null
           email: string | null
           full_name: string
+          grade: number | null
           id: string
           medical_record: string | null
           notes: string | null
           phone: string | null
+          trichotomy_datetime: string | null
           updated_at: string | null
         }
         Insert: {
@@ -4170,10 +4172,12 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           full_name: string
+          grade?: number | null
           id?: string
           medical_record?: string | null
           notes?: string | null
           phone?: string | null
+          trichotomy_datetime?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -4182,10 +4186,12 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           full_name?: string
+          grade?: number | null
           id?: string
           medical_record?: string | null
           notes?: string | null
           phone?: string | null
+          trichotomy_datetime?: string | null
           updated_at?: string | null
         }
         Relationships: []

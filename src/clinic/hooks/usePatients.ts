@@ -10,6 +10,8 @@ export interface Patient {
   cpf: string | null;
   phone: string | null;
   notes: string | null;
+  trichotomyDatetime: string | null;
+  grade: number | null;
   createdAt: string;
 }
 
@@ -19,6 +21,8 @@ export interface PatientInput {
   cpf?: string;
   phone?: string;
   notes?: string;
+  trichotomyDatetime?: string;
+  grade?: number;
 }
 
 export function usePatients() {
@@ -35,13 +39,15 @@ export function usePatients() {
 
       if (error) throw error;
 
-      return (data || []).map((p): Patient => ({
+      return (data || []).map((p: any): Patient => ({
         id: p.id,
         fullName: p.full_name,
         email: p.email,
         cpf: p.cpf,
         phone: p.phone,
         notes: p.notes,
+        trichotomyDatetime: p.trichotomy_datetime,
+        grade: p.grade,
         createdAt: p.created_at,
       }));
     },
@@ -58,6 +64,8 @@ export function usePatients() {
           cpf: input.cpf || null,
           phone: input.phone || null,
           notes: input.notes || null,
+          trichotomy_datetime: input.trichotomyDatetime || null,
+          grade: input.grade ?? null,
           created_by: user?.userId,
         })
         .select()
@@ -89,6 +97,8 @@ export function usePatients() {
           cpf: input.cpf || null,
           phone: input.phone || null,
           notes: input.notes || null,
+          trichotomy_datetime: input.trichotomyDatetime || null,
+          grade: input.grade ?? null,
         })
         .eq('id', id)
         .select()
