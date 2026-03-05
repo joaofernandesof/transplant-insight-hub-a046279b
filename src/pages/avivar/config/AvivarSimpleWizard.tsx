@@ -418,6 +418,8 @@ export default function AvivarSimpleWizard() {
         fluxo_atendimento: (config.fluxoAtendimento?.passosCronologicos?.length > 0) 
           ? config.fluxoAtendimento 
           : autoConfig.fluxoAtendimento,
+        attendance_mode: config.attendanceMode || 'humanized',
+        chatbot_flows: config.chatbotFlows || [],
         personality: autoConfig.aiIdentity,
         knowledge_files: config.knowledgeFiles || [],
         is_active: true,
