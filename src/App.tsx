@@ -127,10 +127,6 @@ const BannersAdmin = lazy(() => import("./pages/BannersAdmin"));
 // ====================================
 const IpromedHome = lazy(() => import("./pages/ipromed/IpromedHome"));
 const IpromedStudents = lazy(() => import("./pages/ipromed/IpromedStudents"));
-const IpromedExams = lazy(() => import("./pages/ipromed/IpromedExams"));
-const IpromedMentors = lazy(() => import("./pages/ipromed/IpromedMentors"));
-const IpromedSurveys = lazy(() => import("./pages/ipromed/IpromedSurveys"));
-const IpromedLeads = lazy(() => import("./pages/ipromed/IpromedLeads"));
 const IpromedClients = lazy(() => import("./pages/ipromed/IpromedClients"));
 const IpromedClientDetail = lazy(() => import("./pages/ipromed/IpromedClientDetail"));
 const IpromedCaseDetail = lazy(() => import("./pages/ipromed/IpromedCaseDetail"));
