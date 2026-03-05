@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -22,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, UserPlus, Mail, MessageSquare, User, FileText, DollarSign, CalendarDays, CalendarOff, CalendarCheck, Scissors, Star } from 'lucide-react';
+import { Loader2, UserPlus, Mail, MessageSquare, User, FileText, DollarSign, CalendarDays, CalendarOff, CalendarCheck, Scissors, Star, XCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ProcedureCheckboxField } from '@/clinic/components/ProcedureCheckboxField';
@@ -459,17 +460,39 @@ export function PatientRegistrationDialog({
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="trichotomy_datetime" className="flex items-center gap-1.5">
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="flex items-center gap-1.5">
                     <Scissors className="h-3.5 w-3.5" />
                     Tricotomia
                   </Label>
-                  <Input
-                    id="trichotomy_datetime"
-                    value={formData.trichotomy_datetime}
-                    onChange={(e) => setFormData({ ...formData, trichotomy_datetime: e.target.value })}
-                    placeholder="Ex: 31/01 16:00"
-                  />
+                  {formData.trichotomy_datetime === 'NÃO TEM MARCAÇÃO' ? (
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-amber-600 border-amber-600/30 bg-amber-500/10">
+                        SEM TRICOTOMIA
+                      </Badge>
+                      <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setFormData({ ...formData, trichotomy_datetime: '' })}>
+                        Alterar
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        type="datetime-local"
+                        value={formData.trichotomy_datetime}
+                        onChange={(e) => setFormData({ ...formData, trichotomy_datetime: e.target.value })}
+                        className="h-9"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-fit h-7 text-xs text-amber-600 border-amber-600/30 hover:bg-amber-500/10"
+                        onClick={() => setFormData({ ...formData, trichotomy_datetime: 'NÃO TEM MARCAÇÃO' })}
+                      >
+                        <XCircle className="h-3 w-3 mr-1" /> Sem tricotomia
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
