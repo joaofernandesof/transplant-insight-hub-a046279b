@@ -50,12 +50,6 @@ export function StepReviewSimple({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   
-
-  const imagesCount =
-    (config.imageGallery?.before_after?.length || 0) +
-    (config.imageGallery?.catalog?.length || 0) +
-    (config.imageGallery?.location?.length || 0) +
-    (config.imageGallery?.general?.length || 0);
   
   const getEnabledDays = (schedule: WeekSchedule): string => {
     const days = Object.entries(schedule)
