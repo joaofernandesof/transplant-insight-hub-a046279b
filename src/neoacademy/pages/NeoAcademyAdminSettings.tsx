@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-interface NeoAcademySettings {
+interface ConectaCapilarSettings {
   name: string;
   description: string;
   dark_theme: boolean;
@@ -27,12 +27,12 @@ interface NeoAcademySettings {
   device_limit: boolean;
 }
 
-const DEFAULT_SETTINGS: NeoAcademySettings = {
-  name: 'NeoAcademy',
+const DEFAULT_SETTINGS: ConectaCapilarSettings = {
+  name: 'Conecta Capilar',
   description: 'Plataforma premium de aprendizado',
   dark_theme: true,
   show_carousel: true,
-  primary_color: '#8b5cf6',
+  primary_color: '#3b82f6',
   community_enabled: true,
   gamification_enabled: true,
   certificates_enabled: false,
@@ -48,7 +48,7 @@ const DEFAULT_SETTINGS: NeoAcademySettings = {
 export default function NeoAcademyAdminSettings() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
-  const [settings, setSettings] = useState<NeoAcademySettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<ConectaCapilarSettings>(DEFAULT_SETTINGS);
   const [hasChanges, setHasChanges] = useState(false);
 
   const { data: savedSettings, isLoading } = useQuery({
@@ -59,7 +59,7 @@ export default function NeoAcademyAdminSettings() {
         .select('*')
         .eq('key', 'neoacademy_settings')
         .maybeSingle();
-      return data?.value as unknown as NeoAcademySettings | null;
+      return data?.value as unknown as ConectaCapilarSettings | null;
     },
   });
 
@@ -69,7 +69,7 @@ export default function NeoAcademyAdminSettings() {
     }
   }, [savedSettings]);
 
-  const updateSetting = <K extends keyof NeoAcademySettings>(key: K, value: NeoAcademySettings[K]) => {
+  const updateSetting = <K extends keyof ConectaCapilarSettings>(key: K, value: ConectaCapilarSettings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
     setHasChanges(true);
   };
@@ -98,7 +98,7 @@ export default function NeoAcademyAdminSettings() {
           .insert({
             key: 'neoacademy_settings',
             value: settings as any,
-            description: 'Configurações do portal NeoAcademy',
+            description: 'Configurações do portal Conecta Capilar',
             updated_by: user?.id || null,
           });
         if (error) throw error;
@@ -115,7 +115,7 @@ export default function NeoAcademyAdminSettings() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
@@ -125,7 +125,7 @@ export default function NeoAcademyAdminSettings() {
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Settings className="h-5 w-5 text-violet-400" />
+            <Settings className="h-5 w-5 text-blue-400" />
             <h1 className="text-lg font-bold text-white">Configurações</h1>
           </div>
           {hasChanges && (
@@ -133,7 +133,7 @@ export default function NeoAcademyAdminSettings() {
               onClick={() => saveSettings.mutate()}
               disabled={saveSettings.isPending}
               size="sm"
-              className="bg-violet-500 hover:bg-violet-600 text-white gap-2"
+              className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
             >
               {saveSettings.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar
@@ -143,10 +143,9 @@ export default function NeoAcademyAdminSettings() {
       </header>
 
       <div className="max-w-2xl mx-auto px-6 pt-6 space-y-6">
-        {/* General */}
         <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <Globe className="h-4 w-4 text-violet-400" />
+            <Globe className="h-4 w-4 text-blue-400" />
             <h2 className="text-sm font-bold text-white">Geral</h2>
           </div>
           <div className="space-y-3">
@@ -169,10 +168,9 @@ export default function NeoAcademyAdminSettings() {
           </div>
         </section>
 
-        {/* Appearance */}
         <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <Palette className="h-4 w-4 text-violet-400" />
+            <Palette className="h-4 w-4 text-blue-400" />
             <h2 className="text-sm font-bold text-white">Aparência</h2>
           </div>
           <div className="space-y-3">
@@ -193,7 +191,7 @@ export default function NeoAcademyAdminSettings() {
             <div>
               <Label className="text-xs text-zinc-400">Cor Primária</Label>
               <div className="flex gap-2 mt-2">
-                {['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'].map(color => (
+                {['#3b82f6', '#ec4899', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'].map(color => (
                   <button
                     key={color}
                     onClick={() => updateSetting('primary_color', color)}
@@ -208,10 +206,9 @@ export default function NeoAcademyAdminSettings() {
           </div>
         </section>
 
-        {/* Features */}
         <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <Zap className="h-4 w-4 text-violet-400" />
+            <Zap className="h-4 w-4 text-blue-400" />
             <h2 className="text-sm font-bold text-white">Funcionalidades</h2>
           </div>
           <div className="space-y-3">
@@ -236,10 +233,9 @@ export default function NeoAcademyAdminSettings() {
           </div>
         </section>
 
-        {/* Notifications */}
         <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <Bell className="h-4 w-4 text-violet-400" />
+            <Bell className="h-4 w-4 text-blue-400" />
             <h2 className="text-sm font-bold text-white">Notificações</h2>
           </div>
           <div className="space-y-3">
@@ -262,10 +258,9 @@ export default function NeoAcademyAdminSettings() {
           </div>
         </section>
 
-        {/* Security */}
         <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-4 w-4 text-violet-400" />
+            <Shield className="h-4 w-4 text-blue-400" />
             <h2 className="text-sm font-bold text-white">Segurança</h2>
           </div>
           <div className="space-y-3">
@@ -289,7 +284,7 @@ export default function NeoAcademyAdminSettings() {
         <Button
           onClick={() => saveSettings.mutate()}
           disabled={saveSettings.isPending || !hasChanges}
-          className="w-full bg-violet-500 hover:bg-violet-600 text-white gap-2 disabled:opacity-50"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white gap-2 disabled:opacity-50"
         >
           {saveSettings.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Salvar Configurações

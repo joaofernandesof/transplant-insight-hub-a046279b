@@ -36,12 +36,11 @@ export default function NeoAcademyAdminStudents() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
 
-  // Group by user_id
   const userMap: Record<string, { enrollments: any[]; userId: string }> = {};
   enrollments?.forEach((e: any) => {
     if (!userMap[e.user_id]) userMap[e.user_id] = { enrollments: [], userId: e.user_id };
@@ -58,16 +57,15 @@ export default function NeoAcademyAdminStudents() {
     <div className="min-h-screen pb-12">
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
         <div className="flex items-center gap-3">
-          <Users className="h-5 w-5 text-violet-400" />
+          <Users className="h-5 w-5 text-blue-400" />
           <h1 className="text-lg font-bold text-white">Alunos</h1>
         </div>
       </header>
 
       <div className="px-6 pt-6 space-y-6">
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="p-4 rounded-xl bg-[#14141f] border border-white/5">
-            <Users className="h-5 w-5 text-violet-400 mb-2" />
+            <Users className="h-5 w-5 text-blue-400 mb-2" />
             <div className="text-2xl font-bold text-white">{uniqueStudents}</div>
             <div className="text-xs text-zinc-500">Alunos Únicos</div>
           </div>
@@ -83,7 +81,6 @@ export default function NeoAcademyAdminStudents() {
           </div>
         </div>
 
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <Input
@@ -94,7 +91,6 @@ export default function NeoAcademyAdminStudents() {
           />
         </div>
 
-        {/* Student list */}
         <div className="space-y-3">
           {students.map((student) => {
             const points = userPoints?.[student.userId];
@@ -106,7 +102,7 @@ export default function NeoAcademyAdminStudents() {
             return (
               <div key={student.userId} className="p-4 rounded-xl bg-[#14141f] border border-white/5">
                 <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
                     {student.userId.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -129,7 +125,6 @@ export default function NeoAcademyAdminStudents() {
                   </div>
                 </div>
 
-                {/* Enrolled courses */}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {student.enrollments.map((e: any) => (
                     <span
@@ -137,7 +132,7 @@ export default function NeoAcademyAdminStudents() {
                       className={`px-2 py-0.5 rounded-md text-[10px] font-medium ${
                         e.completed_at
                           ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                          : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                       }`}
                     >
                       {e.course?.title || 'Curso'}

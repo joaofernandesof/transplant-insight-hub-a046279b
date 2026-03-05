@@ -14,8 +14,8 @@ export default function NeoAcademyPlaceholder({ title, description }: Placeholde
       </header>
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="h-16 w-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto">
-            <Construction className="h-8 w-8 text-violet-400" />
+          <div className="h-16 w-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mx-auto">
+            <Construction className="h-8 w-8 text-blue-400" />
           </div>
           <h2 className="text-xl font-bold text-white">{title}</h2>
           <p className="text-zinc-500 max-w-md">

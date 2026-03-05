@@ -46,7 +46,7 @@ const routeLabels: Record<string, string> = {
   '/neocare/my-invoices': 'Minhas Faturas',
   
   // ====================================
-  // NeoAcademy
+  // Conecta Capilar
   // ====================================
   '/academy': 'Início',
   '/academy/courses': 'Cursos',

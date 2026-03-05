@@ -23,7 +23,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
   return (
     <div className="relative w-full h-[400px] rounded-2xl overflow-hidden group">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-900/80 via-[#1a1a2e] to-fuchsia-900/60">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-[#1a1a2e] to-sky-900/60">
         {featured.bannerUrl && (
           <img 
             src={featured.bannerUrl} 
@@ -58,7 +58,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(`/neoacademy/course/${featured.id}`)}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-violet-500 hover:bg-violet-400 text-white font-semibold transition-colors shadow-lg shadow-violet-500/30"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-semibold transition-colors shadow-lg shadow-blue-500/30"
           >
             <Play className="h-5 w-5" fill="white" />
             Assistir Agora

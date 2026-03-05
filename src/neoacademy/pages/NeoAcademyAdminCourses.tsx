@@ -214,7 +214,7 @@ export default function NeoAcademyAdminCourses() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
@@ -224,10 +224,10 @@ export default function NeoAcademyAdminCourses() {
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-violet-400" />
+            <BookOpen className="h-5 w-5 text-blue-400" />
             <h1 className="text-lg font-bold text-white">Gerenciar Cursos</h1>
           </div>
-          <Button onClick={openNewCourse} size="sm" className="bg-violet-500 hover:bg-violet-600 text-white gap-2">
+          <Button onClick={openNewCourse} size="sm" className="bg-blue-500 hover:bg-blue-600 text-white gap-2">
             <Plus className="h-4 w-4" /> Novo Curso
           </Button>
         </div>
@@ -238,7 +238,7 @@ export default function NeoAcademyAdminCourses() {
           <div className="text-center py-16">
             <BookOpen className="h-12 w-12 text-zinc-700 mx-auto mb-4" />
             <p className="text-zinc-500 mb-4">Nenhum curso criado ainda.</p>
-            <Button onClick={openNewCourse} className="bg-violet-500 hover:bg-violet-600 text-white gap-2">
+            <Button onClick={openNewCourse} className="bg-blue-500 hover:bg-blue-600 text-white gap-2">
               <Plus className="h-4 w-4" /> Criar Primeiro Curso
             </Button>
           </div>
@@ -247,12 +247,12 @@ export default function NeoAcademyAdminCourses() {
         <div className="space-y-3">
           {courses?.map((course: any) => (
             <div key={course.id} className="flex items-center gap-4 p-4 rounded-xl bg-[#14141f] border border-white/5">
-              <div className="w-24 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-violet-900/40 to-fuchsia-900/40 shrink-0">
+              <div className="w-24 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-blue-900/40 to-sky-900/40 shrink-0">
                 {course.thumbnail_url ? (
                   <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-violet-400/50" />
+                    <BookOpen className="h-6 w-6 text-blue-400/50" />
                   </div>
                 )}
               </div>
@@ -263,7 +263,7 @@ export default function NeoAcademyAdminCourses() {
                   {course.is_featured && <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400 shrink-0" />}
                 </div>
                 <div className="flex items-center gap-3 text-[11px] text-zinc-500 mt-1">
-                  {course.category && <span className="text-violet-400 uppercase font-bold text-[10px]">{course.category}</span>}
+                  {course.category && <span className="text-blue-400 uppercase font-bold text-[10px]">{course.category}</span>}
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{course.total_duration_minutes || 0}min</span>
                   <span className="flex items-center gap-1"><BookOpen className="h-3 w-3" />{course.total_lessons || 0} aulas</span>
                   <span className="flex items-center gap-1"><Users className="h-3 w-3" />{enrollmentCounts?.[course.id] || 0} alunos</span>
@@ -307,7 +307,6 @@ export default function NeoAcademyAdminCourses() {
         </div>
       </div>
 
-      {/* Course Form Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="bg-[#14141f] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -317,7 +316,6 @@ export default function NeoAcademyAdminCourses() {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-5 mt-2">
-            {/* Title */}
             <div>
               <Label className="text-xs text-zinc-400">Título *</Label>
               <Input
@@ -329,7 +327,6 @@ export default function NeoAcademyAdminCourses() {
               />
             </div>
 
-            {/* Short description */}
             <div>
               <Label className="text-xs text-zinc-400">Descrição Curta</Label>
               <Input
@@ -340,7 +337,6 @@ export default function NeoAcademyAdminCourses() {
               />
             </div>
 
-            {/* Description */}
             <div>
               <Label className="text-xs text-zinc-400">Descrição Completa</Label>
               <Textarea
@@ -352,7 +348,6 @@ export default function NeoAcademyAdminCourses() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Category */}
               <div>
                 <Label className="text-xs text-zinc-400">Categoria</Label>
                 <Input
@@ -362,8 +357,6 @@ export default function NeoAcademyAdminCourses() {
                   className="bg-[#0a0a0f] border-white/10 text-white mt-1"
                 />
               </div>
-
-              {/* Access Type */}
               <div>
                 <Label className="text-xs text-zinc-400">Tipo de Acesso</Label>
                 <Select value={form.access_type} onValueChange={v => setForm(f => ({ ...f, access_type: v }))}>
@@ -379,7 +372,6 @@ export default function NeoAcademyAdminCourses() {
               </div>
             </div>
 
-            {/* Price (show only if paid) */}
             {form.access_type === 'paid' && (
               <div>
                 <Label className="text-xs text-zinc-400">Preço (R$)</Label>
@@ -396,7 +388,6 @@ export default function NeoAcademyAdminCourses() {
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Thumbnail */}
               <div>
                 <Label className="text-xs text-zinc-400">URL da Thumbnail</Label>
                 <Input
@@ -406,8 +397,6 @@ export default function NeoAcademyAdminCourses() {
                   className="bg-[#0a0a0f] border-white/10 text-white mt-1"
                 />
               </div>
-
-              {/* Banner */}
               <div>
                 <Label className="text-xs text-zinc-400">URL do Banner</Label>
                 <Input
@@ -420,7 +409,6 @@ export default function NeoAcademyAdminCourses() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Total lessons */}
               <div>
                 <Label className="text-xs text-zinc-400">Total de Aulas</Label>
                 <Input
@@ -431,8 +419,6 @@ export default function NeoAcademyAdminCourses() {
                   className="bg-[#0a0a0f] border-white/10 text-white mt-1"
                 />
               </div>
-
-              {/* Duration */}
               <div>
                 <Label className="text-xs text-zinc-400">Duração Total (minutos)</Label>
                 <Input
@@ -445,7 +431,6 @@ export default function NeoAcademyAdminCourses() {
               </div>
             </div>
 
-            {/* Toggles */}
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <Switch
@@ -463,7 +448,6 @@ export default function NeoAcademyAdminCourses() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="ghost" onClick={closeDialog} className="text-zinc-400 hover:text-white">
                 Cancelar
@@ -471,7 +455,7 @@ export default function NeoAcademyAdminCourses() {
               <Button
                 type="submit"
                 disabled={saveCourse.isPending}
-                className="bg-violet-500 hover:bg-violet-600 text-white gap-2"
+                className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
               >
                 {saveCourse.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {editingCourse ? 'Salvar Alterações' : 'Criar Curso'}

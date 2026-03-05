@@ -47,7 +47,7 @@ const SOURCE_COLORS: Record<string, string> = {
 };
 
 const PORTAL_LABELS: Record<string, string> = {
-  academy: 'NeoAcademy',
+  academy: 'Conecta Capilar',
   avivar: 'Avivar',
   colaborador: 'Colaborador',
   cpg: 'CPG',

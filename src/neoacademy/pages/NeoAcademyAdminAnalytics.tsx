@@ -36,14 +36,13 @@ export default function NeoAcademyAdminAnalytics() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
 
   const s = stats!;
 
-  // Enrollments per course
   const courseCounts: Record<string, number> = {};
   s.enrollments.forEach((e: any) => {
     courseCounts[e.course_id] = (courseCounts[e.course_id] || 0) + 1;
@@ -53,16 +52,15 @@ export default function NeoAcademyAdminAnalytics() {
     <div className="min-h-screen pb-12">
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
         <div className="flex items-center gap-3">
-          <BarChart3 className="h-5 w-5 text-violet-400" />
+          <BarChart3 className="h-5 w-5 text-blue-400" />
           <h1 className="text-lg font-bold text-white">Analytics</h1>
         </div>
       </header>
 
       <div className="px-6 pt-6 space-y-6">
-        {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: BookOpen, label: 'Cursos Publicados', value: `${s.publishedCourses}/${s.totalCourses}`, color: 'violet' },
+            { icon: BookOpen, label: 'Cursos Publicados', value: `${s.publishedCourses}/${s.totalCourses}`, color: 'blue' },
             { icon: Users, label: 'Total Matrículas', value: s.totalEnrollments, color: 'blue' },
             { icon: TrendingUp, label: 'Progresso Médio', value: `${s.avgProgress}%`, color: 'emerald' },
             { icon: Eye, label: 'Matrículas (7d)', value: s.recentEnrollments, color: 'amber' },
@@ -75,7 +73,6 @@ export default function NeoAcademyAdminAnalytics() {
           ))}
         </div>
 
-        {/* Completion rate */}
         <div className="p-5 rounded-xl bg-[#14141f] border border-white/5">
           <h3 className="text-sm font-bold text-white mb-4">Taxa de Conclusão</h3>
           <div className="flex items-center gap-4">
@@ -91,7 +88,6 @@ export default function NeoAcademyAdminAnalytics() {
           </div>
         </div>
 
-        {/* Course popularity */}
         <div className="p-5 rounded-xl bg-[#14141f] border border-white/5">
           <h3 className="text-sm font-bold text-white mb-4">Popularidade por Curso</h3>
           <div className="space-y-3">
@@ -106,7 +102,7 @@ export default function NeoAcademyAdminAnalytics() {
                   </div>
                   <div className="w-32 h-2 rounded-full bg-white/5 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all"
+                      className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all"
                       style={{ width: `${(count / maxCount) * 100}%` }}
                     />
                   </div>

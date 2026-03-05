@@ -44,9 +44,9 @@ export const PORTAL_CONFIGS: Record<PortalType, PortalConfig> = {
     gradient: 'from-rose-600 via-rose-500 to-pink-500',
   },
   neoacademy: {
-    name: 'NeoAcademy',
+    name: 'Conecta Capilar',
     subtitle: 'Cursos e Certificações',
-    gradient: 'from-emerald-600 via-emerald-500 to-green-500',
+    gradient: 'from-blue-600 via-blue-500 to-sky-500',
   },
   neolicense: {
     name: 'Licenciado',

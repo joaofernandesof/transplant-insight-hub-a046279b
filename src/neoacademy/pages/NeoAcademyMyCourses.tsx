@@ -30,7 +30,7 @@ export default function NeoAcademyMyCourses() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
@@ -39,7 +39,7 @@ export default function NeoAcademyMyCourses() {
     <div className="min-h-screen pb-12">
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
         <div className="flex items-center gap-3">
-          <GraduationCap className="h-5 w-5 text-violet-400" />
+          <GraduationCap className="h-5 w-5 text-blue-400" />
           <h1 className="text-lg font-bold text-white">Meus Cursos</h1>
         </div>
       </header>
@@ -48,7 +48,7 @@ export default function NeoAcademyMyCourses() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="p-4 rounded-xl bg-[#14141f] border border-white/5">
-            <BookOpen className="h-5 w-5 text-violet-400 mb-2" />
+            <BookOpen className="h-5 w-5 text-blue-400 mb-2" />
             <div className="text-2xl font-bold text-white">{enrollments?.length || 0}</div>
             <div className="text-xs text-zinc-500">Total Matriculado</div>
           </div>
@@ -66,7 +66,7 @@ export default function NeoAcademyMyCourses() {
 
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="bg-[#14141f] border border-white/5 mb-6">
-            <TabsTrigger value="all" className="data-[state=active]:bg-violet-500/20 data-[state=active]:text-violet-300">
+            <TabsTrigger value="all" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
               Todos ({enrollments?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="progress" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-300">

@@ -48,11 +48,11 @@ const SYSTEM_MODULES: SystemModule[] = [
   },
   {
     key: 'neoacademy',
-    name: 'NeoAcademy',
+    name: 'Conecta Capilar',
     description: 'Cursos, aulas e certificações',
     icon: GraduationCap,
     route: '/neoacademy',
-    color: 'bg-emerald-500',
+    color: 'bg-blue-500',
     portalKey: 'neoacademy',
     requiredProfiles: ['aluno', 'administrador'],
   },

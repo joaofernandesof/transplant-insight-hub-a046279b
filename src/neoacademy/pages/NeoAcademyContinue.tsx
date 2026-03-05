@@ -47,7 +47,7 @@ export default function NeoAcademyContinue() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
@@ -56,7 +56,7 @@ export default function NeoAcademyContinue() {
     <div className="min-h-screen pb-12">
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
         <div className="flex items-center gap-3">
-          <Play className="h-5 w-5 text-violet-400" />
+          <Play className="h-5 w-5 text-blue-400" />
           <h1 className="text-lg font-bold text-white">Continuar Assistindo</h1>
         </div>
       </header>
@@ -68,7 +68,7 @@ export default function NeoAcademyContinue() {
             <p className="text-zinc-500">Você não tem nenhum curso em andamento.</p>
             <button
               onClick={() => navigate('/neoacademy/catalog')}
-              className="mt-4 px-6 py-2 rounded-lg bg-violet-500 text-white text-sm font-medium hover:bg-violet-600 transition"
+              className="mt-4 px-6 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition"
             >
               Explorar Catálogo
             </button>
@@ -83,19 +83,19 @@ export default function NeoAcademyContinue() {
               <button
                 key={enrollment.id}
                 onClick={() => navigate(`/neoacademy/course/${course?.id}`)}
-                className="w-full flex gap-4 p-4 rounded-xl bg-[#14141f] border border-white/5 hover:border-violet-500/30 transition-all group text-left"
+                className="w-full flex gap-4 p-4 rounded-xl bg-[#14141f] border border-white/5 hover:border-blue-500/30 transition-all group text-left"
               >
                 {/* Thumbnail */}
-                <div className="w-40 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-violet-900/40 to-fuchsia-900/40 shrink-0 relative">
+                <div className="w-40 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-blue-900/40 to-sky-900/40 shrink-0 relative">
                   {course?.thumbnail_url ? (
                     <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <BookOpen className="h-8 w-8 text-violet-400/50" />
+                      <BookOpen className="h-8 w-8 text-blue-400/50" />
                     </div>
                   )}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/50">
-                    <div className="h-10 w-10 rounded-full bg-violet-500 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
                       <Play className="h-4 w-4 text-white ml-0.5" fill="white" />
                     </div>
                   </div>
@@ -105,7 +105,7 @@ export default function NeoAcademyContinue() {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-white text-sm truncate">{course?.title}</h3>
                   {course?.category && (
-                    <span className="text-[10px] uppercase font-bold text-violet-400 tracking-wider">{course.category}</span>
+                    <span className="text-[10px] uppercase font-bold text-blue-400 tracking-wider">{course.category}</span>
                   )}
                   {lastLesson?.lesson && (
                     <p className="text-xs text-zinc-500 mt-1 truncate">
