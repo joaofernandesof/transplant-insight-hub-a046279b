@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronUp, Pencil, Check, X, Lightbulb, ArrowRight, GripVertical, Plus, Trash2, Paperclip, SplitSquareVertical } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Check, X, Lightbulb, ArrowRight, GripVertical, Plus, Trash2, Paperclip, SplitSquareVertical, GitBranch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
