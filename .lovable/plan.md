@@ -1,27 +1,35 @@
 
 
-# Correção: Todos os usuários NeoTeam veem todas as filiais na Agenda Cirúrgica
+## Problem
 
-## Problema
+The Avivar portal shows a lock icon for user Humberto Clovis because `canAccessModule()` in `ProfileSelector.tsx` requires the user to have at least one `avivar_*:read` permission string. However, there are **zero** `module_permissions` rows for any `avivar_*` module in the database, so this check always fails.
 
-O hook `useBranches()` restringe as filiais retornadas para usuários não-admin/não-gestão, mostrando apenas `user.branch` + `user.additionalBranches`. Isso faz com que alguns usuários vejam apenas "Todas" sem os filtros individuais por filial.
+## Solution
 
-Além disso, `ClinicDashboard.tsx` usa `canFilterBranch = isAdmin || isGestao` para decidir se mostra todas as opções — restringindo duplamente.
+Modify the `canAccessModule` logic in `ProfileSelector.tsx` to handle the case where a portal has no module_permissions rows configured yet. If the user has `allowed_portals` access (or profile access) but there are simply no module_permissions rows for that portal prefix, the portal should be **unlocked** (not blocked).
 
-## Solução
+### Change in `src/neohub/pages/ProfileSelector.tsx`
 
-Duas alterações simples:
+In the `canAccessModule` function (lines 196-208), after confirming `hasBaseAccess`, add a fallback: if no permissions exist at all with the portal prefix (meaning the portal doesn't use granular module permissions), grant access based on `hasBaseAccess` alone.
 
-### 1. `src/clinic/hooks/useBranches.ts`
-- Adicionar parâmetro opcional `showAll?: boolean` ao hook
-- Quando `showAll` for `true`, retornar `allBranches` independente do perfil do usuário
-- Manter o comportamento atual como padrão para não quebrar outros usos
+```typescript
+// Current logic (blocks when no permissions exist):
+const hasAnyReadableModule = user.permissions.some(p => 
+  p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads')
+);
+return hasAnyReadableModule;
 
-### 2. `src/clinic/pages/ClinicDashboard.tsx`
-- Quando no contexto NeoTeam (`isNeoTeamContext` já existe no código, linha 68), chamar `useBranches()` com `showAll: true`
-- Remover a restrição de `canFilterBranch` para o contexto NeoTeam — todos os usuários verão todos os filtros de filial
+// New logic: if no permissions are configured for this portal, allow based on portal/profile access
+const relevantPermissions = user.permissions.filter(p => 
+  p.startsWith(portalPrefix) && !p.startsWith('neolicense_hotleads')
+);
 
-### Resultado
-- Usuários atuais e futuros do NeoTeam verão sempre: `Todas | Filial Fortaleza | Filial Juazeiro | São Paulo | Terceirização`
-- O comportamento em outros contextos (Clinic puro) permanece inalterado
+// If no module_permissions exist for this portal, trust allowed_portals/profile access
+if (relevantPermissions.length === 0) return hasBaseAccess;
+
+// Otherwise, require at least one readable module
+return relevantPermissions.some(p => p.endsWith(':read'));
+```
+
+This is a single-file change that fixes the issue for Avivar and any future portal that doesn't yet have granular module_permissions configured.
 
