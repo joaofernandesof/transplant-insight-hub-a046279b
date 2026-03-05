@@ -154,9 +154,6 @@ export default function AvivarSimpleWizard() {
           };
           break;
         case 2:
-          // agentObjectives não tem coluna dedicada, salvar como parte do fluxo genérico
-          // Salvamos no campo agent_objectives (campo JSON genérico via knowledge_files ou similar)
-          // Na verdade, o objectives é usado para gerar o autoConfig no final, então vamos guardar em um campo JSON
           break;
         case 3:
           payload = {
@@ -165,7 +162,14 @@ export default function AvivarSimpleWizard() {
           };
           break;
         case 4:
+          payload = {
+            ...payload,
+            attendance_mode: config.attendanceMode || 'humanized',
+            chatbot_flows: config.chatbotFlows || [],
+          };
+          break;
         case 5:
+        case 6:
           payload = {
             ...payload,
             knowledge_files: config.knowledgeFiles || [],
