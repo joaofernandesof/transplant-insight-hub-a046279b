@@ -1,87 +1,28 @@
 
 
-# Menu de Opções com Ramificação por Passo no Fluxo de Atendimento
+# Problema: Menu de Opções não visível ao expandir um passo
 
-## Conceito
+## Diagnóstico
 
-Adicionar a cada passo do fluxo a capacidade de definir um **menu de opções numeradas** que o lead pode escolher. Cada opção tem uma **ação** associada: ir para outro passo, mover no kanban, transferir para humano, ou enviar mensagem específica.
+O componente `FluxoMenuEditor` **já está sendo renderizado** dentro de cada passo expandido (linha 676 do `StepFluxoSimple.tsx`). Porém, ele aparece **no final** do conteúdo expandido, abaixo da instrução, exemplo de mensagem e botões de mídia. O problema é de **visibilidade/UX**:
 
-## Modelo de Dados
+1. A seção "Menu de Opções" com o botão "+ Opção" é pequena e fica escondida abaixo de todo o conteúdo — o usuário precisa rolar para baixo dentro do passo expandido
+2. Quando o passo está em modo de edição (com Save/Cancel), o espaço fica ainda mais apertado e empurra o menu editor para fora da tela
+3. O label "Menu de Opções" não é suficientemente chamativo para o usuário perceber que existe essa funcionalidade
 
-Adicionar ao `FluxoStep` um campo opcional `menuOptions`:
+## Solução
 
-```typescript
-export interface FluxoMenuAction {
-  type: 'go_to_step' | 'move_kanban' | 'transfer_human' | 'send_message';
-  // go_to_step
-  targetStepId?: string;
-  // move_kanban
-  targetColumnSlug?: string;
-  targetResponsibleId?: string;
-  // send_message
-  message?: string;
-}
+Tornar o acesso ao Menu de Opções mais visível e intuitivo:
 
-export interface FluxoMenuOption {
-  id: string;
-  label: string;        // "Agendar consulta"
-  action: FluxoMenuAction;
-}
+### 1. Adicionar botão "Menu de Opções" ao lado de "Adicionar exemplo" e "Anexar mídia"
+- Na seção de botões de ação do passo (onde ficam "Adicionar exemplo" e "Anexar mídia"), adicionar um terceiro botão **"Menu de Opções"** com ícone de `GitBranch`
+- O botão só aparece quando o passo **não tem** `menuOptions` ainda (ou tem array vazio)
+- Ao clicar, adiciona automaticamente a primeira opção vazia no menu e rola para a seção do editor
 
-export interface FluxoStep {
-  // ... campos existentes
-  menuOptions?: FluxoMenuOption[]; // NOVO
-}
-```
+### 2. Destacar visualmente a seção FluxoMenuEditor quando tem opções
+- Quando o passo já possui `menuOptions`, mostrar um `Badge` "Menu" no header do passo (ao lado do badge "Exemplo" existente) para indicar que há ramificação configurada
+- Mover o `FluxoMenuEditor` para uma posição mais proeminente, logo após a instrução (antes do exemplo de mensagem)
 
-Sem migration SQL — `fluxo_atendimento` é JSONB.
-
-## Alterações
-
-### 1. `src/pages/avivar/config/types.ts`
-- Adicionar interfaces `FluxoMenuAction` e `FluxoMenuOption`
-- Adicionar `menuOptions?: FluxoMenuOption[]` ao `FluxoStep`
-
-### 2. `src/pages/avivar/config/components/steps/simple/StepFluxoSimple.tsx`
-- Dentro de cada passo expandido, adicionar seção "Menu de Opções" com botão para ativar
-- UI para cada opção: campo de texto (label) + dropdown de ação (Ir para passo X, Mover no Kanban, Transferir, Enviar mensagem)
-- Para "Ir para passo": dropdown listando os outros passos do fluxo pelo título
-- Para "Mover no Kanban": dropdown de colunas (buscar do banco)
-- Para "Transferir": apenas checkbox (usa tool existente `transfer_to_human`)
-- Para "Enviar mensagem": textarea com a mensagem
-- Botão (+) para adicionar opções, (x) para remover
-
-### 3. `supabase/functions/avivar-ai-agent/index.ts` — `buildFluxoInstructions()`
-- Para cada passo que tenha `menuOptions`, gerar no prompt:
-```
-### PASSO 2: SAUDAÇÃO E MENU
-Apresente as opções ao lead:
-1. Agendar consulta → Execute o PASSO 4 (Oferecer Datas)
-2. Falar com atendente → Use transfer_to_human()
-3. Endereço da clínica → Responda: "Rua X, nº Y..."
-4. Financeiro → Use mover_lead_para_etapa(nova_etapa="financeiro") e transfer_to_human()
-5. Pós-venda → Use mover_lead_para_etapa(nova_etapa="pos_venda")
-
-⚠️ AGUARDE a escolha do lead. Se escolher opção 1, PULE direto para o PASSO 4.
-```
-
-### 4. Componente auxiliar `FluxoMenuEditor.tsx`
-- Novo componente em `src/pages/avivar/config/components/steps/simple/`
-- Encapsula a lógica do editor de menu (lista de opções + ações)
-- Recebe `menuOptions`, `onChange`, lista de passos disponíveis, e lista de colunas do kanban
-
-## Como funciona end-to-end
-
-1. Usuário abre o passo no wizard e clica "Adicionar Menu de Opções"
-2. Define as opções (1. Agendar, 2. Financeiro, etc.) e escolhe a ação de cada uma
-3. Ao salvar o agente, o `menuOptions` é persistido no JSONB `fluxo_atendimento`
-4. Quando a IA processa uma conversa, o `buildFluxoInstructions` gera instruções claras de ramificação
-5. A IA apresenta o menu, espera a resposta, e executa a ação correspondente (pular passo, mover kanban, transferir)
-
-## Ferramentas já existentes no agente
-
-- `transfer_to_human(reason)` — transferência para humano
-- `mover_lead_para_etapa(nova_etapa, motivo)` — mover lead no kanban
-
-Não precisa criar novas tools — apenas instruir a IA a usar as existentes baseado na opção escolhida.
+### Arquivos a alterar
+- **`StepFluxoSimple.tsx`**: Adicionar botão "Menu de Opções" junto aos botões de ação, badge no header, e reposicionar o `FluxoMenuEditor` para ficar logo abaixo da instrução da IA (antes do exemplo de mensagem)
 
