@@ -156,12 +156,13 @@ Deno.serve(async (req) => {
       const columnMap: Record<string, string> = {} // old column id -> new column id
       const kanbanMap: Record<string, string> = {} // old kanban id -> new kanban id
 
-      const { data: templateKanbans } = await sb.from('avivar_kanbans').select('*')
+      const { data: templateKanbans, error: tkErr } = await sb.from('avivar_kanbans').select('*')
         .eq('account_id', TEMPLATE_ACCOUNT_ID).order('name')
+      console.log(`Template kanbans found: ${templateKanbans?.length || 0}, error: ${tkErr?.message || 'none'}`)
 
       for (const tk of templateKanbans || []) {
         const { data: newKanban } = await sb.from('avivar_kanbans').insert({
-          name: tk.name, account_id: accountId,
+          name: tk.name, account_id: accountId, user_id: userId,
         }).select('id').single()
 
         if (newKanban) {
