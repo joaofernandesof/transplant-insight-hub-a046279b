@@ -157,9 +157,25 @@ Transfira para um humano quando apropriado.
     
     prompt += `\n</instrucoes>
 
-<fluxo_atendimento>
-# PASSO 1: Saudação
-${config.welcomeMessage || `Olá! Meu nome é ${attendantName} e sou assistente virtual da ${companyName}. Como posso te ajudar hoje? 😊`}
+<fluxo_atendimento>`;
+
+    // Dynamic flow from config — uses actual steps configured by user
+    const passosCronologicos = config.fluxoAtendimento?.passosCronologicos || [];
+    const passosExtras = config.fluxoAtendimento?.passosExtras || [];
+
+    if (passosCronologicos.length > 0) {
+      for (const passo of passosCronologicos) {
+        prompt += `\n# PASSO ${passo.ordem}: ${passo.titulo}`;
+        prompt += `\n${passo.descricao}`;
+        if (passo.exemploMensagem) {
+          prompt += `\nReferência: "${passo.exemploMensagem}"`;
+        }
+        prompt += '\n';
+      }
+    } else {
+      // Fallback for when no flow is configured yet
+      prompt += `\n# PASSO 1: Saudação
+${config.welcomeMessage || `Olá! Meu nome é ${attendantName} e sou assistente virtual da ${companyName}. Como posso te ajudar hoje?`}
 
 # PASSO 2: Identificação
 Pergunte o nome do paciente de forma natural.
@@ -171,11 +187,25 @@ ${generateServiceQuestion()}
 Faça perguntas para entender melhor a situação do paciente.
 
 # PASSO 5: Agendamento
-Ofereça os horários disponíveis e agende a consulta.
+Ofereça os horários disponíveis e agende a consulta.`;
+    }
 
-# PASSO EXTRA: Transferência
-${config.transferMessage || 'Vou te transferir para um especialista. Aguarde um momento! 🙂'}
-</fluxo_atendimento>`;
+    if (passosExtras.length > 0) {
+      prompt += '\n## PASSOS EXTRAS:\n';
+      for (const passo of passosExtras) {
+        prompt += `\n# ${passo.titulo.toUpperCase()}`;
+        prompt += `\n${passo.descricao}`;
+        if (passo.exemploMensagem) {
+          prompt += `\nReferência: "${passo.exemploMensagem}"`;
+        }
+        prompt += '\n';
+      }
+    } else if (passosCronologicos.length === 0) {
+      prompt += `\n\n# PASSO EXTRA: Transferência
+${config.transferMessage || 'Vou te transferir para um especialista. Aguarde um momento!'}`;
+    }
+
+    prompt += `\n</fluxo_atendimento>`;
     
     if (config.beforeAfterImages.length > 0) {
       prompt += `\n\n<passo_extra_fotos>

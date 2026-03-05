@@ -3722,7 +3722,8 @@ function buildHybridSystemPrompt(
   fluxoInstructions: string,
   checklistInstructions: string = "",
   leadLanguage: string = "pt-BR",
-  hasGoogleCalendar: boolean = false
+  hasGoogleCalendar: boolean = false,
+  fluxo: Record<string, unknown> | null = null
 ): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
@@ -3737,11 +3738,18 @@ function buildHybridSystemPrompt(
   const identity = agent.ai_identity || agent.personality || 
     `Você é ${agent.agent_name}, assistente virtual da ${agent.company_name || "clínica"}.`;
 
-  // Agent objective based on stage
-  const objective = agent.ai_objective || getDefaultObjectiveForStage(leadStage);
+  // Check if agent has a custom flow configured
+  const hasCustomFlow = fluxo && Array.isArray((fluxo as Record<string, unknown>).passosCronologicos) && ((fluxo as Record<string, unknown>).passosCronologicos as unknown[]).length > 0;
 
-  // Agent instructions
-  const instructions = agent.ai_instructions || getDefaultInstructions();
+  // Agent objective based on stage — when custom flow exists, use neutral objective
+  const objective = agent.ai_objective || (hasCustomFlow 
+    ? getFlowAwareObjective(leadStage) 
+    : getDefaultObjectiveForStage(leadStage));
+
+  // Agent instructions — when custom flow exists, don't inject generic instructions
+  const instructions = agent.ai_instructions || (hasCustomFlow 
+    ? getFlowFidelityInstructions() 
+    : getDefaultInstructions());
 
   // Agent restrictions
   const restrictions = agent.ai_restrictions || "";
@@ -3861,7 +3869,17 @@ IMPORTANTE: Todas as imagens na galeria (antes/depois, catálogo, localização)
 - Use search_term para encontrar fotos específicas (ex: "barba", "cabelo masculino", "sobrancelha feminino")
 </galeria_de_imagens>
 
-<fluxo_agendamento>
+${hasCustomFlow ? `<regra_fidelidade_fluxo>
+## REGRA CRÍTICA — FIDELIDADE ABSOLUTA AO FLUXO CONFIGURADO
+- O fluxo de atendimento configurado abaixo tem PRIORIDADE ABSOLUTA sobre qualquer instrução genérica acima.
+- Você NÃO DEVE adicionar perguntas, tópicos ou informações que NÃO estejam descritos no passo atual do fluxo.
+- Se o passo NÃO diz para perguntar o nome do lead, NÃO pergunte o nome.
+- Se o passo NÃO diz para qualificar, NÃO qualifique.
+- Se o passo tem MENU DE OPÇÕES, o conteúdo principal deve ser a apresentação + o menu. NÃO adicione perguntas extras.
+- A variação de palavras (regra anti-spam) deve mudar COMO você diz, nunca O QUE você diz ou pergunta.
+- Siga EXATAMENTE o que cada passo descreve — nada a mais, nada a menos.
+</regra_fidelidade_fluxo>
+` : ''}<fluxo_agendamento>
 ## TÉCNICA "OU/OU" - REGRA OBRIGATÓRIA
 
 ### PROIBIÇÃO ABSOLUTA DE HORÁRIOS INVENTADOS:
@@ -4003,6 +4021,20 @@ function getDefaultObjectiveForStage(stage: string): string {
   return objectives[stage] || objectives["novo_lead"];
 }
 
+// Objective when custom flow exists — neutral, doesn't impose extra actions
+function getFlowAwareObjective(stage: string): string {
+  const objectives: Record<string, string> = {
+    "novo_lead": "Atender o lead seguindo EXCLUSIVAMENTE os passos do seu fluxo de atendimento configurado.",
+    "qualificacao": "Continuar o atendimento seguindo os passos do fluxo configurado.",
+    "agendado": "Confirmar agendamento e seguir orientações do fluxo.",
+    "compareceu": "Acompanhar o lead conforme o fluxo configurado.",
+    "pos_procedimento": "Orientar conforme o fluxo configurado.",
+    "acompanhamento": "Acompanhar conforme o fluxo configurado.",
+    "inativo": "Reengajar o lead seguindo o fluxo configurado."
+  };
+  return objectives[stage] || objectives["novo_lead"];
+}
+
 function getDefaultInstructions(): string {
   return `1. Qualifique o lead e entenda suas necessidades
 2. Use search_knowledge_base para consultar informações sobre procedimentos, preços, cuidados
@@ -4011,6 +4043,17 @@ function getDefaultInstructions(): string {
 5. Use get_available_slots e create_appointment para agendar consultas
 6. Use transfer_to_human quando necessário (negociação, dúvidas muito técnicas)
 7. SEMPRE use mover_lead_para_etapa após cada interação significativa para manter o funil atualizado`;
+}
+
+// Instructions when custom flow exists — forces strict flow adherence
+function getFlowFidelityInstructions(): string {
+  return `1. Siga EXCLUSIVAMENTE os passos do seu fluxo de atendimento configurado abaixo
+2. NÃO adicione perguntas ou etapas que NÃO estejam no fluxo (ex: não pergunte o nome se o fluxo não pede)
+3. Use search_knowledge_base quando o lead fizer perguntas sobre procedimentos, preços ou cuidados
+4. Use list_products quando perguntarem sobre produtos
+5. Use as ferramentas de agendamento conforme instruído no fluxo
+6. Use transfer_to_human quando necessário
+7. Use mover_lead_para_etapa conforme o progresso da conversa`;
 }
 
 // Gera instruções do fluxo de atendimento baseado nos passos configurados
@@ -4538,7 +4581,7 @@ serve(async (req) => {
     console.log(`[AI Agent] hasGoogleCalendar: ${hasGoogleCalendar} for account ${accountId}`);
 
     // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow + checklist + language)
-    let systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage, hasGoogleCalendar);
+    let systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions, checklistInstructions, leadLanguage, hasGoogleCalendar, routedAgent.fluxo_atendimento as Record<string, unknown> | null);
 
     // 4.1 Anti-duplication: detect already-sent fluxo media and inject into prompt
     try {
