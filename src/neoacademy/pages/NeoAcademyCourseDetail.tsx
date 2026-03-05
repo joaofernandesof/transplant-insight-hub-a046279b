@@ -21,11 +21,7 @@ export default function NeoAcademyCourseDetail() {
   const { data: course, isLoading } = useQuery({
     queryKey: ['neoacademy-course', courseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('neoacademy_courses')
-        .select('*')
-        .eq('id', courseId!)
-        .single();
+      const { data, error } = await supabase.from('neoacademy_courses').select('*').eq('id', courseId!).single();
       if (error) throw error;
       return data;
     },
@@ -35,12 +31,7 @@ export default function NeoAcademyCourseDetail() {
   const { data: modules } = useQuery({
     queryKey: ['neoacademy-modules', courseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('neoacademy_modules')
-        .select('*')
-        .eq('course_id', courseId!)
-        .eq('is_published', true)
-        .order('order_index');
+      const { data, error } = await supabase.from('neoacademy_modules').select('*').eq('course_id', courseId!).eq('is_published', true).order('order_index');
       if (error) throw error;
       return data || [];
     },
@@ -50,12 +41,7 @@ export default function NeoAcademyCourseDetail() {
   const { data: lessons } = useQuery({
     queryKey: ['neoacademy-lessons', courseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('neoacademy_lessons')
-        .select('*')
-        .eq('course_id', courseId!)
-        .eq('is_published', true)
-        .order('order_index');
+      const { data, error } = await supabase.from('neoacademy_lessons').select('*').eq('course_id', courseId!).eq('is_published', true).order('order_index');
       if (error) throw error;
       return data || [];
     },
@@ -65,12 +51,7 @@ export default function NeoAcademyCourseDetail() {
   const { data: enrollment } = useQuery({
     queryKey: ['neoacademy-enrollment', courseId, user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('neoacademy_enrollments')
-        .select('*')
-        .eq('course_id', courseId!)
-        .eq('user_id', user!.id)
-        .maybeSingle();
+      const { data } = await supabase.from('neoacademy_enrollments').select('*').eq('course_id', courseId!).eq('user_id', user!.id).maybeSingle();
       return data;
     },
     enabled: !!courseId && !!user?.id,
@@ -79,11 +60,7 @@ export default function NeoAcademyCourseDetail() {
   const { data: progress } = useQuery({
     queryKey: ['neoacademy-progress', courseId, user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('neoacademy_lesson_progress')
-        .select('*')
-        .eq('course_id', courseId!)
-        .eq('user_id', user!.id);
+      const { data } = await supabase.from('neoacademy_lesson_progress').select('*').eq('course_id', courseId!).eq('user_id', user!.id);
       return data || [];
     },
     enabled: !!courseId && !!user?.id,
@@ -92,13 +69,7 @@ export default function NeoAcademyCourseDetail() {
   const enrollMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id || !course) throw new Error('Not authenticated');
-      const { error } = await supabase
-        .from('neoacademy_enrollments')
-        .insert({
-          account_id: course.account_id,
-          course_id: course.id,
-          user_id: user.id,
-        });
+      const { error } = await supabase.from('neoacademy_enrollments').insert({ account_id: course.account_id, course_id: course.id, user_id: user.id });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -118,17 +89,13 @@ export default function NeoAcademyCourseDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
 
   if (!course) {
-    return (
-      <div className="flex items-center justify-center h-screen text-zinc-400">
-        Curso não encontrado
-      </div>
-    );
+    return <div className="flex items-center justify-center h-screen text-zinc-400">Curso não encontrado</div>;
   }
 
   const completedLessonIds = new Set(progress?.filter(p => p.is_completed).map(p => p.lesson_id));
@@ -138,16 +105,14 @@ export default function NeoAcademyCourseDetail() {
 
   return (
     <div className="min-h-screen pb-16">
-      {/* Banner */}
       <div className="relative h-[300px] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-900/80 via-[#1a1a2e] to-fuchsia-900/60">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-[#1a1a2e] to-sky-900/60">
           {course.banner_url && (
             <img src={course.banner_url} alt={course.title} className="w-full h-full object-cover opacity-30" />
           )}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
         
-        {/* Back button */}
         <button
           onClick={() => navigate('/neoacademy')}
           className="absolute top-4 left-4 z-10 p-2 rounded-lg bg-black/40 hover:bg-black/60 text-white transition-colors"
@@ -155,10 +120,9 @@ export default function NeoAcademyCourseDetail() {
           <ArrowLeft className="h-5 w-5" />
         </button>
 
-        {/* Course info */}
         <div className="absolute bottom-6 left-6 right-6">
           {course.category && (
-            <span className="inline-block px-2 py-0.5 rounded bg-violet-500/80 text-xs font-bold uppercase text-white mb-2">
+            <span className="inline-block px-2 py-0.5 rounded bg-blue-500/80 text-xs font-bold uppercase text-white mb-2">
               {course.category}
             </span>
           )}
@@ -175,12 +139,11 @@ export default function NeoAcademyCourseDetail() {
       </div>
 
       <div className="px-6 pt-6 max-w-4xl">
-        {/* Enrollment / Progress */}
         {enrollment ? (
           <div className="mb-8 p-4 rounded-xl bg-[#14141f] border border-white/5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-zinc-300">Seu progresso</span>
-              <span className="text-sm font-bold text-violet-400">{Math.round(progressPercent)}%</span>
+              <span className="text-sm font-bold text-blue-400">{Math.round(progressPercent)}%</span>
             </div>
             <Progress value={progressPercent} className="h-2 bg-white/5" />
             <div className="mt-2 text-xs text-zinc-500">{completedCount} de {totalLessons} aulas concluídas</div>
@@ -189,7 +152,7 @@ export default function NeoAcademyCourseDetail() {
           <button
             onClick={() => enrollMutation.mutate()}
             disabled={enrollMutation.isPending}
-            className="mb-8 w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-violet-500 hover:bg-violet-400 text-white font-bold text-lg transition-colors shadow-lg shadow-violet-500/30 disabled:opacity-50"
+            className="mb-8 w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-lg transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-50"
           >
             {enrollMutation.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -200,7 +163,6 @@ export default function NeoAcademyCourseDetail() {
           </button>
         )}
 
-        {/* Description */}
         {course.description && (
           <div className="mb-8">
             <h2 className="text-lg font-bold text-white mb-3">Sobre o curso</h2>
@@ -208,7 +170,6 @@ export default function NeoAcademyCourseDetail() {
           </div>
         )}
 
-        {/* Modules & Lessons */}
         <div className="space-y-3">
           <h2 className="text-lg font-bold text-white mb-4">Conteúdo do Curso</h2>
           
@@ -224,16 +185,10 @@ export default function NeoAcademyCourseDetail() {
                   className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-zinc-400" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-zinc-400" />
-                    )}
+                    {isExpanded ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
                     <span className="font-semibold text-white text-sm">{mod.title}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">
-                    {modCompleted}/{modLessons.length} aulas
-                  </span>
+                  <span className="text-xs text-zinc-500">{modCompleted}/{modLessons.length} aulas</span>
                 </button>
 
                 {isExpanded && (
@@ -256,7 +211,7 @@ export default function NeoAcademyCourseDetail() {
                           {isCompleted ? (
                             <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                           ) : canAccess ? (
-                            <Play className="h-4 w-4 text-violet-400 shrink-0" />
+                            <Play className="h-4 w-4 text-blue-400 shrink-0" />
                           ) : (
                             <Lock className="h-4 w-4 text-zinc-600 shrink-0" />
                           )}
@@ -269,7 +224,7 @@ export default function NeoAcademyCourseDetail() {
                             </span>
                           )}
                           {lesson.is_preview && !enrollment && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-400 font-medium">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-medium">
                               Grátis
                             </span>
                           )}

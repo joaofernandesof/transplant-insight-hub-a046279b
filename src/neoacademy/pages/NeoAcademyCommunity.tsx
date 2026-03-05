@@ -45,7 +45,6 @@ function formatLocation(city: string | null, state: string | null) {
   return city || state || null;
 }
 
-// ─── Member Card ─────────────────────────────────────
 function MemberShowcaseCard({ 
   member, 
   onViewProfile, 
@@ -58,14 +57,13 @@ function MemberShowcaseCard({
   const location = formatLocation(member.city, member.state);
 
   return (
-    <div className="group relative rounded-xl bg-[#14141f] border border-white/5 hover:border-violet-500/30 transition-all duration-300 overflow-hidden">
-      {/* Gradient accent on hover */}
-      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+    <div className="group relative rounded-xl bg-[#14141f] border border-white/5 hover:border-blue-500/30 transition-all duration-300 overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 to-sky-500 opacity-0 group-hover:opacity-100 transition-opacity" />
       
       <div className="p-5 flex flex-col items-center text-center">
-        <Avatar className="h-16 w-16 ring-2 ring-violet-500/20 group-hover:ring-violet-500/40 transition-all">
+        <Avatar className="h-16 w-16 ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all">
           <AvatarImage src={member.avatarUrl || undefined} alt={member.fullName} />
-          <AvatarFallback className="bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-300 text-lg font-bold">
+          <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-sky-500/20 text-blue-300 text-lg font-bold">
             {getInitials(member.fullName)}
           </AvatarFallback>
         </Avatar>
@@ -89,7 +87,7 @@ function MemberShowcaseCard({
         )}
 
         {member.role === 'owner' && (
-          <Badge className="mt-2 bg-violet-500/15 text-violet-400 border-violet-500/20 text-[10px]">
+          <Badge className="mt-2 bg-blue-500/15 text-blue-400 border-blue-500/20 text-[10px]">
             Produtor
           </Badge>
         )}
@@ -107,7 +105,7 @@ function MemberShowcaseCard({
           <Button
             onClick={onMessage}
             size="sm"
-            className="flex-1 gap-1.5 text-xs h-8 bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 border-0"
+            className="flex-1 gap-1.5 text-xs h-8 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 border-0"
           >
             <MessageCircle className="h-3.5 w-3.5" />
             Mensagem
@@ -118,7 +116,6 @@ function MemberShowcaseCard({
   );
 }
 
-// ─── Profile Dialog ──────────────────────────────────
 function ProfileDialog({ 
   member, 
   onClose, 
@@ -139,9 +136,9 @@ function ProfileDialog({
         </DialogHeader>
 
         <div className="flex flex-col items-center text-center py-4">
-          <Avatar className="h-24 w-24 ring-4 ring-violet-500/20">
+          <Avatar className="h-24 w-24 ring-4 ring-blue-500/20">
             <AvatarImage src={member.avatarUrl || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 text-violet-300 text-2xl font-bold">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-sky-500/20 text-blue-300 text-2xl font-bold">
               {getInitials(member.fullName)}
             </AvatarFallback>
           </Avatar>
@@ -153,7 +150,7 @@ function ProfileDialog({
             </div>
           )}
           {member.role === 'owner' && (
-            <Badge className="mt-2 bg-violet-500/15 text-violet-400 border-violet-500/20">Produtor</Badge>
+            <Badge className="mt-2 bg-blue-500/15 text-blue-400 border-blue-500/20">Produtor</Badge>
           )}
         </div>
 
@@ -176,7 +173,7 @@ function ProfileDialog({
                     href={`https://instagram.com/${member.instagramPersonal.replace('@', '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-violet-400 hover:underline"
+                    className="text-blue-400 hover:underline"
                   >
                     {member.instagramPersonal}
                   </a>
@@ -203,7 +200,7 @@ function ProfileDialog({
         <div className="border-t border-white/5 pt-4">
           <Button
             onClick={() => { onMessage(); onClose(); }}
-            className="w-full bg-violet-500 hover:bg-violet-600 text-white"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white"
           >
             <MessageCircle className="h-4 w-4 mr-2" />
             Enviar Mensagem
@@ -214,7 +211,6 @@ function ProfileDialog({
   );
 }
 
-// ─── Main Page ───────────────────────────────────────
 export default function NeoAcademyCommunity() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
@@ -224,45 +220,30 @@ export default function NeoAcademyCommunity() {
   const [messageMember, setMessageMember] = useState<Member | null>(null);
   const [message, setMessage] = useState('');
 
-  // Fetch all members of the same NeoAcademy account
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['neoacademy-members', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-
-      // Get current user's account
       const { data: myMembership } = await supabase
         .from('neoacademy_account_members')
         .select('account_id')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .single();
-
       if (!myMembership) return [];
-
-      // Get all members of the same account
       const { data: accountMembers, error } = await supabase
         .from('neoacademy_account_members')
         .select('user_id, role')
         .eq('account_id', myMembership.account_id)
         .eq('is_active', true);
-
       if (error || !accountMembers) return [];
-
-      const userIds = accountMembers
-        .map(m => m.user_id)
-        .filter(id => id !== user.id);
-
+      const userIds = accountMembers.map(m => m.user_id).filter(id => id !== user.id);
       if (userIds.length === 0) return [];
-
-      // Fetch user details
       const { data: users } = await supabase
         .from('neohub_users')
         .select('user_id, full_name, avatar_url, email, address_city, address_state, bio, clinic_name, instagram_personal, whatsapp_personal, profile_public')
         .in('user_id', userIds);
-
       const roleMap = new Map(accountMembers.map(m => [m.user_id, m.role]));
-
       return (users || []).map((u): Member => ({
         userId: u.user_id,
         fullName: u.full_name || 'Membro',
@@ -281,16 +262,11 @@ export default function NeoAcademyCommunity() {
     enabled: !!user?.id,
   });
 
-  // Send message
   const sendMessageMutation = useMutation({
     mutationFn: async ({ recipientId, content }: { recipientId: string; content: string }) => {
       const { error } = await supabase
         .from('community_messages')
-        .insert({
-          sender_id: user!.id,
-          recipient_id: recipientId,
-          content,
-        });
+        .insert({ sender_id: user!.id, recipient_id: recipientId, content });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -301,7 +277,6 @@ export default function NeoAcademyCommunity() {
     onError: () => toast.error('Erro ao enviar mensagem'),
   });
 
-  // Filters
   const uniqueStates = [...new Set(members.map(m => m.state).filter(Boolean))].sort() as string[];
 
   const filteredMembers = members.filter(m => {
@@ -316,26 +291,24 @@ export default function NeoAcademyCommunity() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen pb-12">
-      {/* Header */}
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
         <div className="flex items-center gap-3">
-          <Users className="h-5 w-5 text-violet-400" />
+          <Users className="h-5 w-5 text-blue-400" />
           <h1 className="text-lg font-bold text-white">Comunidade</h1>
-          <Badge className="bg-violet-500/15 text-violet-400 border-violet-500/20 text-xs ml-auto">
+          <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/20 text-xs ml-auto">
             {members.length} {members.length === 1 ? 'membro' : 'membros'}
           </Badge>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto px-6 pt-6 space-y-6">
-        {/* Search & Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-600" />
@@ -343,7 +316,7 @@ export default function NeoAcademyCommunity() {
               placeholder="Buscar por nome, clínica ou cidade..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-[#14141f] border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-violet-500/50"
+              className="pl-10 bg-[#14141f] border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-blue-500/50"
             />
           </div>
           {uniqueStates.length > 0 && (
@@ -364,14 +337,12 @@ export default function NeoAcademyCommunity() {
           )}
         </div>
 
-        {/* Results count */}
         {searchTerm || stateFilter !== 'all' ? (
           <p className="text-xs text-zinc-600">
             {filteredMembers.length} {filteredMembers.length === 1 ? 'membro encontrado' : 'membros encontrados'}
           </p>
         ) : null}
 
-        {/* Members Grid (Vitrine) */}
         {filteredMembers.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredMembers.map(member => (
@@ -394,7 +365,6 @@ export default function NeoAcademyCommunity() {
         )}
       </div>
 
-      {/* Profile Dialog */}
       <ProfileDialog
         member={selectedMember}
         onClose={() => setSelectedMember(null)}
@@ -403,7 +373,6 @@ export default function NeoAcademyCommunity() {
         }}
       />
 
-      {/* Send Message Dialog */}
       <Dialog open={!!messageMember} onOpenChange={() => setMessageMember(null)}>
         <DialogContent className="sm:max-w-md bg-[#14141f] border-white/10 text-white">
           <DialogHeader>
@@ -417,7 +386,7 @@ export default function NeoAcademyCommunity() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={4}
-            className="bg-[#0a0a0f] border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-violet-500/50"
+            className="bg-[#0a0a0f] border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-blue-500/50"
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setMessageMember(null)} className="border-white/10 text-zinc-300 hover:bg-white/5">
@@ -430,7 +399,7 @@ export default function NeoAcademyCommunity() {
                 }
               }}
               disabled={!message.trim() || sendMessageMutation.isPending}
-              className="bg-violet-500 hover:bg-violet-600 text-white gap-2"
+              className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
             >
               <Send className="h-4 w-4" />
               Enviar
