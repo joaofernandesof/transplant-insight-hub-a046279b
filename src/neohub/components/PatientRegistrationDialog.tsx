@@ -45,7 +45,16 @@ const CATEGORIES = [
   'RETOUCHING',
 ];
 const LEAD_SOURCES = ['INDICAÇÃO', 'GOOGLE', 'INSTAGRAM', 'FACEBOOK', 'TIKTOK', 'YOUTUBE', 'SITE', 'EVENTO', 'OUTROS'];
-const CONTRACT_STATUS = ['PENDENTE', 'ASSINADO', 'CANCELADO', 'EM_ANALISE'];
+const CONTRACT_STATUSES = [
+  { value: 'NAO_ENVIADO', label: 'Não Enviado' },
+  { value: 'AGUARDANDO_ASS_PACIENTE', label: 'Aguardando Ass. Paciente' },
+  { value: 'AGUARDANDO_ASS_EQUIPE', label: 'Aguardando Ass. Equipe' },
+  { value: 'FINALIZADO', label: 'Finalizado' },
+  { value: 'ASSINADO_FISICO', label: 'Assinado Físico' },
+  { value: 'DISTRATADO', label: 'Distratado' },
+  { value: 'CANCELADO', label: 'Cancelado' },
+  { value: 'PENDENCIA', label: 'Pendência' },
+];
 
 type DateOption = 'none' | 'no-date' | 'with-date';
 
@@ -213,6 +222,9 @@ export function PatientRegistrationDialog({
       }
       if (formData.grade) {
         insertData.grade = parseInt(formData.grade);
+      }
+      if (formData.contract_status) {
+        insertData.contract_status = formData.contract_status;
       }
 
       const { error: surgeryError } = await supabase
@@ -490,8 +502,8 @@ export function PatientRegistrationDialog({
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CONTRACT_STATUS.map(status => (
-                        <SelectItem key={status} value={status}>{status.replace('_', ' ')}</SelectItem>
+                      {CONTRACT_STATUSES.map(s => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
