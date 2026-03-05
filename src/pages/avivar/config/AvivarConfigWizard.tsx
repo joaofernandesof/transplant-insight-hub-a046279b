@@ -245,14 +245,6 @@ export default function AvivarConfigWizard() {
       
       case 10:
         return (
-          <StepImages
-            gallery={config.imageGallery}
-            onChange={(gallery) => updateConfig({ imageGallery: gallery })}
-          />
-        );
-      
-      case 11:
-        return (
           <StepSchedule
             schedule={config.schedule}
             onChange={(schedule: WeekSchedule) => updateConfig({ schedule })}
