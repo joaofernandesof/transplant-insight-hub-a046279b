@@ -414,9 +414,11 @@ export type Database = {
           ai_instructions: string | null
           ai_objective: string | null
           ai_restrictions: string | null
+          attendance_mode: string
           avatar_url: string | null
           before_after_images: Json | null
           business_units: Json | null
+          chatbot_flows: Json | null
           city: string | null
           company_name: string | null
           consultation_duration: number | null
@@ -455,9 +457,11 @@ export type Database = {
           ai_instructions?: string | null
           ai_objective?: string | null
           ai_restrictions?: string | null
+          attendance_mode?: string
           avatar_url?: string | null
           before_after_images?: Json | null
           business_units?: Json | null
+          chatbot_flows?: Json | null
           city?: string | null
           company_name?: string | null
           consultation_duration?: number | null
@@ -496,9 +500,11 @@ export type Database = {
           ai_instructions?: string | null
           ai_objective?: string | null
           ai_restrictions?: string | null
+          attendance_mode?: string
           avatar_url?: string | null
           before_after_images?: Json | null
           business_units?: Json | null
+          chatbot_flows?: Json | null
           city?: string | null
           company_name?: string | null
           consultation_duration?: number | null
@@ -5447,9 +5453,11 @@ export type Database = {
           ai_processing_started_at: string | null
           assigned_agent_id: string | null
           assigned_to: string | null
+          attendance_mode_override: string | null
           channel: string
           context_summary: string | null
           created_at: string
+          current_chatbot_node_id: string | null
           id: string
           last_ai_processed_at: string | null
           last_message_at: string | null
@@ -5468,9 +5476,11 @@ export type Database = {
           ai_processing_started_at?: string | null
           assigned_agent_id?: string | null
           assigned_to?: string | null
+          attendance_mode_override?: string | null
           channel?: string
           context_summary?: string | null
           created_at?: string
+          current_chatbot_node_id?: string | null
           id?: string
           last_ai_processed_at?: string | null
           last_message_at?: string | null
@@ -5489,9 +5499,11 @@ export type Database = {
           ai_processing_started_at?: string | null
           assigned_agent_id?: string | null
           assigned_to?: string | null
+          attendance_mode_override?: string | null
           channel?: string
           context_summary?: string | null
           created_at?: string
+          current_chatbot_node_id?: string | null
           id?: string
           last_ai_processed_at?: string | null
           last_message_at?: string | null
