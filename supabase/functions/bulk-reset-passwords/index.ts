@@ -23,6 +23,40 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Validate JWT and admin role
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claims, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claims?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const callerUserId = claims.claims.sub as string;
+
+    const { data: isAdmin } = await supabaseAuth.rpc("is_neohub_admin", { _user_id: callerUserId });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden - admin only" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -31,15 +65,11 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
     const body: ResetRequest = await req.json();
 
-    // Support both formats: individual passwords per user OR single password for all
     let userList: UserPasswordPair[] = [];
 
     if (body.users && body.users.length > 0) {
@@ -55,10 +85,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const results: { email: string; status: string; error?: string }[] = [];
 
-    // Build email-to-user map efficiently
     const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
+      page: 1, perPage: 1000,
     });
 
     if (listError) {
@@ -75,32 +103,21 @@ const handler = async (req: Request): Promise<Response> => {
     for (const { email, password } of userList) {
       try {
         const userId = emailToUser.get(email.toLowerCase());
-
         if (!userId) {
-          console.log(`User not found: ${email}`);
           results.push({ email, status: "not_found" });
           continue;
         }
-
         if (password.length < 6) {
           results.push({ email, status: "error", error: "Password too short" });
           continue;
         }
-
-        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-          userId,
-          { password }
-        );
-
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
         if (updateError) {
-          console.error(`Error updating password for ${email}:`, updateError);
           results.push({ email, status: "error", error: updateError.message });
         } else {
-          console.log(`Password updated for ${email}`);
           results.push({ email, status: "updated" });
         }
       } catch (err: any) {
-        console.error(`Error processing ${email}:`, err);
         results.push({ email, status: "error", error: err.message });
       }
     }
@@ -117,11 +134,10 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error: any) {
     console.error("Error in bulk-reset-passwords:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
