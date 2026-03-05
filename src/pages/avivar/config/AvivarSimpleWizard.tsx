@@ -32,7 +32,6 @@ import { autoGenerateConfig } from './utils/autoGenerateConfig';
 import { 
   AgentConfig, 
   INITIAL_CONFIG, 
-  EMPTY_IMAGE_GALLERY,
   PAYMENT_METHODS,
   DEFAULT_WEEK_SCHEDULE,
   NichoType,
