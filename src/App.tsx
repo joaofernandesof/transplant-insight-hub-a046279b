@@ -966,7 +966,7 @@ function AppRoutes() {
       <Route path="/cpg/proposals/new" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/proposals/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedProposalEditor /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/reports" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedReports /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/functions" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFunctions /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      
       
       <Route path="/cpg/forms" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedOnboardingForms /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       {/* Legacy redirect */}
