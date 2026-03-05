@@ -545,6 +545,8 @@ export function StepFluxoSimple({
                     >
                       <Pencil className="h-3 w-3" /> Editar
                     </Button>
+                  </div>
+                )}
               </div>
 
               {/* Menu de Opções (Ramificação) - logo após instrução */}
@@ -555,8 +557,6 @@ export function StepFluxoSimple({
                 currentStepId={step.id}
                 kanbanColumns={kanbanColumns}
               />
-                )}
-              </div>
 
               {/* Exemplo de Mensagem */}
               {(step.exemploMensagem || (editing && editing.stepId === step.id && editing.field === 'exemploMensagem')) && (
