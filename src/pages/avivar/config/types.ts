@@ -299,6 +299,10 @@ export interface AgentConfig {
   aiInstructions: string;
   aiRestrictions: string;
   
+  // Modo de Atendimento
+  attendanceMode: AttendanceMode;
+  chatbotFlows: ChatbotFlow[];
+  
   // Fluxo de Atendimento
   fluxoAtendimento: FluxoAtendimento;
   
