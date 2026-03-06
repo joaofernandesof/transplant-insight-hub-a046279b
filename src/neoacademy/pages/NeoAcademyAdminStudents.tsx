@@ -40,6 +40,15 @@ interface StudentRow {
   isActive: boolean;
   enrollments: { id: string; courseId: string; courseTitle: string; progress: number; completedAt: string | null; isActive: boolean }[];
   lastAccess: string | null;
+  profileAssignments: Record<string, boolean>; // profileId -> isActive
+}
+
+interface StudentProfile {
+  id: string;
+  name: string;
+  slug: string;
+  color: string | null;
+  order_index: number | null;
 }
 
 export default function NeoAcademyAdminStudents() {
