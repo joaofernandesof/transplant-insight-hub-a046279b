@@ -604,7 +604,7 @@ function AcademyRoutes() {
 import { NeoAcademySidebar } from './neoacademy/components/NeoAcademySidebar';
 const NeoAcademyMyCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyMyCourses'));
 const NeoAcademyContinue = React.lazy(() => import('./neoacademy/pages/NeoAcademyContinue'));
-const NeoAcademyCommunity = React.lazy(() => import('./neoacademy/pages/NeoAcademyCommunity'));
+
 const NeoAcademyCertificates = React.lazy(() => import('./neoacademy/pages/NeoAcademyCertificates'));
 const NeoAcademyAdminAnalytics = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminAnalytics'));
 const NeoAcademyAdminCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminCourses'));
