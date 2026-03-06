@@ -12714,6 +12714,7 @@ export type Database = {
           id: string
           is_published: boolean | null
           order_index: number | null
+          thumbnail_url: string | null
           title: string
           updated_at: string | null
         }
@@ -12725,6 +12726,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           order_index?: number | null
+          thumbnail_url?: string | null
           title: string
           updated_at?: string | null
         }
@@ -12736,6 +12738,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           order_index?: number | null
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
         }

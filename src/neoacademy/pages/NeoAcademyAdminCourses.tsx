@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { Loader2, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Star, Clock, Users, X, Save } from 'lucide-react';
+import { Loader2, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Star, Clock, Users, X, Save, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -45,6 +46,7 @@ const EMPTY_FORM: CourseFormData = {
 
 export default function NeoAcademyAdminCourses() {
   const { user } = useUnifiedAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
@@ -284,6 +286,13 @@ export default function NeoAcademyAdminCourses() {
                   title={course.is_published ? 'Despublicar' : 'Publicar'}
                 >
                   {course.is_published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                </button>
+                <button
+                  onClick={() => navigate(`/neoacademy/admin/courses/${course.id}`)}
+                  className="p-2 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition"
+                  title="Gerenciar"
+                >
+                  <Settings className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => openEditCourse(course)}
