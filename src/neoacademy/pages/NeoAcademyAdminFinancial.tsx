@@ -120,7 +120,7 @@ export default function NeoAcademyAdminFinancial() {
   });
 
   // Fetch user profiles for displaying names
-  const orderUserIds = useMemo(() => [...new Set(orders.map((o: any) => o.user_id))], [orders]);
+  const orderUserIds = useMemo(() => [...new Set(orders.map((o: any) => o.user_id))] as string[], [orders]);
   const { data: userProfiles = {} } = useQuery({
     queryKey: ['neoacademy-fin-profiles', orderUserIds],
     queryFn: async () => {
