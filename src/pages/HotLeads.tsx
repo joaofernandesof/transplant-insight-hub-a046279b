@@ -416,9 +416,9 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     if (realIsAdmin && !simulatedUserId) return base; // Admin real sempre vê todos
 
     const coords = effectiveCoords;
-    const state = effectiveUserState;
+    const states = effectiveUserStates;
 
-    if (!coords && !state) return [];
+    if (!coords && (!states || states.length === 0)) return [];
 
     return base.filter(l => {
       // If both have coordinates, use Haversine radius
@@ -426,13 +426,13 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
         const dist = haversineKm(coords.lat, coords.lng, l.latitude, l.longitude);
         return dist <= radiusKm;
       }
-      // Fallback: same state
-      if (state) {
-        return !l.state || l.state === state;
+      // Fallback: accepted states
+      if (states && states.length > 0) {
+        return !l.state || states.includes(l.state);
       }
       return false;
     });
-  }, [filteredLeads, realIsAdmin, simulatedUserId, effectiveCoords, effectiveUserState, radiusKm]);
+  }, [filteredLeads, realIsAdmin, simulatedUserId, effectiveCoords, effectiveUserStates, radiusKm]);
   
   // Adquiridos: admin sees ALL claimed with no outcome; user sees only their own
   const filteredAcquired = useMemo(() => 
