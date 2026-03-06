@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,42 +23,37 @@ import { ptBR } from "date-fns/locale";
 
 export function AcademyExams() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isDark = location.pathname.startsWith('/neoacademy');
   const { data: exams = [], isLoading } = useExams();
   const { data: attempts = [] } = useExamAttempts();
   const [activeTab, setActiveTab] = useState('available');
 
   // Calculate stats - count by UNIQUE EXAMS, not attempts
   const completedAttempts = attempts.filter(a => a.status === 'submitted');
-  
-  // Get unique exam IDs that have been attempted
   const uniqueExamIdsCompleted = [...new Set(completedAttempts.map(a => a.exam_id))];
   const completedExamsCount = uniqueExamIdsCompleted.length;
   
-  // For "Aprovações" and "Média", we count unique exams using best score per exam
   const getBestScoreForExam = (examId: string) => {
     const examAttempts = completedAttempts.filter(a => a.exam_id === examId);
     if (examAttempts.length === 0) return null;
     return Math.max(...examAttempts.map(a => a.score || 0));
   };
   
-  // Count unique exams passed (best score >= 70)
   const passedExamsCount = uniqueExamIdsCompleted.filter(examId => {
     const best = getBestScoreForExam(examId);
     return best !== null && best >= 70;
   }).length;
   
-  // Average score using best score per exam
   const averageScore = uniqueExamIdsCompleted.length > 0 
     ? Math.round(uniqueExamIdsCompleted.reduce((acc, examId) => acc + (getBestScoreForExam(examId) || 0), 0) / uniqueExamIdsCompleted.length)
     : 0;
 
-  // Filter exams
   const availableExams = exams.filter(e => e.is_active);
   const completedExams = exams.filter(e => 
     attempts.some(a => a.exam_id === e.id && a.status === 'submitted')
   );
 
-  // Only get submitted attempts (exclude in_progress)
   const getExamAttempts = (examId: string) => {
     return attempts.filter(a => a.exam_id === examId && a.status !== 'in_progress');
   };
@@ -78,69 +73,70 @@ export function AcademyExams() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen ${isDark ? 'bg-[#0a0a0f] text-white' : 'bg-background'}`}>
       <main className="px-4 pt-16 lg:pt-6 pb-6 overflow-x-hidden w-full">
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <FileText className="h-5 w-5 text-blue-600" />
+          <h1 className={`text-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
+            <FileText className={`h-5 w-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             Provas e Avaliações
           </h1>
-          <p className="text-sm text-muted-foreground">Teste seus conhecimentos e obtenha certificações</p>
+          <p className={`text-sm ${isDark ? 'text-zinc-500' : 'text-muted-foreground'}`}>Teste seus conhecimentos e obtenha certificações</p>
         </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-950/50 dark:to-indigo-950/50 dark:border-blue-800">
+          <Card className={isDark ? 'bg-[#14141f] border-white/5' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-950/50 dark:to-indigo-950/50 dark:border-blue-800'}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
                   <FileText className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{availableExams.length}</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-500">Provas Disponíveis</p>
+                  <p className={`text-2xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-700 dark:text-blue-400'}`}>{availableExams.length}</p>
+                  <p className={`text-xs ${isDark ? 'text-blue-400/70' : 'text-blue-600 dark:text-blue-500'}`}>Provas Disponíveis</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 dark:from-green-950/50 dark:to-emerald-950/50 dark:border-green-800">
+          <Card className={isDark ? 'bg-[#14141f] border-white/5' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 dark:from-green-950/50 dark:to-emerald-950/50 dark:border-green-800'}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
                   <CheckCircle2 className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-700 dark:text-green-400">{passedExamsCount}</p>
-                  <p className="text-xs text-green-600 dark:text-green-500">Aprovações</p>
+                  <p className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-green-700 dark:text-green-400'}`}>{passedExamsCount}</p>
+                  <p className={`text-xs ${isDark ? 'text-emerald-400/70' : 'text-green-600 dark:text-green-500'}`}>Aprovações</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 dark:from-amber-950/50 dark:to-yellow-950/50 dark:border-amber-800">
+          <Card className={isDark ? 'bg-[#14141f] border-white/5' : 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 dark:from-amber-950/50 dark:to-yellow-950/50 dark:border-amber-800'}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center">
                   <Target className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{averageScore}%</p>
-                  <p className="text-xs text-amber-600 dark:text-amber-500">Média Geral</p>
+                  <p className={`text-2xl font-bold ${isDark ? 'text-amber-400' : 'text-amber-700 dark:text-amber-400'}`}>{averageScore}%</p>
+                  <p className={`text-xs ${isDark ? 'text-amber-400/70' : 'text-amber-600 dark:text-amber-500'}`}>Média Geral</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 dark:from-purple-950/50 dark:to-violet-950/50 dark:border-purple-800">
+          <Card className={isDark ? 'bg-[#14141f] border-white/5' : 'bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 dark:from-purple-950/50 dark:to-violet-950/50 dark:border-purple-800'}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center">
                   <Trophy className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{completedExamsCount}</p>
-                  <p className="text-xs text-purple-600 dark:text-purple-500">Provas Realizadas</p>
+                  <p className={`text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-700 dark:text-purple-400'}`}>{completedExamsCount}</p>
+                  <p className={`text-xs ${isDark ? 'text-purple-400/70' : 'text-purple-600 dark:text-purple-500'}`}>Provas Realizadas</p>
                 </div>
               </div>
             </CardContent>
@@ -149,12 +145,12 @@ export function AcademyExams() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="bg-blue-50 dark:bg-blue-950/30">
-            <TabsTrigger value="available" className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-blue-900">
+          <TabsList className={isDark ? 'bg-[#14141f] border border-white/5' : 'bg-blue-50 dark:bg-blue-950/30'}>
+            <TabsTrigger value="available" className={`gap-2 ${isDark ? 'data-[state=active]:bg-blue-500 data-[state=active]:text-white text-zinc-400' : 'data-[state=active]:bg-white dark:data-[state=active]:bg-blue-900'}`}>
               <Play className="h-4 w-4" />
               Disponíveis ({availableExams.length})
             </TabsTrigger>
-            <TabsTrigger value="completed" className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-blue-900">
+            <TabsTrigger value="completed" className={`gap-2 ${isDark ? 'data-[state=active]:bg-blue-500 data-[state=active]:text-white text-zinc-400' : 'data-[state=active]:bg-white dark:data-[state=active]:bg-blue-900'}`}>
               <CheckCircle2 className="h-4 w-4" />
               Realizadas ({completedExams.length})
             </TabsTrigger>
@@ -165,7 +161,7 @@ export function AcademyExams() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <Card key={i} className="animate-pulse">
+              <Card key={i} className={`animate-pulse ${isDark ? 'bg-[#14141f] border-white/5' : ''}`}>
                 <CardContent className="h-32" />
               </Card>
             ))}
@@ -178,11 +174,10 @@ export function AcademyExams() {
               const lastAttempt = examAttempts[0];
               const passingScore = exam.passing_score || 70;
               const hasPassed = bestScore !== null && bestScore >= passingScore;
-              // Student UX: allow retry until passing (don't hide due to max_attempts)
               const canRetake = !hasPassed;
 
               return (
-                <Card key={exam.id} className="hover:shadow-md transition-all">
+                <Card key={exam.id} className={`hover:shadow-md transition-all ${isDark ? 'bg-[#14141f] border-white/5 hover:border-blue-500/20' : ''}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
@@ -201,7 +196,7 @@ export function AcademyExams() {
 
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="font-semibold">{exam.title}</h3>
+                          <h3 className={`font-semibold ${isDark ? 'text-white' : ''}`}>{exam.title}</h3>
                           {bestScore !== null && (
                             <Badge className={
                               bestScore >= 70 
@@ -223,9 +218,9 @@ export function AcademyExams() {
                           )}
                         </div>
 
-                        <p className="text-sm text-muted-foreground mb-2">{exam.description}</p>
+                        <p className={`text-sm mb-2 ${isDark ? 'text-zinc-400' : 'text-muted-foreground'}`}>{exam.description}</p>
 
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                        <div className={`flex items-center gap-4 text-xs flex-wrap ${isDark ? 'text-zinc-500' : 'text-muted-foreground'}`}>
                           {exam.duration_minutes && (
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -254,6 +249,7 @@ export function AcademyExams() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleViewResults(exam.id, lastAttempt.id)}
+                            className={isDark ? 'border-white/10 text-zinc-300 hover:bg-white/5' : ''}
                           >
                             Ver Resultado
                           </Button>
@@ -267,8 +263,8 @@ export function AcademyExams() {
 
             {(activeTab === 'available' ? availableExams : completedExams).length === 0 && (
               <div className="text-center py-12">
-                <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-                <p className="text-lg font-medium text-muted-foreground">
+                <FileText className={`h-12 w-12 mx-auto mb-3 ${isDark ? 'text-zinc-700' : 'text-muted-foreground/50'}`} />
+                <p className={`text-lg font-medium ${isDark ? 'text-zinc-500' : 'text-muted-foreground'}`}>
                   {activeTab === 'available' 
                     ? 'Nenhuma prova disponível no momento'
                     : 'Você ainda não realizou nenhuma prova'}
