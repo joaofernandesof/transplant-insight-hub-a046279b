@@ -76,12 +76,12 @@ export default function NeoAcademyLesson() {
 
   const completeMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id || !lesson) throw new Error('Missing data');
+      if (!user?.authUserId || !lesson) throw new Error('Missing data');
       const { error } = await supabase.from('neoacademy_lesson_progress').upsert({
         account_id: lesson.account_id,
         lesson_id: lesson.id,
         course_id: lesson.course_id,
-        user_id: user.id,
+        user_id: user.authUserId,
         is_completed: true,
         completed_at: new Date().toISOString(),
       }, { onConflict: 'lesson_id,user_id' });
