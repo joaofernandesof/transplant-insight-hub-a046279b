@@ -154,7 +154,14 @@ export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded
       setNewProfileDesc('');
       toast.success('Perfil criado!');
     },
-    onError: () => toast.error('Erro ao criar perfil'),
+    onError: (err: any) => {
+      const msg = err?.message || '';
+      if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('23505')) {
+        toast.error('Já existe um perfil com esse slug/identificador. Use outro nome.');
+      } else {
+        toast.error('Erro ao criar perfil');
+      }
+    },
   });
 
   // Delete profile
