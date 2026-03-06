@@ -287,16 +287,20 @@ function FeaturedPartnerCard({ coupon, copiedId, onCopy }: { coupon: any; copied
               <Copy className="h-4 w-4 text-zinc-500 group-hover:text-amber-400 shrink-0 transition-colors" />
             )}
           </button>
-          {coupon.link_url && (
-            <a
-              href={coupon.link_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 rounded-xl bg-[#1a1a2e] border border-white/10 text-zinc-400 hover:text-amber-400 hover:border-amber-500/30 transition"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          )}
+        </div>
+
+        {/* Contact button */}
+        {coupon.link_url && (
+          <a
+            href={coupon.link_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 w-full flex items-center justify-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/40 rounded-xl px-4 py-3 text-sm font-semibold transition-all"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Falar com Parceiro
+          </a>
+        )
         </div>
 
         {coupon.valid_until && (
