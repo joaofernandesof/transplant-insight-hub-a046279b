@@ -866,8 +866,8 @@ function AppRoutes() {
       <Route path="/university" element={<Navigate to="/neoacademy" replace />} />
       <Route path="/university/*" element={<Navigate to="/neoacademy" replace />} />
       
-      {/* Materials -> NeoLicense */}
-      <Route path="/materials" element={<Navigate to="/neolicense/materials" replace />} />
+      {/* Materials -> NeoAcademy */}
+      <Route path="/materials" element={<Navigate to="/neoacademy/materials" replace />} />
       
       {/* Partners -> NeoLicense */}
       <Route path="/partners" element={<Navigate to="/neolicense/partners" replace />} />

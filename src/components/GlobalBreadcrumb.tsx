@@ -60,7 +60,7 @@ const routeLabels: Record<string, string> = {
   '/neolicense': 'Início',
   '/neolicense/dashboard': 'Dashboard',
   '/neolicense/university': 'Universidade',
-  '/neolicense/materials': 'Materiais',
+  '/neoacademy/materials': 'Materiais',
   '/neolicense/partners': 'Parceiros',
   '/neolicense/surgery': 'Cirurgias',
   '/neolicense/achievements': 'Conquistas',
