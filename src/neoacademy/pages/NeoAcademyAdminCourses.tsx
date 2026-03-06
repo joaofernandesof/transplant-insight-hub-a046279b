@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { Loader2, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Star, Clock, Users, X, Save } from 'lucide-react';
+import { Loader2, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Star, Clock, Users, X, Save, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
