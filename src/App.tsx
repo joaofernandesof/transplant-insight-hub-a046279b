@@ -630,7 +630,7 @@ function NeoAcademyRoutes() {
                 <Route path="lesson/:lessonId" element={<NeoAcademyLesson />} />
                 <Route path="my-courses" element={<NeoAcademyMyCourses />} />
                 <Route path="continue" element={<NeoAcademyContinue />} />
-                <Route path="community" element={<NeoAcademyCommunity />} />
+                
                 <Route path="certificates" element={<NeoAcademyCertificates />} />
                 {/* Presential courses - migrated from Academy */}
                 <Route path="schedule" element={<AcademySchedule />} />
