@@ -12800,6 +12800,7 @@ export type Database = {
       }
       neoacademy_partner_coupons: {
         Row: {
+          banner_url: string | null
           category: string | null
           coupon_code: string
           created_at: string | null
@@ -12807,6 +12808,7 @@ export type Database = {
           discount_label: string
           id: string
           is_active: boolean | null
+          is_featured: boolean | null
           link_url: string | null
           order_index: number | null
           partner_logo_url: string | null
@@ -12815,6 +12817,7 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          banner_url?: string | null
           category?: string | null
           coupon_code: string
           created_at?: string | null
@@ -12822,6 +12825,7 @@ export type Database = {
           discount_label: string
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           link_url?: string | null
           order_index?: number | null
           partner_logo_url?: string | null
@@ -12830,6 +12834,7 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          banner_url?: string | null
           category?: string | null
           coupon_code?: string
           created_at?: string | null
@@ -12837,6 +12842,7 @@ export type Database = {
           discount_label?: string
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           link_url?: string | null
           order_index?: number | null
           partner_logo_url?: string | null
