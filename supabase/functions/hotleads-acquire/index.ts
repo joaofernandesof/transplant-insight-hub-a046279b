@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Check user's state from neohub_users
+    // Check user's profile for name
     const { data: userProfile } = await supabaseAdmin
       .from('neohub_users')
       .select('address_state, user_id, full_name')
@@ -66,24 +66,37 @@ Deno.serve(async (req) => {
     const isAdmin = await supabaseAdmin.rpc('is_neohub_admin', { _user_id: userId })
     const userIsAdmin = isAdmin?.data === true
 
-    // If not admin, validate state match
-    if (!userIsAdmin && userProfile?.address_state) {
-      // Get lead's state first
-      const { data: leadData } = await supabaseAdmin
-        .from('leads')
-        .select('state')
-        .eq('id', lead_id)
-        .single()
+    // If not admin, validate state match using accepted_states from distribution config
+    if (!userIsAdmin) {
+      // Get user's accepted states from distribution table
+      const { data: distConfig } = await supabaseAdmin
+        .from('neohair_lead_distribution')
+        .select('accepted_states')
+        .eq('professional_user_id', userId)
+        .eq('is_active', true)
+        .maybeSingle()
 
-      if (leadData?.state && leadData.state !== userProfile.address_state) {
-        console.log(`[hotleads-acquire] State mismatch: user=${userProfile.address_state}, lead=${leadData.state}`)
-        return new Response(
-          JSON.stringify({ error: 'Você só pode capturar leads do seu estado.' }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        )
+      const acceptedStates: string[] = distConfig?.accepted_states || 
+        (userProfile?.address_state ? [userProfile.address_state] : [])
+
+      if (acceptedStates.length > 0) {
+        // Get lead's state
+        const { data: leadData } = await supabaseAdmin
+          .from('leads')
+          .select('state')
+          .eq('id', lead_id)
+          .single()
+
+        if (leadData?.state && !acceptedStates.includes(leadData.state)) {
+          console.log(`[hotleads-acquire] State mismatch: user accepted=${acceptedStates.join(',')}, lead=${leadData.state}`)
+          return new Response(
+            JSON.stringify({ error: 'Você só pode capturar leads dos seus estados aceitos.' }),
+            {
+              status: 403,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          )
+        }
       }
     }
 
