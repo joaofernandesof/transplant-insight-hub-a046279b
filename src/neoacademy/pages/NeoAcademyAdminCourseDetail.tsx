@@ -63,10 +63,13 @@ export default function NeoAcademyAdminCourseDetail() {
 
   // ====================== QUERIES ======================
   const { data: memberAccount } = useQuery({
-    queryKey: ['neoacademy-member-account', user?.id],
+    queryKey: ['neoacademy-member-account', user?.id, user?.authUserId],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_account_members').select('account_id').eq('user_id', user!.id).single();
-      return data;
+      if (!user) return null;
+      const { data: d1 } = await supabase.from('neoacademy_account_members').select('account_id').eq('user_id', user.authUserId).single();
+      if (d1) return d1;
+      const { data: d2 } = await supabase.from('neoacademy_account_members').select('account_id').eq('user_id', user.id).single();
+      return d2;
     },
     enabled: !!user?.id,
   });
