@@ -69,7 +69,7 @@ export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
 
   // Get account ID - try member lookup first, fallback to first account for admins
-  const { data: accountId } = useQuery({
+  const { data: accountId, isLoading: loadingAccount } = useQuery({
     queryKey: ['neoacademy-account-id', user?.authUserId],
     queryFn: async () => {
       if (!user?.authUserId) return null;
@@ -80,7 +80,7 @@ export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded
         .or(`user_id.eq.${user.authUserId},user_id.eq.${user.id}`)
         .eq('is_active', true)
         .limit(1)
-        .single();
+        .maybeSingle();
       if (memberData?.account_id) return memberData.account_id;
       
       // Fallback for admins: get first account
@@ -89,8 +89,16 @@ export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded
           .from('neoacademy_accounts')
           .select('id')
           .limit(1)
-          .single();
-        return fallback?.id || null;
+          .maybeSingle();
+        if (fallback?.id) return fallback.id;
+        
+        // Ultimate fallback: query profiles directly without account filter
+        const { data: anyProfile } = await supabase
+          .from('neoacademy_student_profiles')
+          .select('account_id')
+          .limit(1)
+          .maybeSingle();
+        return anyProfile?.account_id || null;
       }
       return null;
     },
