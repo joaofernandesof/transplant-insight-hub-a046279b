@@ -6,7 +6,7 @@ import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import {
   ArrowLeft, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Users, GripVertical,
   ChevronDown, ChevronRight, Save, X, FileText, Download, Image, Video,
-  UserPlus, UserMinus, Search, Loader2, Clock, FolderOpen
+  UserPlus, UserMinus, Search, Loader2, Clock, FolderOpen, UserCheck, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
