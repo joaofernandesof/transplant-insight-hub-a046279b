@@ -43,7 +43,7 @@ export default function NeoAcademyLesson() {
   const { data: course } = useQuery({
     queryKey: ['neoacademy-lesson-course', lesson?.course_id],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_courses').select('id, title, banner_url, instructor_name, instructor_avatar_url').eq('id', lesson!.course_id).single();
+      const { data } = await supabase.from('neoacademy_courses').select('id, title, banner_url, created_by').eq('id', lesson!.course_id).single();
       return data;
     },
     enabled: !!lesson?.course_id,
