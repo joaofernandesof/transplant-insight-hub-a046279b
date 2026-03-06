@@ -632,7 +632,7 @@ export function VisualScheduleEditor({ classId }: VisualScheduleEditorProps) {
         <div>
           <h3 className="text-lg font-semibold">Editor Visual do Cronograma</h3>
           <p className="text-sm text-muted-foreground">
-            Clique duas vezes para editar • Arraste as bordas para redimensionar • Visualização idêntica ao NeoAcademy
+            Clique duas vezes para editar • Arraste as bordas para redimensionar • Visualização idêntica ao Conecta Capilar
           </p>
         </div>
         <div className="flex items-center gap-3">
