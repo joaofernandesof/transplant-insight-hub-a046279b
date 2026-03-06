@@ -289,7 +289,49 @@ export default function NeoAcademyAdminStudents() {
     onError: () => toast.error('Erro ao atualizar acessos'),
   });
 
-  const handleSort = (field: SortField) => {
+  const addNewStudent = useMutation({
+    mutationFn: async ({ email, courseId }: { email: string; courseId: string }) => {
+      if (!accountId) throw new Error('No account');
+      // Find user by email in profiles
+      const { data: profile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', email.trim().toLowerCase())
+        .maybeSingle();
+      if (profileErr) throw profileErr;
+      if (!profile) throw new Error('Usuário não encontrado com este email. O aluno precisa ter uma conta criada primeiro.');
+      
+      // Check if already enrolled
+      const { data: existing } = await supabase
+        .from('neoacademy_enrollments')
+        .select('id')
+        .eq('user_id', profile.id)
+        .eq('course_id', courseId)
+        .maybeSingle();
+      if (existing) throw new Error('Aluno já matriculado neste curso.');
+
+      const { error } = await supabase
+        .from('neoacademy_enrollments')
+        .insert({
+          user_id: profile.id,
+          course_id: courseId,
+          account_id: accountId,
+          is_active: true,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['neoacademy-admin-students-full'] });
+      toast.success('Aluno cadastrado e matriculado com sucesso!');
+      setNewStudentDialogOpen(false);
+      setNewStudentEmail('');
+      setNewStudentCourseId('');
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao cadastrar aluno');
+    },
+  });
+
     if (sortField === field) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     } else {
