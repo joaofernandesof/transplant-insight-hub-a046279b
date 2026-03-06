@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
-  GraduationCap, FileText, Calendar, MessageCircle,
+  GraduationCap, FileText, Calendar,
   ClipboardList, UserCog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,8 +18,6 @@ const NAV_ITEMS = [
   { label: 'Provas', icon: FileText, path: '/neoacademy/exams' },
   { label: 'Certificados', icon: Award, path: '/neoacademy/certificates' },
   { label: 'Materiais', icon: FileText, path: '/neoacademy/materials' },
-  { label: 'Comunidade', icon: Users, path: '/neoacademy/community' },
-  { label: 'Chat', icon: MessageCircle, path: '/neoacademy/chat' },
   { label: 'Indicações', icon: UserCog, path: '/neoacademy/referral' },
 ];
 

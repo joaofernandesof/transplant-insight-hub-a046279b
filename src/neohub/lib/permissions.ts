@@ -161,7 +161,7 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neoacademy_schedule', name: 'Agenda', route: '/neoacademy/schedule', icon: 'Calendar' },
     { code: 'neoacademy_exams', name: 'Provas', route: '/neoacademy/exams', icon: 'FileText' },
     { code: 'neoacademy_certificates', name: 'Certificados', route: '/neoacademy/certificates', icon: 'Award' },
-    { code: 'neoacademy_community', name: 'Comunidade', route: '/neoacademy/community', icon: 'Users' },
+    
   ],
   neolicense: [
     { code: 'neolicense_home', name: 'Início', route: '/neolicense', icon: 'Home' },
