@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CourseCard } from '../components/CourseCard';
-import { Search, Filter, Loader2 } from 'lucide-react';
+import { Search, Loader2, Monitor, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 
 export default function NeoAcademyCatalog() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const { data: courses, isLoading } = useQuery({
     queryKey: ['neoacademy-catalog'],
@@ -37,7 +39,24 @@ export default function NeoAcademyCatalog() {
       </header>
 
       <div className="px-6 pt-6 space-y-6">
-        {/* Search & filters */}
+        {/* Type toggle - Online vs Presencial */}
+        <div className="flex rounded-xl bg-[#14141f] border border-white/5 p-1 gap-1">
+          <button
+            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-semibold transition-all bg-blue-500 text-white shadow-lg shadow-blue-500/20"
+          >
+            <Monitor className="h-4 w-4" />
+            Cursos Online
+          </button>
+          <button
+            onClick={() => navigate('/neoacademy/schedule')}
+            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-semibold transition-all text-zinc-400 hover:text-white hover:bg-white/5"
+          >
+            <MapPin className="h-4 w-4" />
+            Cursos Presenciais
+          </button>
+        </div>
+
+        {/* Search */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
