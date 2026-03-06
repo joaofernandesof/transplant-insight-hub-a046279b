@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   Loader2, Users, Search, GraduationCap, TrendingUp, Shield,
   ChevronUp, ChevronDown, MoreHorizontal, BookOpen, Trash2,
-  Plus, UserCheck, Check, X, Filter, ArrowUpDown
+  Plus, UserCheck, Check, X, Filter, ArrowUpDown, UserPlus
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -53,6 +53,9 @@ export default function NeoAcademyAdminStudents() {
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [enrollStudentId, setEnrollStudentId] = useState<string | null>(null);
   const [activeMainTab, setActiveMainTab] = useState('students');
+  const [newStudentDialogOpen, setNewStudentDialogOpen] = useState(false);
+  const [newStudentEmail, setNewStudentEmail] = useState('');
+  const [newStudentCourseId, setNewStudentCourseId] = useState<string>('');
 
   // Get account ID
   const { data: accountId } = useQuery({
@@ -65,8 +68,15 @@ export default function NeoAcademyAdminStudents() {
         .or(`user_id.eq.${user.authUserId},user_id.eq.${user.id}`)
         .eq('is_active', true)
         .limit(1)
-        .single();
-      return data?.account_id || null;
+        .maybeSingle();
+      if (data?.account_id) return data.account_id;
+      if (user.isAdmin) {
+        const { data: fallback } = await supabase.from('neoacademy_accounts').select('id').limit(1).maybeSingle();
+        if (fallback?.id) return fallback.id;
+        const { data: anyProfile } = await supabase.from('neoacademy_student_profiles').select('account_id').limit(1).maybeSingle();
+        return anyProfile?.account_id || null;
+      }
+      return null;
     },
     enabled: !!user,
   });
@@ -286,6 +296,49 @@ export default function NeoAcademyAdminStudents() {
     onError: () => toast.error('Erro ao atualizar acessos'),
   });
 
+  const addNewStudent = useMutation({
+    mutationFn: async ({ email, courseId }: { email: string; courseId: string }) => {
+      if (!accountId) throw new Error('No account');
+      // Find user by email in profiles
+      const { data: profile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', email.trim().toLowerCase())
+        .maybeSingle();
+      if (profileErr) throw profileErr;
+      if (!profile) throw new Error('Usuário não encontrado com este email. O aluno precisa ter uma conta criada primeiro.');
+      
+      // Check if already enrolled
+      const { data: existing } = await supabase
+        .from('neoacademy_enrollments')
+        .select('id')
+        .eq('user_id', profile.id)
+        .eq('course_id', courseId)
+        .maybeSingle();
+      if (existing) throw new Error('Aluno já matriculado neste curso.');
+
+      const { error } = await supabase
+        .from('neoacademy_enrollments')
+        .insert({
+          user_id: profile.id,
+          course_id: courseId,
+          account_id: accountId,
+          is_active: true,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['neoacademy-admin-students-full'] });
+      toast.success('Aluno cadastrado e matriculado com sucesso!');
+      setNewStudentDialogOpen(false);
+      setNewStudentEmail('');
+      setNewStudentCourseId('');
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao cadastrar aluno');
+    },
+  });
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -319,9 +372,19 @@ export default function NeoAcademyAdminStudents() {
   return (
     <div className="min-h-screen pb-12">
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
-        <div className="flex items-center gap-3">
-          <Users className="h-5 w-5 text-blue-400" />
-          <h1 className="text-lg font-bold text-white">Gestão de Alunos</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Users className="h-5 w-5 text-blue-400" />
+            <h1 className="text-lg font-bold text-white">Gestão de Alunos</h1>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setNewStudentDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Novo Aluno
+          </Button>
         </div>
       </header>
 
@@ -642,6 +705,64 @@ export default function NeoAcademyAdminStudents() {
               );
             })}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Student Dialog */}
+      <Dialog open={newStudentDialogOpen} onOpenChange={setNewStudentDialogOpen}>
+        <DialogContent className="bg-[#14141f] border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-blue-400" />
+              Cadastrar Novo Aluno
+            </DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!newStudentEmail.trim()) { toast.error('Informe o email do aluno'); return; }
+              if (!newStudentCourseId) { toast.error('Selecione um curso'); return; }
+              addNewStudent.mutate({ email: newStudentEmail.trim(), courseId: newStudentCourseId });
+            }}
+            className="space-y-4 py-2"
+          >
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Email do Aluno *</label>
+              <Input
+                type="email"
+                value={newStudentEmail}
+                onChange={(e) => setNewStudentEmail(e.target.value)}
+                placeholder="aluno@email.com"
+                className="bg-[#0a0a0f] border-white/10 text-white"
+                required
+              />
+              <p className="text-[10px] text-zinc-600 mt-1">O aluno precisa ter uma conta no sistema</p>
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Matricular no Curso *</label>
+              <Select value={newStudentCourseId} onValueChange={setNewStudentCourseId}>
+                <SelectTrigger className="bg-[#0a0a0f] border-white/10 text-white">
+                  <SelectValue placeholder="Selecione um curso" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a2e] border-white/10 text-white">
+                  {allCourses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setNewStudentDialogOpen(false)} className="text-zinc-400">
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={addNewStudent.isPending} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                {addNewStudent.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                Cadastrar
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
