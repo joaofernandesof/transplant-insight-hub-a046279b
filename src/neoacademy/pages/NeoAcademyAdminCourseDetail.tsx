@@ -130,6 +130,55 @@ export default function NeoAcademyAdminCourseDetail() {
 
   const accountId = memberAccount?.account_id;
 
+  // Student profiles & profile-course mappings
+  const { data: studentProfiles = [] } = useQuery({
+    queryKey: ['admin-student-profiles', accountId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('neoacademy_student_profiles')
+        .select('*')
+        .eq('account_id', accountId!)
+        .order('order_index');
+      return data || [];
+    },
+    enabled: !!accountId,
+  });
+
+  const { data: profileCourses = [] } = useQuery({
+    queryKey: ['admin-profile-courses-for-course', courseId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('neoacademy_profile_courses')
+        .select('*')
+        .eq('course_id', courseId!);
+      return data || [];
+    },
+    enabled: !!courseId,
+  });
+
+  const toggleProfileCourse = useMutation({
+    mutationFn: async ({ profileId, enabled }: { profileId: string; enabled: boolean }) => {
+      if (enabled) {
+        const { error } = await supabase
+          .from('neoacademy_profile_courses')
+          .insert({ profile_id: profileId, course_id: courseId! });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('neoacademy_profile_courses')
+          .delete()
+          .eq('profile_id', profileId)
+          .eq('course_id', courseId!);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-profile-courses-for-course', courseId] });
+      qc.invalidateQueries({ queryKey: ['neoacademy-profile-courses'] });
+    },
+    onError: () => toast.error('Erro ao atualizar perfil'),
+  });
+
   // ====================== MUTATIONS ======================
   const saveModule = useMutation({
     mutationFn: async (form: ModuleForm) => {
