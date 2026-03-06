@@ -84,20 +84,6 @@ export default function NeoAcademyDashboard() {
           </div>
         )}
 
-        {/* Quick stats */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { icon: BookOpen, label: 'Cursos Disponíveis', value: allCourses.length, color: 'blue' },
-            { icon: TrendingUp, label: 'Em Progresso', value: myCourses.length, color: 'emerald' },
-            { icon: Trophy, label: 'Concluídos', value: enrollments?.filter(e => e.completed_at).length || 0, color: 'yellow' },
-          ].map(stat => (
-            <div key={stat.label} className="p-4 rounded-xl bg-[#14141f] border border-white/5">
-              <stat.icon className={`h-5 w-5 text-${stat.color}-400 mb-2`} />
-              <div className="text-2xl font-bold text-white">{stat.value}</div>
-              <div className="text-xs text-zinc-500">{stat.label}</div>
-            </div>
-          ))}
-        </div>
 
         {/* Continue watching */}
         {myCourses.length > 0 && (
