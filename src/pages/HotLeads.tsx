@@ -817,7 +817,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
           )}
 
           {/* Radius restriction banner for non-admin users */}
-          {!isAdmin && (user?.state || userCoords) && (
+          {!isAdmin && (effectiveUserStates || userCoords) && (
             <div className="mb-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 flex items-center gap-3">
               <div className="shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
                 <span className="text-sm">📍</span>
@@ -825,7 +825,9 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
               <p className="text-xs text-blue-700 dark:text-blue-300">
                 {userCoords
                   ? <>Exibindo leads num raio de <strong>{radiusKm} km</strong> da sua localização.</>
-                  : <>Exibindo apenas leads do estado <strong>{user?.state}</strong>. Para filtro por raio, atualize suas coordenadas.</>
+                  : effectiveUserStates && effectiveUserStates.length > 1
+                    ? <>Exibindo leads dos estados <strong>{effectiveUserStates.join(', ')}</strong>. Para filtro por raio, atualize suas coordenadas.</>
+                    : <>Exibindo apenas leads do estado <strong>{effectiveUserStates?.[0]}</strong>. Para filtro por raio, atualize suas coordenadas.</>
                 }
               </p>
             </div>
