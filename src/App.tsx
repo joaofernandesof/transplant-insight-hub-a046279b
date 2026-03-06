@@ -672,7 +672,7 @@ function NeoLicenseRoutes() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="university" element={<Navigate to="/neoacademy" replace />} />
             <Route path="university/*" element={<Navigate to="/neoacademy" replace />} />
-            <Route path="materials" element={<Materials />} />
+            <Route path="materials" element={<Navigate to="/neoacademy/materials" replace />} />
             <Route path="partners" element={<Partners />} />
             <Route path="surgery" element={<SurgerySchedule />} />
             <Route path="achievements" element={<Achievements />} />
