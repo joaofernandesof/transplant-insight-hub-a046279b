@@ -13,7 +13,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/neoacademy' },
   { label: 'Catálogo', icon: BookOpen, path: '/neoacademy/catalog' },
   { label: 'Meus Cursos', icon: GraduationCap, path: '/neoacademy/my-courses' },
-  { label: 'Continuar', icon: Play, path: '/neoacademy/continue' },
+  
   { label: 'Agenda', icon: Calendar, path: '/neoacademy/schedule' },
   { label: 'Provas', icon: FileText, path: '/neoacademy/exams' },
   { label: 'Certificados', icon: Award, path: '/neoacademy/certificates' },
