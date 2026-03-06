@@ -426,7 +426,7 @@ export default function NeoAcademyAdminCourseDetail() {
                         {profile?.name?.[0]?.toUpperCase() || '?'}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-white truncate">{profile?.full_name || 'Sem nome'}</p>
+                        <p className="text-xs font-medium text-white truncate">{profile?.name || 'Sem nome'}</p>
                         <p className="text-[10px] text-zinc-500 truncate">{profile?.email}</p>
                       </div>
                     </div>
