@@ -275,7 +275,7 @@ export default function NeoAcademyAdminCourseDetail() {
     if (!studentSearch) return true;
     const profile = profiles?.find(p => p.id === e.user_id);
     const search = studentSearch.toLowerCase();
-    return (profile?.full_name?.toLowerCase().includes(search) || profile?.email?.toLowerCase().includes(search));
+    return (profile?.name?.toLowerCase().includes(search) || profile?.email?.toLowerCase().includes(search));
   });
 
   if (courseLoading) return <div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin text-blue-400" /></div>;
