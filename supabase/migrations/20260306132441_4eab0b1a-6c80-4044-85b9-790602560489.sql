@@ -1,0 +1,1 @@
+INSERT INTO storage.buckets (id, name, public) VALUES ('course-covers', 'course-covers', true) ON CONFLICT (id) DO NOTHING;
