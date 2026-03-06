@@ -338,11 +338,10 @@ export default function NeoAcademyLesson() {
               {prevLesson ? (
                 <button
                   onClick={() => navigate(`/neoacademy/lesson/${prevLesson.id}`)}
-                  className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+                  className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors max-w-[45%]"
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="max-w-[200px] truncate hidden sm:inline">{prevLesson.title}</span>
-                  <span className="sm:hidden">Anterior</span>
+                  <ChevronLeft className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Aula Anterior: {prevLesson.title}</span>
                 </button>
               ) : <div />}
 
@@ -353,11 +352,10 @@ export default function NeoAcademyLesson() {
               {nextLesson ? (
                 <button
                   onClick={() => navigate(`/neoacademy/lesson/${nextLesson.id}`)}
-                  className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                  className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium max-w-[45%]"
                 >
-                  <span className="max-w-[200px] truncate hidden sm:inline">{nextLesson.title}</span>
-                  <span className="sm:hidden">Próxima</span>
-                  <ChevronRight className="h-4 w-4" />
+                  <span className="truncate">Próxima Aula: {nextLesson.title}</span>
+                  <ChevronRight className="h-4 w-4 shrink-0" />
                 </button>
               ) : !isCompleted ? (
                 <button
