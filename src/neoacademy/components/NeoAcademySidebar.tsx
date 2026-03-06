@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, BookOpen, Play, Users, Award,
+  Home, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
   GraduationCap, FileText, Calendar,
   ClipboardList, UserCog, Store, UserCheck
