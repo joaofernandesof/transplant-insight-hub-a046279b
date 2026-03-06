@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
-  GraduationCap, FileText, Calendar, MessageCircle,
+  GraduationCap, FileText, Calendar,
   ClipboardList, UserCog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
