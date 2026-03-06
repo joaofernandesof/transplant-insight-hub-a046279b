@@ -105,6 +105,46 @@ export default function NeoAcademyAdminStudents() {
     enabled: !!accountId,
   });
 
+  // Fetch student profiles (tiers)
+  const { data: studentProfiles = [] } = useQuery({
+    queryKey: ['neoacademy-student-profiles', accountId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('neoacademy_student_profiles')
+        .select('id, name, slug, color, order_index')
+        .eq('account_id', accountId!)
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
+      if (error) throw error;
+      return (data || []) as StudentProfile[];
+    },
+    enabled: !!accountId,
+  });
+
+  // Fetch user-profile assignments
+  const { data: profileAssignmentsRaw = [] } = useQuery({
+    queryKey: ['neoacademy-user-profile-assignments', accountId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('neoacademy_user_student_profiles')
+        .select('user_id, profile_id, is_active')
+        .eq('account_id', accountId!);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!accountId,
+  });
+
+  // Build profile assignments map: userId -> { profileId -> isActive }
+  const profileAssignmentsMap = useMemo(() => {
+    const map: Record<string, Record<string, boolean>> = {};
+    profileAssignmentsRaw.forEach((a: any) => {
+      if (!map[a.user_id]) map[a.user_id] = {};
+      map[a.user_id][a.profile_id] = a.is_active;
+    });
+    return map;
+  }, [profileAssignmentsRaw]);
+
   // Fetch profiles for all users
   const userIds = useMemo(() => {
     if (!enrollments) return [];
@@ -115,7 +155,6 @@ export default function NeoAcademyAdminStudents() {
     queryKey: ['neoacademy-student-profiles-lookup', userIds],
     queryFn: async () => {
       if (userIds.length === 0) return {};
-      // Batch in groups of 50
       const batches: string[][] = [];
       for (let i = 0; i < userIds.length; i += 50) {
         batches.push(userIds.slice(i, i + 50));
