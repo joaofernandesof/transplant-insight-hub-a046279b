@@ -162,42 +162,49 @@ export default function NeoAcademyDashboard() {
             ) : filteredClasses.length === 0 ? (
               <div className="text-center py-20 text-zinc-500">Nenhuma turma presencial encontrada</div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {filteredClasses.map(cls => {
                   const status = getStatusLabel(cls.status);
                   const courseData = cls.courses as any;
                   return (
-                    <div key={cls.id} className="rounded-xl bg-[#14141f] border border-white/5 hover:border-blue-500/20 transition-all overflow-hidden">
-                      <div className="p-5 flex items-start gap-5">
-                        <div className="w-24 h-24 rounded-lg bg-[#1a1a2e] flex-shrink-0 overflow-hidden flex items-center justify-center">
-                          {courseData?.thumbnail_url ? (
-                            <img src={courseData.thumbnail_url} alt={cls.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <Calendar className="h-8 w-8 text-zinc-600" />
+                    <div key={cls.id} className="group rounded-xl bg-[#14141f] border border-white/5 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 overflow-hidden cursor-pointer hover:scale-[1.02]">
+                      {/* Banner */}
+                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-blue-900/40 to-sky-900/40">
+                        {courseData?.thumbnail_url ? (
+                          <img src={courseData.thumbnail_url} alt={cls.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Calendar className="h-12 w-12 text-blue-400/40" />
+                          </div>
+                        )}
+                        {/* Status badge overlay */}
+                        <div className="absolute top-3 left-3 flex items-center gap-2">
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border backdrop-blur-sm ${status.color}`}>{status.label}</span>
+                        </div>
+                        <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-sky-500/80 text-[10px] font-bold uppercase text-white tracking-wider">
+                          Presencial
+                        </div>
+                      </div>
+
+                      {/* Info */}
+                      <div className="p-4 space-y-3">
+                        <div>
+                          <h3 className="text-base font-semibold text-white line-clamp-2 leading-tight min-h-[2.5em]">{cls.name}</h3>
+                          {courseData?.title && <p className="text-sm text-zinc-500 mt-1 truncate">{courseData.title}</p>}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5 text-blue-400" />
+                            {format(new Date(cls.start_date), "dd MMM yyyy", { locale: ptBR })}
+                            {cls.end_date && ` - ${format(new Date(cls.end_date), "dd MMM yyyy", { locale: ptBR })}`}
+                          </span>
+                          {cls.location && (
+                            <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-blue-400" />{cls.location}</span>
+                          )}
+                          {cls.max_students && (
+                            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-blue-400" />{cls.max_students} vagas</span>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full border ${status.color}`}>{status.label}</span>
-                            <span className="text-xs text-zinc-600 uppercase tracking-wider font-medium">Presencial</span>
-                          </div>
-                          <h3 className="text-base font-semibold text-white truncate">{cls.name}</h3>
-                          {courseData?.title && <p className="text-sm text-zinc-500 mt-0.5">{courseData.title}</p>}
-                          <div className="flex items-center gap-4 mt-3 text-xs text-zinc-400">
-                            <span className="flex items-center gap-1.5">
-                              <Calendar className="h-3.5 w-3.5" />
-                              {format(new Date(cls.start_date), "dd MMM yyyy", { locale: ptBR })}
-                              {cls.end_date && ` - ${format(new Date(cls.end_date), "dd MMM yyyy", { locale: ptBR })}`}
-                            </span>
-                            {cls.location && (
-                              <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{cls.location}</span>
-                            )}
-                            {cls.max_students && (
-                              <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{cls.max_students} vagas</span>
-                            )}
-                          </div>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-zinc-600 shrink-0 mt-2" />
                       </div>
                     </div>
                   );
