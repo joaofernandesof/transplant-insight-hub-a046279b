@@ -640,6 +640,7 @@ function NeoAcademyRoutes() {
                 <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
                 <Route path="referral" element={<AcademyReferral />} />
                 <Route path="materials" element={<Materials />} />
+                <Route path="partners" element={<NeoAcademyPartners />} />
                 <Route path="profile" element={<AcademySettings />} />
                 {/* Admin */}
                 <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
