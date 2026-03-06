@@ -318,15 +318,18 @@ function RegularPartnerCard({ coupon, copiedId, onCopy }: { coupon: any; copiedI
 
   return (
     <div className={`rounded-xl bg-[#14141f] border border-white/5 overflow-hidden transition-all hover:border-blue-500/20 hover:shadow-md hover:shadow-blue-500/5 ${isExpired ? 'opacity-50' : ''}`}>
+      {/* Logo banner */}
+      {(coupon.banner_url || coupon.partner_logo_url) && (
+        <div className="h-24 bg-gradient-to-br from-[#1a1a2e] to-[#0f0f1a] flex items-center justify-center overflow-hidden">
+          {coupon.banner_url ? (
+            <img src={coupon.banner_url} alt={coupon.partner_name} className="w-full h-full object-cover" />
+          ) : (
+            <img src={coupon.partner_logo_url!} alt={coupon.partner_name} className="max-h-14 max-w-[60%] object-contain drop-shadow-lg" />
+          )}
+        </div>
+      )}
       <div className="p-4">
         <div className="flex items-center gap-3">
-          {coupon.partner_logo_url ? (
-            <img src={coupon.partner_logo_url} alt={coupon.partner_name} className="w-10 h-10 rounded-lg object-cover bg-[#1a1a2e] shrink-0" />
-          ) : (
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-sky-500/20 flex items-center justify-center shrink-0">
-              <Store className="h-4 w-4 text-blue-400" />
-            </div>
-          )}
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-white truncate">{coupon.partner_name}</h3>
             {coupon.category && (
