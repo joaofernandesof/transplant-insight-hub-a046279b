@@ -1,0 +1,1 @@
+UPDATE neoacademy_courses SET thumbnail_url = '/images/courses/licenca-byneofolic-cover.png' WHERE id = '5fba8708-1513-4a87-a2f2-d02ea75c2e51';
