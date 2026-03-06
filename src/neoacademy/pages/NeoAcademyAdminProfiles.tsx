@@ -251,7 +251,7 @@ export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded
 
   const activeProfile = profiles.find(p => p.id === selectedProfile);
 
-  if (loadingProfiles) {
+  if (loadingProfiles || loadingAccount) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
