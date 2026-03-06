@@ -17,7 +17,7 @@ const NAV_ITEMS = [
   
   { label: 'Certificados', icon: Award, path: '/neoacademy/certificates' },
   { label: 'Materiais', icon: FileText, path: '/neoacademy/materials' },
-  { label: 'Indicações', icon: UserCog, path: '/neoacademy/referral' },
+  { label: 'Indique e Ganhe', icon: UserCog, path: '/neoacademy/referral' },
   { label: 'Vitrine de Parceiros', icon: Store, path: '/neoacademy/partners' },
 ];
 
