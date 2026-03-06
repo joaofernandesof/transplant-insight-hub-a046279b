@@ -233,13 +233,35 @@ export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded
   }
 
   return (
-    <div className="min-h-screen pb-12">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <UserCheck className="h-5 w-5 text-blue-400" />
-            <h1 className="text-lg font-bold text-white">Perfis de Alunos</h1>
+    <div className={embedded ? '' : 'min-h-screen pb-12'}>
+      {/* Header - only show when standalone */}
+      {!embedded && (
+        <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <UserCheck className="h-5 w-5 text-blue-400" />
+              <h1 className="text-lg font-bold text-white">Perfis de Alunos</h1>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Novo Perfil
+            </Button>
+          </div>
+        </header>
+      )}
+
+      {embedded && (
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-blue-400" />
+              Perfis de Alunos
+            </h2>
+            <p className="text-xs text-zinc-500 mt-1">Gerencie os perfis e defina quais cursos cada perfil pode acessar</p>
           </div>
           <Button
             size="sm"
@@ -250,7 +272,7 @@ export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded
             Novo Perfil
           </Button>
         </div>
-      </header>
+      )}
 
       <div className="px-6 pt-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
