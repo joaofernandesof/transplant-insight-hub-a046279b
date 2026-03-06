@@ -41,6 +41,16 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
+  // Force dark background on html/body when inside NeoAcademy
+  React.useEffect(() => {
+    document.documentElement.style.backgroundColor = '#0a0a0f';
+    document.body.style.backgroundColor = '#0a0a0f';
+    return () => {
+      document.documentElement.style.backgroundColor = '';
+      document.body.style.backgroundColor = '';
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-[#0a0a0f]">
       {/* Sidebar */}
