@@ -150,7 +150,7 @@ export function AcademyReferral() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="dark p-4 sm:p-6 space-y-6 max-w-7xl mx-auto bg-slate-950 min-h-screen text-white">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
