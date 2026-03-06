@@ -69,7 +69,13 @@ export default function NeoAcademyAdminCourseDetail() {
       const { data: d1 } = await supabase.from('neoacademy_account_members').select('account_id').eq('user_id', user.authUserId).single();
       if (d1) return d1;
       const { data: d2 } = await supabase.from('neoacademy_account_members').select('account_id').eq('user_id', user.id).single();
-      return d2;
+      if (d2) return d2;
+      // Fallback for admins
+      if (user.isAdmin) {
+        const { data: fallback } = await supabase.from('neoacademy_accounts').select('id').limit(1).single();
+        return fallback ? { account_id: fallback.id } : null;
+      }
+      return null;
     },
     enabled: !!user?.id,
   });
