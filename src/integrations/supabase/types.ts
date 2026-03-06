@@ -12343,6 +12343,45 @@ export type Database = {
           },
         ]
       }
+      neoacademy_banners: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          link_label: string | null
+          link_url: string | null
+          order_index: number | null
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link_label?: string | null
+          link_url?: string | null
+          order_index?: number | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link_label?: string | null
+          link_url?: string | null
+          order_index?: number | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       neoacademy_categories: {
         Row: {
           account_id: string

@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { Settings, Palette, Bell, Globe, Shield, Zap, Loader2, Save } from 'lucide-react';
+import { Settings, Palette, Bell, Globe, Shield, Zap, Loader2, Save, Image, Plus, Trash2, GripVertical, Pencil, X, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { BannerManager } from '../components/BannerManager';
 
 interface ConectaCapilarSettings {
   name: string;
@@ -143,6 +145,8 @@ export default function NeoAcademyAdminSettings() {
       </header>
 
       <div className="max-w-2xl mx-auto px-6 pt-6 space-y-6">
+        {/* ===== BANNER MANAGEMENT ===== */}
+        <BannerManager />
         <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Globe className="h-4 w-4 text-blue-400" />

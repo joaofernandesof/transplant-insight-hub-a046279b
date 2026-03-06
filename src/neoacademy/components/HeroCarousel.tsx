@@ -1,76 +1,134 @@
-import React from 'react';
-import { Play, Clock, Star } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
-interface HeroItem {
+interface Banner {
   id: string;
-  title: string;
-  description?: string;
-  bannerUrl?: string;
-  category?: string;
+  title: string | null;
+  subtitle: string | null;
+  image_url: string | null;
+  link_url: string | null;
+  link_label: string | null;
+  order_index: number;
 }
 
-interface HeroCarouselProps {
-  items: HeroItem[];
-}
-
-export function HeroCarousel({ items }: HeroCarouselProps) {
+export function HeroCarousel() {
   const navigate = useNavigate();
-  const featured = items[0];
+  const [current, setCurrent] = useState(0);
 
-  if (!featured) return null;
+  const { data: banners } = useQuery({
+    queryKey: ['neoacademy-banners'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('neoacademy_banners')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index');
+      if (error) throw error;
+      return (data || []) as Banner[];
+    },
+  });
+
+  const items = banners || [];
+  const total = items.length;
+
+  const next = useCallback(() => setCurrent(c => (c + 1) % total), [total]);
+  const prev = useCallback(() => setCurrent(c => (c - 1 + total) % total), [total]);
+
+  // Auto-advance every 6s
+  useEffect(() => {
+    if (total <= 1) return;
+    const t = setInterval(next, 6000);
+    return () => clearInterval(t);
+  }, [total, next]);
+
+  if (!items.length) return null;
+
+  const banner = items[current];
 
   return (
-    <div className="relative w-full h-[400px] rounded-2xl overflow-hidden group">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-[#1a1a2e] to-sky-900/60">
-        {featured.bannerUrl && (
-          <img 
-            src={featured.bannerUrl} 
-            alt={featured.title} 
-            className="w-full h-full object-cover opacity-40"
+    <div className="relative w-full h-[220px] sm:h-[280px] rounded-2xl overflow-hidden group">
+      {/* Background image */}
+      <div className="absolute inset-0 transition-opacity duration-700">
+        {banner.image_url ? (
+          <img
+            src={banner.image_url}
+            alt={banner.title || 'Banner'}
+            className="w-full h-full object-cover"
           />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-blue-900/80 via-[#1a1a2e] to-sky-900/60" />
         )}
       </div>
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/90 via-transparent to-transparent" />
+      {/* Gradient overlays */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
 
       {/* Content */}
-      <div className="relative h-full flex flex-col justify-end p-8 max-w-2xl">
-        {featured.category && (
-          <div className="flex items-center gap-2 mb-3">
-            <Star className="h-4 w-4 text-yellow-400" fill="currentColor" />
-            <span className="text-sm font-semibold text-yellow-400 uppercase tracking-wider">
-              {featured.category}
-            </span>
-          </div>
+      <div className="relative h-full flex flex-col justify-end p-6 sm:p-8 max-w-xl">
+        {banner.title && (
+          <h2 className="text-xl sm:text-3xl font-bold text-white mb-1 leading-tight">
+            {banner.title}
+          </h2>
         )}
-        <h1 className="text-4xl font-bold text-white mb-3 leading-tight">
-          {featured.title}
-        </h1>
-        {featured.description && (
-          <p className="text-zinc-300 text-base mb-6 line-clamp-2">
-            {featured.description}
+        {banner.subtitle && (
+          <p className="text-zinc-200 text-xs sm:text-sm mb-4 line-clamp-2">
+            {banner.subtitle}
           </p>
         )}
-        <div className="flex items-center gap-3">
+        {banner.link_url && (
           <button
-            onClick={() => navigate(`/neoacademy/course/${featured.id}`)}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-semibold transition-colors shadow-lg shadow-blue-500/30"
+            onClick={() => {
+              if (banner.link_url!.startsWith('http')) {
+                window.open(banner.link_url!, '_blank');
+              } else {
+                navigate(banner.link_url!);
+              }
+            }}
+            className="self-start px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white text-sm font-semibold transition-colors shadow-lg shadow-blue-500/30"
           >
-            <Play className="h-5 w-5" fill="white" />
-            Assistir Agora
+            {banner.link_label || 'Saiba Mais'}
           </button>
-          <button
-            onClick={() => navigate(`/neoacademy/course/${featured.id}`)}
-            className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold transition-colors border border-white/10"
-          >
-            Mais Detalhes
-          </button>
-        </div>
+        )}
       </div>
+
+      {/* Nav arrows */}
+      {total > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ChevronLeft className="h-5 w-5 text-white" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ChevronRight className="h-5 w-5 text-white" />
+          </button>
+        </>
+      )}
+
+      {/* Dots */}
+      {total > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {items.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={cn(
+                "h-1.5 rounded-full transition-all",
+                i === current ? "w-6 bg-blue-400" : "w-1.5 bg-white/40 hover:bg-white/60"
+              )}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
