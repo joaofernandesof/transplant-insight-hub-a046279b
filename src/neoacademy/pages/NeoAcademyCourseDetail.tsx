@@ -142,22 +142,7 @@ export default function NeoAcademyCourseDetail() {
         </button>
 
         <div className="absolute bottom-6 left-6 right-6">
-          {course.category && (
-            <span className="inline-block px-2.5 py-1 rounded bg-blue-500/80 text-xs font-bold uppercase text-white mb-3">
-              {course.category}
-            </span>
-          )}
-          <h1 className="text-2xl lg:text-4xl font-bold text-white mb-2">{course.title}</h1>
-          {course.short_description && (
-            <p className="text-sm lg:text-base text-zinc-300 max-w-2xl mb-3">{course.short_description}</p>
-          )}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-300">
-            <span className="flex items-center gap-1.5"><BookOpen className="h-4 w-4 text-blue-400" /> {totalLessons} aulas</span>
-            <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-blue-400" /> {Math.floor(totalDuration / 3600)}h {Math.floor((totalDuration % 3600) / 60)}min</span>
-            <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-blue-400" /> {enrollmentCount} alunos</span>
-            {totalMaterials > 0 && <span className="flex items-center gap-1.5"><FileText className="h-4 w-4 text-blue-400" /> {totalMaterials} materiais</span>}
-            {course.is_featured && <span className="flex items-center gap-1.5"><Star className="h-4 w-4 text-amber-400 fill-amber-400" /> Destaque</span>}
-          </div>
+          <h1 className="text-2xl lg:text-4xl font-bold text-white">Conecta Capilar</h1>
         </div>
       </div>
 
