@@ -80,27 +80,27 @@ export default function NeoAcademyDashboard() {
         <HeroCarousel />
 
         {/* Type toggle */}
-        <div className="flex rounded-xl bg-[#14141f] border border-white/5 p-1 gap-1">
+        <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setActiveTab('online')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-semibold transition-all ${
+            className={`flex items-center justify-center gap-3 py-4 px-5 rounded-2xl text-base font-bold transition-all border-2 ${
               activeTab === 'online'
-                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-blue-500 text-white border-blue-400 shadow-lg shadow-blue-500/30 scale-[1.02]'
+                : 'bg-[#14141f] text-zinc-400 border-white/10 hover:text-white hover:border-blue-500/40 hover:bg-[#1a1a2e]'
             }`}
           >
-            <Monitor className="h-4 w-4" />
+            <Monitor className="h-5 w-5" />
             Cursos Online
           </button>
           <button
             onClick={() => setActiveTab('presencial')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-semibold transition-all ${
+            className={`flex items-center justify-center gap-3 py-4 px-5 rounded-2xl text-base font-bold transition-all border-2 ${
               activeTab === 'presencial'
-                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                ? 'bg-blue-500 text-white border-blue-400 shadow-lg shadow-blue-500/30 scale-[1.02]'
+                : 'bg-[#14141f] text-zinc-400 border-white/10 hover:text-white hover:border-blue-500/40 hover:bg-[#1a1a2e]'
             }`}
           >
-            <MapPin className="h-4 w-4" />
+            <MapPin className="h-5 w-5" />
             Cursos Presenciais
           </button>
         </div>
