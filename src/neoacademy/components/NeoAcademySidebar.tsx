@@ -114,8 +114,10 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
       <div className={cn("shrink-0 transition-all duration-300", collapsed ? "w-16" : "w-64")} />
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto min-h-screen bg-[#0a0a0f]">
-        {children}
+      <main className="flex-1 overflow-y-auto min-h-screen bg-[#0a0a0f] text-white [&_*]:border-white/5">
+        <div className="min-h-screen bg-[#0a0a0f]">
+          {children}
+        </div>
       </main>
     </div>
   );
