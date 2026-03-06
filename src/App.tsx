@@ -610,6 +610,7 @@ const NeoAcademyAdminAnalytics = React.lazy(() => import('./neoacademy/pages/Neo
 const NeoAcademyAdminCourses = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminCourses'));
 const NeoAcademyAdminStudents = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminStudents'));
 const NeoAcademyAdminSettings = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminSettings'));
+const NeoAcademyAdminCourseDetail = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminCourseDetail'));
 
 function NeoAcademyRoutes() {
   return (
