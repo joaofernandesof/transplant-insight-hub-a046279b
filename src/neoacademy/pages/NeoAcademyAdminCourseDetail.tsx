@@ -6,7 +6,7 @@ import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import {
   ArrowLeft, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Users, GripVertical,
   ChevronDown, ChevronRight, Save, X, FileText, Download, Image, Video,
-  UserPlus, UserMinus, Search, Loader2, Clock, FolderOpen
+  UserPlus, UserMinus, Search, Loader2, Clock, FolderOpen, UserCheck, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -69,7 +69,13 @@ export default function NeoAcademyAdminCourseDetail() {
       const { data: d1 } = await supabase.from('neoacademy_account_members').select('account_id').eq('user_id', user.authUserId).single();
       if (d1) return d1;
       const { data: d2 } = await supabase.from('neoacademy_account_members').select('account_id').eq('user_id', user.id).single();
-      return d2;
+      if (d2) return d2;
+      // Fallback for admins
+      if (user.isAdmin) {
+        const { data: fallback } = await supabase.from('neoacademy_accounts').select('id').limit(1).single();
+        return fallback ? { account_id: fallback.id } : null;
+      }
+      return null;
     },
     enabled: !!user?.id,
   });
@@ -123,6 +129,55 @@ export default function NeoAcademyAdminCourseDetail() {
   });
 
   const accountId = memberAccount?.account_id;
+
+  // Student profiles & profile-course mappings
+  const { data: studentProfiles = [] } = useQuery({
+    queryKey: ['admin-student-profiles', accountId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('neoacademy_student_profiles')
+        .select('*')
+        .eq('account_id', accountId!)
+        .order('order_index');
+      return data || [];
+    },
+    enabled: !!accountId,
+  });
+
+  const { data: profileCourses = [] } = useQuery({
+    queryKey: ['admin-profile-courses-for-course', courseId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('neoacademy_profile_courses')
+        .select('*')
+        .eq('course_id', courseId!);
+      return data || [];
+    },
+    enabled: !!courseId,
+  });
+
+  const toggleProfileCourse = useMutation({
+    mutationFn: async ({ profileId, enabled }: { profileId: string; enabled: boolean }) => {
+      if (enabled) {
+        const { error } = await supabase
+          .from('neoacademy_profile_courses')
+          .insert({ profile_id: profileId, course_id: courseId! });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('neoacademy_profile_courses')
+          .delete()
+          .eq('profile_id', profileId)
+          .eq('course_id', courseId!);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-profile-courses-for-course', courseId] });
+      qc.invalidateQueries({ queryKey: ['neoacademy-profile-courses'] });
+    },
+    onError: () => toast.error('Erro ao atualizar perfil'),
+  });
 
   // ====================== MUTATIONS ======================
   const saveModule = useMutation({
@@ -317,6 +372,9 @@ export default function NeoAcademyAdminCourseDetail() {
             <TabsTrigger value="students" className="text-xs data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400">
               <Users className="h-3.5 w-3.5 mr-1.5" /> Alunos ({enrollments?.length || 0})
             </TabsTrigger>
+            <TabsTrigger value="profiles" className="text-xs data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400">
+              <UserCheck className="h-3.5 w-3.5 mr-1.5" /> Perfis ({profileCourses.length})
+            </TabsTrigger>
           </TabsList>
 
           {/* =============== CONTENT TAB =============== */}
@@ -445,6 +503,72 @@ export default function NeoAcademyAdminCourseDetail() {
                   </div>
                 );
               })}
+            </div>
+          </TabsContent>
+
+          {/* =============== PROFILES TAB =============== */}
+          <TabsContent value="profiles" className="mt-4 space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-blue-400" />
+                Perfis com acesso a este curso
+              </h3>
+              <p className="text-xs text-zinc-500 mt-1">
+                Ative/desative quais perfis de aluno podem acessar este curso
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {studentProfiles.map((profile: any) => {
+                const isEnabled = profileCourses.some((pc: any) => pc.profile_id === profile.id);
+                return (
+                  <div
+                    key={profile.id}
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                      isEnabled
+                        ? 'bg-emerald-500/5 border-emerald-500/20'
+                        : 'bg-[#14141f] border-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${profile.color}20`, color: profile.color }}
+                      >
+                        <UserCheck className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{profile.name}</p>
+                        {profile.description && (
+                          <p className="text-[11px] text-zinc-500 mt-0.5">{profile.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {isEnabled && (
+                        <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+                          <Check className="h-3 w-3" />
+                          Liberado
+                        </span>
+                      )}
+                      <Switch
+                        checked={isEnabled}
+                        onCheckedChange={(checked) =>
+                          toggleProfileCourse.mutate({ profileId: profile.id, enabled: checked })
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+
+              {studentProfiles.length === 0 && (
+                <div className="text-center py-12 text-zinc-600">
+                  <UserCheck className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Nenhum perfil de aluno cadastrado</p>
+                  <p className="text-xs mt-1">Crie perfis em "Perfis de Alunos" no menu lateral</p>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
