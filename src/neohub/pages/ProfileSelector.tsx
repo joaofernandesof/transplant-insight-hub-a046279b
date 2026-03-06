@@ -195,15 +195,13 @@ export default function ProfileSelector() {
     // Isso garante que portais "não liberados" (todos módulos com can_read=false) fiquem bloqueados
     const portalPrefix = module.portalKey + '_';
     
-    // HotLeads: verificado via permissão neolicense_hotleads
-    if (module.portalKey === 'hotleads') {
-      return user.permissions.some(p => p.startsWith('neolicense_hotleads') && p.endsWith(':read'));
-    }
-    
     // Para o portal neolicense, excluir neolicense_hotleads (pertence ao HotLeads)
-    const relevantPermissions = user.permissions.filter(p => 
-      p.startsWith(portalPrefix) && !p.startsWith('neolicense_hotleads')
-    );
+    const relevantPermissions = user.permissions.filter(p => {
+      if (module.portalKey === 'hotleads') {
+        return p.startsWith('neolicense_hotleads') || p.startsWith('hotleads');
+      }
+      return p.startsWith(portalPrefix) && !p.startsWith('neolicense_hotleads');
+    });
 
     // If no module_permissions exist for this portal, trust allowed_portals/profile access
     if (relevantPermissions.length === 0) return hasBaseAccess;
