@@ -4899,7 +4899,9 @@ Analise o histórico — se a mídia já aparece, NÃO reenvie.
           leadPhone,
           toolCall.name,
           toolCall.arguments,
-          shouldSkipGrid
+          shouldSkipGrid,
+          conversationHistory,
+          routedAgent.fluxo_atendimento as Record<string, unknown> | null
         );
         
         console.log(`[AI Agent] Tool ${toolCall.name} result: ${result.substring(0, 100)}...`);
