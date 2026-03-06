@@ -64,37 +64,22 @@ export function HeroCarousel() {
         )}
       </div>
 
-      {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+      {/* Gradient overlays for nav only */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
-      {/* Content */}
-      <div className="relative h-full flex flex-col justify-end p-6 sm:p-8 max-w-xl">
-        {banner.title && (
-          <h2 className="text-xl sm:text-3xl font-bold text-white mb-1 leading-tight">
-            {banner.title}
-          </h2>
-        )}
-        {banner.subtitle && (
-          <p className="text-zinc-200 text-xs sm:text-sm mb-4 line-clamp-2">
-            {banner.subtitle}
-          </p>
-        )}
-        {banner.link_url && (
-          <button
-            onClick={() => {
-              if (banner.link_url!.startsWith('http')) {
-                window.open(banner.link_url!, '_blank');
-              } else {
-                navigate(banner.link_url!);
-              }
-            }}
-            className="self-start px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white text-sm font-semibold transition-colors shadow-lg shadow-blue-500/30"
-          >
-            {banner.link_label || 'Saiba Mais'}
-          </button>
-        )}
-      </div>
+      {/* Link area */}
+      {banner.link_url && (
+        <button
+          onClick={() => {
+            if (banner.link_url!.startsWith('http')) {
+              window.open(banner.link_url!, '_blank');
+            } else {
+              navigate(banner.link_url!);
+            }
+          }}
+          className="absolute inset-0 cursor-pointer"
+        />
+      )}
 
       {/* Nav arrows */}
       {total > 1 && (
