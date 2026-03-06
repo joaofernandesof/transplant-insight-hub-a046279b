@@ -13119,6 +13119,51 @@ export type Database = {
           },
         ]
       }
+      neoacademy_user_student_profiles: {
+        Row: {
+          account_id: string
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          is_active: boolean
+          profile_id: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean
+          profile_id: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean
+          profile_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_user_student_profiles_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoacademy_user_student_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_student_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neohair_evaluations: {
         Row: {
           age: number | null
