@@ -652,7 +652,7 @@ function NeoAcademyRoutes() {
                 <Route path="admin/courses/:courseId" element={<NeoAcademyAdminCourseDetail />} />
                 <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
                 <Route path="admin/profiles" element={<NeoAcademyAdminProfiles />} />
-                
+                <Route path="admin/financial" element={<NeoAcademyAdminFinancial />} />
                 
                 <Route path="admin/partners" element={<NeoAcademyAdminPartners />} />
                 <Route path="admin/settings" element={<NeoAcademyAdminSettings />} />
