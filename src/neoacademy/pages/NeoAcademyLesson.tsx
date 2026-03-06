@@ -57,12 +57,12 @@ export default function NeoAcademyLesson() {
   });
 
   const { data: enrollment } = useQuery({
-    queryKey: ['neoacademy-lesson-enrollment', lesson?.course_id, user?.id],
+    queryKey: ['neoacademy-lesson-enrollment', lesson?.course_id, user?.authUserId],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_enrollments').select('id').eq('course_id', lesson!.course_id).eq('user_id', user!.id).maybeSingle();
+      const { data } = await supabase.from('neoacademy_enrollments').select('id').eq('course_id', lesson!.course_id).eq('user_id', user!.authUserId!).maybeSingle();
       return data;
     },
-    enabled: !!lesson?.course_id && !!user?.id,
+    enabled: !!lesson?.course_id && !!user?.authUserId,
   });
 
   const { data: allProgress } = useQuery({
