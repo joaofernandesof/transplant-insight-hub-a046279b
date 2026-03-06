@@ -69,7 +69,11 @@ export default function NeoAcademyCourseDetail() {
   const enrollMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id || !course) throw new Error('Not authenticated');
-      const { error } = await supabase.from('neoacademy_enrollments').insert({ account_id: course.account_id, course_id: course.id, user_id: user.id });
+      const { error } = await supabase.from('neoacademy_enrollments').insert({ 
+        account_id: course.account_id, 
+        course_id: course.id, 
+        user_id: user.id 
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -77,7 +81,17 @@ export default function NeoAcademyCourseDetail() {
       queryClient.invalidateQueries({ queryKey: ['neoacademy-enrollment'] });
       queryClient.invalidateQueries({ queryKey: ['neoacademy-enrollments'] });
     },
-    onError: () => toast.error('Erro ao matricular'),
+    onError: (err: any) => {
+      console.error('Enrollment error:', err);
+      if (!user?.id) {
+        toast.error('Você precisa estar logado para se matricular');
+      } else if (err?.code === '23505') {
+        toast.error('Você já está matriculado neste curso');
+        queryClient.invalidateQueries({ queryKey: ['neoacademy-enrollment'] });
+      } else {
+        toast.error('Erro ao matricular: ' + (err?.message || 'tente novamente'));
+      }
+    },
   });
 
   const toggleModule = (moduleId: string) => {
