@@ -113,7 +113,7 @@ export default function NeoAcademyAdminCourseDetail() {
     queryFn: async () => {
       if (!enrollments?.length) return [];
       const userIds = enrollments.map(e => e.user_id);
-      const { data } = await supabase.from('profiles').select('id, full_name, email, avatar_url').in('id', userIds);
+      const { data } = await supabase.from('profiles').select('id, name, email, avatar_url').in('id', userIds);
       return data || [];
     },
     enabled: !!enrollments?.length,
