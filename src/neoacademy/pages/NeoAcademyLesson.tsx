@@ -11,6 +11,15 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+function isYouTubeUrl(url: string): boolean {
+  return /youtube\.com|youtu\.be/i.test(url);
+}
+
+function getYouTubeEmbedUrl(url: string): string {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0` : url;
+}
+
 export default function NeoAcademyLesson() {
   const { lessonId } = useParams();
   const navigate = useNavigate();
@@ -57,31 +66,31 @@ export default function NeoAcademyLesson() {
   });
 
   const { data: enrollment } = useQuery({
-    queryKey: ['neoacademy-lesson-enrollment', lesson?.course_id, user?.id],
+    queryKey: ['neoacademy-lesson-enrollment', lesson?.course_id, user?.authUserId],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_enrollments').select('id').eq('course_id', lesson!.course_id).eq('user_id', user!.id).maybeSingle();
+      const { data } = await supabase.from('neoacademy_enrollments').select('id').eq('course_id', lesson!.course_id).eq('user_id', user!.authUserId!).maybeSingle();
       return data;
     },
-    enabled: !!lesson?.course_id && !!user?.id,
+    enabled: !!lesson?.course_id && !!user?.authUserId,
   });
 
   const { data: allProgress } = useQuery({
-    queryKey: ['neoacademy-lesson-all-progress', lesson?.course_id, user?.id],
+    queryKey: ['neoacademy-lesson-all-progress', lesson?.course_id, user?.authUserId],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_lesson_progress').select('lesson_id, is_completed').eq('course_id', lesson!.course_id).eq('user_id', user!.id);
+      const { data } = await supabase.from('neoacademy_lesson_progress').select('lesson_id, is_completed').eq('course_id', lesson!.course_id).eq('user_id', user!.authUserId!);
       return data || [];
     },
-    enabled: !!lesson?.course_id && !!user?.id,
+    enabled: !!lesson?.course_id && !!user?.authUserId,
   });
 
   const completeMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id || !lesson) throw new Error('Missing data');
+      if (!user?.authUserId || !lesson) throw new Error('Missing data');
       const { error } = await supabase.from('neoacademy_lesson_progress').upsert({
         account_id: lesson.account_id,
         lesson_id: lesson.id,
         course_id: lesson.course_id,
-        user_id: user.id,
+        user_id: user.authUserId,
         is_completed: true,
         completed_at: new Date().toISOString(),
       }, { onConflict: 'lesson_id,user_id' });
@@ -271,7 +280,17 @@ export default function NeoAcademyLesson() {
             <div className="w-full bg-black">
               <div className="max-w-[1200px] mx-auto">
                 <div className="aspect-video">
-                  <video key={lesson.id} src={lesson.video_url} controls autoPlay className="w-full h-full" controlsList="nodownload" poster={course?.banner_url || undefined} />
+                  {isYouTubeUrl(lesson.video_url) ? (
+                    <iframe
+                      key={lesson.id}
+                      src={getYouTubeEmbedUrl(lesson.video_url)}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video key={lesson.id} src={lesson.video_url} controls autoPlay className="w-full h-full" controlsList="nodownload" poster={course?.banner_url || undefined} />
+                  )}
                 </div>
               </div>
             </div>
