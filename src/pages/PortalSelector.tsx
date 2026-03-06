@@ -206,19 +206,17 @@ export default function PortalSelector() {
     // Portal admin somente para admins
     if (config.adminOnly) return false;
 
-    // Combinar allowed_portals E perfis — qualquer um dos dois concede acesso
-    const portals = user?.allowedPortals;
-    const hasPortalAccess = portals && portals.length > 0 && portals.includes(config.portalKey);
-    const hasProfileAccess = config.profiles.some(profile => user?.profiles?.includes(profile));
-
-    const hasBaseAccess = hasPortalAccess || hasProfileAccess;
-    if (!hasBaseAccess) return false;
+    // Fonte de verdade: allowedPortals (derivado de user_portal_roles ou neohub_users.allowed_portals)
+    const portals = user?.allowedPortals || [];
+    const hasPortalAccess = portals.includes(config.portalKey);
     
-    // Verificação de permissões de módulo: portal só aparece se tiver pelo menos 1 módulo legível
+    // Se o usuário não tem o portal na lista de portais permitidos, bloquear
+    if (!hasPortalAccess) return false;
+    
+    // Verificação adicional de permissões granulares (se existirem)
     const permissions = user?.permissions || [];
     const portalPrefix = config.portalKey + '_';
     
-    // Para o portal neolicense, excluir neolicense_hotleads (pertence ao HotLeads)
     const relevantPermissions = permissions.filter(p => {
       if (config.portalKey === 'hotleads') {
         return p.startsWith('neolicense_hotleads') || p.startsWith('hotleads');
@@ -226,8 +224,8 @@ export default function PortalSelector() {
       return p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads');
     });
     
-    // If no permissions exist for this portal, trust allowed_portals/profile access
-    if (relevantPermissions.length === 0) return hasBaseAccess;
+    // If no granular permissions exist for this portal, trust allowedPortals
+    if (relevantPermissions.length === 0) return true;
     
     return relevantPermissions.some(p => p.endsWith(':read'));
   };
