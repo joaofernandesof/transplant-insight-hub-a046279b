@@ -85,22 +85,21 @@ export default function NeoAcademyDashboard() {
         )}
 
 
+        {/* All courses — first */}
+        {allCourses.length > 0 && (
+          <CourseRow title="📚 Todos os Cursos" courses={allCourses} />
+        )}
+
         {/* Continue watching */}
         {myCourses.length > 0 && (
           <CourseRow title="🔥 Continuar Assistindo" courses={myCourses} variant="continue" />
         )}
-
 
         {/* By category */}
         {categories.map(cat => {
           const catCourses = allCourses.filter(c => c.category === cat);
           return <CourseRow key={cat} title={cat!} courses={catCourses} />;
         })}
-
-        {/* All courses */}
-        {allCourses.length > 0 && (
-          <CourseRow title="📚 Todos os Cursos" courses={allCourses} />
-        )}
       </div>
     </div>
   );
