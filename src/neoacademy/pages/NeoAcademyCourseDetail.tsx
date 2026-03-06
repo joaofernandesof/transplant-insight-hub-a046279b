@@ -68,11 +68,11 @@ export default function NeoAcademyCourseDetail() {
 
   const enrollMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id || !course) throw new Error('Not authenticated');
+      if (!user?.authUserId || !course) throw new Error('Not authenticated');
       const { error } = await supabase.from('neoacademy_enrollments').insert({ 
         account_id: course.account_id, 
         course_id: course.id, 
-        user_id: user.id 
+        user_id: user.authUserId 
       });
       if (error) throw error;
     },
