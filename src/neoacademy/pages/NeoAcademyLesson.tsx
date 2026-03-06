@@ -275,29 +275,6 @@ export default function NeoAcademyLesson() {
             <div className="py-6">
               {activeTab === 'materials' ? (
                 <div className="space-y-6">
-                  {/* Instructor */}
-                  {course?.instructor_name && (
-                    <div className="flex items-center gap-3">
-                      {course.instructor_avatar_url ? (
-                        <img
-                          src={course.instructor_avatar_url}
-                          alt={course.instructor_name}
-                          className="h-10 w-10 rounded-full object-cover border-2 border-white/10"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center text-white font-bold text-sm">
-                          {course.instructor_name.charAt(0)}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-white">{course.instructor_name}</span>
-                        <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                          Mentor
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Description */}
                   {lesson.description && (
                     <p className="text-sm text-zinc-400 leading-relaxed">{lesson.description}</p>
@@ -324,7 +301,7 @@ export default function NeoAcademyLesson() {
                     </div>
                   )}
 
-                  {!lesson.description && !hasAttachments && !course?.instructor_name && (
+                  {!lesson.description && !hasAttachments && (
                     <p className="text-sm text-zinc-600">Nenhum material complementar para esta aula.</p>
                   )}
                 </div>
