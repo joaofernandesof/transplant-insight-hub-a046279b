@@ -164,10 +164,10 @@ export default function NeoAcademyLesson() {
         {/* Main content area */}
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Video / Content Player */}
-          <div className="w-full bg-black">
+          <div className="w-full pt-4 px-4">
             {lesson.lesson_type === 'video' && lesson.video_url ? (
               <div className="max-w-[1100px] mx-auto">
-                <div className="aspect-video">
+                <div className="aspect-video rounded-2xl overflow-hidden">
                   {isYouTubeUrl(lesson.video_url) ? (
                     <iframe
                       key={lesson.id}
