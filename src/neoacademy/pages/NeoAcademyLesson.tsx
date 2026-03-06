@@ -28,7 +28,7 @@ export default function NeoAcademyLesson() {
   const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<'materials' | 'comments'>('materials');
+  const [activeTab, setActiveTab] = useState<'materials' | 'downloads' | 'comments'>('materials');
 
   const { data: lesson, isLoading } = useQuery({
     queryKey: ['neoacademy-lesson', lessonId],
@@ -257,6 +257,18 @@ export default function NeoAcademyLesson() {
                   Leitura complementar
                 </button>
                 <button
+                  onClick={() => setActiveTab('downloads')}
+                  className={cn(
+                    "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
+                    activeTab === 'downloads'
+                      ? "border-blue-500 text-blue-400"
+                      : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  <Download className="h-4 w-4" />
+                  Materiais
+                </button>
+                <button
                   onClick={() => setActiveTab('comments')}
                   className={cn(
                     "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
@@ -275,13 +287,16 @@ export default function NeoAcademyLesson() {
             <div className="py-6">
               {activeTab === 'materials' ? (
                 <div className="space-y-6">
-                  {/* Description */}
                   {lesson.description && (
                     <p className="text-sm text-zinc-400 leading-relaxed">{lesson.description}</p>
                   )}
-
-                  {/* Attachments */}
-                  {hasAttachments && (
+                  {!lesson.description && (
+                    <p className="text-sm text-zinc-600">Nenhum material complementar para esta aula.</p>
+                  )}
+                </div>
+              ) : activeTab === 'downloads' ? (
+                <div className="space-y-6">
+                  {hasAttachments ? (
                     <div>
                       <h3 className="text-sm font-semibold text-zinc-300 mb-3">Material de Apoio</h3>
                       <div className="space-y-2">
@@ -299,10 +314,8 @@ export default function NeoAcademyLesson() {
                         ))}
                       </div>
                     </div>
-                  )}
-
-                  {!lesson.description && !hasAttachments && (
-                    <p className="text-sm text-zinc-600">Nenhum material complementar para esta aula.</p>
+                  ) : (
+                    <p className="text-sm text-zinc-600">Nenhum material disponível para download.</p>
                   )}
                 </div>
               ) : (
