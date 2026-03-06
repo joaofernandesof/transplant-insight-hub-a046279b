@@ -415,5 +415,6 @@ export function useHotLeads() {
     isBlocked,
     profiles,
     hotleadsProfiles,
+    acceptedStates,
   };
 }
