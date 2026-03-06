@@ -152,7 +152,11 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   const simulatedUser = simulatedUserList.find(u => u.user_id === simulatedUserId);
   // Effective user id/state for filtering (simulated or real)
   const effectiveUserId = simulatedUserId || user?.id;
-  const effectiveUserState = simulatedUserId ? (simulatedUser?.address_state || null) : (user?.state || null);
+  // Use accepted states from distribution config, fallback to user's own state
+  const effectiveUserStates = simulatedUserId 
+    ? (simulatedUser?.address_state ? [simulatedUser.address_state] : null)
+    : (acceptedStates || (user?.state ? [user.state] : null));
+  const effectiveUserState = effectiveUserStates?.[0] || null;
   // Admin is viewing as admin (not simulating a specific user)
   const isAdminDirectView = realIsAdmin && !simulatedUserId;
 
