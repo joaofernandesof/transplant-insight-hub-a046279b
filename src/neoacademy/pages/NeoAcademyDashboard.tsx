@@ -90,10 +90,6 @@ export default function NeoAcademyDashboard() {
           <CourseRow title="🔥 Continuar Assistindo" courses={myCourses} variant="continue" />
         )}
 
-        {/* New courses */}
-        {newCourses.length > 0 && (
-          <CourseRow title="✨ Novidades" courses={newCourses} />
-        )}
 
         {/* By category */}
         {categories.map(cat => {
