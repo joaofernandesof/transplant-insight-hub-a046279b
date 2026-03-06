@@ -640,6 +640,7 @@ function NeoAcademyRoutes() {
                 <Route path="chat" element={<AcademyChat />} />
                 <Route path="chat/:recipientId" element={<AcademyChat />} />
                 <Route path="referral" element={<AcademyReferral />} />
+                <Route path="materials" element={<Materials />} />
                 <Route path="profile" element={<AcademySettings />} />
                 {/* Admin */}
                 <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
@@ -671,7 +672,7 @@ function NeoLicenseRoutes() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="university" element={<Navigate to="/neoacademy" replace />} />
             <Route path="university/*" element={<Navigate to="/neoacademy" replace />} />
-            <Route path="materials" element={<Materials />} />
+            <Route path="materials" element={<Navigate to="/neoacademy/materials" replace />} />
             <Route path="partners" element={<Partners />} />
             <Route path="surgery" element={<SurgerySchedule />} />
             <Route path="achievements" element={<Achievements />} />
@@ -865,8 +866,8 @@ function AppRoutes() {
       <Route path="/university" element={<Navigate to="/neoacademy" replace />} />
       <Route path="/university/*" element={<Navigate to="/neoacademy" replace />} />
       
-      {/* Materials -> NeoLicense */}
-      <Route path="/materials" element={<Navigate to="/neolicense/materials" replace />} />
+      {/* Materials -> NeoAcademy */}
+      <Route path="/materials" element={<Navigate to="/neoacademy/materials" replace />} />
       
       {/* Partners -> NeoLicense */}
       <Route path="/partners" element={<Navigate to="/neolicense/partners" replace />} />

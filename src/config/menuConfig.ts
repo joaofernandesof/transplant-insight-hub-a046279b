@@ -393,7 +393,7 @@ export const NEOLICENSE_MENU_ITEMS: MenuItem[] = [
   { id: 'neolicense_hotleads', code: 'neolicense_hotleads', title: 'HotLeads', icon: Flame, route: '/hotleads' },
   { id: 'neolicense_surgery', code: 'neolicense_surgery', title: 'Cirurgias', icon: Calendar, route: '/neolicense/surgery' },
   { id: 'neolicense_university', code: 'neolicense_university', title: 'Universidade', icon: GraduationCap, route: '/neolicense/university' },
-  { id: 'neolicense_materials', code: 'neolicense_materials', title: 'Materiais', icon: FileText, route: '/neolicense/materials' },
+  { id: 'neolicense_materials', code: 'neolicense_materials', title: 'Materiais', icon: FileText, route: '/neoacademy/materials' },
   { id: 'neolicense_partners', code: 'neolicense_partners', title: 'Parceiros', icon: Handshake, route: '/neolicense/partners' },
   { id: 'neolicense_achievements', code: 'neolicense_achievements', title: 'Conquistas', icon: Trophy, route: '/neolicense/achievements' },
   { id: 'neolicense_referral', code: 'neolicense_referral', title: 'Indicações', icon: Users, route: '/neolicense/referral' },
