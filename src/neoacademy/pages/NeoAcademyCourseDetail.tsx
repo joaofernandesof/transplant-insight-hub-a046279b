@@ -58,12 +58,12 @@ export default function NeoAcademyCourseDetail() {
   });
 
   const { data: progress } = useQuery({
-    queryKey: ['neoacademy-progress', courseId, user?.id],
+    queryKey: ['neoacademy-progress', courseId, user?.authUserId],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_lesson_progress').select('*').eq('course_id', courseId!).eq('user_id', user!.id);
+      const { data } = await supabase.from('neoacademy_lesson_progress').select('*').eq('course_id', courseId!).eq('user_id', user!.authUserId!);
       return data || [];
     },
-    enabled: !!courseId && !!user?.id,
+    enabled: !!courseId && !!user?.authUserId,
   });
 
   const enrollMutation = useMutation({
