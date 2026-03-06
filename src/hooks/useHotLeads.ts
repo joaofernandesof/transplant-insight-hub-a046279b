@@ -97,20 +97,41 @@ export function useHotLeads() {
     }
   }, []);
 
+  // Fetch accepted states from neohair_lead_distribution
+  const fetchAcceptedStates = useCallback(async () => {
+    if (!user?.id || isAdmin) return;
+    try {
+      const { data } = await supabase
+        .from('neohair_lead_distribution')
+        .select('accepted_states')
+        .eq('professional_user_id', user.id)
+        .eq('is_active', true)
+        .single();
+      if (data?.accepted_states) {
+        setAcceptedStates(data.accepted_states as string[]);
+      }
+    } catch {
+      // No distribution config found, will fallback to user state
+    }
+  }, [user?.id, isAdmin]);
+
   useEffect(() => {
     if (!user) return;
     fetchLeads();
     fetchProfiles();
-  }, [fetchLeads, fetchProfiles, user]);
+    fetchAcceptedStates();
+  }, [fetchLeads, fetchProfiles, fetchAcceptedStates, user]);
 
-  // Leads available (unclaimed) - non-admins only see leads from their state
+  // Leads available (unclaimed) - non-admins only see leads from their accepted states
   const availableLeads = useMemo(() => {
     const unclaimed = leads.filter(l => !l.claimed_by && l.release_status !== 'queued');
     if (isAdmin) return unclaimed;
-    const userState = user?.state;
-    if (!userState) return unclaimed; // If user has no state, show all (edge case)
-    return unclaimed.filter(l => !l.state || l.state === userState);
-  }, [leads, isAdmin, user?.state]);
+    
+    // Use accepted_states from distribution config, fallback to user's own state
+    const allowedStates = acceptedStates || (user?.state ? [user.state] : null);
+    if (!allowedStates || allowedStates.length === 0) return unclaimed;
+    return unclaimed.filter(l => !l.state || allowedStates.includes(l.state));
+  }, [leads, isAdmin, acceptedStates, user?.state]);
 
   // My leads by category
   const myLeads = useMemo(() =>
