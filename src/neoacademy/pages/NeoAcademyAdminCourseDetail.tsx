@@ -423,7 +423,7 @@ export default function NeoAcademyAdminCourseDetail() {
                   <div key={enrollment.id} className="grid grid-cols-[1fr_150px_100px_100px_60px] gap-3 items-center px-4 py-2.5 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02]">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                        {profile?.full_name?.[0]?.toUpperCase() || '?'}
+                        {profile?.name?.[0]?.toUpperCase() || '?'}
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-medium text-white truncate">{profile?.full_name || 'Sem nome'}</p>
