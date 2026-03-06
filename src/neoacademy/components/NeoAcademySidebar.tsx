@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/neoacademy' },
+  { label: 'Início', icon: LayoutDashboard, path: '/neoacademy' },
   { label: 'Catálogo', icon: BookOpen, path: '/neoacademy/catalog' },
   { label: 'Meus Cursos', icon: GraduationCap, path: '/neoacademy/my-courses' },
   
