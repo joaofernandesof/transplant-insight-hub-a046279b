@@ -12798,8 +12798,50 @@ export type Database = {
           },
         ]
       }
+      neoacademy_partner_banners: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          link_url: string | null
+          order_index: number | null
+          title: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          link_url?: string | null
+          order_index?: number | null
+          title?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          link_url?: string | null
+          order_index?: number | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_partner_banners_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoacademy_partner_coupons: {
         Row: {
+          banner_url: string | null
           category: string | null
           coupon_code: string
           created_at: string | null
@@ -12807,6 +12849,7 @@ export type Database = {
           discount_label: string
           id: string
           is_active: boolean | null
+          is_featured: boolean | null
           link_url: string | null
           order_index: number | null
           partner_logo_url: string | null
@@ -12815,6 +12858,7 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          banner_url?: string | null
           category?: string | null
           coupon_code: string
           created_at?: string | null
@@ -12822,6 +12866,7 @@ export type Database = {
           discount_label: string
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           link_url?: string | null
           order_index?: number | null
           partner_logo_url?: string | null
@@ -12830,6 +12875,7 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          banner_url?: string | null
           category?: string | null
           coupon_code?: string
           created_at?: string | null
@@ -12837,6 +12883,7 @@ export type Database = {
           discount_label?: string
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           link_url?: string | null
           order_index?: number | null
           partner_logo_url?: string | null
