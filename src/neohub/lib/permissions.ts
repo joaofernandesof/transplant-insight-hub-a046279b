@@ -159,7 +159,7 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neoacademy_catalog', name: 'Catálogo', route: '/neoacademy/catalog', icon: 'BookOpen' },
     { code: 'neoacademy_courses', name: 'Meus Cursos', route: '/neoacademy/my-courses', icon: 'GraduationCap' },
     { code: 'neoacademy_schedule', name: 'Agenda', route: '/neoacademy/schedule', icon: 'Calendar' },
-    { code: 'neoacademy_exams', name: 'Provas', route: '/neoacademy/exams', icon: 'FileText' },
+    
     { code: 'neoacademy_certificates', name: 'Certificados', route: '/neoacademy/certificates', icon: 'Award' },
     
   ],
