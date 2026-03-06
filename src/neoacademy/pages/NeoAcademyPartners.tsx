@@ -157,7 +157,7 @@ export default function NeoAcademyPartners() {
               <Star className="h-5 w-5 text-amber-400" />
               <h2 className="text-base font-bold text-white">Parceiros em Destaque</h2>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {featured.map(coupon => (
                 <FeaturedPartnerCard
                   key={coupon.id}
