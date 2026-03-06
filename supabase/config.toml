@@ -110,3 +110,12 @@ verify_jwt = false
 
 [functions.provision-avivar-account]
 verify_jwt = false
+
+[functions.neoacademy-stripe-webhook]
+verify_jwt = false
+
+[functions.neoacademy-create-checkout]
+verify_jwt = false
+
+[functions.neoacademy-create-payment-link]
+verify_jwt = false
