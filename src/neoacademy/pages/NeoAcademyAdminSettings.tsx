@@ -210,32 +210,6 @@ export default function NeoAcademyAdminSettings() {
           </div>
         </section>
 
-        <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className="h-4 w-4 text-blue-400" />
-            <h2 className="text-sm font-bold text-white">Funcionalidades</h2>
-          </div>
-          <div className="space-y-3">
-            {([
-              { key: 'community_enabled' as const, label: 'Comunidade', desc: 'Feed de posts entre alunos' },
-              { key: 'gamification_enabled' as const, label: 'Gamificação', desc: 'Ranking, pontos e conquistas' },
-              { key: 'certificates_enabled' as const, label: 'Certificados', desc: 'Emitir certificado ao concluir curso' },
-              { key: 'lesson_comments_enabled' as const, label: 'Comentários nas Aulas', desc: 'Permitir comentários em cada aula' },
-              { key: 'offline_download_enabled' as const, label: 'Download Offline', desc: 'Permitir baixar aulas no app' },
-            ]).map(feat => (
-              <div key={feat.key} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white">{feat.label}</p>
-                  <p className="text-xs text-zinc-600">{feat.desc}</p>
-                </div>
-                <Switch
-                  checked={settings[feat.key]}
-                  onCheckedChange={v => updateSetting(feat.key, v)}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
 
         <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
