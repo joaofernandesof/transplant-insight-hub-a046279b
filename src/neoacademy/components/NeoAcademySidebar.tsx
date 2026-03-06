@@ -113,9 +113,9 @@ export function NeoAcademySidebar({ children }: NeoAcademySidebarProps) {
       {/* Spacer for fixed sidebar */}
       <div className={cn("shrink-0 transition-all duration-300", collapsed ? "w-16" : "w-64")} />
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto min-h-screen bg-[#0a0a0f] text-white">
-        <div className="min-h-screen bg-[#0a0a0f]">
+      {/* Main content - force dark theme for all child pages */}
+      <main className="flex-1 overflow-y-auto min-h-screen bg-[#0a0a0f] text-white dark">
+        <div className="min-h-screen bg-[#0a0a0f] [&_.bg-background]:bg-[#0a0a0f] [&_.bg-card]:bg-[#14141f] [&_.bg-muted]:bg-[#14141f] [&_.bg-muted\/50]:bg-[#14141f] [&_.text-foreground]:text-white [&_.text-muted-foreground]:text-zinc-500 [&_.border-border]:border-white/5 [&_.bg-secondary]:bg-white/5">
           {children}
         </div>
       </main>
