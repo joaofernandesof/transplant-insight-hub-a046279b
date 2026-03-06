@@ -53,6 +53,9 @@ export default function NeoAcademyAdminStudents() {
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [enrollStudentId, setEnrollStudentId] = useState<string | null>(null);
   const [activeMainTab, setActiveMainTab] = useState('students');
+  const [newStudentDialogOpen, setNewStudentDialogOpen] = useState(false);
+  const [newStudentEmail, setNewStudentEmail] = useState('');
+  const [newStudentCourseId, setNewStudentCourseId] = useState<string>('');
 
   // Get account ID
   const { data: accountId } = useQuery({
