@@ -46,6 +46,7 @@ const EMPTY_FORM: CourseFormData = {
 
 export default function NeoAcademyAdminCourses() {
   const { user } = useUnifiedAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
