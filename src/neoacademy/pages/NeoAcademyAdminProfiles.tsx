@@ -68,19 +68,31 @@ export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded
   const [newProfileDesc, setNewProfileDesc] = useState('');
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
 
-  // Get account ID
+  // Get account ID - try member lookup first, fallback to first account for admins
   const { data: accountId } = useQuery({
     queryKey: ['neoacademy-account-id', user?.authUserId],
     queryFn: async () => {
       if (!user?.authUserId) return null;
-      const { data } = await supabase
+      // Try member lookup
+      const { data: memberData } = await supabase
         .from('neoacademy_account_members')
         .select('account_id')
         .or(`user_id.eq.${user.authUserId},user_id.eq.${user.id}`)
         .eq('is_active', true)
         .limit(1)
         .single();
-      return data?.account_id || null;
+      if (memberData?.account_id) return memberData.account_id;
+      
+      // Fallback for admins: get first account
+      if (user.isAdmin) {
+        const { data: fallback } = await supabase
+          .from('neoacademy_accounts')
+          .select('id')
+          .limit(1)
+          .single();
+        return fallback?.id || null;
+      }
+      return null;
     },
     enabled: !!user,
   });
