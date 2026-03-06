@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   Loader2, Users, Search, GraduationCap, TrendingUp, Shield,
   ChevronUp, ChevronDown, MoreHorizontal, BookOpen, Trash2,
-  Plus, UserCheck, Check, X, Filter, ArrowUpDown
+  Plus, UserCheck, Check, X, Filter, ArrowUpDown, UserPlus
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
