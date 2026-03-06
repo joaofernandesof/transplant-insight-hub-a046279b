@@ -442,7 +442,7 @@ export function AcademyClassDetail() {
                                 variant="ghost"
                                 size="sm"
                                 className="text-xs h-7 px-2"
-                                onClick={() => navigate(`/academy/exams/${exam.id}/results/${exam.lastAttemptId}`)}
+                                onClick={() => navigate(`/neoacademy/exams/${exam.id}/results/${exam.lastAttemptId}`)}
                               >
                                 Ver Resultado
                               </Button>
