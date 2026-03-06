@@ -205,6 +205,7 @@ export default function NeoAcademyAdminStudents() {
           isActive: e.is_active !== false,
           enrollments: [],
           lastAccess: null,
+          profileAssignments: profileAssignmentsMap[e.user_id] || {},
         };
       }
       map[e.user_id].enrollments.push({
