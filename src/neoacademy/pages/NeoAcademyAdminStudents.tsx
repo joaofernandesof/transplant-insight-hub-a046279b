@@ -68,8 +68,15 @@ export default function NeoAcademyAdminStudents() {
         .or(`user_id.eq.${user.authUserId},user_id.eq.${user.id}`)
         .eq('is_active', true)
         .limit(1)
-        .single();
-      return data?.account_id || null;
+        .maybeSingle();
+      if (data?.account_id) return data.account_id;
+      if (user.isAdmin) {
+        const { data: fallback } = await supabase.from('neoacademy_accounts').select('id').limit(1).maybeSingle();
+        if (fallback?.id) return fallback.id;
+        const { data: anyProfile } = await supabase.from('neoacademy_student_profiles').select('account_id').limit(1).maybeSingle();
+        return anyProfile?.account_id || null;
+      }
+      return null;
     },
     enabled: !!user,
   });
