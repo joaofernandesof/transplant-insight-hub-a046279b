@@ -1,31 +1,85 @@
 
 
-## Diagnóstico
+## Disponibilidade da Agenda Cirúrgica
 
-O bug está na linha 5148 do `supabase/functions/avivar-ai-agent/index.ts`. O fallback determinístico conta **mensagens outbound (assistant)** para determinar o passo atual:
+### Resumo
 
-```typescript
-const outboundCount = conversationHistory.filter(m => m.role === "assistant").length;
-const currentStepIndex = outboundCount;
+Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
+1. **Bloqueio de datas específicas** por filial
+2. **Limite de agendamentos por dia** por filial
+
+A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+
+---
+
+### 1. Nova tabela: `surgery_agenda_availability`
+
+```sql
+CREATE TABLE surgery_agenda_availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  branch TEXT NOT NULL,
+  date DATE NOT NULL,
+  max_slots INTEGER NOT NULL DEFAULT 5,
+  is_blocked BOOLEAN NOT NULL DEFAULT false,
+  blocked_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(branch, date)
+);
+
+-- RLS: leitura para autenticados, escrita para admins
+ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Admins can manage" ON surgery_agenda_availability
+  FOR ALL TO authenticated USING (
+    public.has_role(auth.uid(), 'admin')
+  );
 ```
 
-**Problema**: O passo 1 (saudação) gera 3-4 mensagens outbound separadas no WhatsApp (cada bolha é uma mensagem). Quando o lead responde "LUCAS", o histórico já tem ~3-4 mensagens assistant, então `currentStepIndex = 3 ou 4`, que no array 0-indexado aponta para o passo 4 ou 5 — exatamente onde está o áudio.
+### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
 
-## Correção
+Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
+- **Aba "Configuração da Agenda"** com:
+  - Seletor de filial
+  - Calendário mensal interativo onde o admin pode:
+    - Clicar em um dia para bloquear/desbloquear
+    - Definir o número máximo de agendamentos para cada dia
+  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
 
-**Arquivo**: `supabase/functions/avivar-ai-agent/index.ts` (linhas 5145-5150)
+### 3. Visualização de Disponibilidade (todos os usuários)
 
-Substituir a contagem de mensagens `assistant` por contagem de mensagens `user` (inbound). Cada resposta do lead avança um passo, então:
-- 0 respostas do lead → passo 1 (saudação, index 0)  
-- 1 resposta do lead → passo 2 (index 1)
-- 2 respostas → passo 3 (index 2)
-- etc.
+Na aba "Agenda" existente, adicionar um componente visual mostrando:
+- Um mini calendário ou barra de disponibilidade por filial
+- Dias bloqueados marcados em vermelho
+- Dias com vagas esgotadas marcados em amarelo/laranja
+- Dias disponíveis em verde
+- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
 
-Lógica nova:
+### 4. Novo hook: `useSurgeryAgendaAvailability`
+
 ```typescript
-const userMessageCount = conversationHistory.filter(m => m.role === "user").length;
-const currentStepIndex = userMessageCount; // 0 user msgs = step 0 (greeting), 1 user msg = step 1, etc.
+// src/clinic/hooks/useSurgeryAgendaAvailability.ts
+// - Busca configurações de disponibilidade por filial e período
+// - Cruza com contagem de cirurgias agendadas por dia
+// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
+// - Mutations para admin: criar/atualizar configuração
 ```
 
-Isso é confiável porque o número de mensagens inbound (do lead) não é afetado por quebras de texto em múltiplas bolhas.
+### 5. Validação no agendamento
+
+Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
+- Se a data está bloqueada para a filial selecionada → impedir agendamento
+- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
+
+### Estrutura de arquivos
+
+- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
+- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
+- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
+- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
+- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
+- Migração SQL para criar a tabela
 
