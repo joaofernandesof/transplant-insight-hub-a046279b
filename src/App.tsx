@@ -613,6 +613,7 @@ const NeoAcademyAdminSettings = React.lazy(() => import('./neoacademy/pages/NeoA
 const NeoAcademyAdminCourseDetail = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminCourseDetail'));
 const NeoAcademyPartners = React.lazy(() => import('./neoacademy/pages/NeoAcademyPartners'));
 const NeoAcademyAdminPartners = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminPartners'));
+const NeoAcademyAdminProfiles = React.lazy(() => import('./neoacademy/pages/NeoAcademyAdminProfiles'));
 
 function NeoAcademyRoutes() {
   return (
@@ -649,6 +650,7 @@ function NeoAcademyRoutes() {
                 <Route path="admin/courses" element={<NeoAcademyAdminCourses />} />
                 <Route path="admin/courses/:courseId" element={<NeoAcademyAdminCourseDetail />} />
                 <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
+                <Route path="admin/profiles" element={<NeoAcademyAdminProfiles />} />
                 <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
                 <Route path="admin/surveys" element={<SurveyManagement />} />
                 <Route path="admin/partners" element={<NeoAcademyAdminPartners />} />
