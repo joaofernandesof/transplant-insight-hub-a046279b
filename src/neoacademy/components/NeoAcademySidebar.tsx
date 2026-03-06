@@ -4,7 +4,7 @@ import {
   Home, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
   GraduationCap, FileText, Calendar,
-  ClipboardList, UserCog, Store, UserCheck
+  ClipboardList, UserCog, Store, UserCheck, DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
