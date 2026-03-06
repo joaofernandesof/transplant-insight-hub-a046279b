@@ -700,6 +700,64 @@ export default function NeoAcademyAdminStudents() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* New Student Dialog */}
+      <Dialog open={newStudentDialogOpen} onOpenChange={setNewStudentDialogOpen}>
+        <DialogContent className="bg-[#14141f] border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-blue-400" />
+              Cadastrar Novo Aluno
+            </DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!newStudentEmail.trim()) { toast.error('Informe o email do aluno'); return; }
+              if (!newStudentCourseId) { toast.error('Selecione um curso'); return; }
+              addNewStudent.mutate({ email: newStudentEmail.trim(), courseId: newStudentCourseId });
+            }}
+            className="space-y-4 py-2"
+          >
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Email do Aluno *</label>
+              <Input
+                type="email"
+                value={newStudentEmail}
+                onChange={(e) => setNewStudentEmail(e.target.value)}
+                placeholder="aluno@email.com"
+                className="bg-[#0a0a0f] border-white/10 text-white"
+                required
+              />
+              <p className="text-[10px] text-zinc-600 mt-1">O aluno precisa ter uma conta no sistema</p>
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Matricular no Curso *</label>
+              <Select value={newStudentCourseId} onValueChange={setNewStudentCourseId}>
+                <SelectTrigger className="bg-[#0a0a0f] border-white/10 text-white">
+                  <SelectValue placeholder="Selecione um curso" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a2e] border-white/10 text-white">
+                  {allCourses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setNewStudentDialogOpen(false)} className="text-zinc-400">
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={addNewStudent.isPending} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                {addNewStudent.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                Cadastrar
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
