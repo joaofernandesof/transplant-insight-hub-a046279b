@@ -640,6 +640,7 @@ function NeoAcademyRoutes() {
                 <Route path="chat" element={<AcademyChat />} />
                 <Route path="chat/:recipientId" element={<AcademyChat />} />
                 <Route path="referral" element={<AcademyReferral />} />
+                <Route path="materials" element={<Materials />} />
                 <Route path="profile" element={<AcademySettings />} />
                 {/* Admin */}
                 <Route path="admin/analytics" element={<NeoAcademyAdminAnalytics />} />
