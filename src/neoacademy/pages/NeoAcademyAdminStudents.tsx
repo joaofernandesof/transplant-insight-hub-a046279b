@@ -365,9 +365,19 @@ export default function NeoAcademyAdminStudents() {
   return (
     <div className="min-h-screen pb-12">
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-3">
-        <div className="flex items-center gap-3">
-          <Users className="h-5 w-5 text-blue-400" />
-          <h1 className="text-lg font-bold text-white">Gestão de Alunos</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Users className="h-5 w-5 text-blue-400" />
+            <h1 className="text-lg font-bold text-white">Gestão de Alunos</h1>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setNewStudentDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Novo Aluno
+          </Button>
         </div>
       </header>
 
