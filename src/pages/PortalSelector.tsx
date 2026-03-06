@@ -125,8 +125,8 @@ const PORTAL_CONFIG: Record<string, PortalConfig> = {
     portalKey: 'vision',
   },
   neoacademy: {
-    title: 'NeoAcademy',
-    description: 'Área de membros e infoprodutos',
+    title: 'Conecta Capilar',
+    description: 'Cursos, aulas e certificações',
     icon: GraduationCap,
     gradient: 'from-violet-500 to-fuchsia-500',
     bgColor: 'bg-violet-50 dark:bg-violet-950/30',
