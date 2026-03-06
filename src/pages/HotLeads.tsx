@@ -78,6 +78,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     isBlocked,
     profiles,
     hotleadsProfiles,
+    acceptedStates,
   } = useHotLeads();
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
   const { radiusKm } = useHotLeadsRadiusSetting();
