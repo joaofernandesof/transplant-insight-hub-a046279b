@@ -128,7 +128,14 @@ export default function NeoAcademyLesson() {
 
   const completedSet = new Set(allProgress?.filter(p => p.is_completed).map(p => p.lesson_id));
   const isCompleted = completedSet.has(lesson.id);
-  const flatLessons = allLessons || [];
+  // Sort lessons by module order first, then lesson order within module
+  const moduleOrderMap = new Map((modules || []).map((m, i) => [m.id, i]));
+  const flatLessons = [...(allLessons || [])].sort((a, b) => {
+    const moduleA = moduleOrderMap.get(a.module_id) ?? 999;
+    const moduleB = moduleOrderMap.get(b.module_id) ?? 999;
+    if (moduleA !== moduleB) return moduleA - moduleB;
+    return (a.order_index ?? 0) - (b.order_index ?? 0);
+  });
   const currentIndex = flatLessons.findIndex(l => l.id === lessonId);
   const prevLesson = currentIndex > 0 ? flatLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex >= 0 && currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
