@@ -300,8 +300,8 @@ function FeaturedPartnerCard({ coupon, copiedId, onCopy }: { coupon: any; copied
             <ExternalLink className="h-4 w-4" />
             Falar com Parceiro
           </a>
-        )
-        </div>
+        )}
+
 
         {coupon.valid_until && (
           <p className="text-[10px] text-zinc-600 mt-2">
