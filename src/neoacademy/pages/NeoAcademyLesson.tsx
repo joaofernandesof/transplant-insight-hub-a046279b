@@ -287,13 +287,16 @@ export default function NeoAcademyLesson() {
             <div className="py-6">
               {activeTab === 'materials' ? (
                 <div className="space-y-6">
-                  {/* Description */}
                   {lesson.description && (
                     <p className="text-sm text-zinc-400 leading-relaxed">{lesson.description}</p>
                   )}
-
-                  {/* Attachments */}
-                  {hasAttachments && (
+                  {!lesson.description && (
+                    <p className="text-sm text-zinc-600">Nenhum material complementar para esta aula.</p>
+                  )}
+                </div>
+              ) : activeTab === 'downloads' ? (
+                <div className="space-y-6">
+                  {hasAttachments ? (
                     <div>
                       <h3 className="text-sm font-semibold text-zinc-300 mb-3">Material de Apoio</h3>
                       <div className="space-y-2">
@@ -311,10 +314,8 @@ export default function NeoAcademyLesson() {
                         ))}
                       </div>
                     </div>
-                  )}
-
-                  {!lesson.description && !hasAttachments && (
-                    <p className="text-sm text-zinc-600">Nenhum material complementar para esta aula.</p>
+                  ) : (
+                    <p className="text-sm text-zinc-600">Nenhum material disponível para download.</p>
                   )}
                 </div>
               ) : (
