@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { Settings, Palette, Bell, Globe, Shield, Zap, Loader2, Save } from 'lucide-react';
+import { Settings, Palette, Bell, Globe, Shield, Zap, Loader2, Save, Image, Plus, Trash2, GripVertical, Pencil, X, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
 interface ConectaCapilarSettings {
