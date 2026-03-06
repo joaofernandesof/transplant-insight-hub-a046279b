@@ -372,6 +372,9 @@ export default function NeoAcademyAdminCourseDetail() {
             <TabsTrigger value="students" className="text-xs data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400">
               <Users className="h-3.5 w-3.5 mr-1.5" /> Alunos ({enrollments?.length || 0})
             </TabsTrigger>
+            <TabsTrigger value="profiles" className="text-xs data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400">
+              <UserCheck className="h-3.5 w-3.5 mr-1.5" /> Perfis ({profileCourses.length})
+            </TabsTrigger>
           </TabsList>
 
           {/* =============== CONTENT TAB =============== */}
