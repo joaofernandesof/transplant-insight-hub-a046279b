@@ -271,7 +271,17 @@ export default function NeoAcademyLesson() {
             <div className="w-full bg-black">
               <div className="max-w-[1200px] mx-auto">
                 <div className="aspect-video">
-                  <video key={lesson.id} src={lesson.video_url} controls autoPlay className="w-full h-full" controlsList="nodownload" poster={course?.banner_url || undefined} />
+                  {isYouTubeUrl(lesson.video_url) ? (
+                    <iframe
+                      key={lesson.id}
+                      src={getYouTubeEmbedUrl(lesson.video_url)}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video key={lesson.id} src={lesson.video_url} controls autoPlay className="w-full h-full" controlsList="nodownload" poster={course?.banner_url || undefined} />
+                  )}
                 </div>
               </div>
             </div>
