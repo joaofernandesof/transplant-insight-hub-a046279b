@@ -332,6 +332,7 @@ export default function NeoAcademyAdminStudents() {
     },
   });
 
+  const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     } else {
