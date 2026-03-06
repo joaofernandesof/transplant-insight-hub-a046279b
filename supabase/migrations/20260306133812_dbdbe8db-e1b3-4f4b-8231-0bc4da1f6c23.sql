@@ -1,0 +1,1 @@
+ALTER TABLE neoacademy_modules ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
