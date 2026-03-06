@@ -54,7 +54,7 @@ export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
 export const PORTAL_NAMES: Record<Portal, string> = {
   neocare: 'NeoCare',
   neoteam: 'NeoTeam',
-  neoacademy: 'NeoAcademy',
+  neoacademy: 'Conecta Capilar',
   neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
   ipromed: 'CPG Advocacia',
