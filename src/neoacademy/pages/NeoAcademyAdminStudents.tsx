@@ -619,6 +619,20 @@ export default function NeoAcademyAdminStudents() {
                                 : '—'}
                             </span>
                           </td>
+                          {studentProfiles.map((sp) => {
+                            const isEnabled = student.profileAssignments[sp.id] === true;
+                            return (
+                              <td key={sp.id} className="px-2 py-3 text-center">
+                                <Switch
+                                  checked={isEnabled}
+                                  onCheckedChange={(checked) =>
+                                    toggleProfileAssignment.mutate({ userId: student.userId, profileId: sp.id, enable: checked })
+                                  }
+                                  className="mx-auto"
+                                />
+                              </td>
+                            );
+                          })}
                           <td className="px-4 py-3 text-center">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
