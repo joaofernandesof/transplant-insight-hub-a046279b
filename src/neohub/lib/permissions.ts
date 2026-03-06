@@ -54,7 +54,7 @@ export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
 export const PORTAL_NAMES: Record<Portal, string> = {
   neocare: 'NeoCare',
   neoteam: 'NeoTeam',
-  neoacademy: 'NeoAcademy',
+  neoacademy: 'Conecta Capilar',
   neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
   ipromed: 'CPG Advocacia',
@@ -168,7 +168,7 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neolicense_dashboard', name: 'Dashboard', route: '/neolicense/dashboard', icon: 'BarChart3' },
     { code: 'neolicense_hotleads', name: 'HotLeads', route: '/hotleads', icon: 'Flame' },
     { code: 'neolicense_surgery', name: 'Cirurgias', route: '/neolicense/surgery', icon: 'Calendar' },
-    { code: 'neolicense_university', name: 'NeoAcademy', route: '/neoacademy', icon: 'GraduationCap' },
+    { code: 'neolicense_university', name: 'Conecta Capilar', route: '/neoacademy', icon: 'GraduationCap' },
     { code: 'neolicense_materials', name: 'Materiais', route: '/neolicense/materials', icon: 'FileText' },
     { code: 'neolicense_partners', name: 'Parceiros', route: '/neolicense/partners', icon: 'Handshake' },
     { code: 'neolicense_gamification', name: 'Conquistas', route: '/neolicense/achievements', icon: 'Trophy' },
