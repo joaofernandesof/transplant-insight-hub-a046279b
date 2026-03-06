@@ -11,6 +11,15 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+function isYouTubeUrl(url: string): boolean {
+  return /youtube\.com|youtu\.be/i.test(url);
+}
+
+function getYouTubeEmbedUrl(url: string): string {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0` : url;
+}
+
 export default function NeoAcademyLesson() {
   const { lessonId } = useParams();
   const navigate = useNavigate();
