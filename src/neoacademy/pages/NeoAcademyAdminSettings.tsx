@@ -246,7 +246,7 @@ export default function NeoAcademyAdminSettings() {
             {([
               { key: 'notify_new_enrollment' as const, label: 'Nova Matrícula', desc: 'Notificar quando aluno se matricular' },
               { key: 'notify_course_completed' as const, label: 'Curso Concluído', desc: 'Notificar quando aluno completar curso' },
-              { key: 'notify_community_post' as const, label: 'Post na Comunidade', desc: 'Notificar novos posts' },
+              
             ]).map(notif => (
               <div key={notif.key} className="flex items-center justify-between">
                 <div>
