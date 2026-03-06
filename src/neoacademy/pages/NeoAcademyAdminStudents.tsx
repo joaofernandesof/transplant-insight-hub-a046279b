@@ -345,6 +345,35 @@ export default function NeoAcademyAdminStudents() {
     onError: () => toast.error('Erro ao atualizar acessos'),
   });
 
+  const toggleProfileAssignment = useMutation({
+    mutationFn: async ({ userId, profileId, enable }: { userId: string; profileId: string; enable: boolean }) => {
+      if (!accountId) throw new Error('No account');
+      if (enable) {
+        // Upsert: insert or update to active
+        const { error } = await (supabase as any)
+          .from('neoacademy_user_student_profiles')
+          .upsert(
+            { user_id: userId, profile_id: profileId, account_id: accountId, is_active: true, assigned_by: user?.authUserId },
+            { onConflict: 'user_id,profile_id' }
+          );
+        if (error) throw error;
+      } else {
+        // Set inactive
+        const { error } = await (supabase as any)
+          .from('neoacademy_user_student_profiles')
+          .update({ is_active: false })
+          .eq('user_id', userId)
+          .eq('profile_id', profileId);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['neoacademy-user-profile-assignments'] });
+      toast.success('Perfil atualizado!');
+    },
+    onError: () => toast.error('Erro ao atualizar perfil'),
+  });
+
   const addNewStudent = useMutation({
     mutationFn: async ({ email, courseId }: { email: string; courseId: string }) => {
       if (!accountId) throw new Error('No account');
