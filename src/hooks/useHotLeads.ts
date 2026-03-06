@@ -38,6 +38,7 @@ export function useHotLeads() {
   const [queuedCount, setQueuedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [acceptedStates, setAcceptedStates] = useState<string[] | null>(null);
 
   const fetchLeads = useCallback(async (showRefresh = false) => {
     try {
