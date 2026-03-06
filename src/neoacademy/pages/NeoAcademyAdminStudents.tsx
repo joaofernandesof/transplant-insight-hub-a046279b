@@ -227,7 +227,7 @@ export default function NeoAcademyAdminStudents() {
       }
     });
     return Object.values(map);
-  }, [enrollments, profiles]);
+  }, [enrollments, profiles, profileAssignmentsMap]);
 
   // Filter & sort
   const filtered = useMemo(() => {
