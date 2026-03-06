@@ -649,6 +649,7 @@ function NeoAcademyRoutes() {
                 <Route path="admin/students" element={<NeoAcademyAdminStudents />} />
                 <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
                 <Route path="admin/surveys" element={<SurveyManagement />} />
+                <Route path="admin/partners" element={<NeoAcademyAdminPartners />} />
                 <Route path="admin/settings" element={<NeoAcademyAdminSettings />} />
                 <Route path="*" element={<Navigate to="/neoacademy" replace />} />
               </Routes>

@@ -28,6 +28,7 @@ const ADMIN_ITEMS = [
   { label: 'Alunos', icon: Users, path: '/neoacademy/admin/students' },
   { label: 'Matrículas', icon: ClipboardList, path: '/neoacademy/admin/enrollments' },
   { label: 'Pesquisas', icon: ClipboardList, path: '/neoacademy/admin/surveys' },
+  { label: 'Parceiros', icon: Store, path: '/neoacademy/admin/partners' },
   { label: 'Configurações', icon: Settings, path: '/neoacademy/admin/settings' },
 ];
 
