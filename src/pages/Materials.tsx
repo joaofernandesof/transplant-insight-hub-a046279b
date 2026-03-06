@@ -246,7 +246,9 @@ export default function Materials() {
             )}
           </div>
         )}
-      </div>
-    </ModuleLayout>
+    </div>
   );
+
+  if (isInsideNeoAcademy) return content;
+  return <ModuleLayout>{content}</ModuleLayout>;
 }
