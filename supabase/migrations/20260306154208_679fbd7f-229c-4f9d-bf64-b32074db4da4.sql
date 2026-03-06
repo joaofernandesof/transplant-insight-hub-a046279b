@@ -1,0 +1,1 @@
+UPDATE neoacademy_lessons SET video_url = 'https://www.youtube.com/embed/Sv0NljL5nGQ', lesson_type = 'video' WHERE id = 'ed089571-9c06-4014-854d-f410b6708ffa';
