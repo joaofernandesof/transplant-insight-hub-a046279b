@@ -90,10 +90,6 @@ export default function NeoAcademyDashboard() {
           <CourseRow title="📚 Todos os Cursos" courses={allCourses} />
         )}
 
-        {/* Continue watching */}
-        {myCourses.length > 0 && (
-          <CourseRow title="🔥 Continuar Assistindo" courses={myCourses} variant="continue" />
-        )}
 
         {/* By category */}
         {categories.map(cat => {
