@@ -183,19 +183,15 @@ export default function ProfileSelector() {
     if (user.isAdmin) return true;
     if (module.adminOnly) return false;
     
-    // Combinar allowed_portals E perfis — qualquer um dos dois concede acesso
-    const portals = user.allowedPortals;
-    const hasPortalAccess = portals && portals.length > 0 && portals.includes(module.portalKey);
-    const hasProfileAccess = module.requiredProfiles.some(profile => user.profiles.includes(profile as any));
+    // Fonte de verdade: allowedPortals (derivado de user_portal_roles)
+    const portals = user.allowedPortals || [];
+    const hasPortalAccess = portals.includes(module.portalKey);
     
-    const hasBaseAccess = hasPortalAccess || hasProfileAccess;
-    if (!hasBaseAccess) return false;
+    // Se o usuário não tem o portal na lista de portais permitidos, bloquear
+    if (!hasPortalAccess) return false;
     
-    // Verificação adicional: checar se o usuário tem pelo menos um módulo legível no portal
-    // Isso garante que portais "não liberados" (todos módulos com can_read=false) fiquem bloqueados
+    // Verificação adicional de permissões granulares (se existirem)
     const portalPrefix = module.portalKey + '_';
-    
-    // Para o portal neolicense, excluir neolicense_hotleads (pertence ao HotLeads)
     const relevantPermissions = user.permissions.filter(p => {
       if (module.portalKey === 'hotleads') {
         return p.startsWith('neolicense_hotleads') || p.startsWith('hotleads');
@@ -203,8 +199,8 @@ export default function ProfileSelector() {
       return p.startsWith(portalPrefix) && !p.startsWith('neolicense_hotleads');
     });
 
-    // If no module_permissions exist for this portal, trust allowed_portals/profile access
-    if (relevantPermissions.length === 0) return hasBaseAccess;
+    // If no granular permissions exist, trust allowedPortals
+    if (relevantPermissions.length === 0) return true;
 
     // Otherwise, require at least one readable module
     return relevantPermissions.some(p => p.endsWith(':read'));
