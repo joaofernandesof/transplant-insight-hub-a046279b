@@ -3156,7 +3156,9 @@ async function processToolCall(
   patientPhone: string,
   toolName: string,
   toolArgs: Record<string, unknown>,
-  skipGridValidation?: boolean
+  skipGridValidation?: boolean,
+  conversationHistory?: Array<{ role: string }>,
+  fluxoAtendimento?: Record<string, unknown> | null
 ): Promise<string> {
   switch (toolName) {
     case "list_agendas":
