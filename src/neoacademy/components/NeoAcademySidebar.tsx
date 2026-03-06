@@ -4,7 +4,7 @@ import {
   Home, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
   GraduationCap, FileText, Calendar,
-  ClipboardList, UserCog, Store, UserCheck
+  ClipboardList, UserCog, Store, UserCheck, DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -23,6 +23,7 @@ const ADMIN_ITEMS = [
   { label: 'Analytics', icon: BarChart3, path: '/neoacademy/admin/analytics' },
   { label: 'Gerenciar Cursos', icon: BookOpen, path: '/neoacademy/admin/courses' },
   { label: 'Alunos', icon: Users, path: '/neoacademy/admin/students' },
+  { label: 'Financeiro', icon: DollarSign, path: '/neoacademy/admin/financial' },
   { label: 'Parceiros', icon: Store, path: '/neoacademy/admin/partners' },
   { label: 'Configurações', icon: Settings, path: '/neoacademy/admin/settings' },
 ];

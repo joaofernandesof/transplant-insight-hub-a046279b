@@ -12798,6 +12798,86 @@ export type Database = {
           },
         ]
       }
+      neoacademy_orders: {
+        Row: {
+          account_id: string
+          amount_cents: number
+          canceled_at: string | null
+          created_at: string | null
+          currency: string
+          description: string | null
+          due_date: string | null
+          id: string
+          items: Json | null
+          metadata: Json | null
+          order_type: string
+          paid_at: string | null
+          payment_method: string | null
+          refunded_at: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount_cents?: number
+          canceled_at?: string | null
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          items?: Json | null
+          metadata?: Json | null
+          order_type?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          refunded_at?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount_cents?: number
+          canceled_at?: string | null
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          items?: Json | null
+          metadata?: Json | null
+          order_type?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          refunded_at?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_orders_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoacademy_partner_banners: {
         Row: {
           account_id: string
@@ -12892,6 +12972,80 @@ export type Database = {
           valid_until?: string | null
         }
         Relationships: []
+      }
+      neoacademy_payment_links: {
+        Row: {
+          account_id: string
+          amount_cents: number
+          course_ids: string[] | null
+          created_at: string | null
+          created_by: string
+          currency: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          payment_type: string
+          profile_ids: string[] | null
+          stripe_payment_link_id: string | null
+          stripe_price_id: string
+          stripe_product_id: string | null
+          title: string
+          updated_at: string | null
+          url: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          account_id: string
+          amount_cents?: number
+          course_ids?: string[] | null
+          created_at?: string | null
+          created_by: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          payment_type?: string
+          profile_ids?: string[] | null
+          stripe_payment_link_id?: string | null
+          stripe_price_id: string
+          stripe_product_id?: string | null
+          title: string
+          updated_at?: string | null
+          url?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          account_id?: string
+          amount_cents?: number
+          course_ids?: string[] | null
+          created_at?: string | null
+          created_by?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          payment_type?: string
+          profile_ids?: string[] | null
+          stripe_payment_link_id?: string | null
+          stripe_price_id?: string
+          stripe_product_id?: string | null
+          title?: string
+          updated_at?: string | null
+          url?: string | null
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoacademy_payment_links_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "neoacademy_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       neoacademy_post_comments: {
         Row: {
