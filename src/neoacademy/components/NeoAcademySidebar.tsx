@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, BookOpen, Play, Users, Award,
+  Home, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
   GraduationCap, FileText, Calendar,
   ClipboardList, UserCog, Store, UserCheck
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
-  { label: 'Início', icon: LayoutDashboard, path: '/neoacademy' },
+  { label: 'Início', icon: Home, path: '/neoacademy' },
   { label: 'Meus Cursos', icon: GraduationCap, path: '/neoacademy/my-courses' },
   
   { label: 'Cursos Presenciais', icon: Calendar, path: '/neoacademy/schedule' },
