@@ -10,18 +10,18 @@ export default function NeoAcademyMyCourses() {
   const { user } = useUnifiedAuth();
 
   const { data: enrollments, isLoading } = useQuery({
-    queryKey: ['neoacademy-my-courses', user?.id],
+    queryKey: ['neoacademy-my-courses', user?.authUserId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.authUserId) return [];
       const { data, error } = await supabase
         .from('neoacademy_enrollments')
         .select('*, course:neoacademy_courses(*)')
-        .eq('user_id', user.id)
+        .eq('user_id', user.authUserId)
         .eq('is_active', true);
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.authUserId,
   });
 
   const inProgress = enrollments?.filter(e => !e.completed_at) || [];

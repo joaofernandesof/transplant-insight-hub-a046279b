@@ -25,17 +25,17 @@ export default function NeoAcademyDashboard() {
 
   // Fetch enrollments for progress
   const { data: enrollments } = useQuery({
-    queryKey: ['neoacademy-enrollments', user?.id],
+    queryKey: ['neoacademy-enrollments', user?.authUserId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.authUserId) return [];
       const { data, error } = await supabase
         .from('neoacademy_enrollments')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.authUserId);
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.authUserId,
   });
 
   if (isLoading) {
