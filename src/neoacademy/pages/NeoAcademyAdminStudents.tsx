@@ -554,6 +554,13 @@ export default function NeoAcademyAdminStudents() {
                           Último Acesso <SortIcon field="lastAccess" />
                         </button>
                       </th>
+                      {studentProfiles.map((sp) => (
+                        <th key={sp.id} className="text-center px-2 py-3 min-w-[80px]">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 leading-tight block">
+                            {sp.name}
+                          </span>
+                        </th>
+                      ))}
                       <th className="text-center px-4 py-3">
                         <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Ações</span>
                       </th>
