@@ -257,6 +257,18 @@ export default function NeoAcademyLesson() {
                   Leitura complementar
                 </button>
                 <button
+                  onClick={() => setActiveTab('downloads')}
+                  className={cn(
+                    "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
+                    activeTab === 'downloads'
+                      ? "border-blue-500 text-blue-400"
+                      : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  <Download className="h-4 w-4" />
+                  Materiais
+                </button>
+                <button
                   onClick={() => setActiveTab('comments')}
                   className={cn(
                     "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
