@@ -288,6 +288,13 @@ export default function NeoAcademyAdminCourses() {
                   {course.is_published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </button>
                 <button
+                  onClick={() => navigate(`/neoacademy/admin/courses/${course.id}`)}
+                  className="p-2 rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition"
+                  title="Gerenciar"
+                >
+                  <Settings className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => openEditCourse(course)}
                   className="p-2 rounded-lg text-zinc-600 hover:text-white hover:bg-white/5 transition"
                   title="Editar"
