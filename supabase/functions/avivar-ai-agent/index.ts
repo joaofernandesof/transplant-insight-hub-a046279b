@@ -3265,13 +3265,27 @@ async function processToolCall(
     }
     
     case "send_fluxo_media": {
+      // GUARD: Block premature media sends based on user message count
+      const requestedStepId = toolArgs.step_id as string;
+      if (fluxoAtendimento && conversationHistory) {
+        const passos = ((fluxoAtendimento as Record<string, unknown>).passosCronologicos || []) as Array<{ id?: string }>;
+        const requestedIndex = passos.findIndex(p => p.id === requestedStepId);
+        const userMsgCount = conversationHistory.filter(m => m.role === "user").length;
+        const maxAllowedIndex = userMsgCount;
+        
+        if (requestedIndex >= 0 && requestedIndex > maxAllowedIndex) {
+          console.log(`[AI Agent] ⚠️ BLOCKED send_fluxo_media for step "${requestedStepId}" (index ${requestedIndex}) — max allowed is ${maxAllowedIndex} (based on ${userMsgCount} user messages)`);
+          return `Mídia do passo "${requestedStepId}" não deve ser enviada agora. Estamos no passo ${maxAllowedIndex}. Aguarde o lead responder antes de enviar esta mídia.`;
+        }
+      }
+      
       const result = await sendFluxoMedia(
         supabase,
         accountId,
         _agentId,
         conversationId,
         patientPhone,
-        toolArgs.step_id as string
+        requestedStepId
       );
       return result.message;
     }
