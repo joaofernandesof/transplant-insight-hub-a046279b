@@ -218,17 +218,18 @@ export default function PortalSelector() {
     const permissions = user?.permissions || [];
     const portalPrefix = config.portalKey + '_';
     
-    // HotLeads: verificado via permissão neolicense_hotleads
-    if (config.portalKey === 'hotleads') {
-      return permissions.some(p => p.startsWith('neolicense_hotleads') && p.endsWith(':read'));
-    }
-    
     // Para o portal neolicense, excluir neolicense_hotleads (pertence ao HotLeads)
-    const hasAnyReadableModule = permissions.some(p => 
-      p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads')
-    );
+    const relevantPermissions = permissions.filter(p => {
+      if (config.portalKey === 'hotleads') {
+        return p.startsWith('neolicense_hotleads') || p.startsWith('hotleads');
+      }
+      return p.startsWith(portalPrefix) && p.endsWith(':read') && !p.startsWith('neolicense_hotleads');
+    });
     
-    return hasAnyReadableModule;
+    // If no permissions exist for this portal, trust allowed_portals/profile access
+    if (relevantPermissions.length === 0) return hasBaseAccess;
+    
+    return relevantPermissions.some(p => p.endsWith(':read'));
   };
 
   // Obter todos os portais com status de acesso
