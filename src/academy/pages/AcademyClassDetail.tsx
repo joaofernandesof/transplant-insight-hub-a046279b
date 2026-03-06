@@ -393,7 +393,7 @@ export function AcademyClassDetail() {
                             <Button 
                               size="sm"
                               className="bg-primary hover:bg-primary/90 flex-shrink-0"
-                              onClick={() => navigate(`/academy/exams/${exam.id}/take`)}
+                              onClick={() => navigate(`/neoacademy/exams/${exam.id}/take`)}
                             >
                               {attempted ? 'Refazer' : 'Iniciar'}
                             </Button>
