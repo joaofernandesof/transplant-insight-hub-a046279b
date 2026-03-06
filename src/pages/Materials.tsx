@@ -81,9 +81,11 @@ export default function Materials() {
   const getCategoryCount = (categoryId: string) => 
     categoryId === 'all' ? materials.length : materials.filter(m => m.category === categoryId).length;
 
-  return (
-    <ModuleLayout>
-      <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full">
+  const location = useLocation();
+  const isInsideNeoAcademy = location.pathname.startsWith('/neoacademy');
+
+  const content = (
+    <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full">
         {/* Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
