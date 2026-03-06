@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { label: 'Meus Cursos', icon: GraduationCap, path: '/neoacademy/my-courses' },
   
   { label: 'Cursos Presenciais', icon: Calendar, path: '/neoacademy/schedule' },
-  { label: 'Provas', icon: FileText, path: '/neoacademy/exams' },
+  
   { label: 'Certificados', icon: Award, path: '/neoacademy/certificates' },
   { label: 'Materiais', icon: FileText, path: '/neoacademy/materials' },
   { label: 'Indicações', icon: UserCog, path: '/neoacademy/referral' },

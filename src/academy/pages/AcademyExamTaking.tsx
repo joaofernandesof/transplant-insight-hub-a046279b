@@ -138,7 +138,7 @@ export function AcademyExamTaking() {
       });
       
       toast.success("Prova enviada com sucesso!");
-      navigate(`/academy/exams/${examId}/results/${attemptId}`);
+      navigate(`/neoacademy/exams/${examId}/results/${attemptId}`);
     } catch (error: any) {
       toast.error("Erro ao enviar prova: " + error.message);
     } finally {

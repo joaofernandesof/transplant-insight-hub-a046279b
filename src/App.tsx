@@ -638,7 +638,7 @@ function NeoAcademyRoutes() {
                 {/* Presential courses - migrated from Academy */}
                 <Route path="schedule" element={<AcademySchedule />} />
                 <Route path="classes/:classId" element={<AcademyClassDetail />} />
-                <Route path="exams" element={<AcademyExams />} />
+                {/* Exams are now accessed from within each class detail page */}
                 <Route path="exams/:examId/take" element={<AcademyExamTaking />} />
                 <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
                 <Route path="referral" element={<AcademyReferral />} />
