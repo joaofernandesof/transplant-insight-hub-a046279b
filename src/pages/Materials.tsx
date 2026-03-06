@@ -85,23 +85,23 @@ export default function Materials() {
   const isInsideNeoAcademy = location.pathname.startsWith('/neoacademy');
 
   const content = (
-    <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full">
+    <div className={`p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full ${isInsideNeoAcademy ? 'min-h-screen bg-[#0a0a0f] text-white' : ''}`}>
         {/* Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-blue-600" />
+            <h1 className={`text-2xl font-bold flex items-center gap-2 ${isInsideNeoAcademy ? 'text-white' : ''}`}>
+              <BookOpen className={`h-6 w-6 ${isInsideNeoAcademy ? 'text-blue-400' : 'text-blue-600'}`} />
               Central de Materiais
             </h1>
-            <p className="text-sm text-muted-foreground">POPs, protocolos, scripts, contratos e guias</p>
+            <p className={`text-sm ${isInsideNeoAcademy ? 'text-zinc-500' : 'text-muted-foreground'}`}>POPs, protocolos, scripts, contratos e guias</p>
           </div>
           {isAdmin && <UploadMaterialDialog />}
         </div>
 
         {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar materiais..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isInsideNeoAcademy ? 'text-zinc-500' : 'text-muted-foreground'}`} />
+          <Input placeholder="Buscar materiais..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`pl-10 ${isInsideNeoAcademy ? 'bg-[#14141f] border-white/5 text-white placeholder:text-zinc-500' : ''}`} />
         </div>
 
         {/* Categories Filter */}
@@ -115,9 +115,13 @@ export default function Materials() {
                   onClick={() => setActiveCategory(cat.id)}
                   className={`
                     inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors
-                    ${isActive 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-muted hover:bg-muted/80 text-foreground'
+                    ${isInsideNeoAcademy
+                      ? isActive
+                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                        : 'bg-white/5 text-zinc-400 border border-white/5 hover:bg-white/10'
+                      : isActive 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted hover:bg-muted/80 text-foreground'
                     }
                   `}
                 >
@@ -125,9 +129,13 @@ export default function Materials() {
                   <span className="whitespace-nowrap">{cat.name}</span>
                   <span className={`
                     ml-1 px-2 py-0.5 rounded-full text-xs font-semibold
-                    ${isActive 
-                      ? 'bg-primary-foreground/20 text-primary-foreground' 
-                      : 'bg-background text-muted-foreground'
+                    ${isInsideNeoAcademy
+                      ? isActive
+                        ? 'bg-blue-400/20 text-blue-300'
+                        : 'bg-white/5 text-zinc-500'
+                      : isActive 
+                        ? 'bg-primary-foreground/20 text-primary-foreground' 
+                        : 'bg-background text-muted-foreground'
                     }
                   `}>
                     {getCategoryCount(cat.id)}
@@ -142,14 +150,14 @@ export default function Materials() {
         {isLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i}>
+              <Card key={i} className={isInsideNeoAcademy ? 'bg-[#14141f] border-white/5' : ''}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <Skeleton className="w-10 h-10 rounded-lg" />
+                    <Skeleton className={`w-10 h-10 rounded-lg ${isInsideNeoAcademy ? 'bg-white/5' : ''}`} />
                     <div className="flex-1">
-                      <Skeleton className="h-4 w-3/4 mb-2" />
-                      <Skeleton className="h-3 w-full mb-2" />
-                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className={`h-4 w-3/4 mb-2 ${isInsideNeoAcademy ? 'bg-white/5' : ''}`} />
+                      <Skeleton className={`h-3 w-full mb-2 ${isInsideNeoAcademy ? 'bg-white/5' : ''}`} />
+                      <Skeleton className={`h-3 w-1/2 ${isInsideNeoAcademy ? 'bg-white/5' : ''}`} />
                     </div>
                   </div>
                 </CardContent>
@@ -164,26 +172,26 @@ export default function Materials() {
             {filteredMaterials.map((material) => {
               const fileType = getFileTypeFromName(material.file_name);
               return (
-                <Card key={material.id} className="hover:shadow-md transition-shadow">
+                <Card key={material.id} className={`hover:shadow-md transition-shadow ${isInsideNeoAcademy ? 'bg-[#14141f] border-white/5 hover:border-blue-500/20' : ''}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isInsideNeoAcademy ? 'bg-[#1a1a2e]' : 'bg-muted'}`}>
                         {getFileIcon(fileType)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-sm truncate">{material.title}</h3>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                        <h3 className={`font-medium text-sm truncate ${isInsideNeoAcademy ? 'text-white' : ''}`}>{material.title}</h3>
+                        <p className={`text-xs line-clamp-2 mb-2 ${isInsideNeoAcademy ? 'text-zinc-500' : 'text-muted-foreground'}`}>
                           {material.description || 'Sem descrição'}
                         </p>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
+                          <span className={`text-xs ${isInsideNeoAcademy ? 'text-zinc-600' : 'text-muted-foreground'}`}>
                             {formatFileSize(material.file_size)}
                           </span>
                           <div className="flex items-center gap-1">
                             <Button 
                               size="sm" 
                               variant="ghost" 
-                              className="h-7 px-2"
+                              className={`h-7 px-2 ${isInsideNeoAcademy ? 'text-zinc-400 hover:text-white hover:bg-white/5' : ''}`}
                               onClick={() => downloadMaterial(material)}
                             >
                               <Download className="h-4 w-4" />
@@ -197,7 +205,7 @@ export default function Materials() {
                                   type="material"
                                   size="icon"
                                   variant="ghost"
-                                  className="h-7 w-7 px-0"
+                                  className={`h-7 w-7 px-0 ${isInsideNeoAcademy ? 'text-zinc-400 hover:text-white hover:bg-white/5' : ''}`}
                                 />
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
@@ -205,7 +213,7 @@ export default function Materials() {
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </AlertDialogTrigger>
-                                  <AlertDialogContent>
+                                  <AlertDialogContent className={isInsideNeoAcademy ? 'bg-[#14141f] border-white/10 text-white' : ''}>
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Excluir material?</AlertDialogTitle>
                                       <AlertDialogDescription>
@@ -238,7 +246,7 @@ export default function Materials() {
 
         {/* Empty State */}
         {!isLoading && filteredMaterials.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className={`text-center py-12 ${isInsideNeoAcademy ? 'text-zinc-500' : 'text-muted-foreground'}`}>
             <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>Nenhum material encontrado</p>
             {isAdmin && materials.length === 0 && (
