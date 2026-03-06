@@ -144,6 +144,8 @@ export default function NeoAcademyAdminSettings() {
       </header>
 
       <div className="max-w-2xl mx-auto px-6 pt-6 space-y-6">
+        {/* ===== BANNER MANAGEMENT ===== */}
+        <BannerManager />
         <section className="p-5 rounded-xl bg-[#14141f] border border-white/5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Globe className="h-4 w-4 text-blue-400" />
