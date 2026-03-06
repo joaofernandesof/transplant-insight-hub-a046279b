@@ -58,7 +58,7 @@ interface Course {
   thumbnail_url: string | null;
 }
 
-export default function NeoAcademyAdminProfiles() {
+export default function NeoAcademyAdminProfiles({ embedded = false }: { embedded?: boolean }) {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
