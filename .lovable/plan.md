@@ -1,85 +1,46 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+## Diagnóstico
 
-### Resumo
+O problema **não é mais no fallback determinístico** (que já foi corrigido). Agora o problema é que a **IA está chamando `send_fluxo_media`** diretamente via tool call para o passo 4 (vídeos da região), mesmo estando no passo 3 da conversa.
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+**Fluxo da Karine:**
+- Passo 1 (index 0): Saudação
+- Passo 2 (index 1): Identificação
+- Passo 3 (index 2): Descoberta do interesse ← conversa está aqui (2 msgs do user)
+- Passo 4 (index 3): Apresentação da região (tem vídeos) ← IA pula pra cá
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+A IA tem acesso a todos os passos no prompt e decide enviar a mídia do passo 4 antes da hora. Não existe nenhuma validação no `send_fluxo_media` que impeça isso.
 
----
+## Correção
 
-### 1. Nova tabela: `surgery_agenda_availability`
+**Arquivo: `supabase/functions/avivar-ai-agent/index.ts`**
 
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+### 1. Adicionar guarda no tool call `send_fluxo_media` (linha ~3265)
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
-```
-
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
-
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
-
-### 3. Visualização de Disponibilidade (todos os usuários)
-
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
+Antes de executar `sendFluxoMedia`, validar se o `step_id` corresponde ao passo atual ou anterior (baseado na contagem de user messages). Se a IA tentar enviar mídia de um passo futuro, bloquear e retornar mensagem informando que a mídia não deve ser enviada ainda.
 
 ```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
+case "send_fluxo_media": {
+  // GUARD: Block premature media sends
+  const requestedStepId = toolArgs.step_id as string;
+  const fluxoData = routedAgent.fluxo_atendimento as Record<string, unknown> | null;
+  if (fluxoData) {
+    const passos = (fluxoData.passosCronologicos || []) as Array<{ id?: string }>;
+    const requestedIndex = passos.findIndex(p => p.id === requestedStepId);
+    const userMsgCount = conversationHistory.filter(m => m.role === "user").length;
+    const maxAllowedIndex = userMsgCount; // step index can't exceed user message count
+    
+    if (requestedIndex > maxAllowedIndex) {
+      console.log(`[AI Agent] ⚠️ BLOCKED send_fluxo_media for step "${requestedStepId}" (index ${requestedIndex}) — current step is ${maxAllowedIndex}`);
+      return `Mídia do passo "${requestedStepId}" não deve ser enviada agora. Estamos no passo ${maxAllowedIndex}.`;
+    }
+  }
+  // ... existing sendFluxoMedia call
+}
 ```
 
-### 5. Validação no agendamento
+### 2. Passar `conversationHistory` para o tool executor
 
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+O `executeTool` precisa receber `conversationHistory` como parâmetro para poder contar as mensagens do user. Verificar a assinatura da função e adicionar o parâmetro.
 
