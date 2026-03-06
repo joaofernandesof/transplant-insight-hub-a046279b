@@ -40,6 +40,15 @@ interface StudentRow {
   isActive: boolean;
   enrollments: { id: string; courseId: string; courseTitle: string; progress: number; completedAt: string | null; isActive: boolean }[];
   lastAccess: string | null;
+  profileAssignments: Record<string, boolean>; // profileId -> isActive
+}
+
+interface StudentProfile {
+  id: string;
+  name: string;
+  slug: string;
+  color: string | null;
+  order_index: number | null;
 }
 
 export default function NeoAcademyAdminStudents() {
@@ -96,6 +105,46 @@ export default function NeoAcademyAdminStudents() {
     enabled: !!accountId,
   });
 
+  // Fetch student profiles (tiers)
+  const { data: studentProfiles = [] } = useQuery({
+    queryKey: ['neoacademy-student-profiles', accountId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('neoacademy_student_profiles')
+        .select('id, name, slug, color, order_index')
+        .eq('account_id', accountId!)
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
+      if (error) throw error;
+      return (data || []) as StudentProfile[];
+    },
+    enabled: !!accountId,
+  });
+
+  // Fetch user-profile assignments
+  const { data: profileAssignmentsRaw = [] } = useQuery({
+    queryKey: ['neoacademy-user-profile-assignments', accountId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('neoacademy_user_student_profiles')
+        .select('user_id, profile_id, is_active')
+        .eq('account_id', accountId!);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!accountId,
+  });
+
+  // Build profile assignments map: userId -> { profileId -> isActive }
+  const profileAssignmentsMap = useMemo(() => {
+    const map: Record<string, Record<string, boolean>> = {};
+    profileAssignmentsRaw.forEach((a: any) => {
+      if (!map[a.user_id]) map[a.user_id] = {};
+      map[a.user_id][a.profile_id] = a.is_active;
+    });
+    return map;
+  }, [profileAssignmentsRaw]);
+
   // Fetch profiles for all users
   const userIds = useMemo(() => {
     if (!enrollments) return [];
@@ -106,7 +155,6 @@ export default function NeoAcademyAdminStudents() {
     queryKey: ['neoacademy-student-profiles-lookup', userIds],
     queryFn: async () => {
       if (userIds.length === 0) return {};
-      // Batch in groups of 50
       const batches: string[][] = [];
       for (let i = 0; i < userIds.length; i += 50) {
         batches.push(userIds.slice(i, i + 50));
@@ -157,6 +205,7 @@ export default function NeoAcademyAdminStudents() {
           isActive: e.is_active !== false,
           enrollments: [],
           lastAccess: null,
+          profileAssignments: profileAssignmentsMap[e.user_id] || {},
         };
       }
       map[e.user_id].enrollments.push({
@@ -178,7 +227,7 @@ export default function NeoAcademyAdminStudents() {
       }
     });
     return Object.values(map);
-  }, [enrollments, profiles]);
+  }, [enrollments, profiles, profileAssignmentsMap]);
 
   // Filter & sort
   const filtered = useMemo(() => {
@@ -294,6 +343,35 @@ export default function NeoAcademyAdminStudents() {
       setSelectedStudent(null);
     },
     onError: () => toast.error('Erro ao atualizar acessos'),
+  });
+
+  const toggleProfileAssignment = useMutation({
+    mutationFn: async ({ userId, profileId, enable }: { userId: string; profileId: string; enable: boolean }) => {
+      if (!accountId) throw new Error('No account');
+      if (enable) {
+        // Upsert: insert or update to active
+        const { error } = await (supabase as any)
+          .from('neoacademy_user_student_profiles')
+          .upsert(
+            { user_id: userId, profile_id: profileId, account_id: accountId, is_active: true, assigned_by: user?.authUserId },
+            { onConflict: 'user_id,profile_id' }
+          );
+        if (error) throw error;
+      } else {
+        // Set inactive
+        const { error } = await (supabase as any)
+          .from('neoacademy_user_student_profiles')
+          .update({ is_active: false })
+          .eq('user_id', userId)
+          .eq('profile_id', profileId);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['neoacademy-user-profile-assignments'] });
+      toast.success('Perfil atualizado!');
+    },
+    onError: () => toast.error('Erro ao atualizar perfil'),
   });
 
   const addNewStudent = useMutation({
@@ -476,6 +554,13 @@ export default function NeoAcademyAdminStudents() {
                           Último Acesso <SortIcon field="lastAccess" />
                         </button>
                       </th>
+                      {studentProfiles.map((sp) => (
+                        <th key={sp.id} className="text-center px-2 py-3 min-w-[80px]">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 leading-tight block">
+                            {sp.name}
+                          </span>
+                        </th>
+                      ))}
                       <th className="text-center px-4 py-3">
                         <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Ações</span>
                       </th>
@@ -534,6 +619,20 @@ export default function NeoAcademyAdminStudents() {
                                 : '—'}
                             </span>
                           </td>
+                          {studentProfiles.map((sp) => {
+                            const isEnabled = student.profileAssignments[sp.id] === true;
+                            return (
+                              <td key={sp.id} className="px-2 py-3 text-center">
+                                <Switch
+                                  checked={isEnabled}
+                                  onCheckedChange={(checked) =>
+                                    toggleProfileAssignment.mutate({ userId: student.userId, profileId: sp.id, enable: checked })
+                                  }
+                                  className="mx-auto"
+                                />
+                              </td>
+                            );
+                          })}
                           <td className="px-4 py-3 text-center">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
