@@ -234,25 +234,22 @@ function FeaturedPartnerCard({ coupon, copiedId, onCopy }: { coupon: any; copied
 
   return (
     <div className={`rounded-2xl bg-[#14141f] border border-white/5 overflow-hidden transition-all hover:border-amber-500/20 hover:shadow-lg hover:shadow-amber-500/5 ${isExpired ? 'opacity-50' : ''}`}>
-      {/* Banner image */}
-      {coupon.banner_url && (
-        <div className="relative">
-          <img src={coupon.banner_url} alt={coupon.partner_name} className="w-full h-36 object-cover" />
-          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-amber-500/90 text-[10px] font-bold text-black uppercase tracking-wider flex items-center gap-1">
-            <Star className="h-3 w-3" /> Destaque
-          </div>
+      {/* Banner / Logo */}
+      <div className="relative h-36 bg-gradient-to-br from-[#1a1a2e] to-[#0f0f1a] flex items-center justify-center overflow-hidden">
+        {coupon.banner_url ? (
+          <img src={coupon.banner_url} alt={coupon.partner_name} className="w-full h-full object-cover" />
+        ) : coupon.partner_logo_url ? (
+          <img src={coupon.partner_logo_url} alt={coupon.partner_name} className="max-h-20 max-w-[70%] object-contain drop-shadow-lg" />
+        ) : (
+          <Store className="h-12 w-12 text-amber-400/40" />
+        )}
+        <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-amber-500/90 text-[10px] font-bold text-black uppercase tracking-wider flex items-center gap-1">
+          <Star className="h-3 w-3" /> Destaque
         </div>
-      )}
+      </div>
 
       <div className="p-5">
         <div className="flex items-start gap-4">
-          {coupon.partner_logo_url ? (
-            <img src={coupon.partner_logo_url} alt={coupon.partner_name} className="w-16 h-16 rounded-xl object-cover bg-[#1a1a2e] shrink-0 -mt-1" />
-          ) : (
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center shrink-0">
-              <Store className="h-7 w-7 text-amber-400" />
-            </div>
-          )}
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-white truncate">{coupon.partner_name}</h3>
             {coupon.category && (
@@ -321,15 +318,18 @@ function RegularPartnerCard({ coupon, copiedId, onCopy }: { coupon: any; copiedI
 
   return (
     <div className={`rounded-xl bg-[#14141f] border border-white/5 overflow-hidden transition-all hover:border-blue-500/20 hover:shadow-md hover:shadow-blue-500/5 ${isExpired ? 'opacity-50' : ''}`}>
+      {/* Logo banner */}
+      {(coupon.banner_url || coupon.partner_logo_url) && (
+        <div className="h-24 bg-gradient-to-br from-[#1a1a2e] to-[#0f0f1a] flex items-center justify-center overflow-hidden">
+          {coupon.banner_url ? (
+            <img src={coupon.banner_url} alt={coupon.partner_name} className="w-full h-full object-cover" />
+          ) : (
+            <img src={coupon.partner_logo_url!} alt={coupon.partner_name} className="max-h-14 max-w-[60%] object-contain drop-shadow-lg" />
+          )}
+        </div>
+      )}
       <div className="p-4">
         <div className="flex items-center gap-3">
-          {coupon.partner_logo_url ? (
-            <img src={coupon.partner_logo_url} alt={coupon.partner_name} className="w-10 h-10 rounded-lg object-cover bg-[#1a1a2e] shrink-0" />
-          ) : (
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-sky-500/20 flex items-center justify-center shrink-0">
-              <Store className="h-4 w-4 text-blue-400" />
-            </div>
-          )}
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-white truncate">{coupon.partner_name}</h3>
             {coupon.category && (
