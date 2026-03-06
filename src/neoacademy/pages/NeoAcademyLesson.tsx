@@ -28,7 +28,7 @@ export default function NeoAcademyLesson() {
   const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<'materials' | 'comments'>('materials');
+  const [activeTab, setActiveTab] = useState<'materials' | 'downloads' | 'comments'>('materials');
 
   const { data: lesson, isLoading } = useQuery({
     queryKey: ['neoacademy-lesson', lessonId],
