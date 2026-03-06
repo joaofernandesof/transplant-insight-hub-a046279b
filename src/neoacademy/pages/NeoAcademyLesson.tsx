@@ -6,7 +6,8 @@ import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2,
   Play, Loader2, FileText, Download, List, X,
-  BookOpen, Clock, ChevronDown, ChevronUp, Lock
+  BookOpen, Clock, ChevronDown, Lock, FolderOpen,
+  MessageCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ export default function NeoAcademyLesson() {
   const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<'materials' | 'comments'>('materials');
 
   const { data: lesson, isLoading } = useQuery({
     queryKey: ['neoacademy-lesson', lessonId],
@@ -41,7 +43,7 @@ export default function NeoAcademyLesson() {
   const { data: course } = useQuery({
     queryKey: ['neoacademy-lesson-course', lesson?.course_id],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_courses').select('id, title, banner_url').eq('id', lesson!.course_id).single();
+      const { data } = await supabase.from('neoacademy_courses').select('id, title, banner_url, instructor_name, instructor_avatar_url').eq('id', lesson!.course_id).single();
       return data;
     },
     enabled: !!lesson?.course_id,
@@ -132,7 +134,6 @@ export default function NeoAcademyLesson() {
   const nextLesson = currentIndex >= 0 && currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
   const totalLessons = flatLessons.length;
   const completedCount = flatLessons.filter(l => completedSet.has(l.id)).length;
-  const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   const toggleModule = (id: string) => {
     const next = new Set(expandedModules);
@@ -140,145 +141,25 @@ export default function NeoAcademyLesson() {
     setExpandedModules(next);
   };
 
+  const hasAttachments = lesson.attachments && Array.isArray(lesson.attachments) && (lesson.attachments as any[]).length > 0;
+
   return (
-    <div className="min-h-screen flex bg-[#0a0a0f]">
-      <aside className={cn(
-        "fixed inset-y-0 right-0 z-40 w-[360px] bg-[#0d0d14] border-l border-white/5 flex flex-col transition-transform duration-300 lg:static lg:translate-x-0",
-        sidebarOpen ? "translate-x-0" : "translate-x-full"
-      )}>
-        <div className="p-4 border-b border-white/5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-white truncate flex-1">{course?.title || 'Curso'}</h3>
-            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-zinc-400 hover:text-white">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progressPercent}%` }} />
-            </div>
-            <span className="text-xs text-zinc-500 font-medium">{progressPercent}%</span>
-          </div>
-          <p className="text-xs text-zinc-600 mt-1">{completedCount} de {totalLessons} aulas concluídas</p>
-        </div>
+    <div className="min-h-screen bg-[#0a0a0f] flex flex-col">
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="lg:hidden fixed top-4 right-4 z-50 p-2.5 rounded-xl bg-[#14141f] border border-white/10 text-zinc-400 hover:text-white shadow-lg"
+      >
+        <List className="h-5 w-5" />
+      </button>
 
-        <div className="flex-1 overflow-y-auto">
-          {modules?.map((mod, mi) => {
-            const modLessons = flatLessons.filter(l => l.module_id === mod.id);
-            const isExpanded = expandedModules.has(mod.id);
-            const modCompleted = modLessons.filter(l => completedSet.has(l.id)).length;
-
-            return (
-              <div key={mod.id}>
-                <button
-                  onClick={() => toggleModule(mod.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/[0.03]"
-                >
-                  <div className="flex items-center gap-2 text-left">
-                    <span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 rounded px-1.5 py-0.5">
-                      M{mi + 1}
-                    </span>
-                    <span className="text-xs font-semibold text-zinc-300 truncate">{mod.title}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-600">{modCompleted}/{modLessons.length}</span>
-                    {isExpanded ? <ChevronUp className="h-3 w-3 text-zinc-500" /> : <ChevronDown className="h-3 w-3 text-zinc-500" />}
-                  </div>
-                </button>
-
-                {isExpanded && modLessons.map((l) => {
-                  const isCurrent = l.id === lessonId;
-                  const isDone = completedSet.has(l.id);
-                  const canAccess = enrollment || l.is_preview;
-
-                  return (
-                    <button
-                      key={l.id}
-                      onClick={() => canAccess && navigate(`/neoacademy/lesson/${l.id}`)}
-                      disabled={!canAccess}
-                      className={cn(
-                        "w-full flex items-center gap-2.5 px-5 py-2.5 text-left transition-all text-xs",
-                        isCurrent && "bg-blue-500/10 border-l-2 border-blue-500",
-                        !isCurrent && canAccess && "hover:bg-white/5",
-                        !canAccess && "opacity-40 cursor-not-allowed"
-                      )}
-                    >
-                      {isDone ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                      ) : isCurrent ? (
-                        <Play className="h-3.5 w-3.5 text-blue-400 shrink-0" fill="currentColor" />
-                      ) : canAccess ? (
-                        <Play className="h-3.5 w-3.5 text-zinc-600 shrink-0" />
-                      ) : (
-                        <Lock className="h-3.5 w-3.5 text-zinc-700 shrink-0" />
-                      )}
-                      <span className={cn(
-                        "flex-1 truncate",
-                        isCurrent ? "text-white font-medium" : isDone ? "text-zinc-400" : "text-zinc-500"
-                      )}>
-                        {l.title}
-                      </span>
-                      {l.video_duration_seconds && l.video_duration_seconds > 0 && (
-                        <span className="text-[10px] text-zinc-700 shrink-0">
-                          {Math.floor(l.video_duration_seconds / 60)}:{(l.video_duration_seconds % 60).toString().padStart(2, '0')}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-      </aside>
-
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-20 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/5 px-4 py-3 flex items-center justify-between gap-3">
-          <button
-            onClick={() => navigate(`/neoacademy/course/${lesson.course_id}`)}
-            className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm shrink-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Voltar ao curso</span>
-          </button>
-
-          <div className="flex-1 min-w-0 text-center">
-            <p className="text-xs text-zinc-500 truncate">{course?.title}</p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {!isCompleted ? (
-              <button
-                onClick={() => completeMutation.mutate()}
-                disabled={completeMutation.isPending}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-medium hover:bg-emerald-500/25 transition-colors"
-              >
-                {completeMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                <span className="hidden sm:inline">Concluir aula</span>
-              </button>
-            ) : (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 text-emerald-400 text-xs font-medium">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Concluída
-              </span>
-            )}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <List className="h-5 w-5" />
-            </button>
-          </div>
-        </header>
-
-        <div className="flex-1">
-          {lesson.lesson_type === 'video' && lesson.video_url ? (
-            <div className="w-full bg-black">
-              <div className="max-w-[1200px] mx-auto">
+      <div className="flex flex-1">
+        {/* Main content area */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Video / Content Player */}
+          <div className="w-full bg-black">
+            {lesson.lesson_type === 'video' && lesson.video_url ? (
+              <div className="max-w-[1100px] mx-auto">
                 <div className="aspect-video">
                   {isYouTubeUrl(lesson.video_url) ? (
                     <iframe
@@ -289,106 +170,317 @@ export default function NeoAcademyLesson() {
                       allowFullScreen
                     />
                   ) : (
-                    <video key={lesson.id} src={lesson.video_url} controls autoPlay className="w-full h-full" controlsList="nodownload" poster={course?.banner_url || undefined} />
+                    <video
+                      key={lesson.id}
+                      src={lesson.video_url}
+                      controls
+                      autoPlay
+                      className="w-full h-full"
+                      controlsList="nodownload"
+                      poster={course?.banner_url || undefined}
+                    />
                   )}
                 </div>
               </div>
-            </div>
-          ) : lesson.lesson_type === 'text' && lesson.content ? (
-            <div className="max-w-3xl mx-auto px-6 py-8">
-              <div className="prose prose-invert prose-blue max-w-none prose-headings:text-white prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-blockquote:border-blue-500 prose-blockquote:text-zinc-300 prose-th:text-zinc-300 prose-td:text-zinc-400">
-                <div dangerouslySetInnerHTML={{ __html: lesson.content }} />
+            ) : lesson.lesson_type === 'text' && lesson.content ? (
+              <div className="max-w-3xl mx-auto px-6 py-8 bg-[#0a0a0f]">
+                <div className="prose prose-invert prose-blue max-w-none prose-headings:text-white prose-p:text-zinc-400 prose-strong:text-zinc-200">
+                  <div dangerouslySetInnerHTML={{ __html: lesson.content }} />
+                </div>
               </div>
-            </div>
-          ) : lesson.lesson_type === 'pdf' && lesson.content ? (
-            <div className="flex flex-col items-center gap-4 py-16">
-              <FileText className="h-16 w-16 text-blue-400" />
-              <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
-              <a href={lesson.content} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-semibold transition-colors">
-                <Download className="h-5 w-5" />
-                Baixar PDF
-              </a>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
-              <Play className="h-12 w-12 mb-3 text-zinc-600" />
-              <p className="text-sm">Conteúdo desta aula em breve</p>
-            </div>
-          )}
+            ) : lesson.lesson_type === 'pdf' && lesson.content ? (
+              <div className="flex flex-col items-center gap-4 py-16 bg-[#0a0a0f]">
+                <FileText className="h-16 w-16 text-blue-400" />
+                <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
+                <a href={lesson.content} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-semibold transition-colors">
+                  <Download className="h-5 w-5" />
+                  Baixar PDF
+                </a>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-zinc-500 bg-[#0a0a0f]">
+                <Play className="h-12 w-12 mb-3 text-zinc-600" />
+                <p className="text-sm">Conteúdo desta aula em breve</p>
+              </div>
+            )}
+          </div>
 
-          <div className="max-w-3xl mx-auto px-6 py-6">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <h1 className="text-xl font-bold text-white mb-1">{lesson.title}</h1>
+          {/* Below video: Title + Complete button */}
+          <div className="max-w-[1100px] mx-auto w-full px-6 pt-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-bold text-white leading-tight">{lesson.title}</h1>
                 {lesson.video_duration_seconds && lesson.video_duration_seconds > 0 && (
-                  <div className="flex items-center gap-3 text-xs text-zinc-500">
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-zinc-500">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {Math.floor(lesson.video_duration_seconds / 60)} min
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-medium uppercase text-[10px]">
-                      {lesson.lesson_type === 'video' ? 'Vídeo' : lesson.lesson_type === 'text' ? 'Texto' : 'PDF'}
-                    </span>
                   </div>
                 )}
               </div>
-            </div>
-            {lesson.description && (
-              <p className="text-sm text-zinc-400 leading-relaxed">{lesson.description}</p>
-            )}
 
-            {lesson.attachments && Array.isArray(lesson.attachments) && (lesson.attachments as any[]).length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-sm font-semibold text-zinc-300 mb-3">Material Complementar</h3>
-                <div className="space-y-2">
-                  {(lesson.attachments as any[]).map((att: any, i: number) => (
-                    <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 rounded-lg bg-[#14141f] border border-white/5 hover:bg-white/5 transition-colors text-sm text-zinc-300">
-                      <Download className="h-4 w-4 text-blue-400" />
-                      {att.name || `Arquivo ${i + 1}`}
-                    </a>
-                  ))}
-                </div>
+              {!isCompleted ? (
+                <button
+                  onClick={() => completeMutation.mutate()}
+                  disabled={completeMutation.isPending}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/50 text-emerald-400 text-sm font-medium hover:bg-emerald-500/10 transition-colors shrink-0"
+                >
+                  {completeMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4" />
+                  )}
+                  Concluir aula
+                </button>
+              ) : (
+                <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium shrink-0">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Concluída
+                </span>
+              )}
+            </div>
+
+            {/* Tabs */}
+            <div className="mt-6 border-b border-white/10">
+              <div className="flex gap-6">
+                <button
+                  onClick={() => setActiveTab('materials')}
+                  className={cn(
+                    "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
+                    activeTab === 'materials'
+                      ? "border-blue-500 text-blue-400"
+                      : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Leitura complementar
+                </button>
+                <button
+                  onClick={() => setActiveTab('comments')}
+                  className={cn(
+                    "flex items-center gap-2 pb-3 text-sm font-medium border-b-2 transition-colors",
+                    activeTab === 'comments'
+                      ? "border-blue-500 text-blue-400"
+                      : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Comentários e dúvidas
+                </button>
               </div>
-            )}
+            </div>
+
+            {/* Tab content */}
+            <div className="py-6">
+              {activeTab === 'materials' ? (
+                <div className="space-y-6">
+                  {/* Instructor */}
+                  {course?.instructor_name && (
+                    <div className="flex items-center gap-3">
+                      {course.instructor_avatar_url ? (
+                        <img
+                          src={course.instructor_avatar_url}
+                          alt={course.instructor_name}
+                          className="h-10 w-10 rounded-full object-cover border-2 border-white/10"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center text-white font-bold text-sm">
+                          {course.instructor_name.charAt(0)}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-white">{course.instructor_name}</span>
+                        <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                          Mentor
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {lesson.description && (
+                    <p className="text-sm text-zinc-400 leading-relaxed">{lesson.description}</p>
+                  )}
+
+                  {/* Attachments */}
+                  {hasAttachments && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-zinc-300 mb-3">Material de Apoio</h3>
+                      <div className="space-y-2">
+                        {(lesson.attachments as any[]).map((att: any, i: number) => (
+                          <a
+                            key={i}
+                            href={att.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 rounded-lg bg-[#14141f] border border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all text-sm text-zinc-300"
+                          >
+                            <Download className="h-4 w-4 text-blue-400 shrink-0" />
+                            {att.name || `Arquivo ${i + 1}`}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!lesson.description && !hasAttachments && !course?.instructor_name && (
+                    <p className="text-sm text-zinc-600">Nenhum material complementar para esta aula.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <MessageCircle className="h-10 w-10 text-zinc-700 mx-auto mb-3" />
+                  <p className="text-sm text-zinc-500">Comentários em breve.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Navigation footer */}
+            <div className="border-t border-white/5 py-4 flex items-center justify-between">
+              {prevLesson ? (
+                <button
+                  onClick={() => navigate(`/neoacademy/lesson/${prevLesson.id}`)}
+                  className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="max-w-[200px] truncate hidden sm:inline">{prevLesson.title}</span>
+                  <span className="sm:hidden">Anterior</span>
+                </button>
+              ) : <div />}
+
+              <span className="text-xs text-zinc-600">
+                {currentIndex + 1} / {totalLessons}
+              </span>
+
+              {nextLesson ? (
+                <button
+                  onClick={() => navigate(`/neoacademy/lesson/${nextLesson.id}`)}
+                  className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                >
+                  <span className="max-w-[200px] truncate hidden sm:inline">{nextLesson.title}</span>
+                  <span className="sm:hidden">Próxima</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              ) : !isCompleted ? (
+                <button
+                  onClick={() => completeMutation.mutate()}
+                  disabled={completeMutation.isPending}
+                  className="flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Finalizar curso
+                </button>
+              ) : <div />}
+            </div>
           </div>
         </div>
 
-        <footer className="sticky bottom-0 bg-[#0d0d14]/95 backdrop-blur-xl border-t border-white/5 px-4 py-3 flex items-center justify-between">
-          {prevLesson ? (
+        {/* RIGHT SIDEBAR — Modules (card style like reference) */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
+        <aside className={cn(
+          "fixed inset-y-0 right-0 z-40 w-[320px] bg-[#0d0d14] border-l border-white/5 flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 lg:w-[300px] xl:w-[340px]",
+          sidebarOpen ? "translate-x-0" : "translate-x-full"
+        )}>
+          {/* Sidebar header */}
+          <div className="p-4 border-b border-white/5 flex items-center justify-between">
             <button
-              onClick={() => navigate(`/neoacademy/lesson/${prevLesson.id}`)}
-              className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+              onClick={() => navigate(`/neoacademy/course/${lesson.course_id}`)}
+              className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-xs"
             >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="max-w-[180px] truncate hidden sm:inline">{prevLesson.title}</span>
-              <span className="sm:hidden">Anterior</span>
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Voltar ao curso
             </button>
-          ) : <div />}
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-zinc-400 hover:text-white">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-          <span className="text-xs text-zinc-600">
-            {currentIndex + 1} / {totalLessons}
-          </span>
+          {/* Modules list as cards */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {modules?.map((mod, mi) => {
+              const modLessons = flatLessons.filter(l => l.module_id === mod.id);
+              const isExpanded = expandedModules.has(mod.id);
 
-          {nextLesson ? (
-            <button
-              onClick={() => navigate(`/neoacademy/lesson/${nextLesson.id}`)}
-              className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium"
-            >
-              <span className="max-w-[180px] truncate hidden sm:inline">{nextLesson.title}</span>
-              <span className="sm:hidden">Próxima</span>
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          ) : !isCompleted ? (
-            <button
-              onClick={() => completeMutation.mutate()}
-              disabled={completeMutation.isPending}
-              className="flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Finalizar curso
-            </button>
-          ) : <div />}
-        </footer>
+              return (
+                <div
+                  key={mod.id}
+                  className="rounded-xl border border-white/[0.06] bg-[#111118] overflow-hidden"
+                >
+                  {/* Module header card */}
+                  <button
+                    onClick={() => toggleModule(mod.id)}
+                    className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-white/[0.03] transition-colors"
+                  >
+                    <div className="flex items-center gap-3 text-left min-w-0">
+                      <FolderOpen className="h-4 w-4 text-zinc-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
+                          Módulo: {mi + 1}
+                        </p>
+                        <p className="text-sm font-semibold text-zinc-200 truncate">
+                          {mod.title}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronDown className={cn(
+                      "h-4 w-4 text-zinc-600 shrink-0 transition-transform",
+                      isExpanded && "rotate-180"
+                    )} />
+                  </button>
+
+                  {/* Expanded lessons */}
+                  {isExpanded && (
+                    <div className="border-t border-white/[0.04] pb-1">
+                      {modLessons.map((l) => {
+                        const isCurrent = l.id === lessonId;
+                        const isDone = completedSet.has(l.id);
+                        const canAccess = enrollment || l.is_preview;
+
+                        return (
+                          <button
+                            key={l.id}
+                            onClick={() => canAccess && navigate(`/neoacademy/lesson/${l.id}`)}
+                            disabled={!canAccess}
+                            className={cn(
+                              "w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-all text-xs",
+                              isCurrent && "bg-blue-500/10 border-l-2 border-blue-500",
+                              !isCurrent && canAccess && "hover:bg-white/[0.03]",
+                              !canAccess && "opacity-40 cursor-not-allowed"
+                            )}
+                          >
+                            {isDone ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                            ) : isCurrent ? (
+                              <Play className="h-3.5 w-3.5 text-blue-400 shrink-0" fill="currentColor" />
+                            ) : canAccess ? (
+                              <Play className="h-3.5 w-3.5 text-zinc-600 shrink-0" />
+                            ) : (
+                              <Lock className="h-3.5 w-3.5 text-zinc-700 shrink-0" />
+                            )}
+                            <span className={cn(
+                              "flex-1 truncate",
+                              isCurrent ? "text-white font-medium" : isDone ? "text-zinc-400" : "text-zinc-500"
+                            )}>
+                              {l.title}
+                            </span>
+                            {l.video_duration_seconds && l.video_duration_seconds > 0 && (
+                              <span className="text-[10px] text-zinc-700 shrink-0">
+                                {Math.floor(l.video_duration_seconds / 60)}:{(l.video_duration_seconds % 60).toString().padStart(2, '0')}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </aside>
       </div>
     </div>
   );
