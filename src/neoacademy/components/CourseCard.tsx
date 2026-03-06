@@ -91,9 +91,7 @@ export function CourseCard({
         "p-3 flex flex-col gap-1.5",
         variant === 'continue' ? "flex-1 justify-center" : "h-[72px] justify-between"
       )}>
-        <h3 className={cn(
-          "font-semibold text-white line-clamp-2 text-sm leading-tight"
-        )}>
+        <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2 overflow-hidden text-ellipsis" title={title}>
           {title}
         </h3>
         <div className="flex items-center gap-3 text-[11px] text-zinc-500">
