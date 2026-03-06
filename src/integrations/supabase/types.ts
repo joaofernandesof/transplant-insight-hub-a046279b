@@ -12798,6 +12798,54 @@ export type Database = {
           },
         ]
       }
+      neoacademy_partner_coupons: {
+        Row: {
+          category: string | null
+          coupon_code: string
+          created_at: string | null
+          description: string | null
+          discount_label: string
+          id: string
+          is_active: boolean | null
+          link_url: string | null
+          order_index: number | null
+          partner_logo_url: string | null
+          partner_name: string
+          updated_at: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          category?: string | null
+          coupon_code: string
+          created_at?: string | null
+          description?: string | null
+          discount_label: string
+          id?: string
+          is_active?: boolean | null
+          link_url?: string | null
+          order_index?: number | null
+          partner_logo_url?: string | null
+          partner_name: string
+          updated_at?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          category?: string | null
+          coupon_code?: string
+          created_at?: string | null
+          description?: string | null
+          discount_label?: string
+          id?: string
+          is_active?: boolean | null
+          link_url?: string | null
+          order_index?: number | null
+          partner_logo_url?: string | null
+          partner_name?: string
+          updated_at?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       neoacademy_post_comments: {
         Row: {
           content: string

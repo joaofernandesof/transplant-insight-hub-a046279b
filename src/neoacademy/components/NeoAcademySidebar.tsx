@@ -4,7 +4,7 @@ import {
   LayoutDashboard, BookOpen, Play, Users, Award,
   Settings, BarChart3, ChevronLeft, Sparkles,
   GraduationCap, FileText, Calendar,
-  ClipboardList, UserCog
+  ClipboardList, UserCog, Store
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { label: 'Certificados', icon: Award, path: '/neoacademy/certificates' },
   { label: 'Materiais', icon: FileText, path: '/neoacademy/materials' },
   { label: 'Indicações', icon: UserCog, path: '/neoacademy/referral' },
+  { label: 'Vitrine de Parceiros', icon: Store, path: '/neoacademy/partners' },
 ];
 
 const ADMIN_ITEMS = [
@@ -27,6 +28,7 @@ const ADMIN_ITEMS = [
   { label: 'Alunos', icon: Users, path: '/neoacademy/admin/students' },
   { label: 'Matrículas', icon: ClipboardList, path: '/neoacademy/admin/enrollments' },
   { label: 'Pesquisas', icon: ClipboardList, path: '/neoacademy/admin/surveys' },
+  { label: 'Parceiros', icon: Store, path: '/neoacademy/admin/partners' },
   { label: 'Configurações', icon: Settings, path: '/neoacademy/admin/settings' },
 ];
 
