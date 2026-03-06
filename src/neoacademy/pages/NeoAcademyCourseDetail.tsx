@@ -49,30 +49,30 @@ export default function NeoAcademyCourseDetail() {
   });
 
   const { data: enrollment } = useQuery({
-    queryKey: ['neoacademy-enrollment', courseId, user?.id],
+    queryKey: ['neoacademy-enrollment', courseId, user?.authUserId],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_enrollments').select('*').eq('course_id', courseId!).eq('user_id', user!.id).maybeSingle();
+      const { data } = await supabase.from('neoacademy_enrollments').select('*').eq('course_id', courseId!).eq('user_id', user!.authUserId!).maybeSingle();
       return data;
     },
-    enabled: !!courseId && !!user?.id,
+    enabled: !!courseId && !!user?.authUserId,
   });
 
   const { data: progress } = useQuery({
-    queryKey: ['neoacademy-progress', courseId, user?.id],
+    queryKey: ['neoacademy-progress', courseId, user?.authUserId],
     queryFn: async () => {
-      const { data } = await supabase.from('neoacademy_lesson_progress').select('*').eq('course_id', courseId!).eq('user_id', user!.id);
+      const { data } = await supabase.from('neoacademy_lesson_progress').select('*').eq('course_id', courseId!).eq('user_id', user!.authUserId!);
       return data || [];
     },
-    enabled: !!courseId && !!user?.id,
+    enabled: !!courseId && !!user?.authUserId,
   });
 
   const enrollMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id || !course) throw new Error('Not authenticated');
+      if (!user?.authUserId || !course) throw new Error('Not authenticated');
       const { error } = await supabase.from('neoacademy_enrollments').insert({ 
         account_id: course.account_id, 
         course_id: course.id, 
-        user_id: user.id 
+        user_id: user.authUserId 
       });
       if (error) throw error;
     },
