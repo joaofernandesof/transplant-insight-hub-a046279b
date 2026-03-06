@@ -5143,11 +5143,12 @@ Analise o histórico — se a mídia já aparece, NÃO reenvie.
         }>;
 
         if (passosCronologicos.length > 0) {
-          // Count outbound (assistant) messages in conversation history to determine current step
-          // The current response being built counts as the next outbound, so outbound count = step index
-          const outboundCount = conversationHistory.filter(m => m.role === "assistant").length;
-          // Current step index = outboundCount (0-based: first AI response = step 0)
-          const currentStepIndex = outboundCount;
+          // Count inbound (user) messages to determine current step
+          // This is reliable because each lead response advances exactly one step,
+          // unlike assistant messages which can be split into multiple WhatsApp bubbles
+          const userMessageCount = conversationHistory.filter(m => m.role === "user").length;
+          // 0 user msgs = step 0 (greeting), 1 user msg = step 1, etc.
+          const currentStepIndex = userMessageCount;
 
           if (currentStepIndex < passosCronologicos.length) {
             const currentStep = passosCronologicos[currentStepIndex];
