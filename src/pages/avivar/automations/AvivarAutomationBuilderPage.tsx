@@ -546,7 +546,8 @@ function AutomationBuilderDialog({
                 placeholder="Dê um nome a essa regra de automação..."
                 value={draft.name}
                 onChange={e => setDraft(prev => ({ ...prev, name: e.target.value }))}
-                className="border-0 bg-transparent text-base font-semibold p-0 h-auto focus-visible:ring-0 placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+                autoFocus
+                className="border-0 bg-transparent text-base font-semibold p-0 h-auto focus-visible:ring-0 placeholder:text-amber-400/60"
               />
               <Input
                 placeholder="Descrição (opcional)"
@@ -805,11 +806,17 @@ function AutomationBuilderDialog({
               {draft.actions.length === 0 && <Badge variant="outline" className="text-[10px]">...</Badge>}
             </div>
             <div className="flex items-center gap-2">
+              {!draft.name.trim() && (
+                <div className="flex items-center gap-1 text-amber-500 mr-2">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  <span className="text-[11px]">Dê um nome à automação</span>
+                </div>
+              )}
               <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl">
                 Cancelar
               </Button>
-              <Button onClick={onSave} disabled={isSaving} size="sm"
-                className="bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl shadow-lg shadow-violet-600/20">
+              <Button onClick={onSave} disabled={isSaving || !draft.name.trim()} size="sm"
+                className="bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl shadow-lg shadow-violet-600/20 disabled:opacity-50">
                 {isSaving ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar'}
               </Button>
             </div>
