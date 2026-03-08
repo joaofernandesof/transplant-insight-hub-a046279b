@@ -2222,7 +2222,7 @@ async function moverLeadParaEtapa(
   console.log(`[AI Agent] ✅ Lead "${lead.name}" moved to "${targetColumn.name}" - Reason: ${motivo}`);
 
   // Fire-and-forget: trigger automations for this column move
-  triggerAutomationsFromEdge(supabase, {
+  await triggerAutomationsFromEdge(supabase, {
     event: "lead.moved_to",
     lead_id: lead.id,
     kanban_id: lead.kanban_id,
