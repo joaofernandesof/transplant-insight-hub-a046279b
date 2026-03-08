@@ -2024,18 +2024,15 @@ async function triggerAutomationsFromEdge(
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
-    fetch(`${supabaseUrl}/functions/v1/avivar-execute-automations`, {
+    const res = await fetch(`${supabaseUrl}/functions/v1/avivar-execute-automations`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${supabaseServiceKey}`,
       },
       body: JSON.stringify(payload),
-    }).then(res => {
-      console.log(`[AI Agent] Automations trigger response: ${res.status}`);
-    }).catch(err => {
-      console.warn("[AI Agent] Failed to trigger automations:", err);
     });
+    console.log(`[AI Agent] Automations trigger response: ${res.status}`);
   } catch (err) {
     console.warn("[AI Agent] Error triggering automations:", err);
   }
