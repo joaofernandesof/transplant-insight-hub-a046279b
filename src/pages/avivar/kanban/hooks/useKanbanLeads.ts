@@ -110,6 +110,22 @@ export function useKanbanLeads(kanbanId: string | undefined) {
     enabled: !!kanbanId,
   });
 
+  // Fire-and-forget: trigger automations after lead move
+  const triggerAutomations = (leadId: string, fromColumnId: string, toColumnId: string) => {
+    supabase.functions.invoke('avivar-execute-automations', {
+      body: {
+        event: 'lead.moved_to',
+        lead_id: leadId,
+        kanban_id: kanbanId,
+        from_column_id: fromColumnId,
+        to_column_id: toColumnId,
+      },
+    }).then(res => {
+      if (res.error) console.warn('[Kanban] Automation trigger error:', res.error);
+      else console.log('[Kanban] Automations triggered:', res.data);
+    }).catch(err => console.warn('[Kanban] Automation trigger failed:', err));
+  };
+
   // Move lead to another column with checklist validation
   const moveLeadMutation = useMutation({
     mutationFn: async ({ leadId, columnId }: { leadId: string; columnId: string }) => {
