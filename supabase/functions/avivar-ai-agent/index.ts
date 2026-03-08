@@ -2148,6 +2148,7 @@ async function moverLeadParaEtapa(
   }
 
   // Move the lead to the new column
+  const fromColumnId = lead.column_id;
   const { error: updateError } = await supabase
     .from("avivar_kanban_leads")
     .update({ 
@@ -2162,6 +2163,16 @@ async function moverLeadParaEtapa(
   }
 
   console.log(`[AI Agent] ✅ Lead "${lead.name}" moved to "${targetColumn.name}" - Reason: ${motivo}`);
+
+  // Fire-and-forget: trigger automations for this column move
+  triggerAutomationsFromEdge(supabase, {
+    event: "lead.moved_to",
+    lead_id: lead.id,
+    kanban_id: lead.kanban_id,
+    from_column_id: fromColumnId,
+    to_column_id: targetColumn.id,
+  });
+
   return `Lead movido para "${targetColumn.name}".`;
 }
 

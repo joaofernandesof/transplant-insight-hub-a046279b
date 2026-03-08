@@ -185,6 +185,12 @@ export function useKanbanLeads(kanbanId: string | undefined) {
       
       return { previousLeads };
     },
+    onSuccess: (data) => {
+      // Trigger automations (fire-and-forget)
+      if (data) {
+        triggerAutomations(data.leadId, data.fromColumnId, data.columnId);
+      }
+    },
     onError: (error: Error, _variables, context) => {
       // Rollback on error
       if (context?.previousLeads) {
