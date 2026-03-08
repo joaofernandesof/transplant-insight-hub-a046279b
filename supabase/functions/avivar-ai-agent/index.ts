@@ -2012,7 +2012,35 @@ async function cancelAppointment(
 O agendamento foi removido do sistema e do calendário.`;
 }
 
-async function transferToHuman(
+// ============================================
+// AUTOMATION TRIGGER HELPER (fire-and-forget)
+// ============================================
+
+async function triggerAutomationsFromEdge(
+  supabase: AnySupabaseClient,
+  payload: { event: string; lead_id: string; kanban_id: string; from_column_id: string; to_column_id: string; account_id?: string }
+) {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    fetch(`${supabaseUrl}/functions/v1/avivar-execute-automations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${supabaseServiceKey}`,
+      },
+      body: JSON.stringify(payload),
+    }).then(res => {
+      console.log(`[AI Agent] Automations trigger response: ${res.status}`);
+    }).catch(err => {
+      console.warn("[AI Agent] Failed to trigger automations:", err);
+    });
+  } catch (err) {
+    console.warn("[AI Agent] Error triggering automations:", err);
+  }
+}
+
   supabase: AnySupabaseClient,
   conversationId: string,
   reason: string
