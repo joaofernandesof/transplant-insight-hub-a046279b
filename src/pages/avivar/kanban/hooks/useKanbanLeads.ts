@@ -158,7 +158,12 @@ export function useKanbanLeads(kanbanId: string | undefined) {
       
       if (error) throw error;
       
-      return { leadId, columnId };
+      // Find previous column_id for the lead
+      const previousLead = queryClient.getQueryData<KanbanLead[]>(['avivar-kanban-leads', kanbanId])
+        ?.find(l => l.id === leadId);
+      const fromColumnId = previousLead?.column_id || '';
+      
+      return { leadId, columnId, fromColumnId };
     },
     // Optimistic update - move lead immediately in UI
     onMutate: async ({ leadId, columnId }) => {
