@@ -2024,23 +2024,21 @@ async function triggerAutomationsFromEdge(
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
-    fetch(`${supabaseUrl}/functions/v1/avivar-execute-automations`, {
+    const res = await fetch(`${supabaseUrl}/functions/v1/avivar-execute-automations`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${supabaseServiceKey}`,
       },
       body: JSON.stringify(payload),
-    }).then(res => {
-      console.log(`[AI Agent] Automations trigger response: ${res.status}`);
-    }).catch(err => {
-      console.warn("[AI Agent] Failed to trigger automations:", err);
     });
+    console.log(`[AI Agent] Automations trigger response: ${res.status}`);
   } catch (err) {
     console.warn("[AI Agent] Error triggering automations:", err);
   }
 }
 
+async function transferToHuman(
   supabase: AnySupabaseClient,
   conversationId: string,
   reason: string
@@ -2054,6 +2052,37 @@ async function triggerAutomationsFromEdge(
       status: "pending"
     })
     .eq("id", conversationId);
+
+  // Trigger automations for the transfer event
+  try {
+    const { data: conv } = await supabase
+      .from("crm_conversations")
+      .select("lead_id, account_id")
+      .eq("id", conversationId)
+      .single();
+
+    if (conv?.lead_id) {
+      const { data: lead } = await supabase
+        .from("avivar_kanban_leads")
+        .select("id, kanban_id, column_id")
+        .eq("id", conv.lead_id)
+        .single();
+
+      if (lead) {
+        await triggerAutomationsFromEdge(supabase, {
+          event: "lead.transferred_to_human",
+          lead_id: lead.id,
+          kanban_id: lead.kanban_id,
+          from_column_id: lead.column_id,
+          to_column_id: lead.column_id,
+          account_id: conv.account_id || undefined,
+        });
+        console.log(`[AI Agent] ✅ Automations triggered for transfer_to_human (lead=${lead.id})`);
+      }
+    }
+  } catch (err) {
+    console.warn("[AI Agent] Failed to trigger automations on transfer:", err);
+  }
 
   return `Vou transferir você para um de nossos especialistas. Motivo: ${reason}. Aguarde um momento, por favor! 🙂`;
 }
@@ -2193,7 +2222,7 @@ async function moverLeadParaEtapa(
   console.log(`[AI Agent] ✅ Lead "${lead.name}" moved to "${targetColumn.name}" - Reason: ${motivo}`);
 
   // Fire-and-forget: trigger automations for this column move
-  triggerAutomationsFromEdge(supabase, {
+  await triggerAutomationsFromEdge(supabase, {
     event: "lead.moved_to",
     lead_id: lead.id,
     kanban_id: lead.kanban_id,
