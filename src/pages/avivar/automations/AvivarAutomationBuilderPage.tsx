@@ -546,7 +546,8 @@ function AutomationBuilderDialog({
                 placeholder="Dê um nome a essa regra de automação..."
                 value={draft.name}
                 onChange={e => setDraft(prev => ({ ...prev, name: e.target.value }))}
-                className="border-0 bg-transparent text-base font-semibold p-0 h-auto focus-visible:ring-0 placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+                autoFocus
+                className="border-0 bg-transparent text-base font-semibold p-0 h-auto focus-visible:ring-0 placeholder:text-amber-400/60"
               />
               <Input
                 placeholder="Descrição (opcional)"
