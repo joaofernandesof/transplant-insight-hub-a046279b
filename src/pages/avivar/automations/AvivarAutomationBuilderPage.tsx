@@ -536,19 +536,13 @@ function AutomationBuilderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[92vh] overflow-hidden flex flex-col p-0 gap-0 rounded-2xl">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[hsl(var(--avivar-border))] bg-gradient-to-r from-violet-500/5 to-purple-500/5">
+        <div className="px-6 py-4 border-b border-[hsl(var(--avivar-border))] bg-gradient-to-r from-violet-500/5 to-purple-500/5 space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div className="flex-1">
-              <Input
-                placeholder="Dê um nome a essa regra de automação..."
-                value={draft.name}
-                onChange={e => setDraft(prev => ({ ...prev, name: e.target.value }))}
-                autoFocus
-                className="border-0 bg-transparent text-base font-semibold p-0 h-auto focus-visible:ring-0 placeholder:text-amber-400/60"
-              />
+              <h3 className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">Nova automação</h3>
               <Input
                 placeholder="Descrição (opcional)"
                 value={draft.description}
@@ -556,6 +550,16 @@ function AutomationBuilderDialog({
                 className="border-0 bg-transparent text-xs p-0 h-auto mt-0.5 focus-visible:ring-0 text-[hsl(var(--avivar-muted-foreground))]"
               />
             </div>
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))] mb-1.5 block">Nome da automação *</Label>
+            <Input
+              placeholder="Ex: Notificar equipe no WhatsApp"
+              value={draft.name}
+              onChange={e => setDraft(prev => ({ ...prev, name: e.target.value }))}
+              autoFocus
+              className={`h-9 rounded-lg bg-[hsl(var(--avivar-card))] border ${!draft.name.trim() ? 'border-amber-500/50 focus-visible:ring-amber-500/30' : 'border-[hsl(var(--avivar-border))]'}`}
+            />
           </div>
         </div>
 
