@@ -2012,7 +2012,35 @@ async function cancelAppointment(
 O agendamento foi removido do sistema e do calendário.`;
 }
 
-async function transferToHuman(
+// ============================================
+// AUTOMATION TRIGGER HELPER (fire-and-forget)
+// ============================================
+
+async function triggerAutomationsFromEdge(
+  supabase: AnySupabaseClient,
+  payload: { event: string; lead_id: string; kanban_id: string; from_column_id: string; to_column_id: string; account_id?: string }
+) {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    fetch(`${supabaseUrl}/functions/v1/avivar-execute-automations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${supabaseServiceKey}`,
+      },
+      body: JSON.stringify(payload),
+    }).then(res => {
+      console.log(`[AI Agent] Automations trigger response: ${res.status}`);
+    }).catch(err => {
+      console.warn("[AI Agent] Failed to trigger automations:", err);
+    });
+  } catch (err) {
+    console.warn("[AI Agent] Error triggering automations:", err);
+  }
+}
+
   supabase: AnySupabaseClient,
   conversationId: string,
   reason: string
@@ -2148,6 +2176,7 @@ async function moverLeadParaEtapa(
   }
 
   // Move the lead to the new column
+  const fromColumnId = lead.column_id;
   const { error: updateError } = await supabase
     .from("avivar_kanban_leads")
     .update({ 
@@ -2162,6 +2191,16 @@ async function moverLeadParaEtapa(
   }
 
   console.log(`[AI Agent] ✅ Lead "${lead.name}" moved to "${targetColumn.name}" - Reason: ${motivo}`);
+
+  // Fire-and-forget: trigger automations for this column move
+  triggerAutomationsFromEdge(supabase, {
+    event: "lead.moved_to",
+    lead_id: lead.id,
+    kanban_id: lead.kanban_id,
+    from_column_id: fromColumnId,
+    to_column_id: targetColumn.id,
+  });
+
   return `Lead movido para "${targetColumn.name}".`;
 }
 
