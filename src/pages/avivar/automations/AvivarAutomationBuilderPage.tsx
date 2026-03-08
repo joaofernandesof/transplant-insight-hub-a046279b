@@ -560,6 +560,7 @@ function AutomationBuilderDialog({
               autoFocus
               className={`h-9 rounded-lg bg-[hsl(var(--avivar-card))] border ${!draft.name.trim() ? 'border-amber-500/50 focus-visible:ring-amber-500/30' : 'border-[hsl(var(--avivar-border))]'}`}
             />
+          </div>
         </div>
 
         {/* Body */}
