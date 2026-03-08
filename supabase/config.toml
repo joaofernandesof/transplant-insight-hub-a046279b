@@ -119,3 +119,6 @@ verify_jwt = false
 
 [functions.neoacademy-create-payment-link]
 verify_jwt = false
+
+[functions.avivar-execute-automations]
+verify_jwt = false
