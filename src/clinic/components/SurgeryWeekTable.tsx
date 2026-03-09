@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar, CheckCircle2, Flag, Lock, MessageSquare, Pencil } from 'lucide-react';
-import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
+import { format, parseISO, isToday, isBefore, startOfDay, eachDayOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { SurgeryDetailDialog } from './SurgeryDetailDialog';
@@ -23,9 +23,10 @@ interface SurgeryWeekTableProps {
   title?: string;
   violatedIds?: Set<string>;
   selectedBranch?: string;
+  periodRange?: { start: Date; end: Date };
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch, periodRange }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
@@ -51,6 +52,18 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
     }
+
+    // Inject all dates from periodRange even if they have no surgeries
+    if (periodRange) {
+      try {
+        const allDates = eachDayOfInterval({ start: periodRange.start, end: periodRange.end });
+        for (const d of allDates) {
+          const key = format(d, 'yyyy-MM-dd');
+          if (!map.has(key)) map.set(key, []);
+        }
+      } catch { /* invalid interval */ }
+    }
+
     const today = startOfDay(new Date());
     const entries = Array.from(map.entries());
     const todayEntries: typeof entries = [];
@@ -72,7 +85,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
       }
     }
     return new Map([...todayEntries, ...futureEntries, ...pastEntries, ...noDateEntries]);
-  }, [surgeries]);
+  }, [surgeries, periodRange]);
 
   const formatDateHeader = (dateStr: string) => {
     if (dateStr === 'sem-data') return 'Sem Data';
@@ -128,9 +141,9 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
           </div>
         </CardHeader>
         <CardContent>
-          {surgeries.length === 0 ? (
+          {grouped.size === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Nenhuma cirurgia agendada para esta semana
+              Nenhuma cirurgia agendada para este período
             </p>
           ) : (
             <div>
@@ -174,6 +187,11 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                       />
                     )}
 
+                    {items.length === 0 ? (
+                      <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm text-muted-foreground italic">
+                        Nenhum paciente agendado
+                      </div>
+                    ) : (
                     <div className="rounded-lg border overflow-x-auto">
                       <Table>
                         <TableHeader>
@@ -262,6 +280,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                         </TableBody>
                       </Table>
                     </div>
+                    )}
                   </div>
                   );
                 })}
