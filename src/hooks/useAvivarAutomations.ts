@@ -151,6 +151,7 @@ export const ACTION_TYPES = [
   { value: 'create_contact', label: 'Criar contato', icon: 'Contact' },
   { value: 'create_note', label: 'Criar nota', icon: 'StickyNote' },
   { value: 'dispatch_webhook', label: 'Disparar webhook externo', icon: 'Webhook' },
+  { value: 'send_notification', label: 'Enviar notificação', icon: 'Bell' },
   { value: 'execute_integration', label: 'Executar integração externa', icon: 'Plug' },
 ];
 

@@ -4,6 +4,7 @@
  */
 
 import React, { useState, lazy, Suspense } from 'react';
+import { useAvivarCrmNotifications } from '@/hooks/useAvivarCrmNotifications';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
@@ -173,6 +174,9 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   const isInboxRoute = location.pathname.startsWith('/avivar/inbox');
   const { counts } = useAvivarSidebarCounts();
   const { logout } = useUnifiedAuth();
+
+  // Mount CRM realtime notifications (visual + sound)
+  useAvivarCrmNotifications();
 
   const handleLogout = async () => {
     await logout();

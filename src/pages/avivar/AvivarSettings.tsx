@@ -34,6 +34,8 @@ import {
   ExternalLink,
   Bot,
   Zap,
+  Volume2,
+  Kanban,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -42,6 +44,7 @@ import { toast } from 'sonner';
 import { ApiTokensTab } from './settings/ApiTokensTab';
 import { WebhooksTab } from './settings/WebhooksTab';
 import { DuplicateSettingsTab } from './settings/DuplicateSettingsTab';
+import { useAvivarNotificationSettings, type NotificationPreferences } from '@/hooks/useAvivarNotificationSettings';
 
 export default function AvivarSettings() {
   const navigate = useNavigate();
@@ -54,15 +57,14 @@ export default function AvivarSettings() {
     phone: '',
   });
   
-  // Estado de notificações
-  const [notifications, setNotifications] = useState({
-    newLead: true,
-    newMessage: true,
-    taskOverdue: true,
-    appointmentReminder: true,
-    dailySummary: false,
-    weeklyReport: true,
-  });
+  // Notification settings from database
+  const { settings: notificationSettings, saveSettings: saveNotificationSettings } = useAvivarNotificationSettings();
+  const [notifications, setNotifications] = useState<NotificationPreferences>(notificationSettings);
+  
+  // Sync from DB when loaded
+  useEffect(() => {
+    setNotifications(notificationSettings);
+  }, [notificationSettings]);
   
   // Estado de aparência
   const [appearance, setAppearance] = useState({
@@ -363,14 +365,17 @@ export default function AvivarSettings() {
         <TabsContent value="notifications">
           <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
             <CardHeader>
-              <CardTitle className="text-[hsl(var(--avivar-foreground))]">Notificações</CardTitle>
-              <CardDescription>Configure como e quando receber alertas</CardDescription>
+              <CardTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+                <Volume2 className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+                Notificações
+              </CardTitle>
+              <CardDescription>Configure quais eventos geram notificações visuais e sonoras em tempo real</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Notificações em Tempo Real */}
               <div>
                 <h4 className="text-sm font-medium text-[hsl(var(--avivar-muted-foreground))] mb-3">
-                  Em Tempo Real
+                  🔔 Em Tempo Real (Visual + Sonoro)
                 </h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
@@ -380,7 +385,7 @@ export default function AvivarSettings() {
                       </div>
                       <div>
                         <p className="font-medium text-[hsl(var(--avivar-foreground))]">Novo Lead</p>
-                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Quando um novo lead entrar</p>
+                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Som + alerta quando um novo lead entrar no funil</p>
                       </div>
                     </div>
                     <Switch
@@ -396,12 +401,28 @@ export default function AvivarSettings() {
                       </div>
                       <div>
                         <p className="font-medium text-[hsl(var(--avivar-foreground))]">Nova Mensagem</p>
-                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Mensagens recebidas de leads</p>
+                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Som + alerta quando um lead enviar mensagem</p>
                       </div>
                     </div>
                     <Switch
                       checked={notifications.newMessage}
                       onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, newMessage: checked }))}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                        <Kanban className="h-4 w-4 text-violet-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-[hsl(var(--avivar-foreground))]">Lead Movido de Etapa</p>
+                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Som + alerta quando um lead mudar de coluna no funil</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={notifications.leadMoved}
+                      onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, leadMoved: checked }))}
                     />
                   </div>
 
@@ -444,7 +465,7 @@ export default function AvivarSettings() {
               {/* Relatórios */}
               <div>
                 <h4 className="text-sm font-medium text-[hsl(var(--avivar-muted-foreground))] mb-3">
-                  Relatórios por E-mail
+                  📧 Relatórios por E-mail
                 </h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
@@ -469,6 +490,23 @@ export default function AvivarSettings() {
                     />
                   </div>
                 </div>
+              </div>
+
+              <Separator className="bg-[hsl(var(--avivar-border))]" />
+
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => saveNotificationSettings.mutate(notifications)}
+                  disabled={saveNotificationSettings.isPending}
+                  className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+                >
+                  {saveNotificationSettings.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  Salvar Preferências
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -264,6 +264,51 @@ Deno.serve(async (req) => {
             // Future: integrate with messaging
             actionResult.success = true;
             actionResult.note = "send_message action not yet implemented";
+          } else if (action.action_type === "send_notification") {
+            const config = action.action_config as { title?: string; message?: string; sound?: boolean };
+            const title = config?.title || "Notificação de Automação";
+            const message = config?.message || `Automação "${automation.name}" foi disparada`;
+
+            // Create notification
+            const { data: notif, error: notifErr } = await supabase
+              .from("notifications")
+              .insert({
+                title,
+                message,
+                type: "automation",
+                created_by: null,
+              })
+              .select("id")
+              .single();
+
+            if (notifErr || !notif) {
+              throw new Error("Failed to create notification: " + (notifErr?.message || "unknown"));
+            }
+
+            // Get account members
+            const { data: members } = await supabase
+              .from("avivar_account_members")
+              .select("user_id")
+              .eq("account_id", effectiveAccountId)
+              .eq("is_active", true);
+
+            if (members && members.length > 0) {
+              const { error: recipErr } = await supabase
+                .from("notification_recipients")
+                .insert(
+                  members.map((m: any) => ({
+                    notification_id: notif.id,
+                    user_id: m.user_id,
+                  }))
+                );
+              if (recipErr) {
+                console.warn("[Automations] Error creating notification recipients:", recipErr);
+              }
+            }
+
+            actionResult.success = true;
+            actionResult.notification_id = notif.id;
+            actionResult.recipients_count = members?.length || 0;
           } else {
             actionResult.success = true;
             actionResult.note = `Unknown action type: ${action.action_type}`;
