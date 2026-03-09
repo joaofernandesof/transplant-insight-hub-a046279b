@@ -58,6 +58,7 @@ const ACTION_ICON_MAP: Record<string, React.ElementType> = {
   change_field: Pencil,
   create_note: StickyNote,
   dispatch_webhook: Webhook,
+  send_notification: Bell,
   execute_integration: Plug,
   create_lead: Contact,
   create_contact: Contact,
