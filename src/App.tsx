@@ -958,12 +958,10 @@ function AppRoutes() {
           CPG Advocacia Médica
           ==================================== */}
       <Route path="/cpg" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedHome /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/students" element={<Navigate to="/cpg" replace />} />
-      <Route path="/cpg/clients" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClients /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/students" element={<Navigate to="/cpg" replace /azyRoute><IpromedClients /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/clients/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedClientDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/journey" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedJourney /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/sales-funnel" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSalesFunnel /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/contracts" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContracts /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/sales-funnel" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedSalesFunnel /></LazyRoute></IproNavigate to="/cpg" replace /<LazyRoute><IpromedContracts /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/contracts/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContractDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/legal" element={<Navigate to="/cpg" replace />} />
       <Route path="/cpg/agenda" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="agenda" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
