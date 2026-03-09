@@ -71,7 +71,7 @@ export function TrichotomyField({ value, onSave }: TrichotomyFieldProps) {
         </div>
       ) : hasValue && !isEditing ? (
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{value}</span>
+          <span className="text-sm font-medium">{formatDisplay(value!)}</span>
           <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setIsEditing(true)}>
             <Pencil className="h-3 w-3 mr-1" /> Alterar
           </Button>
