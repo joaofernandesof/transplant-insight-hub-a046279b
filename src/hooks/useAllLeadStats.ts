@@ -101,8 +101,13 @@ export function useAllLeadStats(): AllLeadStats {
         }));
 
       allLicensees.sort((a, b) => b.total_claimed - a.total_claimed);
+      console.log(`[useAllLeadStats] Loaded ${allLicensees.length} licensees`);
       setTopLicensees(allLicensees);
-      setIsLoading(false);
+      } catch (e) {
+        console.error('[useAllLeadStats] Error fetching stats:', e);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchAll();
   }, []);
