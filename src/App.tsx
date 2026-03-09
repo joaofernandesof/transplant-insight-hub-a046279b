@@ -833,6 +833,9 @@ function AppRoutes() {
         <Route path="/contatos" element={<LazyRoute><ContatosOficiais /></LazyRoute>} />
         <Route path="/contatos/admin" element={<ProtectedRoute><AdminRoute><LazyRoute><ContatosAdmin /></LazyRoute></AdminRoute></ProtectedRoute>} />
 
+        {/* Portal de Links - público */}
+        <Route path="/links" element={<LazyRoute>{React.createElement(React.lazy(() => import('@/pages/PublicPortalLinks')))}</LazyRoute>} />
+
         {/* Google Calendar OAuth Callback - fora do ProtectedRoute para não perder sessão no redirect */}
         <Route path="/avivar/google-callback" element={<LazyRoute><GoogleCalendarCallback /></LazyRoute>} />
 
