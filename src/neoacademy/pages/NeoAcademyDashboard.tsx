@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { HeroCarousel } from '../components/HeroCarousel';
 import { CourseCard } from '../components/CourseCard';
-import { Loader2, Search, Monitor, MapPin, Calendar, Users, ChevronRight } from 'lucide-react';
+import { Loader2, Search, Monitor, MapPin, Calendar, Users, ChevronRight, History } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
