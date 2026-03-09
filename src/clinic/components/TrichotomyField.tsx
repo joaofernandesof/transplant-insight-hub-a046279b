@@ -42,6 +42,17 @@ export function TrichotomyField({ value, onSave }: TrichotomyFieldProps) {
   const isNoMarking = value === 'NÃO TEM MARCAÇÃO';
   const hasValue = !!value && value !== 'NÃO TEM MARCAÇÃO';
 
+  const formatDisplay = (val: string) => {
+    try {
+      // datetime-local format: YYYY-MM-DDThh:mm
+      const date = new Date(val);
+      if (isNaN(date.getTime())) return val;
+      return format(date, 'dd-MM HH:mm');
+    } catch {
+      return val;
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
