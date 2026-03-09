@@ -565,7 +565,16 @@ export default function NeoTeamPatientDetail() {
             </div>
 
             <div className="flex flex-wrap gap-2 self-start">
-              <Button variant="outline" size="sm"><Edit className="h-4 w-4 mr-1.5" />Editar</Button>
+              {isEditing ? (
+                <>
+                  <Button variant="outline" size="sm" onClick={cancelEditing} disabled={savingEdit}>Cancelar</Button>
+                  <Button size="sm" onClick={saveEditing} disabled={savingEdit}>
+                    {savingEdit ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" size="sm" onClick={startEditing}><Edit className="h-4 w-4 mr-1.5" />Editar</Button>
+              )}
             </div>
           </div>
         </div>
