@@ -377,6 +377,103 @@ export default function NeoTeamPatientDetail() {
     }
   };
 
+  const startEditing = () => {
+    if (!patient) return;
+    setEditData({
+      full_name: patient.full_name || '',
+      email: patient.email || '',
+      phone: patient.phone || '',
+      cpf: patient.cpf || '',
+      birthDate: patient.birthDate || '',
+      maritalStatus: patient.maritalStatus || '',
+      nationality: patient.nationality || '',
+      branch: patient.branch || '',
+      category: patient.category || '',
+      baldnessGrade: patient.baldnessGrade || '',
+      surgeryDate: patient.surgeryDate || '',
+      consultant: patient.consultant || '',
+      seller: patient.seller || '',
+      leadSource: patient.leadSource || '',
+      address: patient.address || '',
+      city: patient.city || '',
+      state: patient.state || '',
+    });
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditData({});
+  };
+
+  const saveEditing = async () => {
+    if (!patient || !id) return;
+    setSavingEdit(true);
+    try {
+      // Build notes string from edit data (keep non-editable parsed fields too)
+      const currentParsed = parseNotes(patient.notes || null);
+      
+      // Update parsed fields
+      const fieldMap: Record<string, string> = {
+        'filial': editData.branch || '',
+        'categoria': editData.category || '',
+        'grau': editData.baldnessGrade || '',
+        'cidade': editData.city || '',
+        'estado': editData.state || '',
+        'endereço': editData.address || '',
+        'nascimento': editData.birthDate || '',
+        'estado civil': editData.maritalStatus || '',
+        'nacionalidade': editData.nationality || '',
+        'consultor': editData.consultant || '',
+        'vendedor': editData.seller || '',
+        'data cirurgia': editData.surgeryDate || '',
+        'fonte': editData.leadSource || '',
+      };
+
+      // Merge: keep existing keys not in fieldMap, override with fieldMap
+      const merged = { ...currentParsed };
+      for (const [k, v] of Object.entries(fieldMap)) {
+        if (v) {
+          merged[k] = v;
+        } else {
+          delete merged[k];
+        }
+      }
+      // Keep observations
+      if (observationsText) {
+        merged['observações'] = observationsText;
+      }
+
+      const newNotes = Object.entries(merged)
+        .filter(([, v]) => v.trim())
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(' | ');
+
+      const { error } = await supabase
+        .from('clinic_patients')
+        .update({
+          full_name: editData.full_name,
+          email: editData.email || null,
+          phone: editData.phone || null,
+          cpf: editData.cpf || null,
+          notes: newNotes,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Paciente atualizado com sucesso!');
+      setIsEditing(false);
+      setEditData({});
+      fetchPatient(); // Reload data
+    } catch (err) {
+      console.error('Error saving patient:', err);
+      toast.error('Erro ao salvar alterações');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const openWhatsApp = (phone: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const formattedPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
