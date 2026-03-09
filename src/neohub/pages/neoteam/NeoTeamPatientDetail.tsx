@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   User, Phone, Mail, MapPin, Calendar, FileText,
   ArrowLeft, Edit, MessageCircle, Clock,
@@ -993,6 +994,14 @@ function TimelineStatusBadge({ status }: { status: string }) {
   return <Badge className={`${c.className} border-0 text-[10px] px-1.5 py-0`}>{c.label}</Badge>;
 }
 
+const PATIENT_CATEGORY_OPTIONS = [
+  { value: "CATEGORIA A - DR HYGOR", label: "Cat A - Dr Hygor" },
+  { value: "CATEGORIA A - DR PATRICK", label: "Cat A - Dr Patrick" },
+  { value: "CATEGORIA B - MÉDICO DA EQUIPE", label: "Cat B - Médico da Equipe" },
+  { value: "CATEGORIA C - PACIENTE MODELO VIP", label: "Cat C - Modelo VIP" },
+  { value: "CATEGORIA D - PACIENTE MODELO", label: "Cat D - Modelo" },
+];
+
 function EditableField({ 
   label, field, value, isEditing, editData, setEditData, span2 
 }: { 
@@ -1001,6 +1010,23 @@ function EditableField({
   span2?: boolean;
 }) {
   if (isEditing) {
+    if (field === 'category') {
+      return (
+        <div className={span2 ? 'col-span-2' : ''}>
+          <p className="text-xs text-muted-foreground mb-1">{label}</p>
+          <Select value={editData[field] || ''} onValueChange={(v) => setEditData(prev => ({ ...prev, [field]: v }))}>
+            <SelectTrigger className="h-8 text-sm">
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
+            <SelectContent>
+              {PATIENT_CATEGORY_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
     return (
       <div className={span2 ? 'col-span-2' : ''}>
         <p className="text-xs text-muted-foreground mb-1">{label}</p>

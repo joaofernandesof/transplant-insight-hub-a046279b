@@ -85,10 +85,11 @@ interface SurgeryDialogProps {
 }
 
 const categories = [
-  { value: "CATEGORIA A - MÉDICO SÊNIOR", label: "Cat A - Médico Sênior" },
+  { value: "CATEGORIA A - DR HYGOR", label: "Cat A - Dr Hygor" },
+  { value: "CATEGORIA A - DR PATRICK", label: "Cat A - Dr Patrick" },
   { value: "CATEGORIA B - MÉDICO DA EQUIPE", label: "Cat B - Médico da Equipe" },
   { value: "CATEGORIA C - PACIENTE MODELO VIP", label: "Cat C - Modelo VIP" },
-  { value: "CATEGORIA D - PACIENTE MODELO NORMAL", label: "Cat D - Modelo Normal" },
+  { value: "CATEGORIA D - PACIENTE MODELO", label: "Cat D - Modelo" },
   { value: "RETOUCHING", label: "Retouching" },
   { value: "A DEFINIR", label: "A Definir" },
   { value: "RETOQUE DE BARBA", label: "Retoque de Barba" },
