@@ -93,13 +93,19 @@ export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolea
   const handleSave = async () => {
     if (selectedDays.size === 0 || !selectedBranch) return;
     for (const dateStr of Array.from(selectedDays)) {
-      await upsertAvailability.mutateAsync({
-        branch: selectedBranch,
-        date: dateStr,
-        max_slots: editMaxSlots,
-        is_blocked: editBlocked,
-        blocked_reason: editBlocked ? editReason : undefined,
-      });
+      if (isAdmin) {
+        await upsertAvailability.mutateAsync({
+          branch: selectedBranch,
+          date: dateStr,
+          max_slots: editMaxSlots,
+          is_blocked: editBlocked,
+          blocked_reason: editBlocked ? editReason : undefined,
+        });
+      }
+      // Save note if provided (or clear it)
+      if (editNote !== undefined) {
+        await upsertNote.mutateAsync({ date: dateStr, note: editNote });
+      }
     }
     toast.success(`Configuração aplicada para ${selectedDays.size} dia(s)`);
     setShowEditDialog(false);
