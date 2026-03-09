@@ -62,6 +62,8 @@ export default function NeoTeamPortalLinks() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<PortalLink | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState('');
+  const [sectorFilter, setSectorFilter] = useState('all');
 
   const { data: links = [], isLoading } = useQuery({
     queryKey: ['neoteam-portal-links'],
