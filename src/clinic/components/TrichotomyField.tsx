@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Scissors, Pencil, XCircle, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { format, parse } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -41,6 +42,17 @@ export function TrichotomyField({ value, onSave }: TrichotomyFieldProps) {
   const isNoMarking = value === 'NÃO TEM MARCAÇÃO';
   const hasValue = !!value && value !== 'NÃO TEM MARCAÇÃO';
 
+  const formatDisplay = (val: string) => {
+    try {
+      // datetime-local format: YYYY-MM-DDThh:mm
+      const date = new Date(val);
+      if (isNaN(date.getTime())) return val;
+      return format(date, 'dd-MM HH:mm');
+    } catch {
+      return val;
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -59,7 +71,7 @@ export function TrichotomyField({ value, onSave }: TrichotomyFieldProps) {
         </div>
       ) : hasValue && !isEditing ? (
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{value}</span>
+          <span className="text-sm font-medium">{formatDisplay(value!)}</span>
           <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setIsEditing(true)}>
             <Pencil className="h-3 w-3 mr-1" /> Alterar
           </Button>
