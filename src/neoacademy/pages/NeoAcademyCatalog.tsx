@@ -48,10 +48,24 @@ export default function NeoAcademyCatalog() {
     return true;
   }) || [];
 
-  const filteredClasses = classes?.filter(c => {
+  // Auto-detect completed classes based on end_date
+  const classesWithAutoStatus = useMemo(() => {
+    const now = new Date();
+    return (classes || []).map(cls => {
+      const endDate = cls.end_date ? new Date(cls.end_date) : new Date(cls.start_date);
+      const isPast = endDate < now;
+      const effectiveStatus = isPast && cls.status !== 'cancelled' ? 'completed' : cls.status;
+      return { ...cls, effectiveStatus, isPast };
+    });
+  }, [classes]);
+
+  const filteredClasses = classesWithAutoStatus.filter(c => {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (!showPastClasses && c.isPast) return false;
     return true;
-  }) || [];
+  });
+
+  const pastCount = classesWithAutoStatus.filter(c => c.isPast).length;
 
   const getStatusLabel = (status: string) => {
     const map: Record<string, { label: string; color: string }> = {
