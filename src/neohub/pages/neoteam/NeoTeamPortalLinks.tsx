@@ -20,7 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  ExternalLink, Plus, Pencil, Trash2, Link as LinkIcon,
+  ExternalLink, Plus, Pencil, Trash2, Link as LinkIcon, Search, X,
   DollarSign, Megaphone, Users, Stethoscope, Scale, CircuitBoard,
   HeadphonesIcon, ClipboardList, GitCompare, Package, Settings, Globe,
 } from 'lucide-react';
