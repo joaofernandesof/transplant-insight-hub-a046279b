@@ -35,7 +35,7 @@ export function useAllLeadStats(): AllLeadStats {
   useEffect(() => {
     async function fetchAll() {
       setIsLoading(true);
-      
+      try {
       // Fetch RPC stats, licensees, and sessions in parallel
       const [rpcResult, licenseeResult, sessionsResult] = await Promise.all([
         supabase.rpc('get_hotleads_admin_stats'),
