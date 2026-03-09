@@ -901,17 +901,21 @@ export default function NeoTeamPatientDetail() {
                   <div className="absolute left-3 top-2 bottom-2 w-px bg-border" />
                   {timeline.map((event) => (
                     <div key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
-                      <div className={`relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                       <div className={`relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
                         event.type === 'surgery'
                           ? 'border-destructive bg-destructive/10'
                           : event.type === 'appointment'
                           ? 'border-primary bg-primary/10'
+                          : event.type === 'edit'
+                          ? 'border-amber-500 bg-amber-500/10'
                           : 'border-muted-foreground bg-muted'
                       }`}>
                         {event.type === 'surgery' ? (
                           <Stethoscope className="h-3 w-3 text-destructive" />
                         ) : event.type === 'appointment' ? (
                           <CalendarCheck className="h-3 w-3 text-primary" />
+                        ) : event.type === 'edit' ? (
+                          <Edit className="h-3 w-3 text-amber-500" />
                         ) : (
                           <User className="h-3 w-3 text-muted-foreground" />
                         )}
