@@ -96,6 +96,31 @@ export default function ClinicDashboard() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [isSyncingNotes, setIsSyncingNotes] = useState(false);
+  const [notesSynced, setNotesSynced] = useState(() => localStorage.getItem('surgery-notes-synced') === 'true');
+
+  const handleSyncNotes = useCallback(async () => {
+    setIsSyncingNotes(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-surgery-notes');
+      if (error) throw error;
+      const result = data as { success: boolean; updated: number; skipped: number; total: number; errors?: string[] };
+      if (result.success) {
+        toast.success(`Observações sincronizadas! ${result.updated} atualizadas, ${result.skipped} não encontradas.`);
+        localStorage.setItem('surgery-notes-synced', 'true');
+        setNotesSynced(true);
+        // Refresh data
+        window.location.reload();
+      } else {
+        toast.error('Erro ao sincronizar observações');
+      }
+    } catch (err) {
+      console.error('Sync error:', err);
+      toast.error('Erro ao sincronizar observações');
+    } finally {
+      setIsSyncingNotes(false);
+    }
+  }, []);
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'full' | 'blocked'>('all');
 
   // Sync tab from URL params
