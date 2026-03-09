@@ -219,23 +219,6 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                     {surgery.category && (
                                       <p className="text-xs text-muted-foreground truncate max-w-[200px]">{surgery.category}</p>
                                     )}
-                                    {/* Mobile: show notes inline */}
-                                    {(surgery.notes || dateNote) && (
-                                      <div className="md:hidden mt-1 space-y-0.5">
-                                        {dateNote && (
-                                          <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                            <MessageSquare className="h-3 w-3 shrink-0" />
-                                            <span className="truncate max-w-[180px]">{dateNote}</span>
-                                          </p>
-                                        )}
-                                        {surgery.notes && (
-                                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                            <Pencil className="h-3 w-3 shrink-0" />
-                                            <span className="truncate max-w-[180px]">{surgery.notes}</span>
-                                          </p>
-                                        )}
-                                      </div>
-                                    )}
                                   </div>
                                 </div>
                               </TableCell>
