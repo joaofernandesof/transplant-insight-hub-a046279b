@@ -65,6 +65,7 @@ import {
   Zap,
   Hash,
   Target,
+  Link2,
 } from 'lucide-react';
 
 // Tipos base
