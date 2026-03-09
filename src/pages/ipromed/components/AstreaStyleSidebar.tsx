@@ -64,7 +64,6 @@ const cpgNavItems: NavItem[] = [
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/cpg/agenda', tourId: 'sidebar-agenda' },
   { id: 'forms', label: 'Formulários', icon: ClipboardList, href: '/cpg/forms' },
 ];
-];
 
 interface AstreaStyleSidebarProps {
   isCollapsed: boolean;
