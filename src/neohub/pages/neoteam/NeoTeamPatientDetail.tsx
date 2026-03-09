@@ -519,8 +519,8 @@ export default function NeoTeamPatientDetail() {
       }
 
       const newNotes = Object.entries(merged)
-        .filter(([, v]) => v.trim())
-        .map(([k, v]) => `${k}: ${v}`)
+        .filter(([, v]) => typeof v === 'string' && v.trim())
+        .map(([k, v]) => `${k}: ${String(v)}`)
         .join(' | ');
 
       // Detect changes for audit log
