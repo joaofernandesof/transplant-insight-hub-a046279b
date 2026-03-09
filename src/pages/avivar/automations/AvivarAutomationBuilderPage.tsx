@@ -11,6 +11,7 @@ import {
   UserCheck, Bot, Tag, Contact, Plug, ChevronDown, ChevronUp,
   Filter, Clock, ArrowLeft, Copy, MoreHorizontal, Play,
   AlertCircle, CheckCircle2, XCircle, GripVertical, History, ChevronRight,
+  Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
