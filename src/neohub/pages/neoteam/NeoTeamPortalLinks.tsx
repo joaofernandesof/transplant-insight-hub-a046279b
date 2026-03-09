@@ -198,6 +198,43 @@ export default function NeoTeamPortalLinks() {
         )}
       </div>
 
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por título, descrição ou URL..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={sectorFilter} onValueChange={setSectorFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Filtrar por setor" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os setores</SelectItem>
+            {SECTORS.map(s => (
+              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(search || sectorFilter !== 'all') && (
+          <Button variant="ghost" size="sm" onClick={() => { setSearch(''); setSectorFilter('all'); }} className="gap-1">
+            <X className="h-4 w-4" />
+            Limpar
+          </Button>
+        )}
+      </div>
+
+      {/* Results count */}
+      {!isLoading && links.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          Exibindo {filteredLinks.length} de {links.length} links
+        </p>
+      )}
+
       {isLoading ? (
         <div className="text-center text-muted-foreground py-12">Carregando...</div>
       ) : Object.keys(grouped).length === 0 ? (
