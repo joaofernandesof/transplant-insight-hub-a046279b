@@ -57,15 +57,14 @@ export default function AvivarSettings() {
     phone: '',
   });
   
-  // Estado de notificações
-  const [notifications, setNotifications] = useState({
-    newLead: true,
-    newMessage: true,
-    taskOverdue: true,
-    appointmentReminder: true,
-    dailySummary: false,
-    weeklyReport: true,
-  });
+  // Notification settings from database
+  const { settings: notificationSettings, saveSettings: saveNotificationSettings } = useAvivarNotificationSettings();
+  const [notifications, setNotifications] = useState<NotificationPreferences>(notificationSettings);
+  
+  // Sync from DB when loaded
+  useEffect(() => {
+    setNotifications(notificationSettings);
+  }, [notificationSettings]);
   
   // Estado de aparência
   const [appearance, setAppearance] = useState({
