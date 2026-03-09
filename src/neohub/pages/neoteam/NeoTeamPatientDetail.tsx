@@ -651,9 +651,9 @@ export default function NeoTeamPatientDetail() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                <InfoField label="Logradouro" value={patient.address} span2 />
-                <InfoField label="Cidade" value={patient.city} />
-                <InfoField label="Estado/UF" value={patient.state} />
+                <EditableField label="Logradouro" field="address" value={patient.address} isEditing={isEditing} editData={editData} setEditData={setEditData} span2 />
+                <EditableField label="Cidade" field="city" value={patient.city} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Estado/UF" field="state" value={patient.state} isEditing={isEditing} editData={editData} setEditData={setEditData} />
               </div>
             </CardContent>
           </Card>
