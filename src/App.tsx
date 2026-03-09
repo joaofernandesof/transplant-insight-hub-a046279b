@@ -968,8 +968,8 @@ function AppRoutes() {
       <Route path="/cpg/cases" element={<Navigate to="/cpg" replace />} />
       <Route path="/cpg/cases/:id" element={<Navigate to="/cpg" replace />} />
       
-      <Route path="/cpg/ai" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="ai" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/university" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedUniversity /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/ai" element={<Navigate to="/cpg" replace />} />
+      <Route path="/cpg/university" element={<Navigate to="/cpg" replace />} />
       <Route path="/cpg/financial" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFinancial /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/push-juridico" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedPushJuridico /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       
