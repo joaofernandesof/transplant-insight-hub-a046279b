@@ -331,8 +331,8 @@ export default function ClinicDashboard() {
 
   return (
     <div className="h-[calc(100vh-56px)] lg:h-screen flex flex-col overflow-hidden">
-      {/* Sticky Header */}
-      <div className="shrink-0 bg-background px-4 pt-3 md:px-6 pb-4 border-b border-border space-y-3">
+      {/* Sticky Header - scrollable on mobile */}
+      <div className="shrink-0 bg-background px-4 pt-3 md:px-6 pb-4 border-b border-border space-y-3 max-h-[55vh] md:max-h-none overflow-y-auto">
         {/* Title + Period */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -546,7 +546,7 @@ export default function ClinicDashboard() {
                   />
                 </div>
                 {/* Quick period buttons */}
-                <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
+                <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5 overflow-x-auto">
                   {[
                     { value: 'all', label: 'Todo Período' },
                     { value: 'yesterday', label: 'Ontem' },
@@ -561,7 +561,7 @@ export default function ClinicDashboard() {
                       variant={selectedPeriod === opt.value ? 'secondary' : 'ghost'}
                       size="sm"
                       onClick={() => { setSelectedPeriod(opt.value); if (opt.value !== 'custom') setDateRange(undefined); }}
-                      className={cn('text-xs h-7 px-2.5', selectedPeriod === opt.value && 'bg-background shadow-sm')}
+                      className={cn('text-xs h-7 px-2.5 whitespace-nowrap', selectedPeriod === opt.value && 'bg-background shadow-sm')}
                     >
                       {opt.label}
                     </Button>
@@ -594,8 +594,8 @@ export default function ClinicDashboard() {
               </div>
 
               {/* D-XX Filter Chips */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] text-muted-foreground font-medium mr-1">Preparo:</span>
+              <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto pb-1">
+                <span className="text-[11px] text-muted-foreground font-medium mr-1 shrink-0">Preparo:</span>
                 {D_FILTERS.map((d) => (
                   <Button
                     key={d.value}
@@ -603,7 +603,7 @@ export default function ClinicDashboard() {
                     size="sm"
                     onClick={() => toggleDFilter(d.value)}
                     className={cn(
-                      'h-6 px-2 text-[11px] rounded-full',
+                      'h-6 px-2 text-[11px] rounded-full whitespace-nowrap',
                       activeDFilters.has(d.value) && 'bg-primary text-primary-foreground'
                     )}
                   >
@@ -624,8 +624,8 @@ export default function ClinicDashboard() {
               </div>
 
               {/* Availability Filter */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] text-muted-foreground font-medium mr-1">Disponibilidade:</span>
+              <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto pb-1">
+                <span className="text-[11px] text-muted-foreground font-medium mr-1 shrink-0">Disponibilidade:</span>
                 {([
                   { value: 'all' as const, label: 'Todas', color: '' },
                   { value: 'available' as const, label: '🟢 Disponível', color: 'bg-emerald-600 text-white hover:bg-emerald-700' },
@@ -638,7 +638,7 @@ export default function ClinicDashboard() {
                     size="sm"
                     onClick={() => setAvailabilityFilter(opt.value)}
                     className={cn(
-                      'h-6 px-2 text-[11px] rounded-full',
+                      'h-6 px-2 text-[11px] rounded-full whitespace-nowrap',
                       availabilityFilter === opt.value && opt.color
                     )}
                   >
@@ -649,7 +649,7 @@ export default function ClinicDashboard() {
             </div>
 
             {/* Branch Filter */}
-            <div className="flex justify-center gap-1.5 flex-wrap">
+            <div className="flex justify-center gap-1.5 flex-nowrap overflow-x-auto pb-1">
               <Button
                 variant={selectedBranch === 'all' ? 'default' : 'outline'}
                 size="sm"
