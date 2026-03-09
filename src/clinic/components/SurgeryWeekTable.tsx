@@ -26,7 +26,7 @@ interface SurgeryWeekTableProps {
   periodRange?: { start: Date; end: Date };
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch, periodRange }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
