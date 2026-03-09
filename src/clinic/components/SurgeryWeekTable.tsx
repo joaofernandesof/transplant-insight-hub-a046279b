@@ -280,6 +280,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                         </TableBody>
                       </Table>
                     </div>
+                    )}
                   </div>
                   );
                 })}

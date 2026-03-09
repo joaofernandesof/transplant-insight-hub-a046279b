@@ -749,7 +749,7 @@ export default function ClinicDashboard() {
         {activeTab === 'agenda' ? (
           <>
             
-            <SurgeryWeekTable
+             <SurgeryWeekTable
               surgeries={filteredSurgeries}
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
               onReschedule={(id, newDate, newTime) => rescheduleSurgery.mutate({ id, newDate, newTime })}
@@ -758,6 +758,7 @@ export default function ClinicDashboard() {
               title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
               violatedIds={violatedIds}
               selectedBranch={selectedBranch}
+              periodRange={periodRange}
             />
             <SurgeryDetailDialog
               surgery={selectedPendingSurgery}
