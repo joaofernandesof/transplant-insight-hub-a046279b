@@ -649,7 +649,7 @@ export default function ClinicDashboard() {
             </div>
 
             {/* Branch Filter */}
-            <div className="flex justify-center gap-1.5 flex-wrap">
+            <div className="flex justify-center gap-1.5 flex-nowrap overflow-x-auto pb-1">
               <Button
                 variant={selectedBranch === 'all' ? 'default' : 'outline'}
                 size="sm"
