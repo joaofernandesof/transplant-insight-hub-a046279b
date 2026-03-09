@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   User, Phone, Mail, MapPin, Calendar, FileText,
@@ -96,16 +97,28 @@ const formatCurrency = (value: number) =>
 export default function NeoTeamPatientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [patient, setPatient] = useState<PatientData | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSurgeryDialog, setShowSurgeryDialog] = useState(false);
   const [observationsText, setObservationsText] = useState('');
   const [savingObs, setSavingObs] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<Record<string, string>>({});
+  const [savingEdit, setSavingEdit] = useState(false);
   const [financial, setFinancial] = useState<FinancialSummary>({
     totalContract: 0, totalPaid: 0, totalPending: 0, totalOverdue: 0,
     installmentsCount: 0, paidCount: 0, pendingCount: 0, overdueCount: 0,
   });
+
+  // Start in edit mode if ?edit=true
+  useEffect(() => {
+    if (searchParams.get('edit') === 'true' && patient && !isEditing) {
+      startEditing();
+      setSearchParams({}, { replace: true });
+    }
+  }, [patient, searchParams]);
 
   useEffect(() => {
     if (id) {
@@ -364,6 +377,103 @@ export default function NeoTeamPatientDetail() {
     }
   };
 
+  const startEditing = () => {
+    if (!patient) return;
+    setEditData({
+      full_name: patient.full_name || '',
+      email: patient.email || '',
+      phone: patient.phone || '',
+      cpf: patient.cpf || '',
+      birthDate: patient.birthDate || '',
+      maritalStatus: patient.maritalStatus || '',
+      nationality: patient.nationality || '',
+      branch: patient.branch || '',
+      category: patient.category || '',
+      baldnessGrade: patient.baldnessGrade || '',
+      surgeryDate: patient.surgeryDate || '',
+      consultant: patient.consultant || '',
+      seller: patient.seller || '',
+      leadSource: patient.leadSource || '',
+      address: patient.address || '',
+      city: patient.city || '',
+      state: patient.state || '',
+    });
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditData({});
+  };
+
+  const saveEditing = async () => {
+    if (!patient || !id) return;
+    setSavingEdit(true);
+    try {
+      // Build notes string from edit data (keep non-editable parsed fields too)
+      const currentParsed = parseNotes(patient.notes || null);
+      
+      // Update parsed fields
+      const fieldMap: Record<string, string> = {
+        'filial': editData.branch || '',
+        'categoria': editData.category || '',
+        'grau': editData.baldnessGrade || '',
+        'cidade': editData.city || '',
+        'estado': editData.state || '',
+        'endereço': editData.address || '',
+        'nascimento': editData.birthDate || '',
+        'estado civil': editData.maritalStatus || '',
+        'nacionalidade': editData.nationality || '',
+        'consultor': editData.consultant || '',
+        'vendedor': editData.seller || '',
+        'data cirurgia': editData.surgeryDate || '',
+        'fonte': editData.leadSource || '',
+      };
+
+      // Merge: keep existing keys not in fieldMap, override with fieldMap
+      const merged = { ...currentParsed };
+      for (const [k, v] of Object.entries(fieldMap)) {
+        if (v) {
+          merged[k] = v;
+        } else {
+          delete merged[k];
+        }
+      }
+      // Keep observations
+      if (observationsText) {
+        merged['observações'] = observationsText;
+      }
+
+      const newNotes = Object.entries(merged)
+        .filter(([, v]) => v.trim())
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(' | ');
+
+      const { error } = await supabase
+        .from('clinic_patients')
+        .update({
+          full_name: editData.full_name,
+          email: editData.email || null,
+          phone: editData.phone || null,
+          cpf: editData.cpf || null,
+          notes: newNotes,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Paciente atualizado com sucesso!');
+      setIsEditing(false);
+      setEditData({});
+      fetchPatient(); // Reload data
+    } catch (err) {
+      console.error('Error saving patient:', err);
+      toast.error('Erro ao salvar alterações');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const openWhatsApp = (phone: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const formattedPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
@@ -455,7 +565,16 @@ export default function NeoTeamPatientDetail() {
             </div>
 
             <div className="flex flex-wrap gap-2 self-start">
-              <Button variant="outline" size="sm"><Edit className="h-4 w-4 mr-1.5" />Editar</Button>
+              {isEditing ? (
+                <>
+                  <Button variant="outline" size="sm" onClick={cancelEditing} disabled={savingEdit}>Cancelar</Button>
+                  <Button size="sm" onClick={saveEditing} disabled={savingEdit}>
+                    {savingEdit ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" size="sm" onClick={startEditing}><Edit className="h-4 w-4 mr-1.5" />Editar</Button>
+              )}
             </div>
           </div>
         </div>
@@ -497,13 +616,13 @@ export default function NeoTeamPatientDetail() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                <InfoField label="Nome Completo" value={patient.full_name} />
-                <InfoField label="CPF" value={patient.cpf} />
-                <InfoField label="Telefone" value={patient.phone} />
-                <InfoField label="Email" value={patient.email} />
-                <InfoField label="Data de Nascimento" value={patient.birthDate} />
-                <InfoField label="Estado Civil" value={patient.maritalStatus} />
-                <InfoField label="Nacionalidade" value={patient.nationality || 'Brasileira'} />
+                <EditableField label="Nome Completo" field="full_name" value={patient.full_name} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="CPF" field="cpf" value={patient.cpf} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Telefone" field="phone" value={patient.phone} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Email" field="email" value={patient.email} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Data de Nascimento" field="birthDate" value={patient.birthDate} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Estado Civil" field="maritalStatus" value={patient.maritalStatus} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Nacionalidade" field="nationality" value={patient.nationality || 'Brasileira'} isEditing={isEditing} editData={editData} setEditData={setEditData} />
                 <InfoField
                   label="Cadastrado em"
                   value={patient.created_at ? format(new Date(patient.created_at), "dd/MM/yyyy", { locale: ptBR }) : undefined}
@@ -511,13 +630,13 @@ export default function NeoTeamPatientDetail() {
               </div>
               <Separator />
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                <InfoField label="Filial" value={patient.branch} />
-                <InfoField label="Categoria" value={patient.category} />
-                <InfoField label="Grau de Calvície" value={patient.baldnessGrade} />
-                <InfoField label="Data da Cirurgia" value={patient.surgeryDate} />
-                <InfoField label="Consultor" value={patient.consultant} />
-                <InfoField label="Vendedor" value={patient.seller} />
-                <InfoField label="Fonte do Lead" value={patient.leadSource} />
+                <EditableField label="Filial" field="branch" value={patient.branch} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Categoria" field="category" value={patient.category} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Grau de Calvície" field="baldnessGrade" value={patient.baldnessGrade} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Data da Cirurgia" field="surgeryDate" value={patient.surgeryDate} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Consultor" field="consultant" value={patient.consultant} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Vendedor" field="seller" value={patient.seller} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Fonte do Lead" field="leadSource" value={patient.leadSource} isEditing={isEditing} editData={editData} setEditData={setEditData} />
               </div>
             </CardContent>
           </Card>
@@ -532,9 +651,9 @@ export default function NeoTeamPatientDetail() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                <InfoField label="Logradouro" value={patient.address} span2 />
-                <InfoField label="Cidade" value={patient.city} />
-                <InfoField label="Estado/UF" value={patient.state} />
+                <EditableField label="Logradouro" field="address" value={patient.address} isEditing={isEditing} editData={editData} setEditData={setEditData} span2 />
+                <EditableField label="Cidade" field="city" value={patient.city} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Estado/UF" field="state" value={patient.state} isEditing={isEditing} editData={editData} setEditData={setEditData} />
               </div>
             </CardContent>
           </Card>
@@ -782,6 +901,28 @@ function TimelineStatusBadge({ status }: { status: string }) {
   };
   const c = config[status] || { label: status, className: 'bg-muted text-muted-foreground' };
   return <Badge className={`${c.className} border-0 text-[10px] px-1.5 py-0`}>{c.label}</Badge>;
+}
+
+function EditableField({ 
+  label, field, value, isEditing, editData, setEditData, span2 
+}: { 
+  label: string; field: string; value?: string; isEditing: boolean; 
+  editData: Record<string, string>; setEditData: React.Dispatch<React.SetStateAction<Record<string, string>>>; 
+  span2?: boolean;
+}) {
+  if (isEditing) {
+    return (
+      <div className={span2 ? 'col-span-2' : ''}>
+        <p className="text-xs text-muted-foreground mb-1">{label}</p>
+        <Input
+          value={editData[field] || ''}
+          onChange={(e) => setEditData(prev => ({ ...prev, [field]: e.target.value }))}
+          className="h-8 text-sm"
+        />
+      </div>
+    );
+  }
+  return <InfoField label={label} value={value} span2={span2} />;
 }
 
 function InfoField({ label, value, span2 }: { label: string; value?: string; span2?: boolean }) {
