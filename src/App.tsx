@@ -522,6 +522,7 @@ function NeoTeamRoutes() {
           <Route path="chamados" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><TicketsPage /></Suspense>} />
           <Route path="campanhas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CampaignsPage /></Suspense>} />
           <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
+          <Route path="portal-links" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPortalLinks /></Suspense>} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="reports" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
