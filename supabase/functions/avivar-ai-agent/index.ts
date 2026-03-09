@@ -5233,8 +5233,9 @@ Analise o histórico — se a mídia já aparece, NÃO reenvie.
           // This is reliable because each lead response advances exactly one step,
           // unlike assistant messages which can be split into multiple WhatsApp bubbles
           const userMessageCount = conversationHistory.filter(m => m.role === "user").length;
-          // 0 user msgs = step 0 (greeting), 1 user msg = step 1, etc.
-          const currentStepIndex = userMessageCount;
+          // 1 user msg = step 0 (greeting), 2 user msgs = step 1, etc.
+          // Subtract 1 because the current inbound message is already saved in DB
+          const currentStepIndex = userMessageCount - 1;
 
           if (currentStepIndex < passosCronologicos.length) {
             const currentStep = passosCronologicos[currentStepIndex];
