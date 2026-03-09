@@ -247,7 +247,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                   <SurgeryTaskChips tasks={tasksBySurgery.get(surgery.id)!} compact />
                                 )}
                               </TableCell>
-                              <TableCell className="hidden md:table-cell" onClick={(e) => e.stopPropagation()}>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
                                 <InlineNoteEditor
                                   value={surgery.notes || ''}
                                   onSave={(note) => handleSavePatientNote(surgery.id, note)}
