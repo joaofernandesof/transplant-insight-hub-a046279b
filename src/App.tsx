@@ -540,6 +540,7 @@ function NeoRHRoutes() {
   const NeoRHColaboradores = lazy(() => import('@/neohub/pages/neorh/NeoRHColaboradores'));
   const NeoRHCargos = lazy(() => import('@/neohub/pages/neorh/NeoRHCargos'));
   const NeoRHVagas = lazy(() => import('@/neohub/pages/neorh/NeoRHVagas'));
+  const NeoRHJobDescription = lazy(() => import('@/neohub/pages/neorh/NeoRHJobDescription'));
   const PerformanceDashboard = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceDashboard'));
   const PerformanceCycles = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceCycles'));
   const PerformanceEvaluations = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceEvaluations'));
