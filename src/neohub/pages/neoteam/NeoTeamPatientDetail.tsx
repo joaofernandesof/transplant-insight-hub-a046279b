@@ -406,6 +406,43 @@ export default function NeoTeamPatientDetail() {
     setEditData({});
   };
 
+  const FIELD_LABELS: Record<string, string> = {
+    full_name: 'Nome Completo', email: 'Email', phone: 'Telefone', cpf: 'CPF',
+    birthDate: 'Data de Nascimento', maritalStatus: 'Estado Civil', nationality: 'Nacionalidade',
+    branch: 'Filial', category: 'Categoria', baldnessGrade: 'Grau de Calvície',
+    surgeryDate: 'Data da Cirurgia', consultant: 'Consultor', seller: 'Vendedor',
+    leadSource: 'Fonte do Lead', address: 'Endereço', city: 'Cidade', state: 'Estado/UF',
+  };
+
+  const logPatientChanges = async (changes: { field: string; oldValue: string; newValue: string }[]) => {
+    if (changes.length === 0 || !id) return;
+    try {
+      const authUser = (await supabase.auth.getUser()).data.user;
+      let userName = authUser?.email?.split('@')[0] || 'Usuário';
+      if (authUser?.id) {
+        const { data: profile } = await supabase
+          .from('staff_profiles')
+          .select('name')
+          .eq('user_id', authUser.id)
+          .maybeSingle();
+        if (profile?.name) userName = profile.name;
+      }
+      const entries = changes.map(c => ({
+        patient_id: id,
+        user_id: authUser?.id,
+        user_name: userName,
+        action: 'updated',
+        field_name: c.field,
+        field_label: FIELD_LABELS[c.field] || c.field,
+        old_value: c.oldValue || '—',
+        new_value: c.newValue || '—',
+      }));
+      await supabase.from('clinic_patient_audit_log' as any).insert(entries);
+    } catch (e) {
+      console.error('Failed to log patient changes:', e);
+    }
+  };
+
   const saveEditing = async () => {
     if (!patient || !id) return;
     setSavingEdit(true);
@@ -449,6 +486,24 @@ export default function NeoTeamPatientDetail() {
         .map(([k, v]) => `${k}: ${v}`)
         .join(' | ');
 
+      // Detect changes for audit log
+      const previousValues: Record<string, string> = {
+        full_name: patient.full_name || '', email: patient.email || '', phone: patient.phone || '',
+        cpf: patient.cpf || '', birthDate: patient.birthDate || '', maritalStatus: patient.maritalStatus || '',
+        nationality: patient.nationality || '', branch: patient.branch || '', category: patient.category || '',
+        baldnessGrade: patient.baldnessGrade || '', surgeryDate: patient.surgeryDate || '',
+        consultant: patient.consultant || '', seller: patient.seller || '', leadSource: patient.leadSource || '',
+        address: patient.address || '', city: patient.city || '', state: patient.state || '',
+      };
+
+      const changes: { field: string; oldValue: string; newValue: string }[] = [];
+      for (const [field, newVal] of Object.entries(editData)) {
+        const oldVal = previousValues[field] || '';
+        if (oldVal !== (newVal || '')) {
+          changes.push({ field, oldValue: oldVal, newValue: newVal || '' });
+        }
+      }
+
       const { error } = await supabase
         .from('clinic_patients')
         .update({
@@ -462,10 +517,14 @@ export default function NeoTeamPatientDetail() {
 
       if (error) throw error;
 
+      // Log changes to audit table
+      await logPatientChanges(changes);
+
       toast.success('Paciente atualizado com sucesso!');
       setIsEditing(false);
       setEditData({});
       fetchPatient(); // Reload data
+      fetchTimeline(); // Reload timeline with new audit entries
     } catch (err) {
       console.error('Error saving patient:', err);
       toast.error('Erro ao salvar alterações');
