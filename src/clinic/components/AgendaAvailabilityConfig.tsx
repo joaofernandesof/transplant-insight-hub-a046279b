@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-export function AgendaAvailabilityConfig() {
+export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolean }) {
   const { branches } = useBranches({ showAll: true });
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -27,11 +27,13 @@ export function AgendaAvailabilityConfig() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editBlocked, setEditBlocked] = useState(false);
   const [editReason, setEditReason] = useState('');
+  const [editNote, setEditNote] = useState('');
   const [globalMaxSlots, setGlobalMaxSlots] = useState(5);
   const [editMaxSlots, setEditMaxSlots] = useState(5);
 
   const { getDayAvailability, upsertAvailability, deleteAvailability, isLoading } =
     useSurgeryAgendaAvailability(selectedBranch, currentMonth);
+  const { notesByDate, upsertNote } = useSurgeryAgendaNotes(selectedBranch);
 
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);
