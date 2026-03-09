@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { PortalBanner } from '@/components/shared/PortalBanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,7 @@ import {
   ExternalLink, Plus, Pencil, Trash2, Link as LinkIcon, Search, X,
   DollarSign, Megaphone, Users, Stethoscope, Scale, CircuitBoard,
   HeadphonesIcon, ClipboardList, GitCompare, Package, Settings, Globe,
+  Link2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -152,84 +154,115 @@ export default function NeoTeamPortalLinks() {
     <div className="p-4 lg:p-6 space-y-6">
       <NeoTeamBreadcrumb />
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Portal de Links</h1>
-          <p className="text-sm text-muted-foreground">Links úteis organizados por setor</p>
-        </div>
-        {isAdmin && (
-          <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) closeDialog(); else setDialogOpen(true); }}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2"><Plus className="h-4 w-4" />Novo Link</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingLink ? 'Editar Link' : 'Novo Link'}</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Título *</Label>
-                  <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Planilha de Comissões" />
-                </div>
-                <div className="space-y-2">
-                  <Label>URL *</Label>
-                  <Input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="https://..." />
-                </div>
-                <div className="space-y-2">
-                  <Label>Descrição</Label>
-                  <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Descrição opcional..." rows={2} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Setor</Label>
-                  <Select value={form.sector} onValueChange={v => setForm(f => ({ ...f, sector: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {SECTORS.map(s => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={closeDialog}>Cancelar</Button>
-                  <Button type="submit" disabled={saveMutation.isPending}>{saveMutation.isPending ? 'Salvando...' : 'Salvar'}</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
+      {/* Banner */}
+      <PortalBanner
+        portal="neoteam"
+        icon={<Link2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />}
+        rightContent={
+          isAdmin ? (
+            <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) closeDialog(); else setDialogOpen(true); }}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="secondary" className="gap-2 shadow-md">
+                  <Plus className="h-4 w-4" />Novo Link
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingLink ? 'Editar Link' : 'Novo Link'}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Título *</Label>
+                    <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Planilha de Comissões" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>URL *</Label>
+                    <Input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="https://..." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descrição</Label>
+                    <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Descrição opcional..." rows={2} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Setor</Label>
+                    <Select value={form.sector} onValueChange={v => setForm(f => ({ ...f, sector: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {SECTORS.map(s => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={closeDialog}>Cancelar</Button>
+                    <Button type="submit" disabled={saveMutation.isPending}>{saveMutation.isPending ? 'Salvando...' : 'Salvar'}</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          ) : undefined
+        }
+      />
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por título, descrição ou URL..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10"
+        />
       </div>
 
-      {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por título, descrição ou URL..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={sectorFilter} onValueChange={setSectorFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Filtrar por setor" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os setores</SelectItem>
-            {SECTORS.map(s => (
-              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Sector filter chips */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => setSectorFilter('all')}
+          className={cn(
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border',
+            sectorFilter === 'all'
+              ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+              : 'bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+          )}
+        >
+          Todos
+          <Badge variant="secondary" className="h-4 px-1 text-[10px] rounded-full">{links.length}</Badge>
+        </button>
+        {SECTORS.map(sector => {
+          const count = links.filter(l => l.sector === sector.value).length;
+          if (count === 0) return null;
+          const SectorIcon = sector.icon;
+          const isActive = sectorFilter === sector.value;
+          return (
+            <button
+              key={sector.value}
+              onClick={() => setSectorFilter(isActive ? 'all' : sector.value)}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border',
+                isActive
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <SectorIcon className="h-3.5 w-3.5" />
+              {sector.label.replace('Setor ', '').replace('de ', '')}
+              <Badge variant="secondary" className="h-4 px-1 text-[10px] rounded-full">{count}</Badge>
+            </button>
+          );
+        })}
         {(search || sectorFilter !== 'all') && (
-          <Button variant="ghost" size="sm" onClick={() => { setSearch(''); setSectorFilter('all'); }} className="gap-1">
-            <X className="h-4 w-4" />
+          <button
+            onClick={() => { setSearch(''); setSectorFilter('all'); }}
+            className="inline-flex items-center gap-1 px-2 py-1.5 rounded-full text-xs text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
             Limpar
-          </Button>
+          </button>
         )}
       </div>
 
       {/* Results count */}
-      {!isLoading && links.length > 0 && (
+      {!isLoading && links.length > 0 && filteredLinks.length !== links.length && (
         <p className="text-sm text-muted-foreground">
           Exibindo {filteredLinks.length} de {links.length} links
         </p>
