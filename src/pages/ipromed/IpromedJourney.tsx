@@ -1744,7 +1744,7 @@ export default function IpromedJourney() {
           onOpenChange={(open) => {
             setMeetingDialogOpen(open);
             // If closing dialog without scheduling AND it was from a drag to "Agendado", revert
-            if (!open && !meetingScheduled && pendingDragOriginPhase && meetingClient) {
+            if (!open && !meetingScheduledRef.current && pendingDragOriginPhase && meetingClient) {
               updateClientPhase.mutate({ clientId: meetingClient.id, newPhase: pendingDragOriginPhase });
               toast.info('Agendamento cancelado. Cliente voltou para a etapa anterior.');
               setPendingDragOriginPhase(null);
