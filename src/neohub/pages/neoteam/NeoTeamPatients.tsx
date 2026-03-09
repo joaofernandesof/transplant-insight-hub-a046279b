@@ -867,7 +867,7 @@ export default function NeoTeamPatients() {
                           <Eye className="h-4 w-4" />
                           Ver detalhes
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/neoteam/patients/${patient.id}?edit=true`); }}>
                           <Edit className="h-4 w-4" />
                           Editar
                         </DropdownMenuItem>

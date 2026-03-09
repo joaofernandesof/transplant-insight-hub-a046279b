@@ -903,6 +903,28 @@ function TimelineStatusBadge({ status }: { status: string }) {
   return <Badge className={`${c.className} border-0 text-[10px] px-1.5 py-0`}>{c.label}</Badge>;
 }
 
+function EditableField({ 
+  label, field, value, isEditing, editData, setEditData, span2 
+}: { 
+  label: string; field: string; value?: string; isEditing: boolean; 
+  editData: Record<string, string>; setEditData: React.Dispatch<React.SetStateAction<Record<string, string>>>; 
+  span2?: boolean;
+}) {
+  if (isEditing) {
+    return (
+      <div className={span2 ? 'col-span-2' : ''}>
+        <p className="text-xs text-muted-foreground mb-1">{label}</p>
+        <Input
+          value={editData[field] || ''}
+          onChange={(e) => setEditData(prev => ({ ...prev, [field]: e.target.value }))}
+          className="h-8 text-sm"
+        />
+      </div>
+    );
+  }
+  return <InfoField label={label} value={value} span2={span2} />;
+}
+
 function InfoField({ label, value, span2 }: { label: string; value?: string; span2?: boolean }) {
   return (
     <div className={span2 ? 'col-span-2' : ''}>
