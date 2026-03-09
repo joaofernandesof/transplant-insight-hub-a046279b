@@ -89,6 +89,8 @@ interface PortalBannerProps {
 export function PortalBanner({ 
   portal, 
   userName,
+  title,
+  subtitle,
   icon,
   rightContent,
   className 
