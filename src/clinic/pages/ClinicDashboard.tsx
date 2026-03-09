@@ -594,7 +594,7 @@ export default function ClinicDashboard() {
               </div>
 
               {/* D-XX Filter Chips */}
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto pb-1">
                 <span className="text-[11px] text-muted-foreground font-medium mr-1">Preparo:</span>
                 {D_FILTERS.map((d) => (
                   <Button
