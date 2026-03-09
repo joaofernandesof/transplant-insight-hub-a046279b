@@ -561,7 +561,7 @@ export default function ClinicDashboard() {
                       variant={selectedPeriod === opt.value ? 'secondary' : 'ghost'}
                       size="sm"
                       onClick={() => { setSelectedPeriod(opt.value); if (opt.value !== 'custom') setDateRange(undefined); }}
-                      className={cn('text-xs h-7 px-2.5', selectedPeriod === opt.value && 'bg-background shadow-sm')}
+                      className={cn('text-xs h-7 px-2.5 whitespace-nowrap', selectedPeriod === opt.value && 'bg-background shadow-sm')}
                     >
                       {opt.label}
                     </Button>
