@@ -191,6 +191,11 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                     {surgery.category && (
                                       <p className="text-xs text-muted-foreground truncate max-w-[200px]">{surgery.category}</p>
                                     )}
+                                    {surgery.notes && (
+                                      <p className="text-xs text-amber-600 dark:text-amber-400 truncate max-w-[250px] mt-0.5" title={surgery.notes}>
+                                        📝 {surgery.notes}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               </TableCell>
