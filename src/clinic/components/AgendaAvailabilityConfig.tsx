@@ -305,43 +305,57 @@ export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolea
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="flex items-center gap-3">
-              <Label className="text-sm">Bloqueado</Label>
-              <Switch checked={editBlocked} onCheckedChange={setEditBlocked} />
-              {editBlocked && <Badge variant="destructive" className="text-[10px]">Dia(s) bloqueado(s)</Badge>}
+            {isAdmin && (
+              <>
+                <div className="flex items-center gap-3">
+                  <Label className="text-sm">Bloqueado</Label>
+                  <Switch checked={editBlocked} onCheckedChange={setEditBlocked} />
+                  {editBlocked && <Badge variant="destructive" className="text-[10px]">Dia(s) bloqueado(s)</Badge>}
+                </div>
+                {editBlocked && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Motivo (opcional)</Label>
+                    <Textarea
+                      value={editReason}
+                      onChange={(e) => setEditReason(e.target.value)}
+                      placeholder="Ex: Feriado, manutenção..."
+                      className="h-16 text-sm"
+                    />
+                  </div>
+                )}
+                {!editBlocked && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Máximo de agendamentos por dia</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={editMaxSlots}
+                      onChange={(e) => setEditMaxSlots(Number(e.target.value))}
+                      className="h-8 w-24 text-sm"
+                    />
+                  </div>
+                )}
+              </>
+            )}
+            {/* Observation note - available for all users */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">📝 Observação do dia</Label>
+              <Textarea
+                value={editNote}
+                onChange={(e) => setEditNote(e.target.value)}
+                placeholder="Ex: Equipe reduzida, sala 2 em manutenção..."
+                className="h-20 text-sm"
+              />
             </div>
-            {editBlocked && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Motivo (opcional)</Label>
-                <Textarea
-                  value={editReason}
-                  onChange={(e) => setEditReason(e.target.value)}
-                  placeholder="Ex: Feriado, manutenção..."
-                  className="h-16 text-sm"
-                />
-              </div>
-            )}
-            {!editBlocked && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Máximo de agendamentos por dia</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={editMaxSlots}
-                  onChange={(e) => setEditMaxSlots(Number(e.target.value))}
-                  className="h-8 w-24 text-sm"
-                />
-              </div>
-            )}
           </div>
           <DialogFooter className="gap-2">
-            {anySelectedHasConfig && (
+            {isAdmin && anySelectedHasConfig && (
               <Button variant="outline" size="sm" className="text-xs" onClick={handleRemoveConfig} disabled={upsertAvailability.isPending}>
                 Remover configuração
               </Button>
             )}
-            <Button size="sm" className="text-xs" onClick={handleSave} disabled={upsertAvailability.isPending}>
+            <Button size="sm" className="text-xs" onClick={handleSave} disabled={upsertAvailability.isPending || upsertNote.isPending}>
               Salvar
             </Button>
           </DialogFooter>
