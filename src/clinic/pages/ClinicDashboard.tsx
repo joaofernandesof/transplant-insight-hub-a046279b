@@ -331,8 +331,8 @@ export default function ClinicDashboard() {
 
   return (
     <div className="h-[calc(100vh-56px)] lg:h-screen flex flex-col overflow-hidden">
-      {/* Sticky Header */}
-      <div className="shrink-0 bg-background px-4 pt-3 md:px-6 pb-4 border-b border-border space-y-3">
+      {/* Sticky Header - scrollable on mobile */}
+      <div className="shrink-0 bg-background px-4 pt-3 md:px-6 pb-4 border-b border-border space-y-3 max-h-[55vh] md:max-h-none overflow-y-auto">
         {/* Title + Period */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
