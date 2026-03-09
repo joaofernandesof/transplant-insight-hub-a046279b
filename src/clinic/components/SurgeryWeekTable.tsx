@@ -185,7 +185,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                             <TableHead className="hidden md:table-cell">Tricotomia</TableHead>
                             <TableHead className="hidden md:table-cell">Checklist</TableHead>
                             <TableHead className="hidden md:table-cell">Tarefas D-X</TableHead>
-                            <TableHead className="hidden md:table-cell min-w-[150px]">Obs. Paciente</TableHead>
+                            <TableHead className="min-w-[120px] md:min-w-[150px]">Obs. Paciente</TableHead>
                             <TableHead className="text-right">Status</TableHead>
                           </TableRow>
                         </TableHeader>
