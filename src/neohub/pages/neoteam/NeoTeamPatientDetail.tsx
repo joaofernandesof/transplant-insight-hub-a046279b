@@ -53,7 +53,7 @@ interface TimelineEvent {
   time?: string;
   title: string;
   description?: string;
-  type: 'appointment' | 'surgery' | 'registration';
+  type: 'appointment' | 'surgery' | 'registration' | 'edit';
   status?: string;
 }
 
