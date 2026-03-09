@@ -96,6 +96,7 @@ export function useAvivarCrmNotifications() {
   const userId = session?.user?.id;
   const soundsRef = useRef<ReturnType<typeof createSoundPlayer> | null>(null);
   const { settings } = useAvivarNotificationSettings();
+  const columnCacheRef = useRef<Record<string, string>>({});
 
   // Init sounds
   useEffect(() => {
@@ -111,6 +112,35 @@ export function useAvivarCrmNotifications() {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
+  }, []);
+
+  // Pre-fetch column names for the account
+  useEffect(() => {
+    if (!accountId) return;
+    supabase
+      .from('avivar_kanban_columns')
+      .select('id, name')
+      .eq('account_id', accountId)
+      .then(({ data }) => {
+        if (data) {
+          const cache: Record<string, string> = {};
+          data.forEach(c => { cache[c.id] = c.name; });
+          columnCacheRef.current = cache;
+        }
+      });
+  }, [accountId]);
+
+  const getColumnName = useCallback(async (columnId: string): Promise<string> => {
+    if (columnCacheRef.current[columnId]) return columnCacheRef.current[columnId];
+    // Fallback: fetch from DB
+    const { data } = await supabase
+      .from('avivar_kanban_columns')
+      .select('name')
+      .eq('id', columnId)
+      .maybeSingle();
+    const name = data?.name || 'Etapa desconhecida';
+    columnCacheRef.current[columnId] = name;
+    return name;
   }, []);
 
   const showBrowserNotification = useCallback((title: string, body: string) => {
@@ -187,20 +217,29 @@ export function useAvivarCrmNotifications() {
           schema: 'public',
           table: 'avivar_kanban_leads',
         },
-        (payload) => {
+        async (payload) => {
           const newRec = payload.new as any;
           const oldRec = payload.old as any;
           if (newRec?.account_id !== accountId) return;
           if (!oldRec?.column_id || oldRec.column_id === newRec.column_id) return;
           if (!settings.leadMoved) return;
 
+          // Check if specific columns are configured
+          const watchedColumns = settings.leadMovedColumnIds || [];
+          if (watchedColumns.length > 0 && !watchedColumns.includes(newRec.column_id)) {
+            return; // Not a watched column
+          }
+
+          // Get column name for the notification
+          const columnName = await getColumnName(newRec.column_id);
+
           soundsRef.current?.leadMovedSound.play();
           showBrowserNotification(
-            '📋 Lead movido',
-            `${newRec.name || 'Lead'} foi movido de etapa`
+            `📋 Lead movido para "${columnName}"`,
+            `${newRec.name || 'Lead'} foi movido para a etapa "${columnName}"`
           );
-          toast('📋 Lead movido de etapa', {
-            description: newRec.name || 'Um lead foi movido no funil',
+          toast(`📋 Lead movido para "${columnName}"`, {
+            description: `${newRec.name || 'Lead'} → ${columnName}`,
             duration: 5000,
           });
         }
@@ -210,5 +249,5 @@ export function useAvivarCrmNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, accountId, settings, showBrowserNotification]);
+  }, [userId, accountId, settings, showBrowserNotification, getColumnName]);
 }

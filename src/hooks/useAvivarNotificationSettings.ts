@@ -13,6 +13,7 @@ export interface NotificationPreferences {
   newLead: boolean;
   newMessage: boolean;
   leadMoved: boolean;
+  leadMovedColumnIds: string[]; // empty = all columns
   taskOverdue: boolean;
   appointmentReminder: boolean;
   dailySummary: boolean;
@@ -23,6 +24,7 @@ const DEFAULT_PREFS: NotificationPreferences = {
   newLead: true,
   newMessage: true,
   leadMoved: true,
+  leadMovedColumnIds: [], // empty = notify for all columns
   taskOverdue: true,
   appointmentReminder: true,
   dailySummary: false,

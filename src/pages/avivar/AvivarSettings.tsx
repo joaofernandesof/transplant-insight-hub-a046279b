@@ -410,20 +410,28 @@ export default function AvivarSettings() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                        <Kanban className="h-4 w-4 text-violet-400" />
+                  <div className="rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] overflow-hidden">
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                          <Kanban className="h-4 w-4 text-violet-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-[hsl(var(--avivar-foreground))]">Lead Movido de Etapa</p>
+                          <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Som + alerta quando um lead mudar de coluna no funil</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-[hsl(var(--avivar-foreground))]">Lead Movido de Etapa</p>
-                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Som + alerta quando um lead mudar de coluna no funil</p>
-                      </div>
+                      <Switch
+                        checked={notifications.leadMoved}
+                        onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, leadMoved: checked }))}
+                      />
                     </div>
-                    <Switch
-                      checked={notifications.leadMoved}
-                      onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, leadMoved: checked }))}
-                    />
+                    {notifications.leadMoved && (
+                      <LeadMovedColumnSelector
+                        selectedColumnIds={notifications.leadMovedColumnIds || []}
+                        onChange={(ids) => setNotifications(prev => ({ ...prev, leadMovedColumnIds: ids }))}
+                      />
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
