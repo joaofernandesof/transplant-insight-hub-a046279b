@@ -80,7 +80,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     profiles,
     hotleadsProfiles,
     acceptedStates,
-  } = useHotLeads();
+  } = useHotLeads({ skip: isDashboardView });
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
   const { radiusKm } = useHotLeadsRadiusSetting();
   const { awardPoints } = useGamification();
