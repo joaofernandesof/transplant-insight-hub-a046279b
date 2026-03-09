@@ -1755,6 +1755,7 @@ export default function IpromedJourney() {
           onSchedule={(data) => {
             console.log('Meeting scheduled:', data);
             setMeetingScheduled(true);
+            meetingScheduledRef.current = true;
             setPendingDragOriginPhase(null);
             toast.success('Reunião agendada com sucesso!');
           }}
