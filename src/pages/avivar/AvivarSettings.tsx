@@ -665,3 +665,106 @@ export default function AvivarSettings() {
     </div>
   );
 }
+
+/* ─── Column Selector for Lead Moved Notifications ─── */
+function LeadMovedColumnSelector({
+  selectedColumnIds,
+  onChange,
+}: {
+  selectedColumnIds: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const { accountId } = useAvivarAccount();
+
+  const { data: kanbans = [] } = useQuery({
+    queryKey: ['avivar-kanbans-notif', accountId],
+    queryFn: async () => {
+      if (!accountId) return [];
+      const { data } = await supabase
+        .from('avivar_kanbans')
+        .select('id, name')
+        .eq('account_id', accountId)
+        .eq('is_active', true)
+        .order('order_index');
+      return data || [];
+    },
+    enabled: !!accountId,
+  });
+
+  const { data: columns = [] } = useQuery({
+    queryKey: ['avivar-columns-notif', accountId],
+    queryFn: async () => {
+      if (!accountId) return [];
+      const { data } = await supabase
+        .from('avivar_kanban_columns')
+        .select('id, name, kanban_id, color')
+        .eq('account_id', accountId)
+        .order('order_index');
+      return data || [];
+    },
+    enabled: !!accountId,
+  });
+
+  const toggleColumn = (colId: string) => {
+    if (selectedColumnIds.includes(colId)) {
+      onChange(selectedColumnIds.filter(id => id !== colId));
+    } else {
+      onChange([...selectedColumnIds, colId]);
+    }
+  };
+
+  return (
+    <div className="px-4 pb-4 pt-2 border-t border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background)/0.5)]">
+      <p className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))] mb-2">
+        {selectedColumnIds.length === 0
+          ? 'Todas as etapas (clique para filtrar)'
+          : `${selectedColumnIds.length} etapa${selectedColumnIds.length > 1 ? 's' : ''} selecionada${selectedColumnIds.length > 1 ? 's' : ''}`}
+      </p>
+      <div className="space-y-2">
+        {kanbans.map(kanban => {
+          const kanbanCols = columns.filter(c => c.kanban_id === kanban.id);
+          if (kanbanCols.length === 0) return null;
+          return (
+            <div key={kanban.id}>
+              <p className="text-[10px] uppercase font-semibold text-[hsl(var(--avivar-muted-foreground))] mb-1 tracking-wider">
+                {kanban.name}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {kanbanCols.map(col => {
+                  const isSelected = selectedColumnIds.includes(col.id);
+                  return (
+                    <button
+                      key={col.id}
+                      type="button"
+                      onClick={() => toggleColumn(col.id)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all border ${
+                        isSelected
+                          ? 'bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-primary))] border-[hsl(var(--avivar-primary)/0.4)]'
+                          : 'bg-[hsl(var(--avivar-card))] text-[hsl(var(--avivar-muted-foreground))] border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.3)]'
+                      }`}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: col.color || '#8b5cf6' }}
+                      />
+                      {col.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {selectedColumnIds.length > 0 && (
+        <button
+          type="button"
+          onClick={() => onChange([])}
+          className="mt-2 text-[10px] text-[hsl(var(--avivar-primary))] hover:underline"
+        >
+          Limpar filtro (notificar todas)
+        </button>
+      )}
+    </div>
+  );
+}
