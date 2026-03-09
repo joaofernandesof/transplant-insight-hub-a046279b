@@ -53,32 +53,17 @@ interface NavItem {
   tourId?: string;
 }
 
-// CPG - Escritório Jurídico
 const cpgNavItems: NavItem[] = [
   { id: 'home', label: 'Início', icon: Home, href: '/cpg', tourId: 'sidebar-home' },
   { id: 'clients', label: 'Clientes', icon: Users, href: '/cpg/clients', tourId: 'sidebar-clients' },
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/cpg/contracts', tourId: 'sidebar-contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/cpg/journey' },
-  { id: 'sales-funnel', label: 'Funil Comercial', icon: Target, href: '/cpg/sales-funnel' },
   { id: 'proposals', label: 'Propostas', icon: FileSignature, href: '/cpg/proposals', isNew: true },
   { id: 'tasks', label: 'Tarefas', icon: CheckSquare, href: '/cpg/tasks' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/cpg/financial', tourId: 'sidebar-financial' },
-  { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/cpg/push-juridico' },
-  
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/cpg/agenda', tourId: 'sidebar-agenda' },
-  { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/cpg/cases', tourId: 'sidebar-cases' },
-  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/cpg/ai', tourId: 'sidebar-ai' },
   { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/cpg/reports' },
-  
-  
   { id: 'forms', label: 'Formulários', icon: ClipboardList, href: '/cpg/forms' },
-  
-];
-
-// CPG Advocacia Médica - Educacional
-const ipromedNavItems: NavItem[] = [
-  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/cpg/university', tourId: 'sidebar-university' },
-  { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/cpg/students' },
 ];
 
 interface AstreaStyleSidebarProps {
