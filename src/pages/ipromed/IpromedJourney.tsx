@@ -5,7 +5,7 @@
  * Suporte a Drag and Drop entre colunas
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -642,6 +642,7 @@ export default function IpromedJourney() {
   const [meetingClient, setMeetingClient] = useState<Client | null>(null);
   const [pendingDragOriginPhase, setPendingDragOriginPhase] = useState<string | null>(null);
   const [meetingScheduled, setMeetingScheduled] = useState(false);
+  const meetingScheduledRef = useRef(false);
   const [journeyDetailClient, setJourneyDetailClient] = useState<Client | null>(null);
   
   // Selection state
@@ -1015,6 +1016,7 @@ export default function IpromedJourney() {
         if (targetPhaseId === 'Agendado' && client && currentPhase) {
           setPendingDragOriginPhase(currentPhase);
           setMeetingScheduled(false);
+          meetingScheduledRef.current = false;
           setTimeout(() => {
             setMeetingClient(client);
             setMeetingDialogOpen(true);
@@ -1742,7 +1744,7 @@ export default function IpromedJourney() {
           onOpenChange={(open) => {
             setMeetingDialogOpen(open);
             // If closing dialog without scheduling AND it was from a drag to "Agendado", revert
-            if (!open && !meetingScheduled && pendingDragOriginPhase && meetingClient) {
+            if (!open && !meetingScheduledRef.current && pendingDragOriginPhase && meetingClient) {
               updateClientPhase.mutate({ clientId: meetingClient.id, newPhase: pendingDragOriginPhase });
               toast.info('Agendamento cancelado. Cliente voltou para a etapa anterior.');
               setPendingDragOriginPhase(null);
@@ -1753,6 +1755,7 @@ export default function IpromedJourney() {
           onSchedule={(data) => {
             console.log('Meeting scheduled:', data);
             setMeetingScheduled(true);
+            meetingScheduledRef.current = true;
             setPendingDragOriginPhase(null);
             toast.success('Reunião agendada com sucesso!');
           }}
