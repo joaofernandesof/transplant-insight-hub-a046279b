@@ -603,7 +603,7 @@ export default function ClinicDashboard() {
                     size="sm"
                     onClick={() => toggleDFilter(d.value)}
                     className={cn(
-                      'h-6 px-2 text-[11px] rounded-full',
+                      'h-6 px-2 text-[11px] rounded-full whitespace-nowrap',
                       activeDFilters.has(d.value) && 'bg-primary text-primary-foreground'
                     )}
                   >
