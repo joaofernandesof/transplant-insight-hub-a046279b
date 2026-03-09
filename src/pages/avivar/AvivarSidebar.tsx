@@ -4,6 +4,7 @@
  */
 
 import React, { useState, lazy, Suspense } from 'react';
+import { useAvivarCrmNotifications } from '@/hooks/useAvivarCrmNotifications';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
