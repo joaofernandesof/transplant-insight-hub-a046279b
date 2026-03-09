@@ -410,6 +410,12 @@ export default function ClinicDashboard() {
           </div>
            {activeTab === 'agenda' && (
             <div className="flex items-center gap-2">
+              {isAdmin && !notesSynced && (
+                <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={handleSyncNotes} disabled={isSyncingNotes}>
+                  <RefreshCw className={cn("h-3.5 w-3.5", isSyncingNotes && "animate-spin")} />
+                  {isSyncingNotes ? 'Sincronizando...' : 'Sincronizar Obs.'}
+                </Button>
+              )}
               {isAdmin && (
                 <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => setShowImportDialog(true)}>
                   <Upload className="h-3.5 w-3.5" />
