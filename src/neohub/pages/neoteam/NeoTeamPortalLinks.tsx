@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { PortalBanner } from '@/components/shared/PortalBanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,7 @@ import {
   ExternalLink, Plus, Pencil, Trash2, Link as LinkIcon, Search, X,
   DollarSign, Megaphone, Users, Stethoscope, Scale, CircuitBoard,
   HeadphonesIcon, ClipboardList, GitCompare, Package, Settings, Globe,
+  Link2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
