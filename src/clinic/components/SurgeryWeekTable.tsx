@@ -246,8 +246,8 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                 {surgery.grade || '—'}
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-xs">
-                                {surgery.trichotomyDatetime ? (
-                                  <span className="font-medium text-amber-700 dark:text-amber-400">{surgery.trichotomyDatetime}</span>
+                                {surgery.trichotomyDatetime && surgery.trichotomyDatetime !== 'NÃO TEM MARCAÇÃO' ? (
+                                  <span className="font-medium text-amber-700 dark:text-amber-400">{(() => { try { const d = new Date(surgery.trichotomyDatetime); return isNaN(d.getTime()) ? surgery.trichotomyDatetime : `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; } catch { return surgery.trichotomyDatetime; } })()}</span>
                                 ) : (
                                   <span className="text-muted-foreground">—</span>
                                 )}
