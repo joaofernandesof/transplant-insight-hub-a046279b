@@ -90,13 +90,14 @@ interface EtapaDef {
 
 const ETAPAS: EtapaDef[] = [
   { id: 'solicitacao', label: 'Solicitação', shortLabel: 'Solic.', color: 'from-slate-500 to-slate-600', dot: 'bg-slate-500', icon: Briefcase },
-  { id: 'captacao', label: 'Captação', shortLabel: 'Capt.', color: 'from-blue-500 to-blue-600', dot: 'bg-blue-500', icon: Users2 },
-  { id: 'triagem', label: 'Triagem Técnica', shortLabel: 'Triag.', color: 'from-indigo-500 to-indigo-600', dot: 'bg-indigo-500', icon: Target },
-  { id: 'entrevista_tecnica', label: 'Entrevista Técnica', shortLabel: 'E. Téc.', color: 'from-purple-500 to-purple-600', dot: 'bg-purple-500', icon: Users2 },
-  { id: 'case_pratico', label: 'Case Prático', shortLabel: 'Case', color: 'from-violet-500 to-violet-600', dot: 'bg-violet-500', icon: Target },
-  { id: 'entrevista_diretor', label: 'Entrevista Diretor', shortLabel: 'E. Dir.', color: 'from-rose-500 to-rose-600', dot: 'bg-rose-500', icon: Crown },
-  { id: 'proposta', label: 'Proposta', shortLabel: 'Prop.', color: 'from-teal-500 to-teal-600', dot: 'bg-teal-500', icon: DollarSign },
-  { id: 'contratado', label: 'Contratado', shortLabel: 'Contr.', color: 'from-emerald-500 to-emerald-600', dot: 'bg-emerald-500', icon: CheckCircle2 },
+  { id: 'vaga_aprovada', label: 'Vaga Aprovada', shortLabel: 'Aprov.', color: 'from-blue-500 to-blue-600', dot: 'bg-blue-500', icon: CheckCircle2 },
+  { id: 'vaga_aberta', label: 'Vaga Aberta', shortLabel: 'Aberta', color: 'from-cyan-500 to-cyan-600', dot: 'bg-cyan-500', icon: Users2 },
+  { id: 'selecao_curriculos', label: 'Seleção dos Currículos', shortLabel: 'Curríc.', color: 'from-indigo-500 to-indigo-600', dot: 'bg-indigo-500', icon: FileText },
+  { id: 'teste_tecnico', label: 'Teste Técnico (Se aplicável)', shortLabel: 'Teste', color: 'from-purple-500 to-purple-600', dot: 'bg-purple-500', icon: ClipboardCheck },
+  { id: 'selecao_testes', label: 'Seleção dos Testes Técnicos (Se aplicável)', shortLabel: 'Sel. Testes', color: 'from-violet-500 to-violet-600', dot: 'bg-violet-500', icon: Target },
+  { id: 'entrevista_rh_gestor', label: 'Entrevistas com RH + Gestor Imediato', shortLabel: 'RH+Gestor', color: 'from-rose-500 to-rose-600', dot: 'bg-rose-500', icon: Users2 },
+  { id: 'entrevista_diretor', label: 'Entrevista com Diretor (Se Aplicável)', shortLabel: 'Diretor', color: 'from-amber-500 to-amber-600', dot: 'bg-amber-500', icon: Crown },
+  { id: 'onboarding', label: 'Onboarding', shortLabel: 'Onboard.', color: 'from-emerald-500 to-emerald-600', dot: 'bg-emerald-500', icon: BookOpen },
 ];
 
 const CANCELADA_ETAPA: EtapaDef = { id: 'cancelada', label: 'Cancelada', shortLabel: 'Canc.', color: 'from-red-500 to-red-600', dot: 'bg-red-500', icon: XCircle };
