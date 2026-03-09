@@ -241,6 +241,7 @@ export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolea
                   const avail = getDayAvailability(dateStr);
                   const isConfigured = avail.status !== 'not_configured';
                   const isSelected = selectedDays.has(dateStr);
+                  const hasNote = !!notesByDate.get(dateStr);
 
                   return (
                     <button
