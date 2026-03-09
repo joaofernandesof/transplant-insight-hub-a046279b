@@ -576,9 +576,10 @@ export default function NeoTeamPatientDetail() {
       setEditData({});
       fetchPatient(); // Reload data
       fetchTimeline(); // Reload timeline with new audit entries
-    } catch (err) {
-      console.error('Error saving patient:', err);
-      toast.error('Erro ao salvar alterações');
+    } catch (err: any) {
+      const msg = err?.message || err?.details || JSON.stringify(err);
+      console.error('Error saving patient:', msg, err);
+      toast.error(`Erro ao salvar: ${msg}`);
     } finally {
       setSavingEdit(false);
     }
