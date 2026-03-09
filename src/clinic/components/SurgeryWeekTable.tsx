@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, CheckCircle2, Flag, Lock } from 'lucide-react';
+import { Calendar, CheckCircle2, Flag, Lock, MessageSquare, Pencil } from 'lucide-react';
 import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
@@ -11,6 +11,8 @@ import { SurgeryDetailDialog } from './SurgeryDetailDialog';
 import { useSurgeryTaskChips } from '../hooks/useSurgeryTaskChips';
 import { SurgeryTaskChips } from './SurgeryTaskChips';
 import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailability';
+import { useSurgeryAgendaNotes } from '../hooks/useSurgeryAgendaNotes';
+import { toast } from 'sonner';
 
 interface SurgeryWeekTableProps {
   surgeries: ClinicSurgery[];
@@ -28,9 +30,12 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
 
-  // Availability data - use selectedBranch or first surgery's branch
+  // Availability data
   const effectiveBranch = selectedBranch && selectedBranch !== 'all' ? selectedBranch : '';
   const { getDayAvailability } = useSurgeryAgendaAvailability(effectiveBranch, new Date());
+
+  // Date-level notes
+  const { notesByDate, upsertNote } = useSurgeryAgendaNotes(effectiveBranch);
 
   // Group by date
   const grouped = useMemo(() => {
@@ -46,7 +51,6 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
     }
-    // Reorder: today first, then future dates, then past dates
     const today = startOfDay(new Date());
     const entries = Array.from(map.entries());
     const todayEntries: typeof entries = [];
@@ -84,11 +88,23 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
     { key: 'd20Contact' as const, label: '20', title: 'Contato D-20' },
     { key: 'd15Contact' as const, label: '15', title: 'Contato D-15' },
     { key: 'd10Contact' as const, label: '10', title: 'Contato D-10' },
-    
     { key: 'd2Contact' as const, label: '2', title: 'Contato D-2' },
     { key: 'd1Contact' as const, label: '1', title: 'Contato D-1' },
     { key: 'surgeryConfirmed' as const, label: '✓', title: 'Confirmada' },
   ];
+
+  const handleSaveDateNote = useCallback((date: string, note: string) => {
+    upsertNote.mutate({ date, note }, {
+      onSuccess: () => toast.success('Observação do dia salva'),
+      onError: () => toast.error('Erro ao salvar observação'),
+    });
+  }, [upsertNote]);
+
+  const handleSavePatientNote = useCallback((surgeryId: string, note: string) => {
+    if (onUpdate) {
+      onUpdate(surgeryId, { notes: note });
+    }
+  }, [onUpdate]);
 
   return (
     <>
@@ -106,7 +122,6 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">20</span> D-20</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">15</span> D-15</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">10</span> D-10</span>
-            
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">2</span> D-2</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">1</span> D-1</span>
             <span className="flex items-center gap-1"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-muted text-[10px] font-bold">✓</span> Confirmada</span>
@@ -123,6 +138,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                 {Array.from(grouped.entries()).map(([date, items]) => {
                   const dayAvail = effectiveBranch && date !== 'sem-data' ? getDayAvailability(date) : null;
                   const isConfigured = dayAvail && dayAvail.status !== 'not_configured';
+                  const dateNote = date !== 'sem-data' ? notesByDate.get(date) : undefined;
 
                   return (
                   <div key={date}>
@@ -147,6 +163,17 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                         )
                       )}
                     </div>
+
+                    {/* Date-level note */}
+                    {date !== 'sem-data' && (
+                      <InlineNoteEditor
+                        value={dateNote || ''}
+                        onSave={(note) => handleSaveDateNote(date, note)}
+                        placeholder="Adicionar observação do dia..."
+                        variant="date"
+                      />
+                    )}
+
                     <div className="rounded-lg border overflow-hidden">
                       <Table>
                         <TableHeader>
@@ -158,6 +185,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                             <TableHead className="hidden md:table-cell">Tricotomia</TableHead>
                             <TableHead className="hidden md:table-cell">Checklist</TableHead>
                             <TableHead className="hidden md:table-cell">Tarefas D-X</TableHead>
+                            <TableHead className="hidden md:table-cell min-w-[150px]">Obs. Paciente</TableHead>
                             <TableHead className="text-right">Status</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -191,11 +219,6 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                     {surgery.category && (
                                       <p className="text-xs text-muted-foreground truncate max-w-[200px]">{surgery.category}</p>
                                     )}
-                                    {surgery.notes && (
-                                      <p className="text-xs text-amber-600 dark:text-amber-400 truncate max-w-[250px] mt-0.5" title={surgery.notes}>
-                                        📝 {surgery.notes}
-                                      </p>
-                                    )}
                                   </div>
                                 </div>
                               </TableCell>
@@ -223,6 +246,14 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                 {tasksBySurgery.get(surgery.id) && (
                                   <SurgeryTaskChips tasks={tasksBySurgery.get(surgery.id)!} compact />
                                 )}
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell" onClick={(e) => e.stopPropagation()}>
+                                <InlineNoteEditor
+                                  value={surgery.notes || ''}
+                                  onSave={(note) => handleSavePatientNote(surgery.id, note)}
+                                  placeholder="Obs..."
+                                  variant="patient"
+                                />
                               </TableCell>
                               <TableCell className="text-right">
                                 {surgery.surgeryConfirmed ? (
@@ -258,6 +289,113 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
         canDelete={canDelete}
       />
     </>
+  );
+}
+
+/** Inline note editor - click to edit, blur/enter to save */
+function InlineNoteEditor({ value, onSave, placeholder, variant }: {
+  value: string;
+  onSave: (note: string) => void;
+  placeholder: string;
+  variant: 'date' | 'patient';
+}) {
+  const [editing, setEditing] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  const handleSave = useCallback(() => {
+    setEditing(false);
+    if (localValue.trim() !== value.trim()) {
+      onSave(localValue.trim());
+    }
+  }, [localValue, value, onSave]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSave();
+    }
+    if (e.key === 'Escape') {
+      setLocalValue(value);
+      setEditing(false);
+    }
+  }, [handleSave, value]);
+
+  if (variant === 'date') {
+    return (
+      <div className="mb-1.5">
+        {editing ? (
+          <div className="flex items-start gap-2 bg-muted/30 rounded-md p-2">
+            <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <textarea
+              ref={inputRef}
+              value={localValue}
+              onChange={(e) => setLocalValue(e.target.value)}
+              onBlur={handleSave}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              className="flex-1 bg-transparent border-none outline-none text-xs resize-none min-h-[24px]"
+              rows={1}
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="flex items-center gap-2 text-xs w-full text-left rounded-md px-2 py-1 hover:bg-muted/30 transition-colors group"
+          >
+            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            {value ? (
+              <span className="text-foreground">{value}</span>
+            ) : (
+              <span className="text-muted-foreground italic">{placeholder}</span>
+            )}
+            <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto shrink-0" />
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Patient variant - compact inline
+  return (
+    <div className="min-w-[120px]">
+      {editing ? (
+        <textarea
+          ref={inputRef}
+          value={localValue}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className="w-full bg-transparent border border-border rounded px-1.5 py-0.5 text-xs outline-none focus:ring-1 focus:ring-primary resize-none min-h-[28px]"
+          rows={1}
+        />
+      ) : (
+        <button
+          onClick={() => setEditing(true)}
+          className="flex items-center gap-1 text-xs w-full text-left rounded px-1.5 py-0.5 hover:bg-muted/50 transition-colors group min-h-[28px]"
+        >
+          {value ? (
+            <span className="text-amber-600 dark:text-amber-400 line-clamp-2">📝 {value}</span>
+          ) : (
+            <span className="text-muted-foreground italic opacity-60 group-hover:opacity-100">
+              <Pencil className="h-3 w-3 inline mr-0.5" /> Obs...
+            </span>
+          )}
+        </button>
+      )}
+    </div>
   );
 }
 
