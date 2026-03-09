@@ -235,13 +235,6 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                 )}
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
-                                <div className="flex gap-0.5 flex-wrap">
-                                  {checklistItems.map(item => (
-                                    <CheckDot key={item.key} done={!!surgery[item.key]} label={item.label} title={item.title} />
-                                  ))}
-                                </div>
-                              </TableCell>
-                              <TableCell className="hidden md:table-cell">
                                 {tasksBySurgery.get(surgery.id) && (
                                   <SurgeryTaskChips tasks={tasksBySurgery.get(surgery.id)!} compact />
                                 )}
