@@ -540,6 +540,7 @@ function NeoRHRoutes() {
   const NeoRHColaboradores = lazy(() => import('@/neohub/pages/neorh/NeoRHColaboradores'));
   const NeoRHCargos = lazy(() => import('@/neohub/pages/neorh/NeoRHCargos'));
   const NeoRHVagas = lazy(() => import('@/neohub/pages/neorh/NeoRHVagas'));
+  const NeoRHJobDescription = lazy(() => import('@/neohub/pages/neorh/NeoRHJobDescription'));
   const PerformanceDashboard = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceDashboard'));
   const PerformanceCycles = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceCycles'));
   const PerformanceEvaluations = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceEvaluations'));
@@ -557,6 +558,7 @@ function NeoRHRoutes() {
           <Route path="colaboradores" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHColaboradores /></Suspense>} />
           <Route path="cargos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHCargos /></Suspense>} />
           <Route path="vagas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHVagas /></Suspense>} />
+          <Route path="job-description" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHJobDescription /></Suspense>} />
           <Route path="performance" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceDashboard /></Suspense>} />
           <Route path="performance/cycles" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceCycles /></Suspense>} />
           <Route path="performance/evaluations" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceEvaluations /></Suspense>} />
