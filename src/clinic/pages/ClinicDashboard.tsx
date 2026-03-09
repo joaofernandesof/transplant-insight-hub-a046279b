@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -33,6 +35,7 @@ import {
   Plus,
   Upload,
   Settings2,
+  RefreshCw,
 } from 'lucide-react';
 import { format, parseISO, differenceInCalendarDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, subDays, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -93,6 +96,31 @@ export default function ClinicDashboard() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [isSyncingNotes, setIsSyncingNotes] = useState(false);
+  const [notesSynced, setNotesSynced] = useState(() => localStorage.getItem('surgery-notes-synced') === 'true');
+
+  const handleSyncNotes = useCallback(async () => {
+    setIsSyncingNotes(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-surgery-notes');
+      if (error) throw error;
+      const result = data as { success: boolean; updated: number; skipped: number; total: number; errors?: string[] };
+      if (result.success) {
+        toast.success(`Observações sincronizadas! ${result.updated} atualizadas, ${result.skipped} não encontradas.`);
+        localStorage.setItem('surgery-notes-synced', 'true');
+        setNotesSynced(true);
+        // Refresh data
+        window.location.reload();
+      } else {
+        toast.error('Erro ao sincronizar observações');
+      }
+    } catch (err) {
+      console.error('Sync error:', err);
+      toast.error('Erro ao sincronizar observações');
+    } finally {
+      setIsSyncingNotes(false);
+    }
+  }, []);
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'full' | 'blocked'>('all');
 
   // Sync tab from URL params
@@ -382,6 +410,12 @@ export default function ClinicDashboard() {
           </div>
            {activeTab === 'agenda' && (
             <div className="flex items-center gap-2">
+              {isAdmin && !notesSynced && (
+                <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={handleSyncNotes} disabled={isSyncingNotes}>
+                  <RefreshCw className={cn("h-3.5 w-3.5", isSyncingNotes && "animate-spin")} />
+                  {isSyncingNotes ? 'Sincronizando...' : 'Sincronizar Obs.'}
+                </Button>
+              )}
               {isAdmin && (
                 <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => setShowImportDialog(true)}>
                   <Upload className="h-3.5 w-3.5" />
