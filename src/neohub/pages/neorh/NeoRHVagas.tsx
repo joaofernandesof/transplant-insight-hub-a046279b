@@ -736,7 +736,7 @@ export default function NeoRHVagas() {
               )}
 
               {/* Checklist Onboarding */}
-              {detailVaga.etapa_kanban === 'contratado' && Array.isArray(detailVaga.checklist_onboarding) && detailVaga.checklist_onboarding.length > 0 && (
+              {detailVaga.etapa_kanban === 'onboarding' && Array.isArray(detailVaga.checklist_onboarding) && detailVaga.checklist_onboarding.length > 0 && (
                 <><Separator /><div><p className="text-sm font-semibold mb-2 flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" />Checklist de Onboarding</p><ul className="space-y-2">{detailVaga.checklist_onboarding.map((item: any, i: number) => (<li key={i} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.done} className="rounded" readOnly /><span className={item.done ? 'line-through text-muted-foreground' : ''}>{item.label}</span></li>))}</ul></div></>
               )}
 
