@@ -616,13 +616,13 @@ export default function NeoTeamPatientDetail() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                <InfoField label="Nome Completo" value={patient.full_name} />
-                <InfoField label="CPF" value={patient.cpf} />
-                <InfoField label="Telefone" value={patient.phone} />
-                <InfoField label="Email" value={patient.email} />
-                <InfoField label="Data de Nascimento" value={patient.birthDate} />
-                <InfoField label="Estado Civil" value={patient.maritalStatus} />
-                <InfoField label="Nacionalidade" value={patient.nationality || 'Brasileira'} />
+                <EditableField label="Nome Completo" field="full_name" value={patient.full_name} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="CPF" field="cpf" value={patient.cpf} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Telefone" field="phone" value={patient.phone} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Email" field="email" value={patient.email} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Data de Nascimento" field="birthDate" value={patient.birthDate} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Estado Civil" field="maritalStatus" value={patient.maritalStatus} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Nacionalidade" field="nationality" value={patient.nationality || 'Brasileira'} isEditing={isEditing} editData={editData} setEditData={setEditData} />
                 <InfoField
                   label="Cadastrado em"
                   value={patient.created_at ? format(new Date(patient.created_at), "dd/MM/yyyy", { locale: ptBR }) : undefined}
@@ -630,13 +630,13 @@ export default function NeoTeamPatientDetail() {
               </div>
               <Separator />
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                <InfoField label="Filial" value={patient.branch} />
-                <InfoField label="Categoria" value={patient.category} />
-                <InfoField label="Grau de Calvície" value={patient.baldnessGrade} />
-                <InfoField label="Data da Cirurgia" value={patient.surgeryDate} />
-                <InfoField label="Consultor" value={patient.consultant} />
-                <InfoField label="Vendedor" value={patient.seller} />
-                <InfoField label="Fonte do Lead" value={patient.leadSource} />
+                <EditableField label="Filial" field="branch" value={patient.branch} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Categoria" field="category" value={patient.category} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Grau de Calvície" field="baldnessGrade" value={patient.baldnessGrade} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Data da Cirurgia" field="surgeryDate" value={patient.surgeryDate} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Consultor" field="consultant" value={patient.consultant} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Vendedor" field="seller" value={patient.seller} isEditing={isEditing} editData={editData} setEditData={setEditData} />
+                <EditableField label="Fonte do Lead" field="leadSource" value={patient.leadSource} isEditing={isEditing} editData={editData} setEditData={setEditData} />
               </div>
             </CardContent>
           </Card>
