@@ -1,28 +1,85 @@
 
 
-## Corrigir "Visão do Licenciado" no Dashboard HotLeads
+## Disponibilidade da Agenda Cirúrgica
 
-### Problema Identificado
+### Resumo
 
-Na `HotLeadsAdminDashboard`, ao selecionar um licenciado, os dados são buscados nas linhas 54-56 com `supabase.from('leads').select('*')` **sem paginação**. O Supabase tem um limite padrão de 1000 linhas por query. A query `allRes` (todos os leads adquiridos) provavelmente retorna milhares de registros, mas é truncada em 1000 — causando:
+Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
+1. **Bloqueio de datas específicas** por filial
+2. **Limite de agendamentos por dia** por filial
 
-- Estatísticas incorretas (conversão, ranking, comparativo com a rede)
-- Dados incompletos no `LicenseeDashboard`
-- Possivelmente dropdown vazio se `useAllLeadStats` também falhar silenciosamente
+A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
 
-Além disso, não há tratamento de erro — se qualquer query falhar, os dados ficam vazios sem feedback ao usuário.
+---
 
-### Plano
+### 1. Nova tabela: `surgery_agenda_availability`
 
-**Arquivo**: `src/components/hotleads/HotLeadsAdminDashboard.tsx` (linhas 49-63)
+```sql
+CREATE TABLE surgery_agenda_availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  branch TEXT NOT NULL,
+  date DATE NOT NULL,
+  max_slots INTEGER NOT NULL DEFAULT 5,
+  is_blocked BOOLEAN NOT NULL DEFAULT false,
+  blocked_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(branch, date)
+);
 
-1. **Paginar as queries de leads do licenciado** — Implementar loop de paginação (como já feito no drill-down, linhas 84-146) para ambas as queries (`myRes` e `allRes`), buscando em páginas de 1000 até esgotar.
+-- RLS: leitura para autenticados, escrita para admins
+ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
 
-2. **Adicionar tratamento de erro** — Wrap com try/catch e mostrar toast de erro se falhar.
+CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
+  FOR SELECT TO authenticated USING (true);
 
-3. **Adicionar log de debug** — Console.log na quantidade de licensees carregados para diagnóstico.
+CREATE POLICY "Admins can manage" ON surgery_agenda_availability
+  FOR ALL TO authenticated USING (
+    public.has_role(auth.uid(), 'admin')
+  );
+```
 
-**Arquivo**: `src/hooks/useAllLeadStats.ts` (linhas 36-108)
+### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
 
-4. **Adicionar tratamento de erro no fetchAll** — Wrap com try/catch para que falhas no RPC ou queries não deixem `isLoading` preso em `true` eternamente ou `topLicensees` vazio silenciosamente.
+Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
+- **Aba "Configuração da Agenda"** com:
+  - Seletor de filial
+  - Calendário mensal interativo onde o admin pode:
+    - Clicar em um dia para bloquear/desbloquear
+    - Definir o número máximo de agendamentos para cada dia
+  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+
+### 3. Visualização de Disponibilidade (todos os usuários)
+
+Na aba "Agenda" existente, adicionar um componente visual mostrando:
+- Um mini calendário ou barra de disponibilidade por filial
+- Dias bloqueados marcados em vermelho
+- Dias com vagas esgotadas marcados em amarelo/laranja
+- Dias disponíveis em verde
+- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
+
+### 4. Novo hook: `useSurgeryAgendaAvailability`
+
+```typescript
+// src/clinic/hooks/useSurgeryAgendaAvailability.ts
+// - Busca configurações de disponibilidade por filial e período
+// - Cruza com contagem de cirurgias agendadas por dia
+// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
+// - Mutations para admin: criar/atualizar configuração
+```
+
+### 5. Validação no agendamento
+
+Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
+- Se a data está bloqueada para a filial selecionada → impedir agendamento
+- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
+
+### Estrutura de arquivos
+
+- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
+- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
+- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
+- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
+- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
+- Migração SQL para criar a tabela
 

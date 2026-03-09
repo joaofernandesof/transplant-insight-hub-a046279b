@@ -46,18 +46,56 @@ export function HotLeadsAdminDashboard() {
   const [allLeadsForLicensee, setAllLeadsForLicensee] = useState<HotLead[]>([]);
   const [licenseeLeadsLoading, setLicenseeLeadsLoading] = useState(false);
 
-  // Fetch leads for selected licensee
+  // Fetch leads for selected licensee (paginated to avoid 1000-row limit)
   useEffect(() => {
     if (viewMode !== 'licensee' || !selectedUserId) return;
     async function fetchLeads() {
       setLicenseeLeadsLoading(true);
-      const [myRes, allRes] = await Promise.all([
-        supabase.from('leads').select('*').eq('claimed_by', selectedUserId).in('source', ['planilha', 'n8n']),
-        supabase.from('leads').select('*').in('source', ['planilha', 'n8n']).not('claimed_by', 'is', null),
-      ]);
-      setLicenseeLeads((myRes.data || []) as HotLead[]);
-      setAllLeadsForLicensee((allRes.data || []) as HotLead[]);
-      setLicenseeLeadsLoading(false);
+      try {
+        const pageSize = 1000;
+
+        // Fetch my leads (paginated)
+        let myLeads: any[] = [];
+        let myFrom = 0;
+        while (true) {
+          const { data, error } = await supabase
+            .from('leads')
+            .select('*')
+            .eq('claimed_by', selectedUserId)
+            .in('source', ['planilha', 'n8n'])
+            .range(myFrom, myFrom + pageSize - 1);
+          if (error) { console.error('Error fetching licensee leads:', error); break; }
+          if (!data || data.length === 0) break;
+          myLeads = myLeads.concat(data);
+          if (data.length < pageSize) break;
+          myFrom += pageSize;
+        }
+
+        // Fetch all claimed leads (paginated)
+        let allLeads: any[] = [];
+        let allFrom = 0;
+        while (true) {
+          const { data, error } = await supabase
+            .from('leads')
+            .select('*')
+            .in('source', ['planilha', 'n8n'])
+            .not('claimed_by', 'is', null)
+            .range(allFrom, allFrom + pageSize - 1);
+          if (error) { console.error('Error fetching all leads:', error); break; }
+          if (!data || data.length === 0) break;
+          allLeads = allLeads.concat(data);
+          if (data.length < pageSize) break;
+          allFrom += pageSize;
+        }
+
+        console.log(`[LicenseeView] Loaded ${myLeads.length} user leads, ${allLeads.length} total claimed leads`);
+        setLicenseeLeads(myLeads as HotLead[]);
+        setAllLeadsForLicensee(allLeads as HotLead[]);
+      } catch (e) {
+        console.error('Error loading licensee view:', e);
+      } finally {
+        setLicenseeLeadsLoading(false);
+      }
     }
     fetchLeads();
   }, [viewMode, selectedUserId]);
