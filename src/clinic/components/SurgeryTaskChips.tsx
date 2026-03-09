@@ -23,7 +23,7 @@ interface SurgeryTaskChipsProps {
   compact?: boolean;
 }
 
-const PHASE_ORDER = ['Venda', 'D-20', 'D-15', 'D-10', 'D-2', 'D-1', 'D0', 'D+1'];
+const PHASE_ORDER = ['Contrato', 'D-20', 'D-15', 'D-10', 'D-2', 'D-1', 'D0', 'D+1'];
 
 export function SurgeryTaskChips({ tasks, compact = false }: SurgeryTaskChipsProps) {
   const phases = useMemo(() => {
