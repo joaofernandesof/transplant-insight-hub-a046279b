@@ -34,6 +34,8 @@ import {
   ExternalLink,
   Bot,
   Zap,
+  Volume2,
+  Kanban,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -42,6 +44,7 @@ import { toast } from 'sonner';
 import { ApiTokensTab } from './settings/ApiTokensTab';
 import { WebhooksTab } from './settings/WebhooksTab';
 import { DuplicateSettingsTab } from './settings/DuplicateSettingsTab';
+import { useAvivarNotificationSettings, type NotificationPreferences } from '@/hooks/useAvivarNotificationSettings';
 
 export default function AvivarSettings() {
   const navigate = useNavigate();
