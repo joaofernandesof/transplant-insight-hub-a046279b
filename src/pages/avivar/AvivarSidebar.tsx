@@ -175,6 +175,9 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   const { counts } = useAvivarSidebarCounts();
   const { logout } = useUnifiedAuth();
 
+  // Mount CRM realtime notifications (visual + sound)
+  useAvivarCrmNotifications();
+
   const handleLogout = async () => {
     await logout();
     window.location.href = '/login';
