@@ -183,8 +183,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                             <TableHead className="hidden md:table-cell">Procedimento</TableHead>
                             <TableHead className="hidden lg:table-cell">Grau</TableHead>
                             <TableHead className="hidden md:table-cell">Tricotomia</TableHead>
-                            <TableHead className="hidden md:table-cell">Checklist</TableHead>
-                            <TableHead className="hidden md:table-cell">Tarefas D-X</TableHead>
+                            <TableHead className="hidden md:table-cell">Tarefas D's</TableHead>
                             <TableHead className="min-w-[120px] md:min-w-[150px]">Obs. Paciente</TableHead>
                             <TableHead className="text-right">Status</TableHead>
                           </TableRow>
@@ -234,13 +233,6 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                 ) : (
                                   <span className="text-muted-foreground">—</span>
                                 )}
-                              </TableCell>
-                              <TableCell className="hidden md:table-cell">
-                                <div className="flex gap-0.5 flex-wrap">
-                                  {checklistItems.map(item => (
-                                    <CheckDot key={item.key} done={!!surgery[item.key]} label={item.label} title={item.title} />
-                                  ))}
-                                </div>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
                                 {tasksBySurgery.get(surgery.id) && (
