@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar, CheckCircle2, Flag, Lock, MessageSquare, Pencil } from 'lucide-react';
-import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
+import { format, parseISO, isToday, isBefore, startOfDay, eachDayOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { SurgeryDetailDialog } from './SurgeryDetailDialog';
