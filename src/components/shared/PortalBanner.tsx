@@ -79,6 +79,8 @@ export const PORTAL_CONFIGS: Record<PortalType, PortalConfig> = {
 interface PortalBannerProps {
   portal: PortalType;
   userName?: string;
+  title?: string;
+  subtitle?: string;
   icon?: ReactNode;
   rightContent?: ReactNode;
   className?: string;
