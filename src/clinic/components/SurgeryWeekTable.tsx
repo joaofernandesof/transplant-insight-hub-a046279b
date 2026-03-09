@@ -23,6 +23,7 @@ interface SurgeryWeekTableProps {
   title?: string;
   violatedIds?: Set<string>;
   selectedBranch?: string;
+  periodRange?: { start: Date; end: Date };
 }
 
 export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch }: SurgeryWeekTableProps) {
