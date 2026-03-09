@@ -21759,6 +21759,39 @@ export type Database = {
         }
         Relationships: []
       }
+      surgery_agenda_notes: {
+        Row: {
+          branch: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          id: string
+          note: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          branch?: string | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          id?: string
+          note?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          branch?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          note?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       surgery_schedule: {
         Row: {
           balance_due: number | null
