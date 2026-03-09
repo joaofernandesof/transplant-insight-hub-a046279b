@@ -270,6 +270,9 @@ export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolea
                           )}
                         </>
                       )}
+                      {hasNote && (
+                        <span className="absolute bottom-0.5 left-0.5 text-[8px]">📝</span>
+                      )}
                     </button>
                   );
                 })}
