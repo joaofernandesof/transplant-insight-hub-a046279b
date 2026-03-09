@@ -297,11 +297,7 @@ export default function ConsolidatedResults() {
                     .sort((a, b) => b[1].value - a[1].value)
                     .slice(0, 5)
                     .map(([category, data]) => {
-                      const catLabel = category.includes('CATEGORIA A') ? 'Cat A - Dr Hygor' :
-                                       category.includes('CATEGORIA B') ? 'Cat B - Médico Equipe' :
-                                       category.includes('CATEGORIA C') ? 'Cat C - Modelo VIP' :
-                                       category.includes('CATEGORIA D') ? 'Cat D - Modelo Normal' :
-                                       category.substring(0, 20);
+                       const catLabel = category;
                       return (
                         <div key={category} className="flex items-center justify-between text-sm">
                           <span className="truncate max-w-[150px]">{catLabel}</span>

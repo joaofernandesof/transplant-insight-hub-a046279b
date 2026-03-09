@@ -111,7 +111,7 @@ export function SurgeryCalendarView({ surgeries, onSelectSurgery }: SurgeryCalen
                               variant="secondary" 
                               className={getCategoryColor(surgery.category)}
                             >
-                              {surgery.category?.split(' - ')[0].replace('CATEGORIA ', 'Cat ') || 'N/A'}
+                              {surgery.category || 'N/A'}
                             </Badge>
                             <Badge variant="outline">
                               {surgery.procedure_type || 'N/A'}
