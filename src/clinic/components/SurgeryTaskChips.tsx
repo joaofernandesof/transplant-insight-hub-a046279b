@@ -106,7 +106,7 @@ export function SurgeryTaskChips({ tasks, compact = false }: SurgeryTaskChipsPro
                   getChipStyle(phase)
                 )}
               >
-                {compact ? phase.label.replace('D-', '').replace('D+', '+').replacContrato', 'C 'V').replace('D0', '0') : phase.label}
+                {compact ? phase.label.replace('D-', '').replace('D+', '+').replace('Contrato', 'C').replace('D0', '0') : phase.label}
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
