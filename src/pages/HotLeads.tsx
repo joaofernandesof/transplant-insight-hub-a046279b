@@ -59,6 +59,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   // Respect profile simulation: if admin is simulating a non-admin profile, hide admin UI
   const isAdmin = realIsAdmin && (!activeProfile || activeProfile === 'administrador' || activeProfile === 'super_administrador');
   const canCreateTestLeads = isAdmin || TEST_BUTTON_ALLOWED_EMAILS.includes(user?.email || '');
+  const isDashboardView = initialView === 'dashboard';
   const navigate = useNavigate();
   const {
     leads,
