@@ -612,7 +612,7 @@ export default function NeoRHVagas() {
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <KPICard icon={<Briefcase className="h-5 w-5" />} label="Vagas Ativas" value={indicators.active} color="text-blue-600" />
-            <KPICard icon={<CheckCircle2 className="h-5 w-5" />} label="Contratados" value={indicators.contratados} color="text-emerald-600" />
+            <KPICard icon={<CheckCircle2 className="h-5 w-5" />} label="Onboarding" value={indicators.contratados} color="text-emerald-600" />
             <KPICard icon={<Clock className="h-5 w-5" />} label="Tempo Médio (dias)" value={indicators.avgDays || '—'} color="text-amber-600" />
             <KPICard icon={<AlertTriangle className="h-5 w-5" />} label="Parado (média dias)" value={indicators.avgParado || '—'} color="text-red-600" />
             <KPICard icon={<XCircle className="h-5 w-5" />} label="Canceladas" value={indicators.cancelados} color="text-red-600" />
