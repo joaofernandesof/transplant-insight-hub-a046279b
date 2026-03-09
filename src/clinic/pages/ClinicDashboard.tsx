@@ -546,7 +546,7 @@ export default function ClinicDashboard() {
                   />
                 </div>
                 {/* Quick period buttons */}
-                <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
+                <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5 overflow-x-auto">
                   {[
                     { value: 'all', label: 'Todo Período' },
                     { value: 'yesterday', label: 'Ontem' },
