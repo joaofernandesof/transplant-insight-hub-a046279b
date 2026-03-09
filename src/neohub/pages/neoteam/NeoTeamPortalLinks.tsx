@@ -1,7 +1,5 @@
 /**
  * NeoTeamPortalLinks - Portal de Links organizado por setor
- * Exibe botões de links úteis agrupados por setor (financeiro, marketing, etc.)
- * Admins podem gerenciar os links
  */
 
 import { useState } from 'react';
@@ -16,37 +14,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  ExternalLink,
-  Plus,
-  Pencil,
-  Trash2,
-  Link as LinkIcon,
-  DollarSign,
-  Megaphone,
-  Users,
-  Stethoscope,
-  Scale,
-  CircuitBoard,
-  HeadphonesIcon,
-  ClipboardList,
-  GitCompare,
-  Package,
-  Settings,
-  Globe,
+  ExternalLink, Plus, Pencil, Trash2, Link as LinkIcon,
+  DollarSign, Megaphone, Users, Stethoscope, Scale, CircuitBoard,
+  HeadphonesIcon, ClipboardList, GitCompare, Package, Settings, Globe,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -78,12 +54,7 @@ interface PortalLink {
   is_active: boolean;
 }
 
-const EMPTY_FORM = {
-  title: '',
-  url: '',
-  description: '',
-  sector: 'geral',
-};
+const EMPTY_FORM = { title: '', url: '', description: '', sector: 'geral' };
 
 export default function NeoTeamPortalLinks() {
   const { isAdmin } = useUnifiedAuth();
@@ -96,13 +67,13 @@ export default function NeoTeamPortalLinks() {
     queryKey: ['neoteam-portal-links'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('neoteam_portal_links')
+        .from('neoteam_portal_links' as any)
         .select('*')
         .eq('is_active', true)
         .order('sector')
         .order('order_index');
       if (error) throw error;
-      return data as PortalLink[];
+      return (data || []) as unknown as PortalLink[];
     },
   });
 
@@ -110,14 +81,14 @@ export default function NeoTeamPortalLinks() {
     mutationFn: async (values: typeof EMPTY_FORM & { id?: string }) => {
       if (values.id) {
         const { error } = await supabase
-          .from('neoteam_portal_links')
-          .update({ title: values.title, url: values.url, description: values.description || null, sector: values.sector, updated_at: new Date().toISOString() })
+          .from('neoteam_portal_links' as any)
+          .update({ title: values.title, url: values.url, description: values.description || null, sector: values.sector, updated_at: new Date().toISOString() } as any)
           .eq('id', values.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('neoteam_portal_links')
-          .insert({ title: values.title, url: values.url, description: values.description || null, sector: values.sector });
+          .from('neoteam_portal_links' as any)
+          .insert({ title: values.title, url: values.url, description: values.description || null, sector: values.sector } as any);
         if (error) throw error;
       }
     },
@@ -132,8 +103,8 @@ export default function NeoTeamPortalLinks() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('neoteam_portal_links')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .from('neoteam_portal_links' as any)
+        .update({ is_active: false, updated_at: new Date().toISOString() } as any)
         .eq('id', id);
       if (error) throw error;
     },
@@ -143,11 +114,7 @@ export default function NeoTeamPortalLinks() {
     },
   });
 
-  const closeDialog = () => {
-    setDialogOpen(false);
-    setEditingLink(null);
-    setForm(EMPTY_FORM);
-  };
+  const closeDialog = () => { setDialogOpen(false); setEditingLink(null); setForm(EMPTY_FORM); };
 
   const openEdit = (link: PortalLink) => {
     setEditingLink(link);
@@ -161,7 +128,6 @@ export default function NeoTeamPortalLinks() {
     saveMutation.mutate({ ...form, id: editingLink?.id });
   };
 
-  // Group links by sector
   const grouped = links.reduce<Record<string, PortalLink[]>>((acc, link) => {
     const key = link.sector || 'geral';
     if (!acc[key]) acc[key] = [];
@@ -175,7 +141,6 @@ export default function NeoTeamPortalLinks() {
     <div className="p-4 lg:p-6 space-y-6">
       <NeoTeamBreadcrumb />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Portal de Links</h1>
@@ -184,10 +149,7 @@ export default function NeoTeamPortalLinks() {
         {isAdmin && (
           <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) closeDialog(); else setDialogOpen(true); }}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Novo Link
-              </Button>
+              <Button size="sm" className="gap-2"><Plus className="h-4 w-4" />Novo Link</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -211,17 +173,13 @@ export default function NeoTeamPortalLinks() {
                   <Select value={form.sector} onValueChange={v => setForm(f => ({ ...f, sector: v }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {SECTORS.map(s => (
-                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                      ))}
+                      {SECTORS.map(s => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={closeDialog}>Cancelar</Button>
-                  <Button type="submit" disabled={saveMutation.isPending}>
-                    {saveMutation.isPending ? 'Salvando...' : 'Salvar'}
-                  </Button>
+                  <Button type="submit" disabled={saveMutation.isPending}>{saveMutation.isPending ? 'Salvando...' : 'Salvar'}</Button>
                 </div>
               </form>
             </DialogContent>
@@ -229,7 +187,6 @@ export default function NeoTeamPortalLinks() {
         )}
       </div>
 
-      {/* Content */}
       {isLoading ? (
         <div className="text-center text-muted-foreground py-12">Carregando...</div>
       ) : Object.keys(grouped).length === 0 ? (
@@ -259,34 +216,20 @@ export default function NeoTeamPortalLinks() {
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {sectorLinks.map(link => (
-                      <div
-                        key={link.id}
-                        className="group relative border rounded-lg p-3 hover:bg-muted/50 transition-colors"
-                      >
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-start gap-3"
-                        >
+                      <div key={link.id} className="group relative border rounded-lg p-3 hover:bg-muted/50 transition-colors">
+                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3">
                           <div className={cn('p-2 rounded-md text-white shrink-0', sector.color)}>
                             <ExternalLink className="h-4 w-4" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="font-medium text-sm text-foreground truncate">{link.title}</p>
-                            {link.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{link.description}</p>
-                            )}
+                            {link.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{link.description}</p>}
                           </div>
                         </a>
                         {isAdmin && (
                           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(link)}>
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMutation.mutate(link.id)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(link)}><Pencil className="h-3.5 w-3.5" /></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMutation.mutate(link.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                           </div>
                         )}
                       </div>
