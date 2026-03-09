@@ -207,53 +207,6 @@ export default function AstreaStyleSidebar({
               );
             })}
 
-            {/* CPG Advocacia Médica Section Header */}
-            {!isCollapsed && (
-              <div className="px-3 pt-4 pb-2">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  CPG Educacional
-                </p>
-              </div>
-            )}
-            {isCollapsed && <Separator className="my-2" />}
-            
-            {ipromedNavItems.map(item => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              
-              return (
-                <NavLink
-                  key={item.id}
-                  to={item.href}
-                  onClick={onMobileClose}
-                  data-tour={item.tourId}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group",
-                    isCollapsed && "justify-center px-2",
-                    active
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  <Icon className={cn(
-                    "h-5 w-5 flex-shrink-0",
-                    active ? "text-primary" : "text-muted-foreground"
-                  )} />
-                  
-                  {!isCollapsed && (
-                    <>
-                      <span className="flex-1">{item.label}</span>
-                      
-                      {item.badge && (
-                        <Badge className={cn("text-white text-xs px-1.5 min-w-[20px] justify-center", item.badgeColor)}>
-                          {item.badge > 99 ? '99+' : item.badge}
-                        </Badge>
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
           </nav>
         </ScrollArea>
 
