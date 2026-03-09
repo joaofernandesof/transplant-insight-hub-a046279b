@@ -141,9 +141,9 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
           </div>
         </CardHeader>
         <CardContent>
-          {surgeries.length === 0 ? (
+          {grouped.size === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Nenhuma cirurgia agendada para esta semana
+              Nenhuma cirurgia agendada para este período
             </p>
           ) : (
             <div>
