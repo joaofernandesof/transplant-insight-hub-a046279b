@@ -752,20 +752,18 @@ export default function ClinicDashboard() {
         onOpenChange={setShowImportDialog}
       />
 
-      {/* Config Dialog - Admin only */}
-      {isAdmin && (
-        <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
-          <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-base flex items-center gap-2">
-                <Settings2 className="h-4 w-4" />
-                Configuração da Agenda
-              </DialogTitle>
-            </DialogHeader>
-            <AgendaAvailabilityConfig />
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Config Dialog - Available for all users */}
+      <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base flex items-center gap-2">
+              <Settings2 className="h-4 w-4" />
+              Configuração da Agenda
+            </DialogTitle>
+          </DialogHeader>
+          <AgendaAvailabilityConfig isAdmin={isAdmin} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
