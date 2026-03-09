@@ -65,6 +65,7 @@ import {
   Zap,
   Hash,
   Target,
+  Link2,
 } from 'lucide-react';
 
 // Tipos base
@@ -369,6 +370,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
+      { id: 'neoteam_portal_links', code: 'neoteam_portal_links', title: 'Portal de Links', icon: Link2, route: '/neoteam/portal-links' },
       { id: 'neoteam_settings_cat', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
     ],
   },

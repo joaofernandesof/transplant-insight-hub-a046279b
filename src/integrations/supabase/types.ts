@@ -15880,6 +15880,51 @@ export type Database = {
         }
         Relationships: []
       }
+      neoteam_portal_links: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          order_index: number | null
+          sector: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          sector?: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          sector?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       neoteam_process_instance_steps: {
         Row: {
           assigned_to: string | null
