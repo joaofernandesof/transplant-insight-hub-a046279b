@@ -30,13 +30,14 @@ export interface HotLead {
 
 const OVERDUE_DAYS = 7;
 
-export function useHotLeads() {
+export function useHotLeads(options?: { skip?: boolean }) {
+  const skip = options?.skip ?? false;
   const { user, isAdmin } = useAuth();
   const [leads, setLeads] = useState<HotLead[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [hotleadsProfiles, setHotleadsProfiles] = useState<Record<string, string>>({});
   const [queuedCount, setQueuedCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!skip);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [acceptedStates, setAcceptedStates] = useState<string[] | null>(null);
 
