@@ -532,7 +532,10 @@ export default function NeoTeamPatientDetail() {
         }
       }
 
-      const { error } = await supabase
+      console.log('[PatientDetail] Saving patient update for id:', id);
+      console.log('[PatientDetail] Update payload:', { full_name: editData.full_name, email: editData.email, phone: editData.phone, cpf: editData.cpf, notes_length: newNotes?.length });
+      
+      const { error, data: updateResult, count } = await supabase
         .from('clinic_patients')
         .update({
           full_name: editData.full_name,
@@ -541,9 +544,20 @@ export default function NeoTeamPatientDetail() {
           cpf: editData.cpf || null,
           notes: newNotes,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      console.log('[PatientDetail] Update result:', { error, updateResult, count });
+      
+      if (error) {
+        console.error('[PatientDetail] Supabase error details:', JSON.stringify(error));
+        throw error;
+      }
+      
+      if (!updateResult || updateResult.length === 0) {
+        console.error('[PatientDetail] No rows updated - possible RLS issue');
+        throw new Error('Nenhuma linha atualizada. Verifique suas permissões.');
+      }
 
       // Log changes to audit table
       await logPatientChanges(changes);
