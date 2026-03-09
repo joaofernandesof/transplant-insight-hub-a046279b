@@ -16,6 +16,7 @@ export default function NeoAcademyDashboard() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'online' | 'presencial'>('online');
+  const [showPastClasses, setShowPastClasses] = useState(false);
 
   const { data: courses, isLoading } = useQuery({
     queryKey: ['neoacademy-courses'],

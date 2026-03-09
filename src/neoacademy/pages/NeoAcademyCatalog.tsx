@@ -12,6 +12,7 @@ export default function NeoAcademyCatalog() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'online' | 'presencial'>('online');
+  const [showPastClasses, setShowPastClasses] = useState(false);
   const navigate = useNavigate();
 
   const { data: courses, isLoading } = useQuery({
