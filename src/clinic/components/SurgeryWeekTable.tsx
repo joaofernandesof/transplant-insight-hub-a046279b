@@ -52,6 +52,18 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
     }
+
+    // Inject all dates from periodRange even if they have no surgeries
+    if (periodRange) {
+      try {
+        const allDates = eachDayOfInterval({ start: periodRange.start, end: periodRange.end });
+        for (const d of allDates) {
+          const key = format(d, 'yyyy-MM-dd');
+          if (!map.has(key)) map.set(key, []);
+        }
+      } catch { /* invalid interval */ }
+    }
+
     const today = startOfDay(new Date());
     const entries = Array.from(map.entries());
     const todayEntries: typeof entries = [];
@@ -73,7 +85,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
       }
     }
     return new Map([...todayEntries, ...futureEntries, ...pastEntries, ...noDateEntries]);
-  }, [surgeries]);
+  }, [surgeries, periodRange]);
 
   const formatDateHeader = (dateStr: string) => {
     if (dateStr === 'sem-data') return 'Sem Data';
