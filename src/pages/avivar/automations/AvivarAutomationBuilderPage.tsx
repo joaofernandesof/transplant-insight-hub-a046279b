@@ -1020,6 +1020,37 @@ function ActionConfigFields({
         </div>
       );
 
+    case 'send_notification':
+      return (
+        <div className="space-y-2">
+          <Label className="text-xs">Título da notificação</Label>
+          <Input placeholder="Ex: Lead movido para Agendamento" value={config.title || ''} onChange={e => set('title', e.target.value)}
+            className="rounded-xl text-xs" />
+          <Label className="text-xs">Mensagem</Label>
+          <Textarea
+            placeholder="Descrição da notificação... Use {{nome}}, {{etapa}} para variáveis"
+            value={config.message || ''}
+            onChange={e => set('message', e.target.value)}
+            className="rounded-xl text-xs min-h-[60px] resize-none"
+          />
+          <div className="flex flex-wrap gap-1">
+            {variableButtons.map(v => (
+              <button key={v} onClick={() => insertVar('message', v)}
+                className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-colors">
+                {v}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Som de notificação</span>
+            <Switch checked={config.sound !== false} onCheckedChange={v => set('sound', v)} className="scale-[0.8]" />
+          </div>
+          <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+            Envia notificação in-app para todos os membros da conta
+          </p>
+        </div>
+      );
+
     case 'trigger_chatbot':
       return (
         <div className="space-y-2">
