@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { HeroCarousel } from '../components/HeroCarousel';
 import { CourseCard } from '../components/CourseCard';
-import { Loader2, Search, Monitor, MapPin, Calendar, Users, ChevronRight } from 'lucide-react';
+import { Loader2, Search, Monitor, MapPin, Calendar, Users, ChevronRight, History } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -16,6 +16,7 @@ export default function NeoAcademyDashboard() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'online' | 'presencial'>('online');
+  const [showPastClasses, setShowPastClasses] = useState(false);
 
   const { data: courses, isLoading } = useQuery({
     queryKey: ['neoacademy-courses'],
@@ -50,10 +51,24 @@ export default function NeoAcademyDashboard() {
     return true;
   }) || [];
 
-  const filteredClasses = classes?.filter(c => {
+  // Auto-detect completed classes based on end_date
+  const classesWithAutoStatus = useMemo(() => {
+    const now = new Date();
+    return (classes || []).map(cls => {
+      const endDate = cls.end_date ? new Date(cls.end_date) : new Date(cls.start_date);
+      const isPast = endDate < now;
+      const effectiveStatus = isPast && cls.status !== 'cancelled' ? 'completed' : cls.status;
+      return { ...cls, effectiveStatus, isPast };
+    });
+  }, [classes]);
+
+  const filteredClasses = classesWithAutoStatus.filter(c => {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (!showPastClasses && c.isPast) return false;
     return true;
-  }) || [];
+  });
+
+  const pastCount = classesWithAutoStatus.filter(c => c.isPast).length;
 
   const getStatusLabel = (status: string) => {
     const map: Record<string, { label: string; color: string }> = {
@@ -159,57 +174,77 @@ export default function NeoAcademyDashboard() {
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
               </div>
-            ) : filteredClasses.length === 0 ? (
-              <div className="text-center py-20 text-zinc-500">Nenhuma turma presencial encontrada</div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {filteredClasses.map(cls => {
-                  const status = getStatusLabel(cls.status);
-                  const courseData = cls.courses as any;
-                  return (
-                    <div key={cls.id} className="group rounded-xl bg-[#14141f] border border-white/5 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 overflow-hidden cursor-pointer hover:scale-[1.02]">
-                      {/* Banner */}
-                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-blue-900/40 to-sky-900/40">
-                        {courseData?.thumbnail_url ? (
-                          <img src={courseData.thumbnail_url} alt={cls.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Calendar className="h-12 w-12 text-blue-400/40" />
-                          </div>
-                        )}
-                        {/* Status badge overlay */}
-                        <div className="absolute top-3 left-3 flex items-center gap-2">
-                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border backdrop-blur-sm ${status.color}`}>{status.label}</span>
-                        </div>
-                        <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-sky-500/80 text-[10px] font-bold uppercase text-white tracking-wider">
-                          Presencial
-                        </div>
-                      </div>
+              <>
+                {/* Toggle past classes */}
+                {pastCount > 0 && (
+                  <button
+                    onClick={() => setShowPastClasses(!showPastClasses)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
+                      showPastClasses
+                        ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                        : 'bg-white/5 text-zinc-400 border-white/10 hover:bg-white/10'
+                    }`}
+                  >
+                    <History className="h-4 w-4" />
+                    {showPastClasses ? 'Ocultar turmas anteriores' : `Mostrar turmas anteriores (${pastCount})`}
+                  </button>
+                )}
 
-                      {/* Info */}
-                      <div className="p-4 space-y-3">
-                        <div>
-                          <h3 className="text-base font-semibold text-white line-clamp-2 leading-tight min-h-[2.5em]">{cls.name}</h3>
-                          {courseData?.title && <p className="text-sm text-zinc-500 mt-1 truncate">{courseData.title}</p>}
+                {filteredClasses.length === 0 ? (
+                  <div className="text-center py-20 text-zinc-500">
+                    {showPastClasses ? 'Nenhuma turma presencial encontrada' : 'Nenhuma turma futura encontrada'}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {filteredClasses.map(cls => {
+                      const status = getStatusLabel(cls.effectiveStatus);
+                      const courseData = cls.courses as any;
+                      return (
+                        <div key={cls.id} className={`group rounded-xl bg-[#14141f] border border-white/5 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 overflow-hidden cursor-pointer hover:scale-[1.02] ${cls.isPast ? 'opacity-70' : ''}`}>
+                          {/* Banner */}
+                          <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-blue-900/40 to-sky-900/40">
+                            {courseData?.thumbnail_url ? (
+                              <img src={courseData.thumbnail_url} alt={cls.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Calendar className="h-12 w-12 text-blue-400/40" />
+                              </div>
+                            )}
+                            <div className="absolute top-3 left-3 flex items-center gap-2">
+                              <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border backdrop-blur-sm ${status.color}`}>{status.label}</span>
+                            </div>
+                            <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-sky-500/80 text-[10px] font-bold uppercase text-white tracking-wider">
+                              Presencial
+                            </div>
+                          </div>
+
+                          {/* Info */}
+                          <div className="p-4 space-y-3">
+                            <div>
+                              <h3 className="text-base font-semibold text-white line-clamp-2 leading-tight min-h-[2.5em]">{cls.name}</h3>
+                              {courseData?.title && <p className="text-sm text-zinc-500 mt-1 truncate">{courseData.title}</p>}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+                              <span className="flex items-center gap-1.5">
+                                <Calendar className="h-3.5 w-3.5 text-blue-400" />
+                                {format(new Date(cls.start_date), "dd MMM yyyy", { locale: ptBR })}
+                                {cls.end_date && ` - ${format(new Date(cls.end_date), "dd MMM yyyy", { locale: ptBR })}`}
+                              </span>
+                              {cls.location && (
+                                <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-blue-400" />{cls.location}</span>
+                              )}
+                              {cls.max_students && (
+                                <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-blue-400" />{cls.max_students} vagas</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
-                          <span className="flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5 text-blue-400" />
-                            {format(new Date(cls.start_date), "dd MMM yyyy", { locale: ptBR })}
-                            {cls.end_date && ` - ${format(new Date(cls.end_date), "dd MMM yyyy", { locale: ptBR })}`}
-                          </span>
-                          {cls.location && (
-                            <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-blue-400" />{cls.location}</span>
-                          )}
-                          {cls.max_students && (
-                            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-blue-400" />{cls.max_students} vagas</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
