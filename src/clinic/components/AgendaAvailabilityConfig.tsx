@@ -80,12 +80,12 @@ export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolea
   // Open edit dialog for selected days
   const handleOpenEdit = () => {
     if (selectedDays.size === 0) return;
-    // Pre-fill from first selected day
     const firstDay = Array.from(selectedDays).sort()[0];
     const existing = getDayAvailability(firstDay);
     setEditBlocked(existing.isBlocked);
     setEditReason(existing.blockedReason || '');
     setEditMaxSlots(existing.status !== 'not_configured' ? existing.maxSlots : globalMaxSlots);
+    setEditNote(selectedDays.size === 1 ? (notesByDate.get(firstDay) || '') : '');
     setShowEditDialog(true);
   };
 
