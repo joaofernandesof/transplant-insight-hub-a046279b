@@ -1,85 +1,44 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+## Situação Atual do Usuário Josélio
 
-### Resumo
-
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
-
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+**Encontrado no banco:**
+- **Nome:** Josélio Alves Sousa
+- **Email:** joselio0611@gmail.com
+- **user_id (auth):** `3215d2f5-98d7-43ef-af4a-6c266e8cb5db`
+- **neohub_user_id:** `1397a323-3980-42d5-93bc-3287ca66a7ce`
+- **Perfil:** operador
+- **Portais liberados:** `[hotleads]` (apenas HotLeads)
+- **Conta Avivar:** Nenhuma. Não existe registro em `avivar_accounts` nem em `avivar_account_members`.
 
 ---
 
-### 1. Nova tabela: `surgery_agenda_availability`
+## Plano
 
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+Chamar a Edge Function `provision-avivar-account` passando os dados do Josélio. Essa function já faz tudo automaticamente:
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+1. **Detecta usuário existente** — não cria auth duplicado, apenas reutiliza o `user_id` existente
+2. **Adiciona `avivar` ao `allowed_portals`** — atualiza de `[hotleads]` para `[hotleads, avivar]`
+3. **Cria perfil `cliente_avivar`** no `neohub_user_profiles`
+4. **Cria conta Avivar** com todas as configurações copiadas do template (agente IA, kanbans, colunas, checklists, regras de follow-up, lembretes, base de conhecimento, agenda, onboarding, token API)
 
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
+### Implementação
 
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
+Invocar a function via código existente no frontend ou diretamente via `supabase.functions.invoke('provision-avivar-account', { body })` com:
+
+```json
+{
+  "email": "joselio0611@gmail.com",
+  "password": "<senha temporária>",
+  "full_name": "Joselio Alves Sousa",
+  "account_name": "Joselio Alves Sousa",
+  "allowed_nichos": ["saude"]
+}
 ```
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+Como a function requer uma senha (para atualizar caso já exista), precisarei definir uma senha temporária ou pedir ao usuário.
 
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+### Pré-requisito
 
-### 3. Visualização de Disponibilidade (todos os usuários)
-
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
-
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+Preciso saber qual senha definir para o Josélio. A function exige o campo `password`.
 
