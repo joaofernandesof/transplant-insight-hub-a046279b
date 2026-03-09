@@ -35,6 +35,7 @@ import {
   Plus,
   Upload,
   Settings2,
+  RefreshCw,
 } from 'lucide-react';
 import { format, parseISO, differenceInCalendarDays, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, subDays, isToday as dateIsToday, isTomorrow as dateIsTomorrow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
