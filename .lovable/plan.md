@@ -1,85 +1,56 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+## Integrar HotLeads dentro do Conecta Capilar (NeoAcademy)
 
-### Resumo
+### Objetivo
+O HotLeads deixa de ser um módulo/portal independente e passa a ser uma seção dentro do Conecta Capilar (`/neoacademy`), acessível via sidebar e rotas internas.
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+### Arquitetura atual
+- **HotLeads** é um portal standalone em `/hotleads/*` com 3 sub-rotas (marketplace, dashboard, settings)
+- Tem seu próprio `HotLeadsRoutes()` em `App.tsx`, entrada no `ProfileSelector`, sidebar config em `menuConfig.ts`, e portal config em `UnifiedSidebar.tsx`
+- **Conecta Capilar** (`/neoacademy/*`) usa `NeoAcademySidebar` com rotas internas e layout dark dedicado
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+### Mudanças planejadas
 
----
+**1. Rotas — `App.tsx`**
+- Adicionar sub-rotas dentro de `NeoAcademyRoutes`:
+  - `/neoacademy/hotleads` → componente `HotLeads` (marketplace)
+  - `/neoacademy/hotleads/dashboard` → `HotLeads` com `initialView="dashboard"`
+  - `/neoacademy/hotleads/settings` → `HotLeads` com `initialView="settings"`
+- Converter `/hotleads/*` de portal independente para redirect: `/hotleads` → `/neoacademy/hotleads`
+- Atualizar redirects legados (`/avivar/hotleads`, `/neolicense/hotleads`) para apontar para `/neoacademy/hotleads`
 
-### 1. Nova tabela: `surgery_agenda_availability`
+**2. Sidebar — `NeoAcademySidebar.tsx`**
+- Adicionar item "HotLeads" (ícone `Flame`) no menu de navegação, entre os itens do aluno
+- Rota: `/neoacademy/hotleads`
 
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+**3. Menu config — `menuConfig.ts`**
+- Atualizar `HOTLEADS_MENU_ITEMS` para usar rotas `/neoacademy/hotleads/*`
+- Remover entrada `hotleads` de `PORTAL_MENUS` (não é mais portal independente)
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+**4. UnifiedSidebar — `UnifiedSidebar.tsx`**
+- Remover `hotleads` do `PortalKey` type e `portalConfigs`
+- Remover detecção de portal `hotleads` baseada em pathname
+- Remover lógica especial de theme forcing e styling para `hotleads`
 
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
+**5. ProfileSelector — `ProfileSelector.tsx`**
+- Remover o módulo HotLeads da lista `SYSTEM_MODULES` (acesso agora é via Conecta Capilar)
 
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
-```
+**6. Navegação interna do HotLeads — `HotLeads.tsx`**
+- Atualizar referências internas de `navigate('/hotleads')` e `navigate('/hotleads/dashboard')` para `/neoacademy/hotleads` e `/neoacademy/hotleads/dashboard`
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+**7. Permissions — `permissions.ts`**
+- Mover `hotleads` de portal independente para sub-módulo de `neoacademy`
+- Atualizar `getPortalFromRoute()` para mapear `/neoacademy/hotleads` → `neoacademy`
 
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+**8. Mobile — `useMobileEnvironment.ts`**
+- Garantir que `/neoacademy/hotleads` continue liberado (já que `/neoacademy` é liberado e `/hotleads` era liberado)
 
-### 3. Visualização de Disponibilidade (todos os usuários)
+**9. Testes — `routes.test.ts`**
+- Atualizar assertivas de redirect legacy
 
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
-
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+### O que NÃO muda
+- Toda a lógica de negócio do HotLeads (hooks, componentes, Edge Functions, tabelas) permanece intacta
+- O componente `HotLeads.tsx` e todos os sub-componentes em `src/components/hotleads/` não precisam de alterações estruturais
+- RLS, distribuição geográfica e aquisição de leads não são afetados
 
