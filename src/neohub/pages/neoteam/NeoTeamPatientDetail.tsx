@@ -97,16 +97,28 @@ const formatCurrency = (value: number) =>
 export default function NeoTeamPatientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [patient, setPatient] = useState<PatientData | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSurgeryDialog, setShowSurgeryDialog] = useState(false);
   const [observationsText, setObservationsText] = useState('');
   const [savingObs, setSavingObs] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<Record<string, string>>({});
+  const [savingEdit, setSavingEdit] = useState(false);
   const [financial, setFinancial] = useState<FinancialSummary>({
     totalContract: 0, totalPaid: 0, totalPending: 0, totalOverdue: 0,
     installmentsCount: 0, paidCount: 0, pendingCount: 0, overdueCount: 0,
   });
+
+  // Start in edit mode if ?edit=true
+  useEffect(() => {
+    if (searchParams.get('edit') === 'true' && patient && !isEditing) {
+      startEditing();
+      setSearchParams({}, { replace: true });
+    }
+  }, [patient, searchParams]);
 
   useEffect(() => {
     if (id) {
