@@ -638,7 +638,7 @@ export default function ClinicDashboard() {
                     size="sm"
                     onClick={() => setAvailabilityFilter(opt.value)}
                     className={cn(
-                      'h-6 px-2 text-[11px] rounded-full',
+                      'h-6 px-2 text-[11px] rounded-full whitespace-nowrap',
                       availabilityFilter === opt.value && opt.color
                     )}
                   >
