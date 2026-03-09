@@ -130,7 +130,16 @@ export default function NeoTeamPortalLinks() {
     saveMutation.mutate({ ...form, id: editingLink?.id });
   };
 
-  const grouped = links.reduce<Record<string, PortalLink[]>>((acc, link) => {
+  const filteredLinks = links.filter(link => {
+    const matchesSearch = !search || 
+      link.title.toLowerCase().includes(search.toLowerCase()) ||
+      link.description?.toLowerCase().includes(search.toLowerCase()) ||
+      link.url.toLowerCase().includes(search.toLowerCase());
+    const matchesSector = sectorFilter === 'all' || link.sector === sectorFilter;
+    return matchesSearch && matchesSector;
+  });
+
+  const grouped = filteredLinks.reduce<Record<string, PortalLink[]>>((acc, link) => {
     const key = link.sector || 'geral';
     if (!acc[key]) acc[key] = [];
     acc[key].push(link);
