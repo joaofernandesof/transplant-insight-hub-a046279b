@@ -18,7 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   Plus, Pencil, Trash2, Eye, KanbanSquare, List, Briefcase, DollarSign, MapPin,
   GraduationCap, Target, Users2, Crown, BarChart3, Clock, TrendingUp,
-  Copy, XCircle, CheckCircle2, AlertTriangle,
+  Copy, XCircle, CheckCircle2, AlertTriangle, ClipboardCheck, FileText, UserCheck, BookOpen,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
