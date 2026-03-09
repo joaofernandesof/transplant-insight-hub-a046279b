@@ -389,12 +389,21 @@ export default function NeoTeamPatientDetail() {
         .map(([k, v]) => `${k}: ${v}`)
         .join(' | ');
 
-      const { error } = await supabase
+      console.log('[PatientDetail] Saving observations for id:', id);
+      const { error, data: obsResult } = await supabase
         .from('clinic_patients')
         .update({ notes: newNotes })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      console.log('[PatientDetail] Observations result:', { error, obsResult });
+      if (error) {
+        console.error('[PatientDetail] Observations error:', JSON.stringify(error));
+        throw error;
+      }
+      if (!obsResult || obsResult.length === 0) {
+        throw new Error('Nenhuma linha atualizada. Verifique suas permissões.');
+      }
       toast.success('Observações salvas!');
       setPatient(prev => prev ? { ...prev, notes: newNotes, observations: observationsText } : null);
     } catch (err) {
