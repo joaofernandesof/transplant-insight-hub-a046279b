@@ -79,6 +79,8 @@ export const PORTAL_CONFIGS: Record<PortalType, PortalConfig> = {
 interface PortalBannerProps {
   portal: PortalType;
   userName?: string;
+  title?: string;
+  subtitle?: string;
   icon?: ReactNode;
   rightContent?: ReactNode;
   className?: string;
@@ -87,6 +89,8 @@ interface PortalBannerProps {
 export function PortalBanner({ 
   portal, 
   userName,
+  title,
+  subtitle,
   icon,
   rightContent,
   className 
@@ -128,10 +132,10 @@ export function PortalBanner({
                 </>
               ) : (
                 <>
-                  {config.name}
-                  {config.subtitle && (
+                  {title || config.name}
+                  {(subtitle || config.subtitle) && (
                     <span className="hidden sm:inline text-sm font-normal opacity-80">
-                      • {config.subtitle}
+                      • {subtitle || config.subtitle}
                     </span>
                   )}
                 </>

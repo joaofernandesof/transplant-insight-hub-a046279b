@@ -157,6 +157,8 @@ export default function NeoTeamPortalLinks() {
       {/* Banner */}
       <PortalBanner
         portal="neoteam"
+        title="Portal de Links"
+        subtitle="Links úteis por setor"
         icon={<Link2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />}
         rightContent={
           isAdmin ? (
