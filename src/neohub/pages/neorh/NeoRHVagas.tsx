@@ -222,8 +222,8 @@ export default function NeoRHVagas() {
   const filteredItems = items;
 
   const indicators = useMemo(() => {
-    const active = items.filter(v => v.etapa_kanban !== 'cancelada' && v.etapa_kanban !== 'contratado');
-    const contratados = items.filter(v => v.etapa_kanban === 'contratado');
+    const active = items.filter(v => v.etapa_kanban !== 'cancelada' && v.etapa_kanban !== 'onboarding');
+    const contratados = items.filter(v => v.etapa_kanban === 'onboarding');
     const cancelados = items.filter(v => v.etapa_kanban === 'cancelada');
 
     // Tempo médio até contratação (dias)
