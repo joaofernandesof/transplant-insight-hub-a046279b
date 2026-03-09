@@ -142,7 +142,7 @@ export function SurgeryCard({ surgery, onEdit, onViewPatient }: SurgeryCardProps
         {/* Category & Procedure */}
         <div className="flex flex-wrap gap-2 mb-4">
           <Badge variant="secondary" className={getCategoryColor(surgery.category)}>
-            {surgery.category?.split(' - ')[0].replace('CATEGORIA ', 'Cat ') || 'Sem categoria'}
+            {surgery.category || 'Sem categoria'}
           </Badge>
           <Badge variant="outline">
             {surgery.procedure_type || 'N/A'}

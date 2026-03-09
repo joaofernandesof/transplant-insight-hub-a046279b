@@ -105,19 +105,22 @@ export function SalesTable({ sales }: SalesTableProps) {
     if (!category || category === '-') return null;
     
     const categoryUpper = category.toUpperCase();
-    if (categoryUpper.includes('CATEGORIA A')) {
-      return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-[10px]">Cat A</Badge>;
+    if (categoryUpper.includes('CATEGORIA A') && categoryUpper.includes('HYGOR')) {
+      return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-[10px]">CATEGORIA A - DR HYGOR</Badge>;
+    }
+    if (categoryUpper.includes('CATEGORIA A') && categoryUpper.includes('PATRICK')) {
+      return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-[10px]">CATEGORIA A - DR PATRICK</Badge>;
     }
     if (categoryUpper.includes('CATEGORIA B')) {
-      return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-[10px]">Cat B</Badge>;
+      return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-[10px]">CATEGORIA B - MÉDICO DA EQUIPE</Badge>;
     }
     if (categoryUpper.includes('CATEGORIA C')) {
-      return <Badge className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200 text-[10px]">Cat C</Badge>;
+      return <Badge className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200 text-[10px]">CATEGORIA C - PACIENTE MODELO VIP</Badge>;
     }
     if (categoryUpper.includes('CATEGORIA D')) {
-      return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 text-[10px]">Cat D</Badge>;
+      return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 text-[10px]">CATEGORIA D - PACIENTE MODELO</Badge>;
     }
-    return <Badge variant="outline" className="text-[10px]">{category.substring(0, 10)}</Badge>;
+    return <Badge variant="outline" className="text-[10px]">{category}</Badge>;
   };
 
   const BooleanIcon = ({ value }: { value: boolean }) => (
