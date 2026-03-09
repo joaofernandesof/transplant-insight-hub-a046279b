@@ -59,6 +59,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
   // Respect profile simulation: if admin is simulating a non-admin profile, hide admin UI
   const isAdmin = realIsAdmin && (!activeProfile || activeProfile === 'administrador' || activeProfile === 'super_administrador');
   const canCreateTestLeads = isAdmin || TEST_BUTTON_ALLOWED_EMAILS.includes(user?.email || '');
+  const isDashboardView = initialView === 'dashboard';
   const navigate = useNavigate();
   const {
     leads,
@@ -79,7 +80,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     profiles,
     hotleadsProfiles,
     acceptedStates,
-  } = useHotLeads();
+  } = useHotLeads({ skip: isDashboardView });
   const { settings, isLoading: settingsLoading, saveSettings, generateWhatsAppUrl } = useHotLeadsSettings();
   const { radiusKm } = useHotLeadsRadiusSetting();
   const { awardPoints } = useGamification();
@@ -558,7 +559,7 @@ export default function HotLeads({ initialView = 'marketplace' }: HotLeadsProps)
     }
   };
 
-  if (isLoading && adminView !== 'dashboard') {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

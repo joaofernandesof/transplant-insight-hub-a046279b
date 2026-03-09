@@ -30,13 +30,14 @@ export interface HotLead {
 
 const OVERDUE_DAYS = 7;
 
-export function useHotLeads() {
+export function useHotLeads(options?: { skip?: boolean }) {
+  const skip = options?.skip ?? false;
   const { user, isAdmin } = useAuth();
   const [leads, setLeads] = useState<HotLead[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [hotleadsProfiles, setHotleadsProfiles] = useState<Record<string, string>>({});
   const [queuedCount, setQueuedCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!skip);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [acceptedStates, setAcceptedStates] = useState<string[] | null>(null);
 
@@ -116,11 +117,11 @@ export function useHotLeads() {
   }, [user?.id, isAdmin]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || skip) return;
     fetchLeads();
     fetchProfiles();
     fetchAcceptedStates();
-  }, [fetchLeads, fetchProfiles, fetchAcceptedStates, user]);
+  }, [fetchLeads, fetchProfiles, fetchAcceptedStates, user, skip]);
 
   // Leads available (unclaimed) - non-admins only see leads from their accepted states
   const availableLeads = useMemo(() => {
