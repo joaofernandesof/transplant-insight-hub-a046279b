@@ -63,7 +63,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/cpg/financial', tourId: 'sidebar-financial' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/cpg/agenda', tourId: 'sidebar-agenda' },
   { id: 'forms', label: 'Formulários', icon: ClipboardList, href: '/cpg/forms' },
-  { id: 'forms', label: 'Formulários', icon: ClipboardList, href: '/cpg/forms' },
+];
 ];
 
 interface AstreaStyleSidebarProps {
