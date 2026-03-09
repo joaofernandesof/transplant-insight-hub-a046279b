@@ -62,7 +62,6 @@ const cpgNavItems: NavItem[] = [
   { id: 'tasks', label: 'Tarefas', icon: CheckSquare, href: '/cpg/tasks' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/cpg/financial', tourId: 'sidebar-financial' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/cpg/agenda', tourId: 'sidebar-agenda' },
-  { id: 'reports', label: 'Relatórios', icon: BarChart3, href: '/cpg/reports' },
   { id: 'forms', label: 'Formulários', icon: ClipboardList, href: '/cpg/forms' },
 ];
 
