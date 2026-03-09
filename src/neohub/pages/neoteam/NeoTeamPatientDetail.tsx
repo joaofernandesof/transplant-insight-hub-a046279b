@@ -302,6 +302,33 @@ export default function NeoTeamPatientDetail() {
         }
       }
 
+      // Audit log entries (edits)
+      const { data: auditLogs } = await supabase
+        .from('clinic_patient_audit_log' as any)
+        .select('*')
+        .eq('patient_id', id)
+        .order('created_at', { ascending: false });
+
+      if (auditLogs) {
+        // Group audit entries by timestamp (same second = same edit batch)
+        const grouped: Record<string, any[]> = {};
+        for (const log of auditLogs as any[]) {
+          const key = log.created_at?.slice(0, 19) || log.id;
+          if (!grouped[key]) grouped[key] = [];
+          grouped[key].push(log);
+        }
+        for (const [ts, logs] of Object.entries(grouped)) {
+          const fieldDescs = logs.map((l: any) => `${l.field_label}: ${l.old_value} → ${l.new_value}`).join('; ');
+          events.push({
+            id: `audit-${ts}`,
+            date: logs[0].created_at,
+            title: `Editado por ${logs[0].user_name}`,
+            description: fieldDescs,
+            type: 'edit',
+          });
+        }
+      }
+
       events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setTimeline(events);
     } catch (error) {
