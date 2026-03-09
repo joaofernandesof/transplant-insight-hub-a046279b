@@ -14,11 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailability';
 import { useBranches } from '../hooks/useBranches';
+import { useSurgeryAgendaNotes } from '../hooks/useSurgeryAgendaNotes';
 import { toast } from 'sonner';
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-export function AgendaAvailabilityConfig() {
+export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolean }) {
   const { branches } = useBranches({ showAll: true });
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -26,11 +27,13 @@ export function AgendaAvailabilityConfig() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editBlocked, setEditBlocked] = useState(false);
   const [editReason, setEditReason] = useState('');
+  const [editNote, setEditNote] = useState('');
   const [globalMaxSlots, setGlobalMaxSlots] = useState(5);
   const [editMaxSlots, setEditMaxSlots] = useState(5);
 
   const { getDayAvailability, upsertAvailability, deleteAvailability, isLoading } =
     useSurgeryAgendaAvailability(selectedBranch, currentMonth);
+  const { notesByDate, upsertNote } = useSurgeryAgendaNotes(selectedBranch);
 
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);
@@ -77,12 +80,12 @@ export function AgendaAvailabilityConfig() {
   // Open edit dialog for selected days
   const handleOpenEdit = () => {
     if (selectedDays.size === 0) return;
-    // Pre-fill from first selected day
     const firstDay = Array.from(selectedDays).sort()[0];
     const existing = getDayAvailability(firstDay);
     setEditBlocked(existing.isBlocked);
     setEditReason(existing.blockedReason || '');
     setEditMaxSlots(existing.status !== 'not_configured' ? existing.maxSlots : globalMaxSlots);
+    setEditNote(selectedDays.size === 1 ? (notesByDate.get(firstDay) || '') : '');
     setShowEditDialog(true);
   };
 
@@ -90,13 +93,19 @@ export function AgendaAvailabilityConfig() {
   const handleSave = async () => {
     if (selectedDays.size === 0 || !selectedBranch) return;
     for (const dateStr of Array.from(selectedDays)) {
-      await upsertAvailability.mutateAsync({
-        branch: selectedBranch,
-        date: dateStr,
-        max_slots: editMaxSlots,
-        is_blocked: editBlocked,
-        blocked_reason: editBlocked ? editReason : undefined,
-      });
+      if (isAdmin) {
+        await upsertAvailability.mutateAsync({
+          branch: selectedBranch,
+          date: dateStr,
+          max_slots: editMaxSlots,
+          is_blocked: editBlocked,
+          blocked_reason: editBlocked ? editReason : undefined,
+        });
+      }
+      // Save note if provided (or clear it)
+      if (editNote !== undefined) {
+        await upsertNote.mutateAsync({ date: dateStr, note: editNote });
+      }
     }
     toast.success(`Configuração aplicada para ${selectedDays.size} dia(s)`);
     setShowEditDialog(false);
@@ -164,7 +173,8 @@ export function AgendaAvailabilityConfig() {
 
           {selectedBranch && (
             <>
-              {/* Global max slots */}
+              {/* Global max slots - Admin only */}
+              {isAdmin && (
               <div className="flex items-end gap-3 p-3 rounded-lg border border-border bg-muted/30">
                 <div className="space-y-1.5 flex-1">
                   <Label className="text-xs font-medium">Agendamentos por dia</Label>
@@ -186,6 +196,7 @@ export function AgendaAvailabilityConfig() {
                   Aplicar para o mês
                 </Button>
               </div>
+              )}
 
               {/* Month navigation */}
               <div className="flex items-center justify-between">
@@ -230,6 +241,7 @@ export function AgendaAvailabilityConfig() {
                   const avail = getDayAvailability(dateStr);
                   const isConfigured = avail.status !== 'not_configured';
                   const isSelected = selectedDays.has(dateStr);
+                  const hasNote = !!notesByDate.get(dateStr);
 
                   return (
                     <button
@@ -257,6 +269,9 @@ export function AgendaAvailabilityConfig() {
                             </span>
                           )}
                         </>
+                      )}
+                      {hasNote && (
+                        <span className="absolute bottom-0.5 left-0.5 text-[8px]">📝</span>
                       )}
                     </button>
                   );
@@ -296,43 +311,57 @@ export function AgendaAvailabilityConfig() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="flex items-center gap-3">
-              <Label className="text-sm">Bloqueado</Label>
-              <Switch checked={editBlocked} onCheckedChange={setEditBlocked} />
-              {editBlocked && <Badge variant="destructive" className="text-[10px]">Dia(s) bloqueado(s)</Badge>}
+            {isAdmin && (
+              <>
+                <div className="flex items-center gap-3">
+                  <Label className="text-sm">Bloqueado</Label>
+                  <Switch checked={editBlocked} onCheckedChange={setEditBlocked} />
+                  {editBlocked && <Badge variant="destructive" className="text-[10px]">Dia(s) bloqueado(s)</Badge>}
+                </div>
+                {editBlocked && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Motivo (opcional)</Label>
+                    <Textarea
+                      value={editReason}
+                      onChange={(e) => setEditReason(e.target.value)}
+                      placeholder="Ex: Feriado, manutenção..."
+                      className="h-16 text-sm"
+                    />
+                  </div>
+                )}
+                {!editBlocked && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Máximo de agendamentos por dia</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={editMaxSlots}
+                      onChange={(e) => setEditMaxSlots(Number(e.target.value))}
+                      className="h-8 w-24 text-sm"
+                    />
+                  </div>
+                )}
+              </>
+            )}
+            {/* Observation note - available for all users */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">📝 Observação do dia</Label>
+              <Textarea
+                value={editNote}
+                onChange={(e) => setEditNote(e.target.value)}
+                placeholder="Ex: Equipe reduzida, sala 2 em manutenção..."
+                className="h-20 text-sm"
+              />
             </div>
-            {editBlocked && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Motivo (opcional)</Label>
-                <Textarea
-                  value={editReason}
-                  onChange={(e) => setEditReason(e.target.value)}
-                  placeholder="Ex: Feriado, manutenção..."
-                  className="h-16 text-sm"
-                />
-              </div>
-            )}
-            {!editBlocked && (
-              <div className="space-y-1.5">
-                <Label className="text-xs">Máximo de agendamentos por dia</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={editMaxSlots}
-                  onChange={(e) => setEditMaxSlots(Number(e.target.value))}
-                  className="h-8 w-24 text-sm"
-                />
-              </div>
-            )}
           </div>
           <DialogFooter className="gap-2">
-            {anySelectedHasConfig && (
+            {isAdmin && anySelectedHasConfig && (
               <Button variant="outline" size="sm" className="text-xs" onClick={handleRemoveConfig} disabled={upsertAvailability.isPending}>
                 Remover configuração
               </Button>
             )}
-            <Button size="sm" className="text-xs" onClick={handleSave} disabled={upsertAvailability.isPending}>
+            <Button size="sm" className="text-xs" onClick={handleSave} disabled={upsertAvailability.isPending || upsertNote.isPending}>
               Salvar
             </Button>
           </DialogFooter>

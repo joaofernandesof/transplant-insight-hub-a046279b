@@ -341,17 +341,15 @@ export default function ClinicDashboard() {
                 <Stethoscope className="h-5 w-5 text-primary" />
                 Agenda Cirúrgica
               </h1>
-              {isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowConfigDialog(true)}
-                  title="Configuração da Agenda"
-                >
-                  <Settings2 className="h-4 w-4" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                onClick={() => setShowConfigDialog(true)}
+                title="Configuração da Agenda"
+              >
+                <Settings2 className="h-4 w-4" />
+              </Button>
             </div>
             {/* Tabs */}
             <div className="flex gap-1 mt-1.5">
@@ -754,20 +752,18 @@ export default function ClinicDashboard() {
         onOpenChange={setShowImportDialog}
       />
 
-      {/* Config Dialog - Admin only */}
-      {isAdmin && (
-        <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
-          <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-base flex items-center gap-2">
-                <Settings2 className="h-4 w-4" />
-                Configuração da Agenda
-              </DialogTitle>
-            </DialogHeader>
-            <AgendaAvailabilityConfig />
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Config Dialog - Available for all users */}
+      <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base flex items-center gap-2">
+              <Settings2 className="h-4 w-4" />
+              Configuração da Agenda
+            </DialogTitle>
+          </DialogHeader>
+          <AgendaAvailabilityConfig isAdmin={isAdmin} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
