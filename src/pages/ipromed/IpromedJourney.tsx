@@ -1835,43 +1835,64 @@ export default function IpromedJourney() {
                     </div>
                   </div>
 
-                  {/* Phase Timeline */}
-                  {history.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Histórico de Etapas</p>
-                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                        {history.map((h, i) => {
-                          const pInfo = allPhases.find(p => p.id === h.phase);
-                          const days = differenceInDays(new Date(h.left_at), new Date(h.entered_at));
-                          return (
-                            <div key={i} className="flex items-center gap-3 text-sm">
-                              <div className={cn("h-2 w-2 rounded-full shrink-0", pInfo?.color || 'bg-muted')} />
-                              <span className="flex-1 truncate">{pInfo?.label || h.phase}</span>
-                              <span className="text-muted-foreground text-xs">{days}d</span>
-                              <span className="text-muted-foreground text-xs">{format(new Date(h.entered_at), 'dd/MM')}</span>
-                            </div>
-                          );
-                        })}
-                        {/* Current phase */}
-                        <div className="flex items-center gap-3 text-sm font-medium">
-                          <div className={cn("h-2 w-2 rounded-full shrink-0", phaseInfo?.color || 'bg-muted')} />
-                          <span className="flex-1 truncate">{phaseInfo?.label} (atual)</span>
-                          <span className="text-muted-foreground text-xs">{sla.daysInPhase}d</span>
-                        </div>
-                      </div>
+                  {/* Quick Actions */}
+                  <div>
+                    <p className="text-sm font-medium mb-3">Ações Rápidas</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="justify-start h-auto py-3"
+                        onClick={() => {
+                          setJourneyDetailClient(null);
+                          setMeetingClient(c);
+                          setMeetingDialogOpen(true);
+                        }}
+                      >
+                        <Video className="h-4 w-4 mr-2 text-blue-500" />
+                        <span className="text-sm">Agendar Reunião</span>
+                      </Button>
+                      {c.phone && (
+                        <Button
+                          variant="outline"
+                          className="justify-start h-auto py-3"
+                          onClick={() => {
+                            const phone = c.phone?.replace(/\D/g, '');
+                            window.open(`https://wa.me/${phone}`, '_blank');
+                          }}
+                        >
+                          <Phone className="h-4 w-4 mr-2 text-emerald-500" />
+                          <span className="text-sm">WhatsApp</span>
+                        </Button>
+                      )}
+                      {c.email && (
+                        <Button
+                          variant="outline"
+                          className="justify-start h-auto py-3"
+                          onClick={() => {
+                            window.open(`mailto:${c.email}`, '_blank');
+                          }}
+                        >
+                          <Mail className="h-4 w-4 mr-2 text-amber-500" />
+                          <span className="text-sm">Enviar E-mail</span>
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        className="justify-start h-auto py-3"
+                        onClick={() => {
+                          setJourneyDetailClient(null);
+                          navigate(`/cpg/clients/${c.id}`);
+                        }}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2 text-primary" />
+                        <span className="text-sm">Página do Cliente</span>
+                      </Button>
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                <DialogFooter className="gap-2 sm:gap-0">
+                <DialogFooter>
                   <Button variant="outline" onClick={() => setJourneyDetailClient(null)}>Fechar</Button>
-                  <Button onClick={() => {
-                    setJourneyDetailClient(null);
-                    navigate(`/cpg/clients/${c.id}`);
-                  }}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Ver Página do Cliente
-                  </Button>
                 </DialogFooter>
               </>
             );
