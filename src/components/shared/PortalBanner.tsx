@@ -132,10 +132,10 @@ export function PortalBanner({
                 </>
               ) : (
                 <>
-                  {config.name}
-                  {config.subtitle && (
+                  {title || config.name}
+                  {(subtitle || config.subtitle) && (
                     <span className="hidden sm:inline text-sm font-normal opacity-80">
-                      • {config.subtitle}
+                      • {subtitle || config.subtitle}
                     </span>
                   )}
                 </>
