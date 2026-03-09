@@ -558,6 +558,7 @@ function NeoRHRoutes() {
           <Route path="colaboradores" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHColaboradores /></Suspense>} />
           <Route path="cargos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHCargos /></Suspense>} />
           <Route path="vagas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHVagas /></Suspense>} />
+          <Route path="job-description" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHJobDescription /></Suspense>} />
           <Route path="performance" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceDashboard /></Suspense>} />
           <Route path="performance/cycles" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceCycles /></Suspense>} />
           <Route path="performance/evaluations" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceEvaluations /></Suspense>} />
