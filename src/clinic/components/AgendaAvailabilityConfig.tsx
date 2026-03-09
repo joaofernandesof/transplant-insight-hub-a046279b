@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailability';
 import { useBranches } from '../hooks/useBranches';
+import { useSurgeryAgendaNotes } from '../hooks/useSurgeryAgendaNotes';
 import { toast } from 'sonner';
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
