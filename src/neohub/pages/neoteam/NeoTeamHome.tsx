@@ -2,6 +2,7 @@ import React from 'react';
 import { 
   BarChart3, Stethoscope, HeadphonesIcon, ClipboardCheck, 
   GitCompare, DollarSign, Scale, Megaphone, CircuitBoard, UsersRound,
+  Link2,
   type LucideIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -73,6 +74,22 @@ export default function NeoTeamHome() {
               </button>
             );
           })}
+        </div>
+
+        {/* Portal de Links - botão separado */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => navigate('/neoteam/portal-links')}
+            className="flex items-center gap-3 px-6 py-3 rounded-xl border border-border bg-card hover:bg-muted/50 hover:shadow-md hover:scale-[1.02] transition-all duration-200"
+          >
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Link2 className="h-5 w-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-semibold text-foreground">Portal de Links</span>
+              <p className="text-xs text-muted-foreground">Links úteis por setor</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>
