@@ -53,7 +53,7 @@ interface TimelineEvent {
   time?: string;
   title: string;
   description?: string;
-  type: 'appointment' | 'surgery' | 'registration';
+  type: 'appointment' | 'surgery' | 'registration' | 'edit';
   status?: string;
 }
 
@@ -302,6 +302,33 @@ export default function NeoTeamPatientDetail() {
         }
       }
 
+      // Audit log entries (edits)
+      const { data: auditLogs } = await supabase
+        .from('clinic_patient_audit_log' as any)
+        .select('*')
+        .eq('patient_id', id)
+        .order('created_at', { ascending: false });
+
+      if (auditLogs) {
+        // Group audit entries by timestamp (same second = same edit batch)
+        const grouped: Record<string, any[]> = {};
+        for (const log of auditLogs as any[]) {
+          const key = log.created_at?.slice(0, 19) || log.id;
+          if (!grouped[key]) grouped[key] = [];
+          grouped[key].push(log);
+        }
+        for (const [ts, logs] of Object.entries(grouped)) {
+          const fieldDescs = logs.map((l: any) => `${l.field_label}: ${l.old_value} → ${l.new_value}`).join('; ');
+          events.push({
+            id: `audit-${ts}`,
+            date: logs[0].created_at,
+            title: `Editado por ${logs[0].user_name}`,
+            description: fieldDescs,
+            type: 'edit',
+          });
+        }
+      }
+
       events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setTimeline(events);
     } catch (error) {
@@ -406,6 +433,43 @@ export default function NeoTeamPatientDetail() {
     setEditData({});
   };
 
+  const FIELD_LABELS: Record<string, string> = {
+    full_name: 'Nome Completo', email: 'Email', phone: 'Telefone', cpf: 'CPF',
+    birthDate: 'Data de Nascimento', maritalStatus: 'Estado Civil', nationality: 'Nacionalidade',
+    branch: 'Filial', category: 'Categoria', baldnessGrade: 'Grau de Calvície',
+    surgeryDate: 'Data da Cirurgia', consultant: 'Consultor', seller: 'Vendedor',
+    leadSource: 'Fonte do Lead', address: 'Endereço', city: 'Cidade', state: 'Estado/UF',
+  };
+
+  const logPatientChanges = async (changes: { field: string; oldValue: string; newValue: string }[]) => {
+    if (changes.length === 0 || !id) return;
+    try {
+      const authUser = (await supabase.auth.getUser()).data.user;
+      let userName = authUser?.email?.split('@')[0] || 'Usuário';
+      if (authUser?.id) {
+        const { data: profile } = await supabase
+          .from('staff_profiles')
+          .select('name')
+          .eq('user_id', authUser.id)
+          .maybeSingle();
+        if (profile?.name) userName = profile.name;
+      }
+      const entries = changes.map(c => ({
+        patient_id: id,
+        user_id: authUser?.id,
+        user_name: userName,
+        action: 'updated',
+        field_name: c.field,
+        field_label: FIELD_LABELS[c.field] || c.field,
+        old_value: c.oldValue || '—',
+        new_value: c.newValue || '—',
+      }));
+      await supabase.from('clinic_patient_audit_log' as any).insert(entries);
+    } catch (e) {
+      console.error('Failed to log patient changes:', e);
+    }
+  };
+
   const saveEditing = async () => {
     if (!patient || !id) return;
     setSavingEdit(true);
@@ -449,6 +513,24 @@ export default function NeoTeamPatientDetail() {
         .map(([k, v]) => `${k}: ${v}`)
         .join(' | ');
 
+      // Detect changes for audit log
+      const previousValues: Record<string, string> = {
+        full_name: patient.full_name || '', email: patient.email || '', phone: patient.phone || '',
+        cpf: patient.cpf || '', birthDate: patient.birthDate || '', maritalStatus: patient.maritalStatus || '',
+        nationality: patient.nationality || '', branch: patient.branch || '', category: patient.category || '',
+        baldnessGrade: patient.baldnessGrade || '', surgeryDate: patient.surgeryDate || '',
+        consultant: patient.consultant || '', seller: patient.seller || '', leadSource: patient.leadSource || '',
+        address: patient.address || '', city: patient.city || '', state: patient.state || '',
+      };
+
+      const changes: { field: string; oldValue: string; newValue: string }[] = [];
+      for (const [field, newVal] of Object.entries(editData)) {
+        const oldVal = previousValues[field] || '';
+        if (oldVal !== (newVal || '')) {
+          changes.push({ field, oldValue: oldVal, newValue: newVal || '' });
+        }
+      }
+
       const { error } = await supabase
         .from('clinic_patients')
         .update({
@@ -462,10 +544,14 @@ export default function NeoTeamPatientDetail() {
 
       if (error) throw error;
 
+      // Log changes to audit table
+      await logPatientChanges(changes);
+
       toast.success('Paciente atualizado com sucesso!');
       setIsEditing(false);
       setEditData({});
       fetchPatient(); // Reload data
+      fetchTimeline(); // Reload timeline with new audit entries
     } catch (err) {
       console.error('Error saving patient:', err);
       toast.error('Erro ao salvar alterações');
@@ -815,17 +901,21 @@ export default function NeoTeamPatientDetail() {
                   <div className="absolute left-3 top-2 bottom-2 w-px bg-border" />
                   {timeline.map((event) => (
                     <div key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
-                      <div className={`relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                       <div className={`relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
                         event.type === 'surgery'
                           ? 'border-destructive bg-destructive/10'
                           : event.type === 'appointment'
                           ? 'border-primary bg-primary/10'
+                          : event.type === 'edit'
+                          ? 'border-amber-500 bg-amber-500/10'
                           : 'border-muted-foreground bg-muted'
                       }`}>
                         {event.type === 'surgery' ? (
                           <Stethoscope className="h-3 w-3 text-destructive" />
                         ) : event.type === 'appointment' ? (
                           <CalendarCheck className="h-3 w-3 text-primary" />
+                        ) : event.type === 'edit' ? (
+                          <Edit className="h-3 w-3 text-amber-500" />
                         ) : (
                           <User className="h-3 w-3 text-muted-foreground" />
                         )}

@@ -4151,6 +4151,45 @@ export type Database = {
           },
         ]
       }
+      clinic_patient_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          field_label: string
+          field_name: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          patient_id: string
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          action?: string
+          created_at?: string
+          field_label: string
+          field_name: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          patient_id: string
+          user_id?: string | null
+          user_name?: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          field_label?: string
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          patient_id?: string
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: []
+      }
       clinic_patients: {
         Row: {
           cpf: string | null
