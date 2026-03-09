@@ -1016,6 +1016,7 @@ export default function IpromedJourney() {
         if (targetPhaseId === 'Agendado' && client && currentPhase) {
           setPendingDragOriginPhase(currentPhase);
           setMeetingScheduled(false);
+          meetingScheduledRef.current = false;
           setTimeout(() => {
             setMeetingClient(client);
             setMeetingDialogOpen(true);
