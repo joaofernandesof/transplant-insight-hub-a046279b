@@ -965,8 +965,8 @@ function AppRoutes() {
       <Route path="/cpg/contracts/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContractDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/legal" element={<Navigate to="/cpg" replace />} />
       <Route path="/cpg/agenda" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="agenda" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/cases" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="cases" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
-      <Route path="/cpg/cases/:id" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedCaseDetail /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/cpg/cases" element={<Navigate to="/cpg" replace />} />
+      <Route path="/cpg/cases/:id" element={<Navigate to="/cpg" replace />} />
       
       <Route path="/cpg/ai" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub defaultTab="ai" /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/cpg/university" element={<ProfileGuard allowedProfiles={['operador', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedUniversity /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
