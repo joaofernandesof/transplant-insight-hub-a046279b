@@ -624,8 +624,8 @@ export default function ClinicDashboard() {
               </div>
 
               {/* Availability Filter */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] text-muted-foreground font-medium mr-1">Disponibilidade:</span>
+              <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto pb-1">
+                <span className="text-[11px] text-muted-foreground font-medium mr-1 shrink-0">Disponibilidade:</span>
                 {([
                   { value: 'all' as const, label: 'Todas', color: '' },
                   { value: 'available' as const, label: '🟢 Disponível', color: 'bg-emerald-600 text-white hover:bg-emerald-700' },
