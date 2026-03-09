@@ -117,11 +117,11 @@ export function useHotLeads(options?: { skip?: boolean }) {
   }, [user?.id, isAdmin]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || skip) return;
     fetchLeads();
     fetchProfiles();
     fetchAcceptedStates();
-  }, [fetchLeads, fetchProfiles, fetchAcceptedStates, user]);
+  }, [fetchLeads, fetchProfiles, fetchAcceptedStates, user, skip]);
 
   // Leads available (unclaimed) - non-admins only see leads from their accepted states
   const availableLeads = useMemo(() => {
