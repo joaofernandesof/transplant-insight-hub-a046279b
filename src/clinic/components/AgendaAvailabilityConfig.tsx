@@ -173,7 +173,8 @@ export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolea
 
           {selectedBranch && (
             <>
-              {/* Global max slots */}
+              {/* Global max slots - Admin only */}
+              {isAdmin && (
               <div className="flex items-end gap-3 p-3 rounded-lg border border-border bg-muted/30">
                 <div className="space-y-1.5 flex-1">
                   <Label className="text-xs font-medium">Agendamentos por dia</Label>
@@ -195,6 +196,7 @@ export function AgendaAvailabilityConfig({ isAdmin = false }: { isAdmin?: boolea
                   Aplicar para o mês
                 </Button>
               </div>
+              )}
 
               {/* Month navigation */}
               <div className="flex items-center justify-between">
