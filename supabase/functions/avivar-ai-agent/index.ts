@@ -3339,7 +3339,7 @@ async function processToolCall(
         const passos = ((fluxoAtendimento as Record<string, unknown>).passosCronologicos || []) as Array<{ id?: string }>;
         const requestedIndex = passos.findIndex(p => p.id === requestedStepId);
         const userMsgCount = conversationHistory.filter(m => m.role === "user").length;
-        const maxAllowedIndex = userMsgCount;
+        const maxAllowedIndex = userMsgCount - 1;
         
         if (requestedIndex >= 0 && requestedIndex > maxAllowedIndex) {
           console.log(`[AI Agent] ⚠️ BLOCKED send_fluxo_media for step "${requestedStepId}" (index ${requestedIndex}) — max allowed is ${maxAllowedIndex} (based on ${userMsgCount} user messages)`);
