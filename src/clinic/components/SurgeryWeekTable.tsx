@@ -303,10 +303,12 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                           })}
                           {/* Empty slot placeholder rows */}
                           {Array.from({ length: emptySlots }).map((_, idx) => (
-                            <TableRow key={`empty-${idx}`} className="opacity-40">
+                            <TableRow key={`empty-${idx}`} className="opacity-50 hover:opacity-80 cursor-pointer hover:bg-muted/50 transition-opacity" onClick={() => onAddToDate?.(date)}>
                               <TableCell className="text-xs font-mono text-muted-foreground">...</TableCell>
                               <TableCell>
-                                <span className="text-sm text-muted-foreground italic">Vaga disponível</span>
+                                <span className="text-sm text-muted-foreground italic flex items-center gap-1.5">
+                                  <Plus className="h-3.5 w-3.5" /> Vaga disponível
+                                </span>
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-sm text-muted-foreground">...</TableCell>
                               <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">...</TableCell>
