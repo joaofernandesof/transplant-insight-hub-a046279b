@@ -240,7 +240,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                 </div>
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-sm">
-                                {surgery.procedure || '—'}
+                                {surgery.procedure || '...'}
                               </TableCell>
                               <TableCell className="hidden lg:table-cell text-sm">
                                 {surgery.grade || '—'}
