@@ -176,7 +176,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                   const dateNote = date !== 'sem-data' ? notesByDate.get(date) : undefined;
                   const maxSlots = dayAvail?.maxSlots || 0;
                   const isDayBlocked = dayAvail?.isBlocked === true;
-                  const emptySlots = isDayBlocked ? 0 : Math.max(0, maxSlots - items.length);
+                  const emptySlots = Math.max(0, maxSlots - items.length);
 
                   return (
                   <div key={date}>
@@ -304,11 +304,12 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                           })}
                           {/* Empty slot placeholder rows */}
                           {Array.from({ length: emptySlots }).map((_, idx) => (
-                            <TableRow key={`empty-${idx}`} className="opacity-50 hover:opacity-80 cursor-pointer hover:bg-muted/50 transition-opacity" onClick={() => onAddToDate?.(date)}>
+                            <TableRow key={`empty-${idx}`} className={isDayBlocked ? "opacity-30" : "opacity-50 hover:opacity-80 cursor-pointer hover:bg-muted/50 transition-opacity"} onClick={() => !isDayBlocked && onAddToDate?.(date)}>
                               <TableCell className="text-xs font-mono text-muted-foreground">...</TableCell>
                               <TableCell>
                                 <span className="text-sm text-muted-foreground italic flex items-center gap-1.5">
-                                  <Plus className="h-3.5 w-3.5" /> Vaga disponível
+                                  {isDayBlocked ? <Lock className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                                  {isDayBlocked ? 'Vaga bloqueada' : 'Vaga disponível'}
                                 </span>
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-sm text-muted-foreground">...</TableCell>
