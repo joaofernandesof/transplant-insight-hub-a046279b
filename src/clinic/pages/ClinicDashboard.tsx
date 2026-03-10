@@ -121,7 +121,7 @@ export default function ClinicDashboard() {
       setIsSyncingNotes(false);
     }
   }, []);
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'full' | 'blocked'>('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'blocked'>('all');
 
   // Sync tab from URL params
   useEffect(() => {
@@ -261,13 +261,19 @@ export default function ClinicDashboard() {
       items = items.filter(s => violatedIds.has(s.id));
     }
 
-    // Availability filter
+    // Availability filter — filters at date level
     if (availabilityFilter !== 'all' && effectiveBranchForAvail) {
       items = items.filter(s => {
         if (!s.surgeryDate) return false;
         const avail = getDayAvailability(s.surgeryDate);
-        if (avail.status === 'not_configured') return availabilityFilter === 'available';
-        return avail.status === availabilityFilter;
+        if (availabilityFilter === 'available') {
+          // Show dates with remaining slots or not configured (open)
+          return avail.status === 'not_configured' || (avail.status === 'available');
+        }
+        if (availabilityFilter === 'blocked') {
+          return avail.status === 'blocked';
+        }
+        return true;
       });
     }
 
@@ -663,7 +669,6 @@ export default function ClinicDashboard() {
                 {([
                   { value: 'all' as const, label: 'Todas', color: '' },
                   { value: 'available' as const, label: '🟢 Disponível', color: 'bg-emerald-600 text-white hover:bg-emerald-700' },
-                  { value: 'full' as const, label: '🟡 Lotado', color: 'bg-amber-500 text-white hover:bg-amber-600' },
                   { value: 'blocked' as const, label: '🔴 Bloqueado', color: 'bg-destructive text-destructive-foreground hover:bg-destructive/90' },
                 ] as const).map((opt) => (
                   <Button
@@ -759,6 +764,7 @@ export default function ClinicDashboard() {
               violatedIds={violatedIds}
               selectedBranch={selectedBranch}
               periodRange={periodRange}
+              availabilityFilter={availabilityFilter}
             />
             <SurgeryDetailDialog
               surgery={selectedPendingSurgery}

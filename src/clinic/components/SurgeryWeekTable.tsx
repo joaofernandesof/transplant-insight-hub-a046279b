@@ -24,9 +24,10 @@ interface SurgeryWeekTableProps {
   violatedIds?: Set<string>;
   selectedBranch?: string;
   periodRange?: { start: Date; end: Date };
+  availabilityFilter?: 'all' | 'available' | 'blocked';
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch, periodRange }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch, periodRange, availabilityFilter = 'all' }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
@@ -87,6 +88,26 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
     return new Map([...todayEntries, ...futureEntries, ...pastEntries, ...noDateEntries]);
   }, [surgeries, periodRange]);
 
+  // Filter grouped dates by availability status
+  const filteredGrouped = useMemo(() => {
+    if (availabilityFilter === 'all' || !effectiveBranch) return grouped;
+    const result = new Map<string, ClinicSurgery[]>();
+    for (const [date, items] of grouped.entries()) {
+      if (date === 'sem-data') continue;
+      const avail = getDayAvailability(date);
+      if (availabilityFilter === 'available') {
+        if (avail.status === 'not_configured' || avail.status === 'available') {
+          result.set(date, items);
+        }
+      } else if (availabilityFilter === 'blocked') {
+        if (avail.status === 'blocked') {
+          result.set(date, items);
+        }
+      }
+    }
+    return result;
+  }, [grouped, availabilityFilter, effectiveBranch, getDayAvailability]);
+
   const formatDateHeader = (dateStr: string) => {
     if (dateStr === 'sem-data') return 'Sem Data';
     try {
@@ -141,14 +162,14 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
           </div>
         </CardHeader>
         <CardContent>
-          {grouped.size === 0 ? (
+          {filteredGrouped.size === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
               Nenhuma cirurgia agendada para este período
             </p>
           ) : (
             <div>
               <div className="space-y-4">
-                {Array.from(grouped.entries()).map(([date, items]) => {
+                {Array.from(filteredGrouped.entries()).map(([date, items]) => {
                   const dayAvail = effectiveBranch && date !== 'sem-data' ? getDayAvailability(date) : null;
                   const isConfigured = dayAvail && dayAvail.status !== 'not_configured';
                   const dateNote = date !== 'sem-data' ? notesByDate.get(date) : undefined;
