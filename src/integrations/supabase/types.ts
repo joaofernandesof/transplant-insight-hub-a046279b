@@ -223,6 +223,240 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_categories: {
+        Row: {
+          criado_em: string
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      asset_locations: {
+        Row: {
+          criado_em: string
+          descricao: string | null
+          empresa_id: string | null
+          id: string
+          nome_local: string
+          tipo_local: Database["public"]["Enums"]["asset_location_type"]
+        }
+        Insert: {
+          criado_em?: string
+          descricao?: string | null
+          empresa_id?: string | null
+          id?: string
+          nome_local: string
+          tipo_local?: Database["public"]["Enums"]["asset_location_type"]
+        }
+        Update: {
+          criado_em?: string
+          descricao?: string | null
+          empresa_id?: string | null
+          id?: string
+          nome_local?: string
+          tipo_local?: Database["public"]["Enums"]["asset_location_type"]
+        }
+        Relationships: []
+      }
+      asset_maintenance: {
+        Row: {
+          asset_id: string
+          criado_em: string
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          id: string
+          responsavel: string | null
+          status: Database["public"]["Enums"]["maintenance_status"]
+          tipo_manutencao: Database["public"]["Enums"]["maintenance_type"]
+          valor: number | null
+        }
+        Insert: {
+          asset_id: string
+          criado_em?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          responsavel?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"]
+          tipo_manutencao?: Database["public"]["Enums"]["maintenance_type"]
+          valor?: number | null
+        }
+        Update: {
+          asset_id?: string
+          criado_em?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          responsavel?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"]
+          tipo_manutencao?: Database["public"]["Enums"]["maintenance_type"]
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_movements: {
+        Row: {
+          asset_id: string
+          data_movimentacao: string
+          id: string
+          local_anterior: string | null
+          local_novo: string | null
+          motivo: string | null
+          registrado_por: string
+          responsavel_anterior: string | null
+          responsavel_novo: string | null
+        }
+        Insert: {
+          asset_id: string
+          data_movimentacao?: string
+          id?: string
+          local_anterior?: string | null
+          local_novo?: string | null
+          motivo?: string | null
+          registrado_por: string
+          responsavel_anterior?: string | null
+          responsavel_novo?: string | null
+        }
+        Update: {
+          asset_id?: string
+          data_movimentacao?: string
+          id?: string
+          local_anterior?: string | null
+          local_novo?: string | null
+          motivo?: string | null
+          registrado_por?: string
+          responsavel_anterior?: string | null
+          responsavel_novo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_movements_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_movements_local_anterior_fkey"
+            columns: ["local_anterior"]
+            isOneToOne: false
+            referencedRelation: "asset_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_movements_local_novo_fkey"
+            columns: ["local_novo"]
+            isOneToOne: false
+            referencedRelation: "asset_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          atualizado_em: string
+          categoria_id: string | null
+          codigo_barras: string | null
+          codigo_patrimonio: string
+          criado_em: string
+          data_compra: string | null
+          descricao: string | null
+          empresa_id: string | null
+          garantia_ate: string | null
+          id: string
+          localizacao_id: string | null
+          marca: string | null
+          modelo: string | null
+          nome_item: string
+          numero_serie: string | null
+          qr_code: string | null
+          responsavel_id: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          valor_compra: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria_id?: string | null
+          codigo_barras?: string | null
+          codigo_patrimonio: string
+          criado_em?: string
+          data_compra?: string | null
+          descricao?: string | null
+          empresa_id?: string | null
+          garantia_ate?: string | null
+          id?: string
+          localizacao_id?: string | null
+          marca?: string | null
+          modelo?: string | null
+          nome_item: string
+          numero_serie?: string | null
+          qr_code?: string | null
+          responsavel_id?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          valor_compra?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          categoria_id?: string | null
+          codigo_barras?: string | null
+          codigo_patrimonio?: string
+          criado_em?: string
+          data_compra?: string | null
+          descricao?: string | null
+          empresa_id?: string | null
+          garantia_ate?: string | null
+          id?: string
+          localizacao_id?: string | null
+          marca?: string | null
+          modelo?: string | null
+          nome_item?: string
+          numero_serie?: string | null
+          qr_code?: string | null
+          responsavel_id?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          valor_compra?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_localizacao_id_fkey"
+            columns: ["localizacao_id"]
+            isOneToOne: false
+            referencedRelation: "asset_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_account_members: {
         Row: {
           account_id: string
@@ -24135,6 +24369,18 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "licensee" | "colaborador" | "aluno" | "paciente"
+      asset_location_type:
+        | "clinica"
+        | "escritorio"
+        | "sala"
+        | "setor"
+        | "deposito"
+      asset_status:
+        | "ativo"
+        | "em_uso"
+        | "em_manutencao"
+        | "inativo"
+        | "descartado"
       avivar_account_role:
         | "owner"
         | "admin"
@@ -24312,6 +24558,8 @@ export type Database = {
         | "follow_up"
         | "complaint"
         | "consultation"
+      maintenance_status: "aberta" | "em_execucao" | "finalizada"
+      maintenance_type: "preventiva" | "corretiva"
       neoacademy_lesson_type: "video" | "text" | "pdf" | "quiz" | "live"
       neoacademy_member_role: "owner" | "admin" | "instructor" | "student"
       neohub_profile:
@@ -24536,6 +24784,20 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "licensee", "colaborador", "aluno", "paciente"],
+      asset_location_type: [
+        "clinica",
+        "escritorio",
+        "sala",
+        "setor",
+        "deposito",
+      ],
+      asset_status: [
+        "ativo",
+        "em_uso",
+        "em_manutencao",
+        "inativo",
+        "descartado",
+      ],
       avivar_account_role: [
         "owner",
         "admin",
@@ -24734,6 +24996,8 @@ export const Constants = {
         "complaint",
         "consultation",
       ],
+      maintenance_status: ["aberta", "em_execucao", "finalizada"],
+      maintenance_type: ["preventiva", "corretiva"],
       neoacademy_lesson_type: ["video", "text", "pdf", "quiz", "live"],
       neoacademy_member_role: ["owner", "admin", "instructor", "student"],
       neohub_profile: [
