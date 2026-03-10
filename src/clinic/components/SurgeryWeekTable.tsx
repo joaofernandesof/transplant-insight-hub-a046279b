@@ -25,9 +25,10 @@ interface SurgeryWeekTableProps {
   selectedBranch?: string;
   periodRange?: { start: Date; end: Date };
   availabilityFilter?: 'all' | 'available' | 'blocked';
+  onAddToDate?: (date: string) => void;
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch, periodRange, availabilityFilter = 'all' }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch, periodRange, availabilityFilter = 'all', onAddToDate }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
