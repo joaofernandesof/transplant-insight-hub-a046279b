@@ -663,7 +663,6 @@ export default function ClinicDashboard() {
                 {([
                   { value: 'all' as const, label: 'Todas', color: '' },
                   { value: 'available' as const, label: '🟢 Disponível', color: 'bg-emerald-600 text-white hover:bg-emerald-700' },
-                  { value: 'full' as const, label: '🟡 Lotado', color: 'bg-amber-500 text-white hover:bg-amber-600' },
                   { value: 'blocked' as const, label: '🔴 Bloqueado', color: 'bg-destructive text-destructive-foreground hover:bg-destructive/90' },
                 ] as const).map((opt) => (
                   <Button
