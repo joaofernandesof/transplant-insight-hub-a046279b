@@ -175,7 +175,8 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                   const isConfigured = dayAvail && dayAvail.status !== 'not_configured';
                   const dateNote = date !== 'sem-data' ? notesByDate.get(date) : undefined;
                   const maxSlots = dayAvail?.maxSlots || 0;
-                  const emptySlots = Math.max(0, maxSlots - items.length);
+                  const isDayBlocked = dayAvail?.isBlocked === true;
+                  const emptySlots = isDayBlocked ? 0 : Math.max(0, maxSlots - items.length);
 
                   return (
                   <div key={date}>
