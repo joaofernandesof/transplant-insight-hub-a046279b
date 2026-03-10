@@ -261,13 +261,19 @@ export default function ClinicDashboard() {
       items = items.filter(s => violatedIds.has(s.id));
     }
 
-    // Availability filter
+    // Availability filter — filters at date level
     if (availabilityFilter !== 'all' && effectiveBranchForAvail) {
       items = items.filter(s => {
         if (!s.surgeryDate) return false;
         const avail = getDayAvailability(s.surgeryDate);
-        if (avail.status === 'not_configured') return availabilityFilter === 'available';
-        return avail.status === availabilityFilter;
+        if (availabilityFilter === 'available') {
+          // Show dates with remaining slots or not configured (open)
+          return avail.status === 'not_configured' || (avail.status === 'available');
+        }
+        if (availabilityFilter === 'blocked') {
+          return avail.status === 'blocked';
+        }
+        return true;
       });
     }
 
