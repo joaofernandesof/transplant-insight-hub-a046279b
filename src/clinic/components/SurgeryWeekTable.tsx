@@ -173,13 +173,15 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                   const dayAvail = effectiveBranch && date !== 'sem-data' ? getDayAvailability(date) : null;
                   const isConfigured = dayAvail && dayAvail.status !== 'not_configured';
                   const dateNote = date !== 'sem-data' ? notesByDate.get(date) : undefined;
+                  const maxSlots = dayAvail?.maxSlots || 0;
+                  const emptySlots = Math.max(0, maxSlots - items.length);
 
                   return (
                   <div key={date}>
                     <div className="sticky top-0 bg-background z-10 py-1.5 mb-1 flex items-center gap-2 flex-wrap">
                       <h4 className="text-sm font-semibold capitalize text-primary">
                         {formatDateHeader(date)}
-                        <Badge variant="secondary" className="ml-2 text-xs">{items.length}</Badge>
+                        <Badge variant="secondary" className="ml-2 text-xs">{items.length}/{maxSlots || items.length}</Badge>
                       </h4>
                       {isConfigured && (
                         dayAvail.isBlocked ? (
