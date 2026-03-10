@@ -766,6 +766,7 @@ export default function ClinicDashboard() {
               selectedBranch={selectedBranch}
               periodRange={periodRange}
               availabilityFilter={availabilityFilter}
+              onAddToDate={(date) => { setAddDialogDate(date); setShowAddDialog(true); }}
             />
             <SurgeryDetailDialog
               surgery={selectedPendingSurgery}
