@@ -186,7 +186,7 @@ export default function AssetManagementPage() {
         responsavel_novo: transferForm.responsavel_id || null,
         motivo: transferForm.motivo || null,
         registrado_por: user.id,
-      });
+      } as any);
       if (moveErr) throw moveErr;
       const updates: any = { atualizado_em: new Date().toISOString() };
       if (transferForm.localizacao_id) updates.localizacao_id = transferForm.localizacao_id;
