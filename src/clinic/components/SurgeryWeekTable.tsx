@@ -300,6 +300,23 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                             </TableRow>
                             );
                           })}
+                          {/* Empty slot placeholder rows */}
+                          {Array.from({ length: emptySlots }).map((_, idx) => (
+                            <TableRow key={`empty-${idx}`} className="opacity-40">
+                              <TableCell className="text-xs font-mono text-muted-foreground">...</TableCell>
+                              <TableCell>
+                                <span className="text-sm text-muted-foreground italic">Vaga disponível</span>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell text-sm text-muted-foreground">...</TableCell>
+                              <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">...</TableCell>
+                              <TableCell className="hidden md:table-cell text-xs text-muted-foreground">...</TableCell>
+                              <TableCell className="hidden md:table-cell" />
+                              <TableCell />
+                              <TableCell className="text-right">
+                                <Badge variant="outline" className="text-xs text-muted-foreground">—</Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
                         </TableBody>
                       </Table>
                     </div>
