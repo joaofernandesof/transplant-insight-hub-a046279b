@@ -88,6 +88,26 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
     return new Map([...todayEntries, ...futureEntries, ...pastEntries, ...noDateEntries]);
   }, [surgeries, periodRange]);
 
+  // Filter grouped dates by availability status
+  const filteredGrouped = useMemo(() => {
+    if (availabilityFilter === 'all' || !effectiveBranch) return grouped;
+    const result = new Map<string, ClinicSurgery[]>();
+    for (const [date, items] of grouped.entries()) {
+      if (date === 'sem-data') continue;
+      const avail = getDayAvailability(date);
+      if (availabilityFilter === 'available') {
+        if (avail.status === 'not_configured' || avail.status === 'available') {
+          result.set(date, items);
+        }
+      } else if (availabilityFilter === 'blocked') {
+        if (avail.status === 'blocked') {
+          result.set(date, items);
+        }
+      }
+    }
+    return result;
+  }, [grouped, availabilityFilter, effectiveBranch, getDayAvailability]);
+
   const formatDateHeader = (dateStr: string) => {
     if (dateStr === 'sem-data') return 'Sem Data';
     try {
