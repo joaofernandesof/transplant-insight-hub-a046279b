@@ -428,9 +428,10 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                       icon={FileText}
                       label="Valor"
                       value={surgery.upsellValue?.toString() || '0'}
+                      displayValue={surgery.upsellValue ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(surgery.upsellValue) : 'R$ 0,00'}
                       field="upsellValue"
-                      type="number"
-                      onSave={(f, v) => handleFieldSave(f, Number(v) || 0)}
+                      type="text"
+                      onSave={(f, v) => handleFieldSave(f, Number(v.replace(/[R$\s.]/g, '').replace(',', '.')) || 0)}
                     />
                   </div>
                 </div>
