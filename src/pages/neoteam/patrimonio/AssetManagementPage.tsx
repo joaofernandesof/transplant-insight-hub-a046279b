@@ -141,7 +141,7 @@ export default function AssetManagementPage() {
   // Mutations
   const saveMutation = useMutation({
     mutationFn: async (formData: typeof EMPTY_FORM) => {
-      const payload = {
+      const payload: Record<string, any> = {
         nome_item: formData.nome_item,
         categoria_id: formData.categoria_id || null,
         marca: formData.marca || null,
@@ -160,9 +160,10 @@ export default function AssetManagementPage() {
         const { error } = await supabase.from('assets').update(payload).eq('id', editingAsset.id);
         if (error) throw error;
       } else {
-        const code = `NG-${String(assets.length + 1).padStart(6, '0')}`;
-        const qrUrl = `${window.location.origin}/neoteam/assets?view=${code}`;
-        const { error } = await supabase.from('assets').insert({ ...payload, codigo_patrimonio: '', qr_code: qrUrl, codigo_barras: code });
+        const qrUrl = `${window.location.origin}/neoteam/assets?view=new`;
+        payload.codigo_patrimonio = '';
+        payload.qr_code = qrUrl;
+        const { error } = await supabase.from('assets').insert(payload as any);
         if (error) throw error;
       }
     },
