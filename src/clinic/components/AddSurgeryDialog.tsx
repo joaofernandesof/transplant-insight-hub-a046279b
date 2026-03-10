@@ -47,6 +47,8 @@ interface AddSurgeryDialogProps {
   requireExistingPatient?: boolean;
   /** Pre-fill with existing patient data */
   prefilledPatient?: { id: string; name: string };
+  /** Pre-fill date when adding from empty slot */
+  defaultDate?: string;
 }
 
 export function AddSurgeryDialog({ 
@@ -55,6 +57,7 @@ export function AddSurgeryDialog({
   defaultWithDate = true,
   requireExistingPatient = false,
   prefilledPatient,
+  defaultDate,
 }: AddSurgeryDialogProps) {
   const { createSurgery } = useClinicSurgeries();
   const { branches } = useBranches();
@@ -69,9 +72,17 @@ export function AddSurgeryDialog({
   const [branch, setBranch] = useState('');
   const [category, setCategory] = useState('');
   
-  const [surgeryDate, setSurgeryDate] = useState<Date | undefined>(undefined);
+  const [surgeryDate, setSurgeryDate] = useState<Date | undefined>(defaultDate ? new Date(defaultDate + 'T12:00:00') : undefined);
   const [surgeryTime, setSurgeryTime] = useState('');
   const [withDate, setWithDate] = useState(defaultWithDate);
+
+  // Sync defaultDate when dialog opens with a new date
+  useEffect(() => {
+    if (open && defaultDate) {
+      setSurgeryDate(new Date(defaultDate + 'T12:00:00'));
+      setWithDate(true);
+    }
+  }, [open, defaultDate]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [weekLockMessage, setWeekLockMessage] = useState<string | null>(null);
 

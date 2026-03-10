@@ -93,6 +93,7 @@ export default function ClinicDashboard() {
     return 'agenda';
   });
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [addDialogDate, setAddDialogDate] = useState<string | undefined>(undefined);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
@@ -765,6 +766,7 @@ export default function ClinicDashboard() {
               selectedBranch={selectedBranch}
               periodRange={periodRange}
               availabilityFilter={availabilityFilter}
+              onAddToDate={(date) => { setAddDialogDate(date); setShowAddDialog(true); }}
             />
             <SurgeryDetailDialog
               surgery={selectedPendingSurgery}
@@ -783,9 +785,10 @@ export default function ClinicDashboard() {
 
       <AddSurgeryDialog
         open={showAddDialog}
-        onOpenChange={setShowAddDialog}
+        onOpenChange={(open) => { setShowAddDialog(open); if (!open) setAddDialogDate(undefined); }}
         defaultWithDate={activeTab === 'agenda'}
         requireExistingPatient={isNeoTeamContext}
+        defaultDate={addDialogDate}
       />
 
       <ImportSurgeriesDialog

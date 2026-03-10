@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, CheckCircle2, Flag, Lock, MessageSquare, Pencil } from 'lucide-react';
+import { Calendar, CheckCircle2, Flag, Lock, MessageSquare, Pencil, Plus } from 'lucide-react';
 import { format, parseISO, isToday, isBefore, startOfDay, eachDayOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ClinicSurgery } from '../hooks/useClinicSurgeries';
@@ -25,9 +25,10 @@ interface SurgeryWeekTableProps {
   selectedBranch?: string;
   periodRange?: { start: Date; end: Date };
   availabilityFilter?: 'all' | 'available' | 'blocked';
+  onAddToDate?: (date: string) => void;
 }
 
-export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch, periodRange, availabilityFilter = 'all' }: SurgeryWeekTableProps) {
+export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, canDelete, title, violatedIds, selectedBranch, periodRange, availabilityFilter = 'all', onAddToDate }: SurgeryWeekTableProps) {
   const [selectedSurgery, setSelectedSurgery] = useState<ClinicSurgery | null>(null);
   const surgeryIds = useMemo(() => surgeries.map(s => s.id), [surgeries]);
   const { tasksBySurgery } = useSurgeryTaskChips(surgeryIds);
@@ -302,10 +303,12 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                           })}
                           {/* Empty slot placeholder rows */}
                           {Array.from({ length: emptySlots }).map((_, idx) => (
-                            <TableRow key={`empty-${idx}`} className="opacity-40">
+                            <TableRow key={`empty-${idx}`} className="opacity-50 hover:opacity-80 cursor-pointer hover:bg-muted/50 transition-opacity" onClick={() => onAddToDate?.(date)}>
                               <TableCell className="text-xs font-mono text-muted-foreground">...</TableCell>
                               <TableCell>
-                                <span className="text-sm text-muted-foreground italic">Vaga disponível</span>
+                                <span className="text-sm text-muted-foreground italic flex items-center gap-1.5">
+                                  <Plus className="h-3.5 w-3.5" /> Vaga disponível
+                                </span>
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-sm text-muted-foreground">...</TableCell>
                               <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">...</TableCell>
