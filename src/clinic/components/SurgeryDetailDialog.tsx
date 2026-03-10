@@ -421,15 +421,13 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="mt-2">
-                    <EditableField
-                      icon={FileText}
-                      label="Valor"
-                      value={surgery.upsellValue?.toString() || '0'}
-                      displayValue={surgery.upsellValue ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(surgery.upsellValue) : 'R$ 0,00'}
-                      field="upsellValue"
-                      type="text"
-                      onSave={(f, v) => handleFieldSave(f, Number(v.replace(/[R$\s.]/g, '').replace(',', '.')) || 0)}
+                  <div className="mt-2 space-y-1">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <FileText className="h-3 w-3" /> Valor
+                    </Label>
+                    <CurrencyInput
+                      value={surgery.upsellValue || 0}
+                      onSave={(v) => handleFieldSave('upsellValue', v)}
                     />
                   </div>
                 </div>
