@@ -173,13 +173,15 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                   const dayAvail = effectiveBranch && date !== 'sem-data' ? getDayAvailability(date) : null;
                   const isConfigured = dayAvail && dayAvail.status !== 'not_configured';
                   const dateNote = date !== 'sem-data' ? notesByDate.get(date) : undefined;
+                  const maxSlots = dayAvail?.maxSlots || 0;
+                  const emptySlots = Math.max(0, maxSlots - items.length);
 
                   return (
                   <div key={date}>
                     <div className="sticky top-0 bg-background z-10 py-1.5 mb-1 flex items-center gap-2 flex-wrap">
                       <h4 className="text-sm font-semibold capitalize text-primary">
                         {formatDateHeader(date)}
-                        <Badge variant="secondary" className="ml-2 text-xs">{items.length}</Badge>
+                        <Badge variant="secondary" className="ml-2 text-xs">{items.length}/{maxSlots || items.length}</Badge>
                       </h4>
                       {isConfigured && (
                         dayAvail.isBlocked ? (
@@ -208,7 +210,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                       />
                     )}
 
-                    {items.length === 0 ? (
+                    {items.length === 0 && emptySlots === 0 ? (
                       <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm text-muted-foreground italic">
                         Nenhum paciente agendado
                       </div>
@@ -298,6 +300,23 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                             </TableRow>
                             );
                           })}
+                          {/* Empty slot placeholder rows */}
+                          {Array.from({ length: emptySlots }).map((_, idx) => (
+                            <TableRow key={`empty-${idx}`} className="opacity-40">
+                              <TableCell className="text-xs font-mono text-muted-foreground">...</TableCell>
+                              <TableCell>
+                                <span className="text-sm text-muted-foreground italic">Vaga disponível</span>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell text-sm text-muted-foreground">...</TableCell>
+                              <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">...</TableCell>
+                              <TableCell className="hidden md:table-cell text-xs text-muted-foreground">...</TableCell>
+                              <TableCell className="hidden md:table-cell" />
+                              <TableCell />
+                              <TableCell className="text-right">
+                                <Badge variant="outline" className="text-xs text-muted-foreground">—</Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
                         </TableBody>
                       </Table>
                     </div>
