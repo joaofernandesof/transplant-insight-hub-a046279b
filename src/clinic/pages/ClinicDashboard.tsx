@@ -121,7 +121,7 @@ export default function ClinicDashboard() {
       setIsSyncingNotes(false);
     }
   }, []);
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'full' | 'blocked'>('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'blocked'>('all');
 
   // Sync tab from URL params
   useEffect(() => {
