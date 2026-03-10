@@ -216,7 +216,7 @@ export default function AssetManagementPage() {
         valor: maintenanceForm.valor ? parseFloat(maintenanceForm.valor) : null,
         responsavel: maintenanceForm.responsavel || null,
         status: maintenanceForm.status,
-      });
+      } as any);
       if (error) throw error;
       if (maintenanceForm.status !== 'finalizada') {
         await supabase.from('assets').update({ status: 'em_manutencao', atualizado_em: new Date().toISOString() }).eq('id', viewingAsset.id);
