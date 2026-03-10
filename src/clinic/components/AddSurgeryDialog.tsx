@@ -72,9 +72,17 @@ export function AddSurgeryDialog({
   const [branch, setBranch] = useState('');
   const [category, setCategory] = useState('');
   
-  const [surgeryDate, setSurgeryDate] = useState<Date | undefined>(undefined);
+  const [surgeryDate, setSurgeryDate] = useState<Date | undefined>(defaultDate ? new Date(defaultDate + 'T12:00:00') : undefined);
   const [surgeryTime, setSurgeryTime] = useState('');
   const [withDate, setWithDate] = useState(defaultWithDate);
+
+  // Sync defaultDate when dialog opens with a new date
+  useEffect(() => {
+    if (open && defaultDate) {
+      setSurgeryDate(new Date(defaultDate + 'T12:00:00'));
+      setWithDate(true);
+    }
+  }, [open, defaultDate]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [weekLockMessage, setWeekLockMessage] = useState<string | null>(null);
 
