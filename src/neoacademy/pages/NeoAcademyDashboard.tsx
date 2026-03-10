@@ -196,14 +196,14 @@ export default function NeoAcademyDashboard() {
                     {showPastClasses ? 'Nenhuma turma presencial encontrada' : 'Nenhuma turma futura encontrada'}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {filteredClasses.map(cls => {
                       const status = getStatusLabel(cls.effectiveStatus);
                       const courseData = cls.courses as any;
                       return (
                         <div key={cls.id} className={`group rounded-xl bg-[#14141f] border border-white/5 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 overflow-hidden cursor-pointer hover:scale-[1.02] ${cls.isPast ? 'opacity-70' : ''}`}>
                           {/* Banner */}
-                          <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-blue-900/40 to-sky-900/40">
+                          <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-blue-900/40 to-sky-900/40">
                             {courseData?.thumbnail_url ? (
                               <img src={courseData.thumbnail_url} alt={cls.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             ) : (
@@ -213,9 +213,7 @@ export default function NeoAcademyDashboard() {
                             )}
                             <div className="absolute top-3 left-3 flex items-center gap-2">
                               <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border backdrop-blur-sm ${status.color}`}>{status.label}</span>
-                            </div>
-                            <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-sky-500/80 text-[10px] font-bold uppercase text-white tracking-wider">
-                              Presencial
+                              <span className="px-2 py-0.5 rounded-md bg-sky-500/80 text-[10px] font-bold uppercase text-white tracking-wider">Presencial</span>
                             </div>
                           </div>
 
