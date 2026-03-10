@@ -47,6 +47,8 @@ interface AddSurgeryDialogProps {
   requireExistingPatient?: boolean;
   /** Pre-fill with existing patient data */
   prefilledPatient?: { id: string; name: string };
+  /** Pre-fill date when adding from empty slot */
+  defaultDate?: string;
 }
 
 export function AddSurgeryDialog({ 
@@ -55,6 +57,7 @@ export function AddSurgeryDialog({
   defaultWithDate = true,
   requireExistingPatient = false,
   prefilledPatient,
+  defaultDate,
 }: AddSurgeryDialogProps) {
   const { createSurgery } = useClinicSurgeries();
   const { branches } = useBranches();
