@@ -243,7 +243,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                 {surgery.procedure || '...'}
                               </TableCell>
                               <TableCell className="hidden lg:table-cell text-sm">
-                                {surgery.grade || '—'}
+                                {surgery.grade || '...'}
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-xs">
                                 {surgery.trichotomyDatetime && surgery.trichotomyDatetime !== 'NÃO TEM MARCAÇÃO' ? (
