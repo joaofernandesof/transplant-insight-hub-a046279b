@@ -212,7 +212,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                             return (
                             <TableRow key={surgery.id} className={`cursor-pointer hover:bg-muted/50 ${isViolated ? 'bg-red-50 dark:bg-red-950/20 border-l-4 border-l-red-500' : ''}`} onClick={() => setSelectedSurgery(surgery)}>
                               <TableCell className="text-xs font-mono">
-                                {surgery.surgeryTime ? surgery.surgeryTime.substring(0, 5) : '—'}
+                                {surgery.surgeryTime ? surgery.surgeryTime.substring(0, 5) : '...'}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1.5">
