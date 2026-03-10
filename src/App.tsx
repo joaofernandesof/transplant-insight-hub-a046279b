@@ -476,6 +476,7 @@ function NeoTeamRoutes() {
   const TicketsPage = lazy(() => import('@/pages/neoteam/ti/TicketsPage'));
   const CampaignsPage = lazy(() => import('@/pages/neoteam/marketing/CampaignsPage'));
   const NeoTeamPortalLinks = lazy(() => import('@/neohub/pages/neoteam/NeoTeamPortalLinks'));
+  const AssetManagementPage = lazy(() => import('@/pages/neoteam/patrimonio/AssetManagementPage'));
   
   return (
     <ProfileGuard allowedProfiles={['operador', 'administrador']}>
@@ -524,6 +525,7 @@ function NeoTeamRoutes() {
           <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
           <Route path="portal-links" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPortalLinks /></Suspense>} />
           <Route path="settings" element={<NeoTeamSettings />} />
+          <Route path="assets" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><AssetManagementPage /></Suspense>} />
           <Route path="reports" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>
