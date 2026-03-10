@@ -93,6 +93,7 @@ export default function ClinicDashboard() {
     return 'agenda';
   });
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [addDialogDate, setAddDialogDate] = useState<string | undefined>(undefined);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
