@@ -212,7 +212,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                             return (
                             <TableRow key={surgery.id} className={`cursor-pointer hover:bg-muted/50 ${isViolated ? 'bg-red-50 dark:bg-red-950/20 border-l-4 border-l-red-500' : ''}`} onClick={() => setSelectedSurgery(surgery)}>
                               <TableCell className="text-xs font-mono">
-                                {surgery.surgeryTime ? surgery.surgeryTime.substring(0, 5) : '—'}
+                                {surgery.surgeryTime ? surgery.surgeryTime.substring(0, 5) : '...'}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1.5">
@@ -240,16 +240,16 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
                                 </div>
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-sm">
-                                {surgery.procedure || '—'}
+                                {surgery.procedure || '...'}
                               </TableCell>
                               <TableCell className="hidden lg:table-cell text-sm">
-                                {surgery.grade || '—'}
+                                {surgery.grade || '...'}
                               </TableCell>
                               <TableCell className="hidden md:table-cell text-xs">
                                 {surgery.trichotomyDatetime && surgery.trichotomyDatetime !== 'NÃO TEM MARCAÇÃO' ? (
                                   <span className="font-medium text-amber-700 dark:text-amber-400">{(() => { try { const d = new Date(surgery.trichotomyDatetime); return isNaN(d.getTime()) ? surgery.trichotomyDatetime : `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; } catch { return surgery.trichotomyDatetime; } })()}</span>
                                 ) : (
-                                  <span className="text-muted-foreground">—</span>
+                                  <span className="text-muted-foreground">...</span>
                                 )}
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
