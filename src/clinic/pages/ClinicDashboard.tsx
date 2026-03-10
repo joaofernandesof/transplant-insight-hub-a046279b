@@ -785,9 +785,10 @@ export default function ClinicDashboard() {
 
       <AddSurgeryDialog
         open={showAddDialog}
-        onOpenChange={setShowAddDialog}
+        onOpenChange={(open) => { setShowAddDialog(open); if (!open) setAddDialogDate(undefined); }}
         defaultWithDate={activeTab === 'agenda'}
         requireExistingPatient={isNeoTeamContext}
+        defaultDate={addDialogDate}
       />
 
       <ImportSurgeriesDialog
