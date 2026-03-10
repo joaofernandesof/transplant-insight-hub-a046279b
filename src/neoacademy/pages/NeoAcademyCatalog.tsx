@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CourseCard } from '../components/CourseCard';
-import { Search, Loader2, Monitor, MapPin, Calendar, Users, ChevronRight, History } from 'lucide-react';
+import { Search, Loader2, Monitor, MapPin, Calendar, Users, History } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
