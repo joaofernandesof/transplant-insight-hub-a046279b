@@ -476,6 +476,7 @@ function NeoTeamRoutes() {
   const TicketsPage = lazy(() => import('@/pages/neoteam/ti/TicketsPage'));
   const CampaignsPage = lazy(() => import('@/pages/neoteam/marketing/CampaignsPage'));
   const NeoTeamPortalLinks = lazy(() => import('@/neohub/pages/neoteam/NeoTeamPortalLinks'));
+  const AssetManagementPage = lazy(() => import('@/pages/neoteam/patrimonio/AssetManagementPage'));
   
   return (
     <ProfileGuard allowedProfiles={['operador', 'administrador']}>
