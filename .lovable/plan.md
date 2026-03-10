@@ -1,85 +1,74 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+# Plano: Clonar Configurações do Avivar (Lucas → Cíntia)
 
-### Resumo
+## Resumo
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+Replicar todas as configurações da conta Avivar do **Lucas Araujo** (`lucasaraujo.neofolic@gmail.com`) para a conta da **Cíntia de Andrade** (`dracintia@outlook.com`). São apenas operações de dados — nenhuma alteração de código.
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+## Contas Identificadas
 
----
+| | Lucas (origem) | Cíntia (destino) |
+|---|---|---|
+| **Account ID** | `a0000001-...0002` | `13766a5f-...136b` |
+| **User ID** | `860ae553-...c15` | `9ac4f659-...462` |
 
-### 1. Nova tabela: `surgery_agenda_availability`
+## O que será clonado
 
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+### 1. Agente de IA
+Criar um agente na conta da Cíntia com **todas** as configurações do agente do Lucas:
+- Nome, empresa, profissional, nicho (saude)
+- Identidade da IA, objetivo, instruções, restrições
+- Tom de voz, modo de atendimento (humanized)
+- Fluxo de atendimento completo (7 passos cronológicos)
+- Serviços, tipo de consulta, duração, métodos de pagamento
+- Horários (schedule), endereço, cidade, estado
+- Target kanbans (mapeados para os IDs da Cíntia)
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+### 2. Regras de Follow-up (5 regras)
+Clonar as 5 tentativas de follow-up, mapeando os IDs de colunas/kanbans:
+- **Tentativa 1**: 10 min, texto
+- **Tentativa 2**: 1 hora, texto
+- **Tentativa 3**: 1 dia, texto
+- **Tentativa 4**: 2 dias, texto + imagem
+- **Tentativa 5**: 3 dias, áudio PTT
 
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
+### 3. Regras de Lembrete (5 regras)
+Clonar os 5 lembretes de consulta:
+- D-7, 48h, 24h (D-1), 2h antes, 1h antes
 
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
+### 4. Checklists de Coluna (5 campos)
+Clonar os campos do checklist da coluna "Lead de Entrada":
+- Nome do Lead, Email, Data e Hora, Tipo de Consulta, Link da Meet
+
+### 5. Agenda
+Criar agenda ativa idêntica (nome, endereço, cidade, telefone, profissional)
+
+## Mapeamento de IDs (Kanban/Colunas)
+
+```text
+Lucas Kanban IDs         →  Cíntia Kanban IDs
+Comercial: 105dae7e      →  b0027e8f
+Pós-Venda: 3941f916      →  b993c07f
+
+Colunas Comercial:
+Lead Entrada: c3605c92    →  30bbee4b
+Triagem:      09e022aa    →  532d3473
+Tent.Agendar: adac8570    →  01bd1f5d
+Reagendamento:164c7060    →  5ab4ecf0
+Agendado:     3a066d55    →  ca2ea948
+Follow Up:    427bec61    →  9901830e
+Cliente:      8691bd29    →  1cc592e8
+Desqualific.: 5870e650    →  1b41ecf2
 ```
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+## Passos de Execução
 
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+1. Inserir agente na `avivar_agents` com `account_id` e `user_id` da Cíntia
+2. Inserir 5 follow-up rules na `avivar_followup_rules` com IDs mapeados
+3. Inserir 5 reminder rules na `avivar_reminder_rules`
+4. Inserir 5 column checklists na `avivar_column_checklists`
+5. Inserir 1 agenda na `avivar_agendas`
 
-### 3. Visualização de Disponibilidade (todos os usuários)
-
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
-
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+Nenhuma alteração de código é necessária — tudo via inserção de dados no banco.
 
