@@ -162,14 +162,14 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
           </div>
         </CardHeader>
         <CardContent>
-          {grouped.size === 0 ? (
+          {filteredGrouped.size === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
               Nenhuma cirurgia agendada para este período
             </p>
           ) : (
             <div>
               <div className="space-y-4">
-                {Array.from(grouped.entries()).map(([date, items]) => {
+                {Array.from(filteredGrouped.entries()).map(([date, items]) => {
                   const dayAvail = effectiveBranch && date !== 'sem-data' ? getDayAvailability(date) : null;
                   const isConfigured = dayAvail && dayAvail.status !== 'not_configured';
                   const dateNote = date !== 'sem-data' ? notesByDate.get(date) : undefined;
