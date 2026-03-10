@@ -593,6 +593,39 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
   );
 }
 
+function CurrencyInput({ value, onSave }: { value: number; onSave: (v: number) => void }) {
+  const formatBRL = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+  const [localValue, setLocalValue] = useState(value ? formatBRL(value) : '');
+
+  useEffect(() => { setLocalValue(value ? formatBRL(value) : ''); }, [value]);
+
+  const parseCurrency = (raw: string): number => {
+    const cleaned = raw.replace(/[R$\s.]/g, '').replace(',', '.');
+    return Number(cleaned) || 0;
+  };
+
+  const handleBlur = () => {
+    const parsed = parseCurrency(localValue);
+    if (parsed !== value) {
+      onSave(parsed);
+    }
+    setLocalValue(parsed ? formatBRL(parsed) : '');
+  };
+
+  return (
+    <Input
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+      placeholder="R$ 0,00"
+      className="h-8 text-xs"
+    />
+  );
+}
+
 function EditableField({ icon: Icon, label, value, displayValue, field, type = 'text', onSave }: {
   icon: React.ElementType;
   label: string;
