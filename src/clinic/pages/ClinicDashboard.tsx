@@ -764,6 +764,7 @@ export default function ClinicDashboard() {
               violatedIds={violatedIds}
               selectedBranch={selectedBranch}
               periodRange={periodRange}
+              availabilityFilter={availabilityFilter}
             />
             <SurgeryDetailDialog
               surgery={selectedPendingSurgery}
