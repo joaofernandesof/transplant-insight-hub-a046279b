@@ -1,0 +1,1 @@
+UPDATE clinic_surgeries SET category = 'CATEGORIA B - MÉDICO DA EQUIPE' WHERE id = 'd06c48c3-4317-44e5-9c10-88412c05e070'
