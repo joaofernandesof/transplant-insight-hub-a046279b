@@ -497,8 +497,8 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
         </CardContent>
       </Card>
 
-      {/* ── Row 6: Objections chart + Ranking ── */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* ── Row 6: Objections table ── */}
+      <div className="grid gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2"><Activity className="h-4 w-4" /> Top Objeções</CardTitle>
