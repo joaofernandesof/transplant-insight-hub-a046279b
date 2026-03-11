@@ -29,14 +29,6 @@ export function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogPr
     setShowPassword(false);
   };
 
-  const toggleProfile = (profile: string) => {
-    setSelectedProfiles(prev =>
-      prev.includes(profile)
-        ? prev.filter(p => p !== profile)
-        : [...prev, profile]
-    );
-  };
-
   const handleSubmit = async () => {
     if (!form.full_name || !form.email || !form.password) {
       toast.error('Nome, email e senha são obrigatórios');
