@@ -616,7 +616,7 @@ function NeoTeamRoutes() {
           <Route path="galleries" element={<Navigate to="/neoteam/marketing/galerias" replace />} />
           <Route path="chamados" element={<Navigate to="/neoteam/ti/chamados" replace />} />
           <Route path="reports" element={<Navigate to="/neoteam/ti/relatorios" replace />} />
-          <Route path="equipe" element={<Navigate to="/neoteam/rh/equipe" replace />} />
+          
           <Route path="staff-roles" element={<Navigate to="/neoteam/rh/cargos" replace />} />
           <Route path="assets" element={<Navigate to="/neoteam/manutencao/patrimonio" replace />} />
           <Route path="portal-links" element={<Navigate to="/neoteam/admin/portal-links" replace />} />
