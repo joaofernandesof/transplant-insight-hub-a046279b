@@ -209,7 +209,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
     });
 
     return result;
-  }, [calls, analyses, search, filterStatus, filterClassificacao, sortKey, sortDir]);
+  }, [calls, analyses, search, filterStatus, filterCloser, filterProduto, filterClassificacao, sortKey, sortDir]);
 
   if (isLoading) {
     return (
