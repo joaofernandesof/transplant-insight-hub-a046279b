@@ -546,7 +546,7 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
           </CardContent>
         </Card>
 
-        <CloserRankingCard calls={calls} analyses={analyses} enrichedCalls={enrichedCalls} />
+        
       </div>
     </div>
   );
