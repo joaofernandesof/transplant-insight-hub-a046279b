@@ -74,7 +74,7 @@ export default function CallIntelligencePage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard" className="gap-1.5">
             <BarChart3 className="h-4 w-4" /> Dashboard
           </TabsTrigger>
@@ -89,6 +89,9 @@ export default function CallIntelligencePage() {
           </TabsTrigger>
           <TabsTrigger value="analise" className="gap-1.5">
             <Brain className="h-4 w-4" /> Análise
+          </TabsTrigger>
+          <TabsTrigger value="config" className="gap-1.5">
+            <Settings className="h-4 w-4" /> Fireflies
           </TabsTrigger>
         </TabsList>
 
