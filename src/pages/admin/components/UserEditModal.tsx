@@ -249,6 +249,8 @@ export function UserEditModal({
       setIsActive(user.is_active ?? true);
       setExpandedPortal(null);
       setPortalModulePerms({});
+      setNewPassword('');
+      setGeneratedPassword(null);
     }
   }, [user]);
 
