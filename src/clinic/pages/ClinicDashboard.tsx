@@ -136,11 +136,8 @@ export default function ClinicDashboard() {
   const { getDayAvailability } = useSurgeryAgendaAvailability(effectiveBranchForAvail, new Date());
 
   const branchOptions = useMemo(() => {
-    if (!canFilterBranch && allowedBranches.length > 0) {
-      return allowedBranches.filter(Boolean).sort();
-    }
-    return allowedBranches.filter(Boolean);
-  }, [canFilterBranch, allowedBranches]);
+    return allowedBranches.filter(Boolean).sort();
+  }, [allowedBranches]);
 
   const filterByBranch = <T extends { branch: string }>(items: T[]) => {
     if (selectedBranch === 'all') return items;
