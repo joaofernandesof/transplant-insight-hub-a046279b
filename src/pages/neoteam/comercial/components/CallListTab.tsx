@@ -351,7 +351,11 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                         <TableCell className="text-xs text-muted-foreground max-w-[220px] truncate" title={call.lead_nome}>
                           {call.lead_nome}
                         </TableCell>
-                        <TableCell className="text-xs">{product}</TableCell>
+                        <TableCell>
+                          {product !== '—' ? (
+                            <Badge className={`text-[10px] whitespace-nowrap ${getProductColor(product)}`} variant="secondary">{product}</Badge>
+                          ) : <span className="text-muted-foreground text-xs">—</span>}
+                        </TableCell>
                         <TableCell>
                           <Badge className={`text-[10px] ${status.color}`} variant="secondary">{status.label}</Badge>
                         </TableCell>
