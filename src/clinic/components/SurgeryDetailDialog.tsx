@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
   CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil,
-  ChevronDown, ChevronRight, Loader2, History, CalendarClock, CalendarX2, Trash2
+  ChevronDown, ChevronRight, Loader2, History, CalendarClock, CalendarX2, Trash2, UtensilsCrossed
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
