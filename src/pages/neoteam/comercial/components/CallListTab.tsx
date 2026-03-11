@@ -25,6 +25,24 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   perdido: { label: 'Perdido ❌', color: 'bg-red-100 text-red-800' },
 };
 
+const PRODUCT_COLORS: Record<string, string> = {
+  'Formação 360': 'bg-blue-100 text-blue-800',
+  'BROWS 360': 'bg-purple-100 text-purple-800',
+  'Brows Transplant 360': 'bg-purple-100 text-purple-800',
+  'Conecta Capilar': 'bg-teal-100 text-teal-800',
+  'Fellowship': 'bg-indigo-100 text-indigo-800',
+  'Licença': 'bg-orange-100 text-orange-800',
+  'Avivar': 'bg-rose-100 text-rose-800',
+};
+
+function getProductColor(product: string): string {
+  if (!product || product === '—') return '';
+  for (const [key, color] of Object.entries(PRODUCT_COLORS)) {
+    if (product.toLowerCase().includes(key.toLowerCase())) return color;
+  }
+  return 'bg-muted text-muted-foreground';
+}
+
 type SortKey = 'data_call' | 'closer_name' | 'lead_nome' | 'lead_extracted' | 'produto' | 'status_call' | 'bant_b' | 'bant_a' | 'bant_n' | 'bant_t' | 'bant_total' | 'classificacao' | 'cl_impacto' | 'cl_spin' | 'cl_emocional' | 'cl_pitch' | 'cl_gatilhos' | 'cl_fala' | 'cl_fechamento' | 'cl_total';
 type SortDir = 'asc' | 'desc';
 
@@ -88,10 +106,16 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterClassificacao, setFilterClassificacao] = useState<string>('all');
+  const [filterCloser, setFilterCloser] = useState<string>('all');
+  const [filterProduto, setFilterProduto] = useState<string>('all');
   const [sortKey, setSortKey] = useState<SortKey>('data_call');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const getAnalysis = (callId: string) => analyses.find(a => a.call_id === callId);
+
+  // Unique values for filters
+  const uniqueClosers = useMemo(() => [...new Set(calls.map(c => c.closer_name).filter(Boolean))].sort(), [calls]);
+  const uniqueProducts = useMemo(() => [...new Set(calls.map(c => extractProduct(c)).filter(p => p !== '—'))].sort(), [calls]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -125,9 +149,11 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
         c.closer_name?.toLowerCase().includes(search.toLowerCase()) ||
         product.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === 'all' || c.status_call === filterStatus;
+      const matchCloser = filterCloser === 'all' || c.closer_name === filterCloser;
+      const matchProduto = filterProduto === 'all' || product === filterProduto;
       const analysis = getAnalysis(c.id);
       const matchClassificacao = filterClassificacao === 'all' || analysis?.classificacao_lead === filterClassificacao;
-      return matchSearch && matchStatus && matchClassificacao;
+      return matchSearch && matchStatus && matchCloser && matchProduto && matchClassificacao;
     });
 
     result.sort((a, b) => {
@@ -183,7 +209,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
     });
 
     return result;
-  }, [calls, analyses, search, filterStatus, filterClassificacao, sortKey, sortDir]);
+  }, [calls, analyses, search, filterStatus, filterCloser, filterProduto, filterClassificacao, sortKey, sortDir]);
 
   if (isLoading) {
     return (
@@ -220,10 +246,40 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
-                  <TableHead className="w-[130px]"><SortableHeader col="closer_name" label="Closer" /></TableHead>
+                  <TableHead className="w-[130px]">
+                    <div className="space-y-1">
+                      <SortableHeader col="closer_name" label="Closer" />
+                      <Select value={filterCloser} onValueChange={setFilterCloser}>
+                        <SelectTrigger className="h-6 text-[10px] w-[100px] border-dashed">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          {uniqueClosers.map(c => (
+                            <SelectItem key={c} value={c!}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableHead>
                   <TableHead className="w-[160px]"><SortableHeader col="lead_extracted" label="Lead" /></TableHead>
                   <TableHead className="w-[220px]"><SortableHeader col="lead_nome" label="Título" /></TableHead>
-                  <TableHead className="w-[140px]"><SortableHeader col="produto" label="Produto" /></TableHead>
+                  <TableHead className="w-[140px]">
+                    <div className="space-y-1">
+                      <SortableHeader col="produto" label="Produto" />
+                      <Select value={filterProduto} onValueChange={setFilterProduto}>
+                        <SelectTrigger className="h-6 text-[10px] w-[110px] border-dashed">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          {uniqueProducts.map(p => (
+                            <SelectItem key={p} value={p}>{p}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableHead>
                   <TableHead className="w-[100px]">
                     <div className="space-y-1">
                       <SortableHeader col="status_call" label="Status" />
@@ -295,7 +351,11 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                         <TableCell className="text-xs text-muted-foreground max-w-[220px] truncate" title={call.lead_nome}>
                           {call.lead_nome}
                         </TableCell>
-                        <TableCell className="text-xs">{product}</TableCell>
+                        <TableCell>
+                          {product !== '—' ? (
+                            <Badge className={`text-[10px] whitespace-nowrap ${getProductColor(product)}`} variant="secondary">{product}</Badge>
+                          ) : <span className="text-muted-foreground text-xs">—</span>}
+                        </TableCell>
                         <TableCell>
                           <Badge className={`text-[10px] ${status.color}`} variant="secondary">{status.label}</Badge>
                         </TableCell>
