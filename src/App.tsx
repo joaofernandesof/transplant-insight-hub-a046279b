@@ -956,6 +956,7 @@ function AppRoutes() {
       <Route path="/admin/referrals" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><ReferralsAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
       <Route path="/admin/event-logs" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><EventLogs /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
       <Route path="/admin/code-assistant" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
+      <Route path="/admin/ai-usage" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><AIUsagePage /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
       <Route path="/admin/surgery-schedule" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><SurgerySchedule /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
       <Route path="/admin/schedule-rules" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><ScheduleRulesAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
       <Route path="/admin/travas-agenda" element={<SuperAdminRoute><AdminSidebarWrapper><LazyRoute><ScheduleWeekLocksAdmin /></LazyRoute></AdminSidebarWrapper></SuperAdminRoute>} />
