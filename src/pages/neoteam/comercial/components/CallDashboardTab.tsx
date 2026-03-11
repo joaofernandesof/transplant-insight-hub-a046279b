@@ -364,7 +364,7 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'}`}>
-                            {i === 0 ? '🏆' : i + 1}
+                            {i === 0 ? <Award className="h-3.5 w-3.5" /> : i + 1}
                           </div>
                           <span className="font-semibold text-sm">{c.name}</span>
                         </div>
