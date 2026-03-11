@@ -135,6 +135,10 @@ export default function CallIntelligencePage() {
             </Card>
           )}
         </TabsContent>
+
+        <TabsContent value="config" className="mt-4">
+          <FirefliesSettingsTab accountId={accountId} />
+        </TabsContent>
       </Tabs>
     </div>
   );
