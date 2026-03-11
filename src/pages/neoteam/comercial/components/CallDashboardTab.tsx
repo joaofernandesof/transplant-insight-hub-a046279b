@@ -1,7 +1,10 @@
 import type { SalesCall, CallAnalysisRecord } from '@/hooks/useCallIntelligence';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap, Snowflake, Sun, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap, Snowflake, Sun, Clock, ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -173,17 +176,48 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
     return sorted;
   }, [closerStats, closerSortKey, closerSortDir]);
 
-  // ── Top objections ──
-  const topObjecoes = useMemo(() => {
-    const objecoes = analyses
-      .filter(a => a.objecoes)
-      .flatMap(a => a.objecoes!.split(';').map(o => o.trim()).filter(Boolean));
-    const count: Record<string, number> = {};
-    objecoes.forEach(o => { count[o] = (count[o] || 0) + 1; });
-    return Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  // ── Top objections with solutions ──
+  const [objSearch, setObjSearch] = useState('');
+  const [objSortKey, setObjSortKey] = useState<'objection' | 'solution' | 'count'>('count');
+  const [objSortDir, setObjSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const objectionRows = useMemo(() => {
+    const rows: { objection: string; solution: string; count: number }[] = [];
+    const map = new Map<string, { solutions: string[]; count: number }>();
+
+    analyses.filter(a => a.objecoes).forEach(a => {
+      const items = a.objecoes!.split(';').map(o => o.trim()).filter(Boolean);
+      const solution = a.estrategia_followup || a.proximos_passos || '';
+      items.forEach(obj => {
+        // Extract keyword (first ~60 chars, clean up)
+        const keyword = obj.length > 60 ? obj.slice(0, 60).replace(/\s\S*$/, '…') : obj;
+        const existing = map.get(keyword);
+        if (existing) {
+          existing.count++;
+          if (solution && !existing.solutions.includes(solution)) existing.solutions.push(solution);
+        } else {
+          map.set(keyword, { solutions: solution ? [solution] : [], count: 1 });
+        }
+      });
+    });
+
+    map.forEach((v, k) => {
+      rows.push({ objection: k, solution: v.solutions[0] || '—', count: v.count });
+    });
+    return rows;
   }, [analyses]);
 
-  const objecoesChartData = topObjecoes.map(([name, count]) => ({ name: name.length > 35 ? name.slice(0, 35) + '…' : name, count }));
+  const filteredObjRows = useMemo(() => {
+    const q = objSearch.toLowerCase();
+    return objectionRows
+      .filter(r => !q || r.objection.toLowerCase().includes(q) || r.solution.toLowerCase().includes(q))
+      .sort((a, b) => {
+        let cmp = 0;
+        if (objSortKey === 'count') cmp = a.count - b.count;
+        else cmp = (a[objSortKey] || '').localeCompare(b[objSortKey] || '');
+        return objSortDir === 'asc' ? cmp : -cmp;
+      });
+  }, [objectionRows, objSearch, objSortKey, objSortDir]);
 
   // ── Efficiency score ──
   const efficiency = useMemo(() => {
@@ -468,21 +502,47 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2"><Activity className="h-4 w-4" /> Top Objeções</CardTitle>
+            <div className="relative mt-2">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar objeção ou solução..."
+                value={objSearch}
+                onChange={e => setObjSearch(e.target.value)}
+                className="pl-8 h-8 text-xs"
+              />
+            </div>
           </CardHeader>
-          <CardContent>
-            {objecoesChartData.length > 0 ? (
-              <div className="h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={objecoesChartData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
-                    <YAxis dataKey="name" type="category" width={180} tick={{ fontSize: 10 }} />
-                    <Tooltip />
-                    <Bar dataKey="count" name="Ocorrências" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : <EmptyChart />}
+          <CardContent className="p-0">
+            <ScrollArea className="h-[280px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="sticky top-0 bg-background z-10">
+                      <ObjSortableTh label="Objeção" sortKey="objection" current={objSortKey} dir={objSortDir} onSort={(k) => { if (objSortKey === k) setObjSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setObjSortKey(k); setObjSortDir('desc'); } }} />
+                    </TableHead>
+                    <TableHead className="sticky top-0 bg-background z-10">
+                      <ObjSortableTh label="Solução Sugerida" sortKey="solution" current={objSortKey} dir={objSortDir} onSort={(k) => { if (objSortKey === k) setObjSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setObjSortKey(k); setObjSortDir('desc'); } }} />
+                    </TableHead>
+                    <TableHead className="sticky top-0 bg-background z-10 w-[60px] text-center">
+                      <ObjSortableTh label="#" sortKey="count" current={objSortKey} dir={objSortDir} onSort={(k) => { if (objSortKey === k) setObjSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setObjSortKey(k); setObjSortDir('desc'); } }} />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredObjRows.length > 0 ? filteredObjRows.map((row, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-xs font-medium max-w-[200px]">{row.objection}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-[250px]">{row.solution}</TableCell>
+                      <TableCell className="text-xs text-center font-semibold">{row.count}</TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-muted-foreground py-6 text-xs">Nenhuma objeção encontrada</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </CardContent>
         </Card>
 
@@ -513,6 +573,29 @@ function SortableTh({ label, sortKey, current, dir, onSort, align = 'center' }: 
         )}
       </span>
     </th>
+  );
+}
+
+type ObjSortKey = 'objection' | 'solution' | 'count';
+function ObjSortableTh({ label, sortKey, current, dir, onSort }: {
+  label: string; sortKey: ObjSortKey; current: ObjSortKey; dir: 'asc' | 'desc';
+  onSort: (key: ObjSortKey) => void;
+}) {
+  const isActive = current === sortKey;
+  return (
+    <button
+      className={`inline-flex items-center gap-0.5 font-semibold text-xs cursor-pointer select-none transition-colors hover:text-foreground ${
+        isActive ? 'text-foreground' : 'text-muted-foreground'
+      }`}
+      onClick={() => onSort(sortKey)}
+    >
+      {label}
+      {isActive ? (
+        dir === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+      ) : (
+        <ArrowUpDown className="h-3 w-3 opacity-30" />
+      )}
+    </button>
   );
 }
 
