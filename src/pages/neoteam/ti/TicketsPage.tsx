@@ -12,8 +12,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX } from "lucide-react";
+import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX, CalendarIcon, Link } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: "bg-emerald-100 text-emerald-800",
