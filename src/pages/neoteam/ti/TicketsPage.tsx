@@ -257,9 +257,23 @@ export default function TicketsPage() {
   });
 
   const filteredByStatus = statusFilter === "all" ? tickets : tickets.filter((t: any) => t.status === statusFilter);
-  const filtered = requesterFilter === "mine" 
+  const filteredByRequester = requesterFilter === "mine" 
     ? filteredByStatus.filter((t: any) => t.requester_id === user?.id) 
     : filteredByStatus;
+  const filtered = assignedFilter === "all"
+    ? filteredByRequester
+    : assignedFilter === "unassigned"
+      ? filteredByRequester.filter((t: any) => !t.assigned_to)
+      : filteredByRequester.filter((t: any) => t.assigned_to === assignedFilter);
+
+  // Unique assigned users for filter
+  const assignedUsers = Array.from(
+    new Map(
+      tickets
+        .filter((t: any) => t.assigned_to && t.assigned_name)
+        .map((t: any) => [t.assigned_to, t.assigned_name])
+    ).entries()
+  ).sort((a, b) => (a[1] as string).localeCompare(b[1] as string, 'pt-BR'));
 
   const stats = {
     open: tickets.filter((t: any) => t.status === "open").length,
