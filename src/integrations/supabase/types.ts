@@ -20551,6 +20551,145 @@ export type Database = {
           },
         ]
       }
+      rh_offboarding_checklist_items: {
+        Row: {
+          categoria: string
+          created_at: string
+          executado_em: string | null
+          executado_por: string | null
+          id: string
+          observacao: string | null
+          order_index: number
+          process_id: string
+          setor_responsavel: string
+          status: string
+          tarefa: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          executado_em?: string | null
+          executado_por?: string | null
+          id?: string
+          observacao?: string | null
+          order_index?: number
+          process_id: string
+          setor_responsavel?: string
+          status?: string
+          tarefa: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          executado_em?: string | null
+          executado_por?: string | null
+          id?: string
+          observacao?: string | null
+          order_index?: number
+          process_id?: string
+          setor_responsavel?: string
+          status?: string
+          tarefa?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_offboarding_checklist_items_process_id_fkey"
+            columns: ["process_id"]
+            isOneToOne: false
+            referencedRelation: "rh_offboarding_processes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rh_offboarding_history: {
+        Row: {
+          action: string
+          created_at: string
+          details: string | null
+          id: string
+          process_id: string
+          user_name: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          process_id: string
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          process_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rh_offboarding_history_process_id_fkey"
+            columns: ["process_id"]
+            isOneToOne: false
+            referencedRelation: "rh_offboarding_processes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rh_offboarding_processes: {
+        Row: {
+          cargo: string | null
+          colaborador_id: string | null
+          colaborador_nome: string
+          created_at: string
+          created_by: string | null
+          data_desligamento: string
+          id: string
+          observacoes: string | null
+          responsavel_nome: string | null
+          setor: string | null
+          status: string
+          tipo_desligamento: string
+          updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          cargo?: string | null
+          colaborador_id?: string | null
+          colaborador_nome: string
+          created_at?: string
+          created_by?: string | null
+          data_desligamento: string
+          id?: string
+          observacoes?: string | null
+          responsavel_nome?: string | null
+          setor?: string | null
+          status?: string
+          tipo_desligamento?: string
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          cargo?: string | null
+          colaborador_id?: string | null
+          colaborador_nome?: string
+          created_at?: string
+          created_by?: string | null
+          data_desligamento?: string
+          id?: string
+          observacoes?: string | null
+          responsavel_nome?: string | null
+          setor?: string | null
+          status?: string
+          tipo_desligamento?: string
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: []
+      }
       rh_performance_alerts: {
         Row: {
           alert_type: string
