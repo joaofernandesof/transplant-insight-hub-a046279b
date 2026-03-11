@@ -476,20 +476,7 @@ export const HOTLEADS_MENU_ITEMS: MenuItem[] = [
   { id: 'hotleads_settings', code: 'hotleads_settings', title: 'Configurações', icon: Settings, route: '/hotleads/settings' },
 ];
 
-export const NEORH_MENU_ITEMS: MenuItem[] = [
-  { id: 'neorh_dashboard', code: 'neorh_dashboard', title: 'Dashboard', icon: Home, route: '/neorh' },
-  { id: 'neorh_colaboradores', code: 'neorh_colaboradores', title: 'Colaboradores', icon: Users, route: '/neorh/colaboradores' },
-  { id: 'neorh_cargos', code: 'neorh_cargos', title: 'Cargos', icon: Briefcase, route: '/neorh/cargos' },
-  { id: 'neorh_vagas', code: 'neorh_vagas', title: 'Vagas', icon: ClipboardList, route: '/neorh/vagas' },
-  { id: 'neorh_job_description', code: 'neorh_job_description', title: 'Gerador de JD', icon: FileText, route: '/neorh/job-description' },
-  { id: 'neorh_performance', code: 'neorh_performance', title: 'Gestão de Performance', icon: TrendingUp, route: '/neorh/performance' },
-  { id: 'neorh_performance_cycles', code: 'neorh_performance_cycles', title: 'Ciclos de Avaliação', icon: Target, route: '/neorh/performance/cycles' },
-  { id: 'neorh_performance_evaluations', code: 'neorh_performance_evaluations', title: 'Avaliações', icon: BarChart3, route: '/neorh/performance/evaluations' },
-  { id: 'neorh_performance_ranking', code: 'neorh_performance_ranking', title: 'Ranking', icon: Trophy, route: '/neorh/performance/ranking' },
-  { id: 'neorh_performance_kpis', code: 'neorh_performance_kpis', title: 'KPIs por Cargo', icon: Award, route: '/neorh/performance/kpis' },
-  { id: 'neorh_performance_pdi', code: 'neorh_performance_pdi', title: 'PDIs', icon: ClipboardList, route: '/neorh/performance/pdi' },
-  { id: 'neorh_talent_score', code: 'neorh_talent_score', title: 'Talent Score', icon: Crown, route: '/neorh/performance/talent-score' },
-];
+// NeoRH menu removed — merged into setor_rh in NEOTEAM_MENU_CATEGORIES
 
 // Mapeamento de portal para menu flat (compatibilidade)
 export const PORTAL_MENUS: Record<string, MenuItem[]> = {
@@ -499,7 +486,6 @@ export const PORTAL_MENUS: Record<string, MenuItem[]> = {
   neolicense: NEOLICENSE_MENU_ITEMS,
   avivar: AVIVAR_MENU_ITEMS,
   hotleads: HOTLEADS_MENU_ITEMS,
-  neorh: NEORH_MENU_ITEMS,
 };
 
 // Mapeamento de portal para menu em categorias

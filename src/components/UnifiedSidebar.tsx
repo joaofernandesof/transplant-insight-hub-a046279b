@@ -128,7 +128,7 @@ function detectPortal(pathname: string): PortalKey {
   if (pathname.startsWith('/hotleads')) return 'hotleads';
   if (pathname.startsWith('/neolicense')) return 'neolicense';
   if (pathname.startsWith('/avivar')) return 'avivar';
-  if (pathname.startsWith('/neorh')) return 'neorh';
+  if (pathname.startsWith('/neorh')) return 'neoteam'; // legacy redirect
   if (pathname.startsWith('/admin')) return 'admin';
   return 'main';
 }

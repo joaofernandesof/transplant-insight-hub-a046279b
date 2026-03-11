@@ -927,7 +927,20 @@ function AppRoutes() {
       <Route path="/hotleads/*" element={<ProtectedRoute><HotLeadsRoutes /></ProtectedRoute>} />
       <Route path="/avivar/*" element={<ProtectedRoute><AvivarRoutes /></ProtectedRoute>} />
       <Route path="/neoacademy/*" element={<ProtectedRoute><NeoAcademyRoutes /></ProtectedRoute>} />
-      <Route path="/neorh/*" element={<ProtectedRoute><NeoRHRoutes /></ProtectedRoute>} />
+      {/* NeoRH legacy redirects → NeoTeam RH */}
+      <Route path="/neorh" element={<Navigate to="/neoteam/rh/dashboard" replace />} />
+      <Route path="/neorh/colaboradores" element={<Navigate to="/neoteam/rh/colaboradores" replace />} />
+      <Route path="/neorh/cargos" element={<Navigate to="/neoteam/rh/cargos-rh" replace />} />
+      <Route path="/neorh/vagas" element={<Navigate to="/neoteam/rh/vagas" replace />} />
+      <Route path="/neorh/job-description" element={<Navigate to="/neoteam/rh/job-description" replace />} />
+      <Route path="/neorh/performance" element={<Navigate to="/neoteam/rh/performance" replace />} />
+      <Route path="/neorh/performance/cycles" element={<Navigate to="/neoteam/rh/performance/cycles" replace />} />
+      <Route path="/neorh/performance/evaluations" element={<Navigate to="/neoteam/rh/performance/evaluations" replace />} />
+      <Route path="/neorh/performance/ranking" element={<Navigate to="/neoteam/rh/performance/ranking" replace />} />
+      <Route path="/neorh/performance/kpis" element={<Navigate to="/neoteam/rh/performance/kpis" replace />} />
+      <Route path="/neorh/performance/pdi" element={<Navigate to="/neoteam/rh/performance/pdi" replace />} />
+      <Route path="/neorh/performance/talent-score" element={<Navigate to="/neoteam/rh/performance/talent-score" replace />} />
+      <Route path="/neorh/*" element={<Navigate to="/neoteam/rh/dashboard" replace />} />
 
       {/* ====================================
           Rotas Legadas - Redirects para Portais
