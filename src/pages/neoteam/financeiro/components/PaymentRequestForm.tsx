@@ -1,9 +1,9 @@
 /**
  * Formulário de Solicitação de Pagamento
- * Acessível a todos os funcionários
+ * Vinculado ao usuário logado no portal NeoTeam
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,46 +23,34 @@ import {
   Send,
   Loader2,
   AlertTriangle,
-  Building,
   User,
   CreditCard,
   Calendar,
   DollarSign,
   CheckCircle2,
+  Paperclip,
+  X,
+  RefreshCw,
 } from "lucide-react";
 import { addDays } from "date-fns";
 import { usePayables, PayableInsert } from "@/pages/ipromed/hooks/usePayables";
-import { useAuth } from "@/contexts/UnifiedAuthContext";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  useContaAzulCategorias,
+  useContaAzulCentrosDeCusto,
+  useContaAzulContasFinanceiras,
+} from "../hooks/useContaAzul";
 
-const categories = [
-  { value: 'prolabore', label: 'Pró-labore' },
-  { value: 'folha', label: 'Folha de Pagamento' },
-  { value: 'estagiarios', label: 'Estagiários' },
-  { value: 'correspondente', label: 'Correspondente Jurídico' },
-  { value: 'perito', label: 'Peritos' },
-  { value: 'custas', label: 'Custas Processuais' },
-  { value: 'diligencias', label: 'Diligências' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'software', label: 'Softwares' },
-  { value: 'aluguel', label: 'Aluguel' },
-  { value: 'impostos', label: 'Impostos' },
-  { value: 'servicos', label: 'Serviços Terceirizados' },
-  { value: 'material', label: 'Material de Escritório' },
-  { value: 'viagem', label: 'Viagem / Deslocamento' },
-  { value: 'outros', label: 'Outros' },
+const departamentos = [
+  'Administrativo', 'Comercial', 'Operacional', 'Financeiro',
+  'Marketing', 'TI', 'RH', 'Diretoria', 'Outros',
 ];
 
-const costCenters = [
-  { value: 'administrativo', label: 'Administrativo' },
-  { value: 'comercial', label: 'Comercial' },
-  { value: 'operacional', label: 'Operacional' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'ti', label: 'TI' },
-  { value: 'rh', label: 'RH' },
-  { value: 'diretoria', label: 'Diretoria' },
-  { value: 'outros', label: 'Outros' },
+const formasPagamento = [
+  'PIX', 'Transferência Bancária', 'Boleto', 'Cartão de Crédito',
+  'Cartão de Débito', 'Dinheiro', 'Cheque', 'Outros',
 ];
 
 interface PaymentRequestFormProps {
@@ -70,9 +58,32 @@ interface PaymentRequestFormProps {
 }
 
 export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProps) {
-  const { user } = useAuth();
+  const { user, session } = useUnifiedAuth();
   const { createPayable, isCreating } = usePayables();
   const [submitted, setSubmitted] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<{ name: string; url: string }[]>([]);
+
+  // Conta Azul data
+  const { data: categorias, isLoading: loadingCategorias, refetch: refetchCategorias } = useContaAzulCategorias();
+  const { data: centrosCusto, isLoading: loadingCentros, refetch: refetchCentros } = useContaAzulCentrosDeCusto();
+  const { data: contasFinanceiras, isLoading: loadingContas, refetch: refetchContas } = useContaAzulContasFinanceiras();
+
+  // Gate: user must be logged in
+  if (!user || !session) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="p-12 text-center space-y-4">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
+          <h3 className="text-xl font-semibold">Acesso Restrito</h3>
+          <p className="text-muted-foreground">
+            Você precisa estar logado no sistema para solicitar pagamentos.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const [form, setForm] = useState({
     description: '',
@@ -81,10 +92,12 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
     due_date: addDays(new Date(), 30).toISOString().split('T')[0],
     category: '',
     cost_center: '',
+    financial_account: '',
+    payment_method: '',
     bank_data: '',
     notes: '',
     is_urgent: false,
-    requester_name: user?.fullName || '',
+    requester_name: user.fullName || '',
     requester_department: '',
   });
 
@@ -93,14 +106,52 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!form.description.trim()) errs.description = 'Descrição é obrigatória';
-    if (!form.supplier.trim()) errs.supplier = 'Fornecedor é obrigatório';
+    if (!form.supplier.trim()) errs.supplier = 'Favorecido é obrigatório';
     if (!form.amount || Number(form.amount) <= 0) errs.amount = 'Valor deve ser maior que zero';
     if (!form.due_date) errs.due_date = 'Data de vencimento é obrigatória';
     if (!form.category) errs.category = 'Categoria é obrigatória';
-    if (!form.requester_name.trim()) errs.requester_name = 'Nome do solicitante é obrigatório';
-    if (!form.requester_department) errs.requester_department = 'Departamento é obrigatório';
     setErrors(errs);
     return Object.keys(errs).length === 0;
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingFiles(true);
+    const uploaded: { name: string; url: string }[] = [];
+
+    try {
+      for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop();
+        const path = `${user.authUserId}/${Date.now()}-${file.name}`;
+
+        const { error } = await supabase.storage
+          .from('payment-attachments')
+          .upload(path, file);
+
+        if (error) {
+          toast.error(`Erro ao anexar ${file.name}: ${error.message}`);
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('payment-attachments')
+          .getPublicUrl(path);
+
+        uploaded.push({ name: file.name, url: path });
+      }
+
+      setAttachedFiles(prev => [...prev, ...uploaded]);
+      if (uploaded.length > 0) toast.success(`${uploaded.length} arquivo(s) anexado(s)`);
+    } finally {
+      setUploadingFiles(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -117,6 +168,7 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
         due_date: form.due_date,
         category: form.category,
         cost_center: form.cost_center,
+        payment_method: form.payment_method,
         bank_data: form.bank_data,
         notes: form.notes,
         status: 'pendente',
@@ -124,6 +176,7 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
         requester_name: form.requester_name,
         requester_department: form.requester_department,
         workflow_stage: 'solicitacao_pendente',
+        attachments: attachedFiles,
       } as any);
 
       setSubmitted(true);
@@ -142,16 +195,77 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
           </div>
           <h3 className="text-xl font-semibold">Solicitação Enviada!</h3>
           <p className="text-muted-foreground">
-            Sua solicitação de pagamento {form.is_urgent ? <Badge className="bg-rose-100 text-rose-700 ml-1">URGENTE</Badge> : ''} foi 
+            Sua solicitação de pagamento {form.is_urgent ? <Badge className="bg-rose-100 text-rose-700 ml-1">URGENTE</Badge> : ''} foi
             enviada para o setor financeiro e será analisada em breve.
           </p>
-          <Button onClick={() => { setSubmitted(false); setForm(prev => ({ ...prev, description: '', supplier: '', amount: '', notes: '', bank_data: '' })); }}>
+          <Button onClick={() => {
+            setSubmitted(false);
+            setAttachedFiles([]);
+            setForm(prev => ({
+              ...prev,
+              description: '', supplier: '', amount: '', notes: '',
+              bank_data: '', category: '', cost_center: '', financial_account: '',
+              payment_method: '',
+            }));
+          }}>
             Nova Solicitação
           </Button>
         </CardContent>
       </Card>
     );
   }
+
+  const ContaAzulSelect = ({
+    label,
+    value,
+    onChange,
+    items,
+    isLoading,
+    onRefetch,
+    placeholder,
+    error,
+    required,
+  }: {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    items: any[] | undefined;
+    isLoading: boolean;
+    onRefetch: () => void;
+    placeholder?: string;
+    error?: string;
+    required?: boolean;
+  }) => (
+    <div className="space-y-1.5">
+      <Label className="text-sm">
+        {label} {required && '*'}
+        <button
+          type="button"
+          onClick={onRefetch}
+          className="ml-1.5 text-muted-foreground hover:text-foreground inline-flex"
+          title="Atualizar lista"
+        >
+          <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
+        </button>
+      </Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className={error ? 'border-destructive' : ''}>
+          <SelectValue placeholder={isLoading ? 'Carregando...' : (placeholder || 'Selecione')} />
+        </SelectTrigger>
+        <SelectContent>
+          {items?.map((item: any) => (
+            <SelectItem key={item.id} value={item.nome || item.name || item.id}>
+              {item.nome || item.name || item.id}
+            </SelectItem>
+          ))}
+          {(!items || items.length === 0) && !isLoading && (
+            <SelectItem value="__empty" disabled>Nenhum item encontrado</SelectItem>
+          )}
+        </SelectContent>
+      </Select>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
 
   return (
     <Card className="max-w-2xl mx-auto">
@@ -188,19 +302,17 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
       </CardHeader>
 
       <CardContent className="space-y-5">
-        {/* Solicitante */}
+        {/* Solicitante (automático) */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label className="text-sm flex items-center gap-1.5">
-              <User className="h-3.5 w-3.5" /> Solicitante *
+              <User className="h-3.5 w-3.5" /> Nome do Solicitante
             </Label>
             <Input
-              placeholder="Seu nome completo"
               value={form.requester_name}
-              onChange={e => setForm(prev => ({ ...prev, requester_name: e.target.value }))}
-              className={errors.requester_name ? 'border-destructive' : ''}
+              disabled
+              className="bg-muted"
             />
-            {errors.requester_name && <p className="text-xs text-destructive">{errors.requester_name}</p>}
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Departamento *</Label>
@@ -209,40 +321,25 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
-                {costCenters.map(cc => (
-                  <SelectItem key={cc.value} value={cc.value}>{cc.label}</SelectItem>
+                {departamentos.map(d => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.requester_department && <p className="text-xs text-destructive">{errors.requester_department}</p>}
           </div>
         </div>
 
-        {/* Descrição */}
-        <div className="space-y-1.5">
-          <Label className="text-sm">Descrição do Pagamento *</Label>
-          <Input
-            placeholder="Ex: Pagamento de serviço de consultoria - Projeto X"
-            value={form.description}
-            onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
-            className={errors.description ? 'border-destructive' : ''}
-          />
-          {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
-        </div>
-
-        {/* Fornecedor */}
-        <div className="space-y-1.5">
-          <Label className="text-sm flex items-center gap-1.5">
-            <Building className="h-3.5 w-3.5" /> Fornecedor / Beneficiário *
-          </Label>
-          <Input
-            placeholder="Nome do fornecedor ou beneficiário"
-            value={form.supplier}
-            onChange={e => setForm(prev => ({ ...prev, supplier: e.target.value }))}
-            className={errors.supplier ? 'border-destructive' : ''}
-          />
-          {errors.supplier && <p className="text-xs text-destructive">{errors.supplier}</p>}
-        </div>
+        {/* Categoria (Conta Azul) */}
+        <ContaAzulSelect
+          label="Categoria do Pagamento"
+          value={form.category}
+          onChange={v => setForm(prev => ({ ...prev, category: v }))}
+          items={categorias}
+          isLoading={loadingCategorias}
+          onRefetch={() => refetchCategorias()}
+          error={errors.category}
+          required
+        />
 
         {/* Valor + Vencimento */}
         <div className="grid grid-cols-2 gap-4">
@@ -263,7 +360,7 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" /> Data Desejada de Pagamento *
+              <Calendar className="h-3.5 w-3.5" /> Data de Vencimento *
             </Label>
             <Input
               type="date"
@@ -275,65 +372,133 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
           </div>
         </div>
 
-        {/* Categoria + Centro de Custo */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label className="text-sm">Categoria *</Label>
-            <Select value={form.category} onValueChange={v => setForm(prev => ({ ...prev, category: v }))}>
-              <SelectTrigger className={errors.category ? 'border-destructive' : ''}>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(c => (
-                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.category && <p className="text-xs text-destructive">{errors.category}</p>}
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">Centro de Custo</Label>
-            <Select value={form.cost_center} onValueChange={v => setForm(prev => ({ ...prev, cost_center: v }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {costCenters.map(cc => (
-                  <SelectItem key={cc.value} value={cc.value}>{cc.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Conta Financeira (Conta Azul) */}
+        <ContaAzulSelect
+          label="Conta Financeira"
+          value={form.financial_account}
+          onChange={v => setForm(prev => ({ ...prev, financial_account: v }))}
+          items={contasFinanceiras}
+          isLoading={loadingContas}
+          onRefetch={() => refetchContas()}
+        />
+
+        {/* Favorecido */}
+        <div className="space-y-1.5">
+          <Label className="text-sm">Favorecido *</Label>
+          <Input
+            placeholder="Nome do favorecido"
+            value={form.supplier}
+            onChange={e => setForm(prev => ({ ...prev, supplier: e.target.value }))}
+            className={errors.supplier ? 'border-destructive' : ''}
+          />
+          {errors.supplier && <p className="text-xs text-destructive">{errors.supplier}</p>}
         </div>
 
-        {/* Dados Bancários */}
+        {/* Centro de Custo (Conta Azul) */}
+        <ContaAzulSelect
+          label="Centro de Custo"
+          value={form.cost_center}
+          onChange={v => setForm(prev => ({ ...prev, cost_center: v }))}
+          items={centrosCusto}
+          isLoading={loadingCentros}
+          onRefetch={() => refetchCentros()}
+        />
+
+        {/* Descrição do pagamento */}
+        <div className="space-y-1.5">
+          <Label className="text-sm">Descrição do Pagamento *</Label>
+          <Textarea
+            placeholder="Descreva o motivo e detalhes do pagamento..."
+            value={form.description}
+            onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
+            className={errors.description ? 'border-destructive' : ''}
+            rows={3}
+          />
+          {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
+        </div>
+
+        {/* Anexo */}
         <div className="space-y-1.5">
           <Label className="text-sm flex items-center gap-1.5">
-            <CreditCard className="h-3.5 w-3.5" /> Dados Bancários / PIX
+            <Paperclip className="h-3.5 w-3.5" /> Anexo (Recibo, Nota Fiscal, etc.)
+          </Label>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingFiles}
+            >
+              {uploadingFiles ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Paperclip className="h-4 w-4 mr-1" />}
+              Anexar Arquivo
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+              onChange={handleFileUpload}
+            />
+          </div>
+          {attachedFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {attachedFiles.map((f, i) => (
+                <Badge key={i} variant="secondary" className="gap-1 pr-1">
+                  {f.name}
+                  <button onClick={() => removeFile(i)} className="ml-1 hover:text-destructive">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Forma de pagamento */}
+        <div className="space-y-1.5">
+          <Label className="text-sm">Forma de Pagamento</Label>
+          <Select value={form.payment_method} onValueChange={v => setForm(prev => ({ ...prev, payment_method: v }))}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              {formasPagamento.map(f => (
+                <SelectItem key={f} value={f}>{f}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Chave PIX / Conta Bancária */}
+        <div className="space-y-1.5">
+          <Label className="text-sm flex items-center gap-1.5">
+            <CreditCard className="h-3.5 w-3.5" /> Chave PIX / Conta Bancária do Favorecido
           </Label>
           <Textarea
-            placeholder="Banco, agência, conta, tipo (CC/CP), CNPJ/CPF, chave PIX..."
+            placeholder="Chave PIX, banco, agência, conta, tipo (CC/CP), CNPJ/CPF..."
             value={form.bank_data}
             onChange={e => setForm(prev => ({ ...prev, bank_data: e.target.value }))}
             rows={2}
           />
         </div>
 
-        {/* Observações */}
+        {/* Observação */}
         <div className="space-y-1.5">
-          <Label className="text-sm">Observações / Justificativa</Label>
+          <Label className="text-sm">Observação</Label>
           <Textarea
-            placeholder="Informações adicionais, justificativa para o pagamento..."
+            placeholder="Informações adicionais, justificativa..."
             value={form.notes}
             onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
-            rows={3}
+            rows={2}
           />
         </div>
 
         {/* Actions */}
         <div className="flex justify-end pt-2">
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={isCreating}
             size="lg"
             className={form.is_urgent ? 'bg-rose-600 hover:bg-rose-700' : ''}
