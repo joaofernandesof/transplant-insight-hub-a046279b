@@ -17,8 +17,10 @@ export interface SalesCall {
   status_call: 'fechou' | 'followup' | 'perdido';
   transcricao: string | null;
   resumo_manual: string | null;
-  fonte_call: 'whatsapp' | 'zoom' | 'meet' | 'telefone' | 'presencial';
+  fonte_call: 'whatsapp' | 'zoom' | 'meet' | 'telefone' | 'presencial' | 'fireflies';
   has_analysis: boolean;
+  external_id: string | null;
+  fireflies_url: string | null;
   created_at: string;
 }
 

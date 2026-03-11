@@ -164,6 +164,7 @@ serve(async (req) => {
         fonte_call: 'fireflies',
         has_analysis: false,
         external_id: externalId,
+        fireflies_url: `https://app.fireflies.ai/view/${transcript.id}`,
       }).select('id').single();
 
       if (insertError) {

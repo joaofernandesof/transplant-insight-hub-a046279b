@@ -249,6 +249,58 @@ export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze }: Pro
           </Button>
         </CardContent>
       </Card>
+
+      {/* Fireflies Link */}
+      {call.fireflies_url && (
+        <Card className="border-purple-200 bg-purple-50/30 dark:border-purple-900/50 dark:bg-purple-950/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+                <ExternalLink className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Assistir no Fireflies</p>
+                <p className="text-xs text-muted-foreground">Abrir gravação completa da call com vídeo e áudio</p>
+              </div>
+            </div>
+            <Button asChild variant="outline" className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-100">
+              <a href={call.fireflies_url} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" /> Abrir Fireflies
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Transcrição Completa */}
+      {call.transcricao && (
+        <Collapsible>
+          <Card className="border-gray-200 bg-gray-50/30 dark:border-gray-800 dark:bg-gray-900/20">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2 text-gray-700 dark:text-gray-400">
+                  <FileText className="h-4 w-4" /> Transcrição Completa
+                </CardTitle>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
+                    Expandir / Recolher
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              <CardDescription>
+                {call.transcricao.split('\n').length} linhas de transcrição
+              </CardDescription>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                <div className="bg-background rounded-lg p-4 border text-xs font-mono whitespace-pre-wrap max-h-[600px] overflow-y-auto leading-relaxed">
+                  {call.transcricao}
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
     </div>
   );
 }
