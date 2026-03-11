@@ -129,46 +129,46 @@ export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze }: Pro
       </div>
 
       {/* Resumo */}
-      <Card>
+      <Card className="border-blue-200 bg-blue-50/40 dark:border-blue-900/50 dark:bg-blue-950/20">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Resumo da Call</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2 text-blue-700 dark:text-blue-400"><BarChart3 className="h-4 w-4" /> Resumo da Call</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">{analysis.resumo_call}</CardContent>
       </Card>
 
       {/* Perfil do lead + Dor principal */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">👤 Perfil do Lead</CardTitle></CardHeader>
+        <Card className="border-indigo-200 bg-indigo-50/40 dark:border-indigo-900/50 dark:bg-indigo-950/20">
+          <CardHeader className="pb-2"><CardTitle className="text-base text-indigo-700 dark:text-indigo-400">👤 Perfil do Lead</CardTitle></CardHeader>
           <CardContent className="text-sm">{analysis.perfil_lead}</CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base"><Target className="h-4 w-4 inline mr-1" />Dor Principal</CardTitle></CardHeader>
+        <Card className="border-rose-200 bg-rose-50/40 dark:border-rose-900/50 dark:bg-rose-950/20">
+          <CardHeader className="pb-2"><CardTitle className="text-base text-rose-700 dark:text-rose-400"><Target className="h-4 w-4 inline mr-1" />Dor Principal</CardTitle></CardHeader>
           <CardContent className="text-sm">{analysis.dor_principal}</CardContent>
         </Card>
       </div>
 
       {/* Objeções */}
       {analysis.objecoes && (
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">❓ Principais Objeções</CardTitle></CardHeader>
+        <Card className="border-amber-200 bg-amber-50/40 dark:border-amber-900/50 dark:bg-amber-950/20">
+          <CardHeader className="pb-2"><CardTitle className="text-base text-amber-700 dark:text-amber-400">❓ Principais Objeções</CardTitle></CardHeader>
           <CardContent className="text-sm whitespace-pre-wrap">{analysis.objecoes}</CardContent>
         </Card>
       )}
 
       {/* Pontos fortes/fracos */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="border-emerald-200 bg-emerald-50/40 dark:border-emerald-900/50 dark:bg-emerald-950/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2 text-emerald-700">
+            <CardTitle className="text-base flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
               <ThumbsUp className="h-4 w-4" /> Pontos Fortes
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm whitespace-pre-wrap">{analysis.pontos_fortes_closer}</CardContent>
         </Card>
-        <Card>
+        <Card className="border-red-200 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2 text-amber-700">
+            <CardTitle className="text-base flex items-center gap-2 text-red-700 dark:text-red-400">
               <ThumbsDown className="h-4 w-4" /> Pontos Fracos
             </CardTitle>
           </CardHeader>
@@ -177,9 +177,9 @@ export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze }: Pro
       </div>
 
       {/* BANT Scores */}
-      <Card>
+      <Card className="border-orange-200 bg-orange-50/40 dark:border-orange-900/50 dark:bg-orange-950/20">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
+          <CardTitle className="text-base flex items-center gap-2 text-orange-700 dark:text-orange-400">
             <TrendingUp className="h-4 w-4" /> Qualificação BANT
           </CardTitle>
         </CardHeader>
@@ -198,26 +198,26 @@ export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze }: Pro
 
       {/* Motivo não fechamento + Estratégia */}
       {analysis.motivo_nao_fechamento && (
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">🚫 Motivo do Não Fechamento</CardTitle></CardHeader>
+        <Card className="border-slate-200 bg-slate-50/40 dark:border-slate-800 dark:bg-slate-900/30">
+          <CardHeader className="pb-2"><CardTitle className="text-base text-slate-700 dark:text-slate-400">🚫 Motivo do Não Fechamento</CardTitle></CardHeader>
           <CardContent className="text-sm">{analysis.motivo_nao_fechamento}</CardContent>
         </Card>
       )}
 
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">🎯 Estratégia de Follow-up</CardTitle></CardHeader>
+      <Card className="border-violet-200 bg-violet-50/40 dark:border-violet-900/50 dark:bg-violet-950/20">
+        <CardHeader className="pb-2"><CardTitle className="text-base text-violet-700 dark:text-violet-400">🎯 Estratégia de Follow-up</CardTitle></CardHeader>
         <CardContent className="text-sm whitespace-pre-wrap">{analysis.estrategia_followup}</CardContent>
       </Card>
 
       {/* Ações + Próximos passos */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">✅ Ações Realizadas</CardTitle></CardHeader>
+        <Card className="border-teal-200 bg-teal-50/40 dark:border-teal-900/50 dark:bg-teal-950/20">
+          <CardHeader className="pb-2"><CardTitle className="text-base text-teal-700 dark:text-teal-400">✅ Ações Realizadas</CardTitle></CardHeader>
           <CardContent className="text-sm whitespace-pre-wrap">{analysis.acoes_realizadas}</CardContent>
         </Card>
-        <Card>
+        <Card className="border-cyan-200 bg-cyan-50/40 dark:border-cyan-900/50 dark:bg-cyan-950/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-base flex items-center gap-2 text-cyan-700 dark:text-cyan-400">
               <ArrowRight className="h-4 w-4" /> Próximos Passos
             </CardTitle>
           </CardHeader>
@@ -226,8 +226,8 @@ export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze }: Pro
       </div>
 
       {/* Conclusão */}
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">📋 Conclusão</CardTitle></CardHeader>
+      <Card className="border-purple-200 bg-purple-50/40 dark:border-purple-900/50 dark:bg-purple-950/20">
+        <CardHeader className="pb-2"><CardTitle className="text-base text-purple-700 dark:text-purple-400">📋 Conclusão</CardTitle></CardHeader>
         <CardContent className="text-sm">{analysis.conclusao}</CardContent>
       </Card>
 
