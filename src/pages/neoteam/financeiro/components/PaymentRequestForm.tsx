@@ -84,7 +84,7 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
     bank_data: '',
     notes: '',
     is_urgent: false,
-    requester_name: user?.name || '',
+    requester_name: user?.fullName || '',
     requester_department: '',
   });
 
