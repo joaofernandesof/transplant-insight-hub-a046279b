@@ -74,20 +74,20 @@ export default function CallIntelligencePage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="dashboard" className="gap-1.5">
+        <TabsList className="bg-transparent h-auto p-0 flex flex-wrap gap-3 w-full justify-start">
+          <TabsTrigger value="dashboard" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
             <BarChart3 className="h-4 w-4" /> Dashboard
           </TabsTrigger>
-          <TabsTrigger value="lista" className="gap-1.5">
+          <TabsTrigger value="lista" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
             <Phone className="h-4 w-4" /> Calls
             {hook.calls.length > 0 && (
               <Badge variant="secondary" className="ml-1 text-xs">{hook.calls.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="registrar" className="gap-1.5">
+          <TabsTrigger value="registrar" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
             <Plus className="h-4 w-4" /> Registrar
           </TabsTrigger>
-          <TabsTrigger value="config" className="gap-1.5">
+          <TabsTrigger value="config" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
             <Settings className="h-4 w-4" /> Fireflies
           </TabsTrigger>
         </TabsList>
