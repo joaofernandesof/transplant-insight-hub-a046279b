@@ -152,7 +152,7 @@ export default function AccountsPayable() {
     const matchesSearch = p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (p.supplier || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
-    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || p.workflow_stage === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
   }).sort((a, b) => {
     const dir = sortDirection === 'asc' ? 1 : -1;
