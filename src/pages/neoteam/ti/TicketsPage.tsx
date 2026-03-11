@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Ticket, Monitor, Wifi, Key, HelpCircle, AlertCircle } from "lucide-react";
+import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -37,15 +37,6 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Fechado",
 };
 
-const CATEGORY_ICONS: Record<string, any> = {
-  hardware: Monitor,
-  software: Ticket,
-  network: Wifi,
-  access: Key,
-  general: HelpCircle,
-  other: AlertCircle,
-};
-
 export default function TicketsPage() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
@@ -64,23 +55,68 @@ export default function TicketsPage() {
     },
   });
 
+  // Fetch attachment counts per ticket
+  const { data: attachmentCounts = {} } = useQuery({
+    queryKey: ["neoteam_ticket_attachment_counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("neoteam_ticket_attachments")
+        .select("ticket_id");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      data?.forEach((a: any) => {
+        counts[a.ticket_id] = (counts[a.ticket_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
   const createTicket = useMutation({
-    mutationFn: async (form: any) => {
+    mutationFn: async (form: { title: string; description: string; priority: string; files: File[] }) => {
       const ticketNumber = `TI-${Date.now().toString(36).toUpperCase()}`;
-      const { error } = await supabase.from("neoteam_tickets").insert({
+      const { data: ticketData, error } = await supabase.from("neoteam_tickets").insert({
         ticket_number: ticketNumber,
         title: form.title,
         description: form.description,
-        category: form.category,
+        category: "general",
         priority: form.priority,
         requester_id: user?.id,
         requester_name: (user as any)?.name || user?.email || "Usuário",
         status: "open",
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      // Upload attachments
+      if (form.files.length > 0 && ticketData) {
+        for (const file of form.files) {
+          const ext = file.name.split('.').pop();
+          const path = `${ticketData.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from("ticket-attachments")
+            .upload(path, file, { cacheControl: "3600", upsert: false });
+          if (uploadError) {
+            console.error("Upload error:", uploadError);
+            continue;
+          }
+
+          const { data: urlData } = supabase.storage
+            .from("ticket-attachments")
+            .getPublicUrl(path);
+
+          await supabase.from("neoteam_ticket_attachments").insert({
+            ticket_id: ticketData.id,
+            file_name: file.name,
+            file_url: urlData.publicUrl,
+            file_type: file.type,
+            file_size: file.size,
+          });
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["neoteam_tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["neoteam_ticket_attachment_counts"] });
       toast.success("Chamado aberto");
       setDialogOpen(false);
     },
@@ -121,7 +157,7 @@ export default function TicketsPage() {
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-1" />Novo Chamado</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader><DialogTitle>Abrir Chamado</DialogTitle></DialogHeader>
             <TicketForm onSubmit={(f: any) => createTicket.mutate(f)} loading={createTicket.isPending} />
           </DialogContent>
@@ -154,9 +190,9 @@ export default function TicketsPage() {
               <TableRow>
                 <TableHead>Nº</TableHead>
                 <TableHead>Título</TableHead>
-                <TableHead>Categoria</TableHead>
                 <TableHead>Prioridade</TableHead>
                 <TableHead>Solicitante</TableHead>
+                <TableHead>Anexos</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
@@ -167,7 +203,7 @@ export default function TicketsPage() {
               ) : filtered.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum chamado</TableCell></TableRow>
               ) : filtered.map((t: any) => {
-                const CatIcon = CATEGORY_ICONS[t.category] || HelpCircle;
+                const count = (attachmentCounts as Record<string, number>)[t.id] || 0;
                 return (
                   <TableRow key={t.id}>
                     <TableCell className="font-mono text-xs">{t.ticket_number}</TableCell>
@@ -175,9 +211,18 @@ export default function TicketsPage() {
                       <p className="font-medium">{t.title}</p>
                       {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{t.description}</p>}
                     </TableCell>
-                    <TableCell><div className="flex items-center gap-1"><CatIcon className="h-3 w-3" /><span className="text-sm capitalize">{t.category}</span></div></TableCell>
                     <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{t.priority}</Badge></TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
+                    <TableCell>
+                      {count > 0 ? (
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Paperclip className="h-3 w-3" />
+                          <span className="text-xs">{count}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{format(parseISO(t.created_at), "dd/MM HH:mm")}</TableCell>
                     <TableCell>
                       <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
@@ -203,22 +248,37 @@ export default function TicketsPage() {
 }
 
 function TicketForm({ onSubmit, loading }: { onSubmit: (f: any) => void; loading: boolean }) {
-  const [form, setForm] = useState({ title: "", description: "", category: "general", priority: "medium" });
+  const [form, setForm] = useState({ title: "", description: "", priority: "medium" });
+  const [files, setFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    const valid = selected.filter(f => {
+      if (f.size > 10 * 1024 * 1024) {
+        toast.error(`${f.name} excede 10MB`);
+        return false;
+      }
+      return true;
+    });
+    setFiles(prev => [...prev, ...valid]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   return (
     <div className="space-y-3">
       <Input placeholder="Título do chamado *" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
       <Textarea placeholder="Descrição detalhada" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
-      <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
-        <SelectTrigger><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="general">Geral</SelectItem>
-          <SelectItem value="hardware">Hardware</SelectItem>
-          <SelectItem value="software">Software</SelectItem>
-          <SelectItem value="network">Rede</SelectItem>
-          <SelectItem value="access">Acessos</SelectItem>
-          <SelectItem value="other">Outro</SelectItem>
-        </SelectContent>
-      </Select>
+      
       <Select value={form.priority} onValueChange={v => setForm(f => ({ ...f, priority: v }))}>
         <SelectTrigger><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -228,7 +288,59 @@ function TicketForm({ onSubmit, loading }: { onSubmit: (f: any) => void; loading
           <SelectItem value="critical">Crítica</SelectItem>
         </SelectContent>
       </Select>
-      <Button onClick={() => onSubmit(form)} disabled={loading || !form.title} className="w-full">Abrir Chamado</Button>
+
+      {/* File attachment area */}
+      <div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          multiple
+          accept="image/*,video/*"
+          onChange={handleFileSelect}
+        />
+        <div
+          className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center cursor-pointer transition-colors hover:border-primary hover:bg-primary/5"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-1" />
+          <p className="text-sm text-muted-foreground">Clique para anexar fotos ou vídeos</p>
+          <p className="text-xs text-muted-foreground">Máx. 10MB por arquivo</p>
+        </div>
+
+        {files.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mt-3">
+            {files.map((file, i) => (
+              <div key={i} className="relative group rounded-lg overflow-hidden border border-border bg-muted">
+                {file.type.startsWith("image/") ? (
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={file.name}
+                    className="w-full h-20 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-20 flex flex-col items-center justify-center p-1">
+                    <Paperclip className="h-5 w-5 text-muted-foreground" />
+                    <p className="text-[10px] text-muted-foreground truncate w-full text-center mt-1">{file.name}</p>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                  className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+                <p className="text-[9px] text-muted-foreground text-center py-0.5">{formatSize(file.size)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Button onClick={() => onSubmit({ ...form, files })} disabled={loading || !form.title} className="w-full">
+        {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Enviando...</> : "Abrir Chamado"}
+      </Button>
     </div>
   );
 }
