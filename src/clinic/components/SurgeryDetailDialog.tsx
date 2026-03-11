@@ -332,17 +332,14 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                 onSave={handleFieldSave}
               />
               {/* Almoço */}
-              <div className="col-span-2">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1.5">
-                  🍽️ Almoço
-                </Label>
-                <Input
-                  value={surgery.lunchChoice || ''}
-                  onChange={(e) => handleFieldSave('lunchChoice', e.target.value || null)}
-                  placeholder="Ex: Normal, Vegetariano..."
-                  className="w-full"
-                />
-              </div>
+              <EditableField
+                label="🍽️ Almoço"
+                value={surgery.lunchChoice || ''}
+                field="lunchChoice"
+                onSave={handleFieldSave}
+                placeholder="Ex: Normal, Vegetariano..."
+                className="col-span-2"
+              />
             </div>
 
             <Separator />
