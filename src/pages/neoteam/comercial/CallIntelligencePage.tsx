@@ -20,7 +20,7 @@ import { useEffect } from 'react';
 export default function CallIntelligencePage() {
   const { user } = useAuth();
   const [accountId, setAccountId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('lista');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
 
   // Fetch account
