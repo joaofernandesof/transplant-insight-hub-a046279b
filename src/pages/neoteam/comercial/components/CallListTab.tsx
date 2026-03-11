@@ -331,7 +331,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                     </div>
                   </TableHead>
                   <TableHead className="w-[160px]"><SortableHeader col="lead_extracted" label="Lead" /></TableHead>
-                  <TableHead className="min-w-[600px]"><SortableHeader col="lead_nome" label="Título" /></TableHead>
+                  <TableHead className="min-w-[300px]"><SortableHeader col="lead_nome" label="Título" /></TableHead>
                   <TableHead className="w-[140px]">
                     <div className="space-y-1">
                       <SortableHeader col="produto" label="Produto" />
@@ -422,7 +422,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                         </TableCell>
                         <TableCell className="text-xs font-medium">{call.closer_name || '—'}</TableCell>
                         <TableCell className="text-xs font-medium text-primary">{extractedLead}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground min-w-[600px] whitespace-normal">
+                        <TableCell className="text-xs text-muted-foreground min-w-[300px] whitespace-normal">
                           {call.lead_nome}
                         </TableCell>
                         <TableCell>
