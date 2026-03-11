@@ -735,6 +735,66 @@ export function UserEditModal({
                   />
                 </div>
               </div>
+
+              <Separator className="my-4" />
+
+              {/* Password Management */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <KeyRound className="h-4 w-4 text-muted-foreground" />
+                  Gerenciamento de Senha
+                </Label>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Manual password */}
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Nova senha (mín. 6 caracteres)"
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSetPassword}
+                      disabled={isResettingPassword || newPassword.length < 6}
+                      className="whitespace-nowrap"
+                    >
+                      {isResettingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4 mr-1" />}
+                      Definir Senha
+                    </Button>
+                  </div>
+
+                  {/* Generate random */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateRandomPassword}
+                      disabled={isResettingPassword}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Gerar Senha Aleatória
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Gera e aplica uma senha aleatória segura
+                    </p>
+                  </div>
+
+                  {/* Show generated password */}
+                  {generatedPassword && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted border">
+                      <code className="text-sm font-mono flex-1 select-all">{generatedPassword}</code>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyToClipboard(generatedPassword)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </TabsContent>
 
             {/* Acessos Tab - Portal × Perfil with granular permissions */}
