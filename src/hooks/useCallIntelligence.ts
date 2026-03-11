@@ -190,6 +190,9 @@ export function useCallIntelligence(accountId?: string) {
     }
   }, [calls, accountId, fetchAnalyses, fetchCalls]);
 
+  // Keep ref in sync for use in createCall
+  useEffect(() => { analyzeCallRef.current = analyzeCall; }, [analyzeCall]);
+
   const getAnalysisForCall = useCallback((callId: string) => {
     return analyses.find(a => a.call_id === callId) || null;
   }, [analyses]);
