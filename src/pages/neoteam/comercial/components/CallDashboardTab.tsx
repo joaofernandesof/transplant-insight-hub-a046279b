@@ -176,17 +176,48 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
     return sorted;
   }, [closerStats, closerSortKey, closerSortDir]);
 
-  // ── Top objections ──
-  const topObjecoes = useMemo(() => {
-    const objecoes = analyses
-      .filter(a => a.objecoes)
-      .flatMap(a => a.objecoes!.split(';').map(o => o.trim()).filter(Boolean));
-    const count: Record<string, number> = {};
-    objecoes.forEach(o => { count[o] = (count[o] || 0) + 1; });
-    return Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  // ── Top objections with solutions ──
+  const [objSearch, setObjSearch] = useState('');
+  const [objSortKey, setObjSortKey] = useState<'objection' | 'solution' | 'count'>('count');
+  const [objSortDir, setObjSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const objectionRows = useMemo(() => {
+    const rows: { objection: string; solution: string; count: number }[] = [];
+    const map = new Map<string, { solutions: string[]; count: number }>();
+
+    analyses.filter(a => a.objecoes).forEach(a => {
+      const items = a.objecoes!.split(';').map(o => o.trim()).filter(Boolean);
+      const solution = a.estrategia_followup || a.proximos_passos || '';
+      items.forEach(obj => {
+        // Extract keyword (first ~60 chars, clean up)
+        const keyword = obj.length > 60 ? obj.slice(0, 60).replace(/\s\S*$/, '…') : obj;
+        const existing = map.get(keyword);
+        if (existing) {
+          existing.count++;
+          if (solution && !existing.solutions.includes(solution)) existing.solutions.push(solution);
+        } else {
+          map.set(keyword, { solutions: solution ? [solution] : [], count: 1 });
+        }
+      });
+    });
+
+    map.forEach((v, k) => {
+      rows.push({ objection: k, solution: v.solutions[0] || '—', count: v.count });
+    });
+    return rows;
   }, [analyses]);
 
-  const objecoesChartData = topObjecoes.map(([name, count]) => ({ name: name.length > 35 ? name.slice(0, 35) + '…' : name, count }));
+  const filteredObjRows = useMemo(() => {
+    const q = objSearch.toLowerCase();
+    return objectionRows
+      .filter(r => !q || r.objection.toLowerCase().includes(q) || r.solution.toLowerCase().includes(q))
+      .sort((a, b) => {
+        let cmp = 0;
+        if (objSortKey === 'count') cmp = a.count - b.count;
+        else cmp = (a[objSortKey] || '').localeCompare(b[objSortKey] || '');
+        return objSortDir === 'asc' ? cmp : -cmp;
+      });
+  }, [objectionRows, objSearch, objSortKey, objSortDir]);
 
   // ── Efficiency score ──
   const efficiency = useMemo(() => {
