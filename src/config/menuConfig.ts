@@ -313,7 +313,8 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
-      { id: 'neoteam_contas_pagar', code: 'neoteam_contas_pagar', title: 'Contas a Pagar', icon: CreditCard, route: '/neoteam/financeiro' },
+      { id: 'neoteam_financial_dashboard', code: 'neoteam_financial_dashboard', title: 'Dashboard Financeiro', icon: DollarSign, route: '/neoteam/financeiro' },
+      { id: 'neoteam_contas_pagar', code: 'neoteam_contas_pagar', title: 'Contas a Pagar', icon: CreditCard, route: '/neoteam/financeiro/contas_a_pagar' },
     ],
   },
   {
