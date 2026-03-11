@@ -74,9 +74,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PORTAL_MODULES, PORTAL_NAMES, Portal } from '@/neohub/lib/permissions';
@@ -537,26 +534,7 @@ export default function AdminPanel() {
     }
   };
 
-  const bulkChangeRole = async (newRole: AppRole) => {
-    if (selectedUsers.size === 0) return;
-    setIsBulkProcessing(true);
-    try {
-      for (const userId of selectedUsers) {
-        if (userId === user?.id) continue;
-        await supabase
-          .from('user_roles')
-          .update({ role: newRole as any })
-          .eq('user_id', userId);
-      }
-      toast.success(`Perfil de ${selectedUsers.size} usuário(s) alterado para ${getRoleMeta(newRole).name}`);
-      setSelectedUsers(new Set());
-      fetchUsers();
-    } catch (error) {
-      toast.error('Erro ao alterar perfis em massa');
-    } finally {
-      setIsBulkProcessing(false);
-    }
-  };
+  // bulkChangeRole removed — roles must be assigned per-portal via UserEditModal
 
   const bulkDeleteUsers = async () => {
     if (selectedUsers.size === 0) return;
@@ -697,22 +675,6 @@ export default function AdminPanel() {
                       {selectedUsers.size} selecionado(s)
                     </span>
                     <div className="flex items-center gap-2 ml-auto">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1">
-                            <Shield className="h-3.5 w-3.5" />
-                            Alterar Função
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {ACCESS_PROFILES.map(p => (
-                            <DropdownMenuItem key={p.id} onClick={() => bulkChangeRole(p.id)} disabled={isBulkProcessing}>
-                              <p.icon className="h-4 w-4 mr-2" />
-                              {p.name}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                       <Button
                         size="sm"
                         variant="outline"
@@ -876,25 +838,10 @@ export default function AdminPanel() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuSub>
-                                        <DropdownMenuSubTrigger>
-                                          <Shield className="h-4 w-4 mr-2" />
-                                          Alterar Função
-                                        </DropdownMenuSubTrigger>
-                                        <DropdownMenuSubContent>
-                                          {ACCESS_PROFILES.map(p => (
-                                            <DropdownMenuItem key={p.id} onClick={() => {
-                                              supabase.from('user_roles').update({ role: p.id as any }).eq('user_id', userProfile.user_id).then(() => {
-                                                setUserRoles(prev => prev.map(r => r.user_id === userProfile.user_id ? { ...r, role: p.id } : r));
-                                                toast.success(`Função alterada para ${p.name}`);
-                                              });
-                                            }}>
-                                              <p.icon className="h-4 w-4 mr-2" />
-                                              {p.name}
-                                            </DropdownMenuItem>
-                                          ))}
-                                        </DropdownMenuSubContent>
-                                      </DropdownMenuSub>
+                                      <DropdownMenuItem onClick={() => openEditDialog(userProfile)}>
+                                          <Pencil className="h-4 w-4 mr-2" />
+                                          Editar Acessos por Portal
+                                        </DropdownMenuItem>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem onClick={() => toggleUserActive(userProfile.user_id, isUserActive)}>
                                         <Power className="h-4 w-4 mr-2" />
