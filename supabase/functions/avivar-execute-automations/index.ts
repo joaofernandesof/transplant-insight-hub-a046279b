@@ -251,23 +251,167 @@ Deno.serve(async (req) => {
               console.warn(`[Automations] Webhook returned ${resp.status}`);
               overallSuccess = false;
             }
-          } else if (action.action_type === "move_lead") {
-            const config = action.action_config as { column_id?: string };
-            if (config?.column_id) {
-              await supabase
+          } else if (action.action_type === "move_lead" || action.action_type === "change_stage") {
+            const config = action.action_config as { column_id?: string; target_column_id?: string };
+            const targetCol = config?.target_column_id || config?.column_id;
+            if (targetCol) {
+              const { error: moveErr } = await supabase
                 .from("avivar_kanban_leads")
-                .update({ column_id: config.column_id, updated_at: new Date().toISOString() })
+                .update({ column_id: targetCol, updated_at: new Date().toISOString() })
                 .eq("id", lead_id);
+              if (moveErr) throw new Error("Failed to move lead: " + moveErr.message);
               actionResult.success = true;
+              actionResult.moved_to = targetCol;
+            } else {
+              throw new Error("No target column configured");
             }
           } else if (action.action_type === "send_message") {
-            // Future: integrate with messaging
+            const config = action.action_config as { message?: string };
+            if (!config?.message || !lead.phone) {
+              throw new Error(!config?.message ? "No message configured" : "Lead has no phone");
+            }
+
+            const msg = replaceVariables(config.message, lead, columnMap, to_column_id);
+
+            // Get UazAPI instance for this account
+            const uazapiUrl = Deno.env.get("UAZAPI_URL");
+            let uazapiToken: string | undefined;
+
+            const { data: uazapiInstance } = await supabase
+              .from("avivar_uazapi_instances")
+              .select("instance_token")
+              .eq("account_id", effectiveAccountId)
+              .eq("status", "connected")
+              .limit(1)
+              .maybeSingle();
+
+            if (uazapiInstance?.instance_token) {
+              uazapiToken = uazapiInstance.instance_token;
+            } else {
+              uazapiToken = Deno.env.get("UAZAPI_TOKEN") || undefined;
+            }
+
+            if (!uazapiUrl || !uazapiToken) {
+              throw new Error("WhatsApp not configured for this account");
+            }
+
+            let phone = lead.phone.replace(/\D/g, "");
+            if (!phone.startsWith("55") && phone.length <= 11) phone = "55" + phone;
+
+            const resp = await fetch(`${uazapiUrl}/send/text`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "token": uazapiToken },
+              body: JSON.stringify({ number: phone, text: msg }),
+            });
+
+            actionResult.response_status = resp.status;
+            actionResult.success = resp.ok;
+            if (!resp.ok) {
+              const errText = await resp.text();
+              throw new Error(`WhatsApp send failed (${resp.status}): ${errText.slice(0, 200)}`);
+            }
+          } else if (action.action_type === "create_task") {
+            const config = action.action_config as { title?: string; description?: string };
+            const title = replaceVariables(config?.title || "Tarefa automática", lead, columnMap, to_column_id);
+            const description = config?.description ? replaceVariables(config.description, lead, columnMap, to_column_id) : null;
+
+            const { error: taskErr } = await supabase.from("lead_tasks").insert({
+              lead_id: lead_id,
+              user_id: lead.account_id,
+              title,
+              description,
+              due_at: new Date().toISOString(),
+              priority: "medium",
+            });
+            if (taskErr) throw new Error("Failed to create task: " + taskErr.message);
             actionResult.success = true;
-            actionResult.note = "send_message action not yet implemented";
+          } else if (action.action_type === "add_tag") {
+            const config = action.action_config as { tag?: string };
+            if (!config?.tag) throw new Error("No tag configured");
+            const currentTags: string[] = lead.tags || [];
+            if (!currentTags.includes(config.tag)) {
+              const { error: tagErr } = await supabase
+                .from("avivar_kanban_leads")
+                .update({ tags: [...currentTags, config.tag], updated_at: new Date().toISOString() })
+                .eq("id", lead_id);
+              if (tagErr) throw new Error("Failed to add tag: " + tagErr.message);
+            }
+            actionResult.success = true;
+          } else if (action.action_type === "remove_tag") {
+            const config = action.action_config as { tag?: string };
+            if (!config?.tag) throw new Error("No tag configured");
+            const currentTags: string[] = lead.tags || [];
+            const { error: tagErr } = await supabase
+              .from("avivar_kanban_leads")
+              .update({ tags: currentTags.filter((t: string) => t !== config.tag), updated_at: new Date().toISOString() })
+              .eq("id", lead_id);
+            if (tagErr) throw new Error("Failed to remove tag: " + tagErr.message);
+            actionResult.success = true;
+          } else if (action.action_type === "create_note") {
+            const config = action.action_config as { content?: string };
+            if (!config?.content) throw new Error("No note content configured");
+            const noteContent = replaceVariables(config.content, lead, columnMap, to_column_id);
+
+            // Insert as internal CRM message if conversation exists
+            if (conversationId) {
+              const { error: noteErr } = await supabase.from("crm_messages").insert({
+                conversation_id: conversationId,
+                content: noteContent,
+                sender_type: "internal",
+                is_internal_note: true,
+              });
+              if (noteErr) throw new Error("Failed to create note: " + noteErr.message);
+            } else {
+              // Append to lead notes
+              const currentNotes = lead.notes || "";
+              const timestamp = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+              const newNotes = currentNotes
+                ? `${currentNotes}\n\n[${timestamp}] ${noteContent}`
+                : `[${timestamp}] ${noteContent}`;
+              const { error: noteErr } = await supabase
+                .from("avivar_kanban_leads")
+                .update({ notes: newNotes, updated_at: new Date().toISOString() })
+                .eq("id", lead_id);
+              if (noteErr) throw new Error("Failed to create note: " + noteErr.message);
+            }
+            actionResult.success = true;
+          } else if (action.action_type === "change_field") {
+            const config = action.action_config as { field_name?: string; field_value?: string };
+            if (!config?.field_name) throw new Error("No field name configured");
+            const fieldValue = replaceVariables(config.field_value || "", lead, columnMap, to_column_id);
+
+            // Check if it's a direct lead field
+            const directFields = ["name", "email", "phone", "source", "notes"];
+            if (directFields.includes(config.field_name)) {
+              const { error: fieldErr } = await supabase
+                .from("avivar_kanban_leads")
+                .update({ [config.field_name]: fieldValue, updated_at: new Date().toISOString() })
+                .eq("id", lead_id);
+              if (fieldErr) throw new Error("Failed to update field: " + fieldErr.message);
+            } else {
+              // Custom field in JSONB
+              const customFields = (lead.custom_fields as Record<string, any>) || {};
+              customFields[config.field_name] = fieldValue;
+              const { error: fieldErr } = await supabase
+                .from("avivar_kanban_leads")
+                .update({ custom_fields: customFields, updated_at: new Date().toISOString() })
+                .eq("id", lead_id);
+              if (fieldErr) throw new Error("Failed to update custom field: " + fieldErr.message);
+            }
+            actionResult.success = true;
+          } else if (action.action_type === "change_responsible") {
+            const config = action.action_config as { responsible_id?: string };
+            if (!config?.responsible_id) throw new Error("No responsible ID configured");
+            const { error: respErr } = await supabase
+              .from("avivar_kanban_leads")
+              .update({ responsible_id: config.responsible_id, updated_at: new Date().toISOString() })
+              .eq("id", lead_id);
+            if (respErr) throw new Error("Failed to change responsible: " + respErr.message);
+            actionResult.success = true;
           } else if (action.action_type === "send_notification") {
             const config = action.action_config as { title?: string; message?: string; sound?: boolean };
-            const title = config?.title || "Notificação de Automação";
-            const message = config?.message || `Automação "${automation.name}" foi disparada`;
+            const title = replaceVariables(config?.title || "Notificação de Automação", lead, columnMap, to_column_id);
+            const message = replaceVariables(config?.message || `Automação "${automation.name}" foi disparada`, lead, columnMap, to_column_id);
 
             // Create notification
             const { data: notif, error: notifErr } = await supabase
