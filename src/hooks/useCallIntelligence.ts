@@ -1,7 +1,7 @@
 /**
  * Hook for Call Intelligence module - manages sales calls and analyses
  */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -57,6 +57,7 @@ export function useCallIntelligence(accountId?: string) {
   const [analyses, setAnalyses] = useState<CallAnalysisRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const analyzeCallRef = useRef<((callId: string) => Promise<any>) | null>(null);
 
   const fetchCalls = useCallback(async () => {
     if (!accountId) return;
@@ -134,7 +135,15 @@ export function useCallIntelligence(accountId?: string) {
       } as any).select().single();
       if (error) throw error;
       toast.success('Call registrada!');
-      return data as unknown as SalesCall;
+      const newCall = data as unknown as SalesCall;
+      
+      // Auto-analyze if has transcript/resumo
+      const content = newCall.transcricao || newCall.resumo_manual;
+      if (content && content.trim().length >= 30) {
+        setTimeout(() => analyzeCallRef.current?.(newCall.id), 500);
+      }
+      
+      return newCall;
     } catch (err: any) {
       toast.error('Erro ao registrar call: ' + (err.message || ''));
       return null;
@@ -180,6 +189,9 @@ export function useCallIntelligence(accountId?: string) {
       setIsAnalyzing(false);
     }
   }, [calls, accountId, fetchAnalyses, fetchCalls]);
+
+  // Keep ref in sync for use in createCall
+  useEffect(() => { analyzeCallRef.current = analyzeCall; }, [analyzeCall]);
 
   const getAnalysisForCall = useCallback((callId: string) => {
     return analyses.find(a => a.call_id === callId) || null;
