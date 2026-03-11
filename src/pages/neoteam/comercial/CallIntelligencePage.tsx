@@ -12,6 +12,7 @@ import { RegisterCallTab } from './components/RegisterCallTab';
 import { CallDashboardTab } from './components/CallDashboardTab';
 import { CallAnalysisView } from './components/CallAnalysisView';
 import { FirefliesSettingsTab } from './components/FirefliesSettingsTab';
+import { AgendaTab } from './components/AgendaTab';
 
 // We need an account_id - for NeoTeam we'll use the user's first avivar account or fallback
 import { supabase } from '@/integrations/supabase/client';
