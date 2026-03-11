@@ -10,12 +10,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+
   try {
-    const { transcript, context } = await req.json();
+    const { transcript, closer_name, lead_nome, produto, data_call, status_call, call_id, account_id } = await req.json();
 
     if (!transcript || transcript.trim().length < 30) {
       return new Response(
-        JSON.stringify({ error: "Transcrição muito curta. Cole a transcrição completa da call." }),
+        JSON.stringify({ error: "Transcrição/resumo muito curto. Mínimo 30 caracteres." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -28,13 +30,30 @@ serve(async (req) => {
       );
     }
 
-    const systemPrompt = `Você é um analista de calls comerciais especializado em vendas consultivas para clínicas médicas e estéticas. Analise a transcrição da call e retorne uma avaliação detalhada.`;
+    const systemPrompt = `Você é um especialista em análise de calls de vendas consultivas de alto ticket para clínicas médicas e estéticas.
 
-    const userPrompt = `Analise a seguinte transcrição de call comercial e retorne a avaliação usando a função fornecida.
+Sua função é analisar transcrições, resumos ou anotações de calls comerciais e gerar um relatório claro, crítico e altamente detalhado.
 
-${context ? `Contexto adicional: ${context}\n` : ""}
-TRANSCRIÇÃO:
-${transcript}`;
+Regras:
+- Linguagem clara e direta
+- Ser crítico com a atuação da closer
+- Priorizar melhoria de performance
+- Não inventar informações - se não há dados suficientes, indicar "Não identificado na call"
+- Scores BANT de 1 a 10 cada
+- Probabilidade de fechamento de 0 a 100`;
+
+    const userPrompt = `Analise a seguinte call comercial:
+
+CLOSER: ${closer_name || "Não informado"}
+LEAD: ${lead_nome || "Não informado"}  
+PRODUTO: ${produto || "Não informado"}
+DATA: ${data_call || "Não informada"}
+STATUS: ${status_call || "Não informado"}
+
+TRANSCRIÇÃO/RESUMO:
+${transcript}
+
+Gere a análise completa usando a função fornecida. Inclua também o campo whatsapp_report com uma versão formatada para WhatsApp usando *negrito* com asteriscos e emojis.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -52,70 +71,44 @@ ${transcript}`;
           {
             type: "function",
             function: {
-              name: "call_analysis",
-              description: "Retorna a análise completa de uma call comercial",
+              name: "call_analysis_report",
+              description: "Retorna a análise completa de uma call comercial com scores BANT e relatório WhatsApp",
               parameters: {
                 type: "object",
                 properties: {
-                  resumo_executivo: { type: "string", description: "Resumo de 2-3 frases da call" },
-                  scores: {
-                    type: "object",
-                    properties: {
-                      rapport: { type: "number", description: "Nota 0-10 para construção de rapport" },
-                      escuta_ativa: { type: "number", description: "Nota 0-10 para escuta ativa" },
-                      identificacao_dor: { type: "number", description: "Nota 0-10 para identificação de dor/necessidade" },
-                      apresentacao_solucao: { type: "number", description: "Nota 0-10 para apresentação da solução" },
-                      contorno_objecoes: { type: "number", description: "Nota 0-10 para contorno de objeções" },
-                      fechamento: { type: "number", description: "Nota 0-10 para técnica de fechamento" },
-                      clareza_comunicacao: { type: "number", description: "Nota 0-10 para clareza na comunicação" },
-                      nota_geral: { type: "number", description: "Nota geral 0-10 da call" },
-                    },
-                    required: ["rapport", "escuta_ativa", "identificacao_dor", "apresentacao_solucao", "contorno_objecoes", "fechamento", "clareza_comunicacao", "nota_geral"],
-                  },
-                  pontos_fortes: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Lista de pontos fortes identificados",
-                  },
-                  pontos_melhoria: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Lista de pontos a melhorar",
-                  },
-                  objecoes_identificadas: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        objecao: { type: "string" },
-                        como_lidou: { type: "string" },
-                        sugestao: { type: "string" },
-                      },
-                      required: ["objecao", "como_lidou", "sugestao"],
-                    },
-                  },
-                  temperatura_lead: {
-                    type: "string",
-                    enum: ["frio", "morno", "quente"],
-                    description: "Temperatura do lead após a call",
-                  },
-                  proximos_passos: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Próximos passos recomendados",
-                  },
-                  script_whatsapp: {
-                    type: "string",
-                    description: "Mensagem de follow-up pronta para enviar via WhatsApp, personalizada com base na call. Deve ser natural, amigável e incluir referências específicas ao que foi discutido.",
-                  },
+                  resumo_call: { type: "string", description: "Resumo executivo da call em 3-5 frases" },
+                  perfil_lead: { type: "string", description: "Perfil comportamental e demográfico do lead" },
+                  objecoes: { type: "string", description: "Principais objeções levantadas pelo lead, separadas por ponto e vírgula" },
+                  pontos_fracos_closer: { type: "string", description: "Pontos fracos identificados na atuação da closer" },
+                  pontos_fortes_closer: { type: "string", description: "Pontos fortes identificados na atuação da closer" },
+                  bant_budget: { type: "integer", description: "Score Budget 1-10: capacidade financeira do lead" },
+                  bant_authority: { type: "integer", description: "Score Authority 1-10: poder de decisão do lead" },
+                  bant_need: { type: "integer", description: "Score Need 1-10: nível de necessidade do lead" },
+                  bant_timeline: { type: "integer", description: "Score Timeline 1-10: urgência temporal do lead" },
+                  classificacao_lead: { type: "string", enum: ["frio", "morno", "quente"], description: "Classificação de temperatura do lead" },
+                  urgencia: { type: "string", enum: ["baixa", "media", "alta"], description: "Nível de urgência" },
+                  dor_principal: { type: "string", description: "Principal dor/necessidade identificada" },
+                  motivo_nao_fechamento: { type: "string", description: "Principal motivo do não fechamento (se aplicável)" },
+                  estrategia_followup: { type: "string", description: "Estratégia recomendada de follow-up" },
+                  acoes_realizadas: { type: "string", description: "Ações que a closer realizou durante a call" },
+                  proximos_passos: { type: "string", description: "Próximos passos recomendados" },
+                  conclusao: { type: "string", description: "Conclusão geral da análise" },
+                  probabilidade_fechamento: { type: "integer", description: "Probabilidade de fechamento de 0 a 100%" },
+                  whatsapp_report: { type: "string", description: "Relatório completo formatado para WhatsApp com *negrito*, emojis e leitura rápida no celular. Deve seguir o formato: 📊 *ANÁLISE DA CALL DE VENDAS*\\n\\n👤 *Closer:* ...\\n🎯 *Lead:* ...\\netc." },
                 },
-                required: ["resumo_executivo", "scores", "pontos_fortes", "pontos_melhoria", "objecoes_identificadas", "temperatura_lead", "proximos_passos", "script_whatsapp"],
+                required: [
+                  "resumo_call", "perfil_lead", "objecoes", "pontos_fracos_closer", "pontos_fortes_closer",
+                  "bant_budget", "bant_authority", "bant_need", "bant_timeline",
+                  "classificacao_lead", "urgencia", "dor_principal", "motivo_nao_fechamento",
+                  "estrategia_followup", "acoes_realizadas", "proximos_passos", "conclusao",
+                  "probabilidade_fechamento", "whatsapp_report"
+                ],
                 additionalProperties: false,
               },
             },
           },
         ],
-        tool_choice: { type: "function", function: { name: "call_analysis" } },
+        tool_choice: { type: "function", function: { name: "call_analysis_report" } },
       }),
     });
 
@@ -141,14 +134,47 @@ ${transcript}`;
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall?.function?.arguments) {
-      return new Response(JSON.stringify({ error: "Resposta da IA não contém análise estruturada" }), {
+      return new Response(JSON.stringify({ error: "IA não retornou análise estruturada" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const analysis = JSON.parse(toolCall.function.arguments);
+    
+    // Calculate BANT total
+    analysis.bant_total = (analysis.bant_budget || 0) + (analysis.bant_authority || 0) + (analysis.bant_need || 0) + (analysis.bant_timeline || 0);
+    
+    const processingTime = Date.now() - startTime;
 
-    return new Response(JSON.stringify({ success: true, analysis }), {
+    // Save to database if call_id provided
+    if (call_id && account_id) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+      // Insert analysis
+      const { error: insertError } = await supabase.from("call_analysis").insert({
+        call_id,
+        account_id,
+        ...analysis,
+        ai_model: "google/gemini-2.5-flash",
+        processing_time_ms: processingTime,
+      });
+
+      if (insertError) {
+        console.error("Error saving analysis:", insertError);
+      } else {
+        // Update sales_call to mark as analyzed
+        await supabase.from("sales_calls").update({ has_analysis: true }).eq("id", call_id);
+      }
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      analysis,
+      processing_time_ms: processingTime,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
