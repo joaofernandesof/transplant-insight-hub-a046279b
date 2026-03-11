@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Phone, BarChart3, Plus, Brain, Loader2 } from 'lucide-react';
+import { Phone, BarChart3, Plus, Brain, Loader2, Settings } from 'lucide-react';
 import { CallListTab } from './components/CallListTab';
 import { RegisterCallTab } from './components/RegisterCallTab';
 import { CallDashboardTab } from './components/CallDashboardTab';
 import { CallAnalysisView } from './components/CallAnalysisView';
+import { FirefliesSettingsTab } from './components/FirefliesSettingsTab';
 
 // We need an account_id - for NeoTeam we'll use the user's first avivar account or fallback
 import { supabase } from '@/integrations/supabase/client';
