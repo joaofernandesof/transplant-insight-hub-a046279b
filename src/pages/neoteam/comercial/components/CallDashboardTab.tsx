@@ -32,7 +32,7 @@ const COLORS = ['#f97316', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'
 const STATUS_COLORS = { fechou: '#10b981', followup: '#f59e0b', perdido: '#ef4444' };
 
 export function CallDashboardTab({ stats, analyses, calls }: Props) {
-  const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('semana');
+  const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('dia');
 
   // ── Derived data ──
   const enrichedCalls = useMemo(() => {
