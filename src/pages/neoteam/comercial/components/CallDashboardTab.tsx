@@ -1,7 +1,7 @@
 import type { SalesCall, CallAnalysisRecord } from '@/hooks/useCallIntelligence';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap } from 'lucide-react';
+import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap, Snowflake, Sun, Clock } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, XAxis, YAxis, CartesianGrid,
