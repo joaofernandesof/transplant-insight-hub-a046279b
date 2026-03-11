@@ -1,0 +1,1 @@
+ALTER TABLE sales_calls ADD COLUMN IF NOT EXISTS fireflies_url text;

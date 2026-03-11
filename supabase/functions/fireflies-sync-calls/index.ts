@@ -57,6 +57,10 @@ serve(async (req) => {
           duration
           participants
           organizer_email
+          fireflies_users {
+            name
+            email
+          }
           sentences {
             speaker_name
             text
@@ -160,6 +164,7 @@ serve(async (req) => {
         fonte_call: 'fireflies',
         has_analysis: false,
         external_id: externalId,
+        fireflies_url: `https://app.fireflies.ai/view/${transcript.id}`,
       }).select('id').single();
 
       if (insertError) {
