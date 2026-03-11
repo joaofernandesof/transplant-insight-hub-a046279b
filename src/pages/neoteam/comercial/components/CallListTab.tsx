@@ -5,8 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Brain, Eye, Loader2, Search, Flame, Snowflake, Sun, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Brain, Eye, Loader2, Search, Flame, Snowflake, Sun, ArrowUp, ArrowDown, ArrowUpDown, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -17,6 +19,7 @@ interface Props {
   isAnalyzing: boolean;
   onAnalyze: (callId: string) => void;
   onViewAnalysis: (callId: string) => void;
+  onDeleteCalls: (callIds: string[]) => Promise<void>;
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -102,7 +105,7 @@ function extractProduct(call: SalesCall): string {
   return '—';
 }
 
-export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze, onViewAnalysis }: Props) {
+export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze, onViewAnalysis, onDeleteCalls }: Props) {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterClassificacao, setFilterClassificacao] = useState<string>('all');
@@ -110,6 +113,8 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
   const [filterProduto, setFilterProduto] = useState<string>('all');
   const [sortKey, setSortKey] = useState<SortKey>('data_call');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getAnalysis = (callId: string) => analyses.find(a => a.call_id === callId);
 
@@ -227,16 +232,73 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
     return <span className={`text-xs font-semibold ${color}`}>{value}</span>;
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(c => c.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    setIsDeleting(true);
+    await onDeleteCalls(Array.from(selectedIds));
+    setSelectedIds(new Set());
+    setIsDeleting(false);
+  };
+
+  const handleDeleteSingle = async (id: string) => {
+    setIsDeleting(true);
+    await onDeleteCalls([id]);
+    setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+    setIsDeleting(false);
+  };
+
   return (
     <div className="space-y-4">
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Buscar por lead, closer ou produto..."
-          className="pl-9"
-        />
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar por lead, closer ou produto..."
+            className="pl-9"
+          />
+        </div>
+        {selectedIds.size > 0 && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={isDeleting}>
+                {isDeleting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1.5" />}
+                Excluir {selectedIds.size} call{selectedIds.size > 1 ? 's' : ''}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir {selectedIds.size} call{selectedIds.size > 1 ? 's' : ''}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação não pode ser desfeita. As calls e suas análises serão removidas permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       <Card className="flex-1 min-h-0 overflow-hidden">
@@ -245,6 +307,12 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
                   <TableHead className="w-[130px]">
                     <div className="space-y-1">
@@ -331,7 +399,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={21} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={23} className="text-center py-8 text-muted-foreground">
                       {calls.length === 0 ? 'Nenhuma call registrada ainda' : 'Nenhuma call encontrada com os filtros'}
                     </TableCell>
                   </TableRow>
@@ -342,7 +410,13 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                     const extractedLead = extractLeadName(call.lead_nome);
                     const product = extractProduct(call);
                     return (
-                      <TableRow key={call.id}>
+                      <TableRow key={call.id} className={selectedIds.has(call.id) ? 'bg-primary/5' : ''}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.has(call.id)}
+                            onCheckedChange={() => toggleSelect(call.id)}
+                          />
+                        </TableCell>
                         <TableCell className="text-xs whitespace-nowrap">
                           {format(new Date(call.data_call), 'dd/MM/yy HH:mm', { locale: ptBR })}
                         </TableCell>
@@ -418,6 +492,27 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                                 Analisar
                               </Button>
                             )}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Excluir esta call?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    A call e sua análise serão removidas permanentemente.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteSingle(call.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
