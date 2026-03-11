@@ -149,9 +149,11 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
         c.closer_name?.toLowerCase().includes(search.toLowerCase()) ||
         product.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === 'all' || c.status_call === filterStatus;
+      const matchCloser = filterCloser === 'all' || c.closer_name === filterCloser;
+      const matchProduto = filterProduto === 'all' || product === filterProduto;
       const analysis = getAnalysis(c.id);
       const matchClassificacao = filterClassificacao === 'all' || analysis?.classificacao_lead === filterClassificacao;
-      return matchSearch && matchStatus && matchClassificacao;
+      return matchSearch && matchStatus && matchCloser && matchProduto && matchClassificacao;
     });
 
     result.sort((a, b) => {
