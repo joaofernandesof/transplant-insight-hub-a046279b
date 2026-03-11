@@ -160,7 +160,7 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
       await createPayable({
         description: form.description,
         supplier: form.supplier,
-        amount: Number(form.amount),
+        amount: parseFloat(form.amount.replace(/\./g, '').replace(',', '.')),
         due_date: form.due_date,
         category: form.category,
         cost_center: form.cost_center,
