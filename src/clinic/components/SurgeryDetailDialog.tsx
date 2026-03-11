@@ -332,13 +332,16 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                 onSave={handleFieldSave}
               />
               {/* Almoço */}
-              <EditableField
-                icon={UtensilsCrossed}
-                label="Almoço"
-                value={surgery.lunchChoice || ''}
-                field="lunchChoice"
-                onSave={handleFieldSave}
-              />
+              <div className="flex items-start gap-2">
+                <UtensilsCrossed className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground">Almoço</p>
+                  <LunchField
+                    value={surgery.lunchChoice || ''}
+                    onSave={(val) => handleFieldSave('lunchChoice', val)}
+                  />
+                </div>
+              </div>
             </div>
 
             <Separator />
