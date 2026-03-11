@@ -39,6 +39,12 @@ export function FirefliesSettingsTab({ accountId }: Props) {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
 
+  // Filter keywords state
+  const [filterKeywords, setFilterKeywords] = useState<string[]>(['Reunião com']);
+  const [newKeyword, setNewKeyword] = useState('');
+  const [filterMode, setFilterMode] = useState<'include' | 'all'>('include');
+  const [isSavingFilter, setIsSavingFilter] = useState(false);
+
   // Browse dialog state
   const [browseOpen, setBrowseOpen] = useState(false);
   const [isLoadingCalls, setIsLoadingCalls] = useState(false);
@@ -58,9 +64,10 @@ export function FirefliesSettingsTab({ accountId }: Props) {
     analyzed: number;
   } | null>(null);
 
-  // Load saved key status
+  // Load saved key and filter settings
   useEffect(() => {
     if (!accountId) return;
+    // Load API key
     supabase
       .from('avivar_account_settings')
       .select('setting_value')
@@ -73,6 +80,20 @@ export function FirefliesSettingsTab({ accountId }: Props) {
           const val = data.setting_value as any;
           if (typeof val === 'string') setApiKey(val);
           else if (val?.key) setApiKey(val.key);
+        }
+      });
+    // Load filter config
+    supabase
+      .from('avivar_account_settings')
+      .select('setting_value')
+      .eq('account_id', accountId)
+      .eq('setting_key', 'fireflies_filter_config')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.setting_value) {
+          const val = data.setting_value as any;
+          if (val?.keywords && Array.isArray(val.keywords)) setFilterKeywords(val.keywords);
+          if (val?.mode) setFilterMode(val.mode);
         }
       });
   }, [accountId]);
