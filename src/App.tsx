@@ -105,6 +105,7 @@ const ReferralsAdmin = lazy(() => import("./pages/admin/ReferralsAdmin"));
 const EventLogs = lazy(() => import("./pages/admin/EventLogs"));
 const NeoHubMonitoring = lazy(() => import("./pages/admin/NeoHubMonitoring"));
 const CodeAssistantPage = lazy(() => import("./pages/admin/CodeAssistantPage"));
+const AIUsagePage = lazy(() => import("./pages/admin/AIUsagePage"));
 const LicenseeOnboardingPage = lazy(() => import("./pages/admin/LicenseeOnboardingPage"));
 const SalesUrgencyPage = lazy(() => import("./pages/admin/SalesUrgencyPage"));
 const ScheduleRulesAdmin = lazy(() => import("./pages/admin/ScheduleRulesAdmin"));
