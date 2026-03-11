@@ -23,7 +23,7 @@ function replaceVariables(
     .replace(/\{\{procedimento\}\}/gi, (lead.custom_fields as any)?.procedimento || "");
 }
 
-
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
