@@ -371,6 +371,7 @@ Analise esta ligação comercial usando SPIN Selling.`;
       const _estCost = (_logTokensIn / 1e6) * cIn + (_logTokensOut / 1e6) * cOut;
       const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       _sb.from("edge_function_logs").insert({ function_name: "avivar-analyze-call", execution_time_ms: Date.now() - startTime, status: _logStatus, tokens_input: _logTokensIn, tokens_output: _logTokensOut, model_used: _logModel, estimated_cost_usd: _estCost, account_id: _logAccountId, user_id: _logUserId, error_message: _logError || null }).then(() => {});
+      _sb.from("ai_usage_logs").insert({ user_id: _logUserId || null, portal: "Avivar", module: "Call Analysis", action: "analyze_call_spin", edge_function: "avivar-analyze-call", ai_model: _logModel || null, input_tokens: _logTokensIn, output_tokens: _logTokensOut, total_tokens: _logTokensIn + _logTokensOut, estimated_cost_usd: _estCost, processing_time_ms: Date.now() - startTime, status: _logStatus, error_message: _logError || null, metadata: { account_id: _logAccountId } }).then(() => {});
     } catch {}
   }
 });

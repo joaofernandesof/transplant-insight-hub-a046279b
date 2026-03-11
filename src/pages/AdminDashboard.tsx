@@ -66,6 +66,7 @@ const moduleCategories = [
       { id: 'monitoring', title: 'Monitoramento', description: 'Atividade de usuários', icon: Eye, path: '/monitoring', color: 'bg-teal-500' },
       { id: 'event-logs', title: 'Log de Eventos', description: 'Histórico do sistema', icon: Activity, path: '/admin/event-logs', color: 'bg-cyan-500' },
       { id: 'code-assistant', title: 'Assistente de Código', description: 'IA para análise técnica', icon: Bot, path: '/admin/code-assistant', color: 'bg-indigo-500' },
+      { id: 'ai-usage', title: 'Uso de IA', description: 'Monitorar requests de IA', icon: Activity, path: '/admin/ai-usage', color: 'bg-violet-500' },
       { id: 'announcements', title: 'Anúncios', description: 'Banners e novidades', icon: Megaphone, path: '/admin/announcements', color: 'bg-rose-500' },
       { id: 'permissions', title: 'Permissões', description: 'Matriz de acessos', icon: Shield, path: '/admin', color: 'bg-violet-500' },
       { id: 'settings', title: 'Configurações', description: 'Parâmetros do sistema', icon: Settings, path: '/admin', color: 'bg-purple-500' },

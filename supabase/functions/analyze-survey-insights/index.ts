@@ -199,6 +199,7 @@ Por favor, gere insights acionáveis para a gestão melhorar a experiência nos 
       const _estCost = (_logTokensIn / 1e6) * 0.10 + (_logTokensOut / 1e6) * 0.40;
       const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       _sb.from("edge_function_logs").insert({ function_name: "analyze-survey-insights", execution_time_ms: Date.now() - _logStart, status: _logStatus, tokens_input: _logTokensIn, tokens_output: _logTokensOut, model_used: "google/gemini-3-flash-preview", estimated_cost_usd: _estCost, error_message: _logError || null }).then(() => {});
+      _sb.from("ai_usage_logs").insert({ portal: "Academy", module: "Survey Insights", action: "analyze_survey", edge_function: "analyze-survey-insights", ai_model: "google/gemini-3-flash-preview", input_tokens: _logTokensIn, output_tokens: _logTokensOut, total_tokens: _logTokensIn + _logTokensOut, estimated_cost_usd: _estCost, processing_time_ms: Date.now() - _logStart, status: _logStatus, error_message: _logError || null }).then(() => {});
     } catch {}
   }
 });

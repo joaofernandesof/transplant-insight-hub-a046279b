@@ -42,6 +42,7 @@ const managementMenu = [
 // Menu do sistema
 const systemMenu = [
   { id: 'monitoring', label: 'Monitoramento', icon: Activity, href: '/admin-portal/monitoring' },
+  { id: 'ai-usage', label: 'Uso de IA', icon: BarChart3, href: '/admin/ai-usage' },
   { id: 'birthdays', label: 'Aniversários', icon: Cake, href: '/admin/birthdays' },
   { id: 'announcements', label: 'Anúncios', icon: Bell, href: '/admin/announcements' },
   { id: 'travas-agenda', label: 'Travas da Agenda', icon: Lock, href: '/admin/travas-agenda' },

@@ -595,11 +595,23 @@
      }
  
       // Fire-and-forget: log execution
+      const _fStatus = results.some(r => r.status === 'error') ? "error" : "success";
       supabase.from("edge_function_logs").insert({
         function_name: "avivar-process-followups",
         execution_time_ms: Date.now() - _logStartTime,
-        status: results.some(r => r.status === 'error') ? "error" : "success",
+        status: _fStatus,
         model_used: "google/gemini-3-flash-preview",
+        metadata: { processed: results.length },
+      }).then(() => {}).catch(() => {});
+
+      supabase.from("ai_usage_logs").insert({
+        portal: "Avivar",
+        module: "Follow-ups",
+        action: "process_followups",
+        edge_function: "avivar-process-followups",
+        ai_model: "google/gemini-3-flash-preview",
+        processing_time_ms: Date.now() - _logStartTime,
+        status: _fStatus,
         metadata: { processed: results.length },
       }).then(() => {}).catch(() => {});
 
