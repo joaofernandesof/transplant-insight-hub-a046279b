@@ -62,6 +62,9 @@ import {
   ChevronDown,
   ChevronRight,
   Pencil,
+  KeyRound,
+  Copy,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -183,7 +186,53 @@ export function UserEditModal({
   const [loadingModules, setLoadingModules] = useState<string | null>(null);
   const [neohubUserId, setNeohubUserId] = useState<string | null>(null);
 
-  // Reset form when user changes
+  // Password reset state
+  const [newPassword, setNewPassword] = useState('');
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+
+  const handleSetPassword = async () => {
+    if (!user || !newPassword || newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    setIsResettingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-user-password', {
+        body: { target_user_id: user.user_id, new_password: newPassword },
+      });
+      if (error) throw error;
+      toast.success('Senha alterada com sucesso!');
+      setNewPassword('');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao alterar senha');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const handleGenerateRandomPassword = async () => {
+    if (!user) return;
+    setIsResettingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-user-password', {
+        body: { target_user_id: user.user_id, generate_random: true },
+      });
+      if (error) throw error;
+      const pwd = data?.generated_password;
+      setGeneratedPassword(pwd);
+      toast.success('Senha gerada com sucesso! Copie e envie ao usuário.');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao gerar senha');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Senha copiada!');
+  };
   useEffect(() => {
     if (user) {
       setFormData({
@@ -200,6 +249,8 @@ export function UserEditModal({
       setIsActive(user.is_active ?? true);
       setExpandedPortal(null);
       setPortalModulePerms({});
+      setNewPassword('');
+      setGeneratedPassword(null);
     }
   }, [user]);
 
@@ -684,6 +735,66 @@ export function UserEditModal({
                     onChange={(e) => setFormData(prev => ({ ...prev, rqe: e.target.value }))}
                     placeholder="RQE da especialidade"
                   />
+                </div>
+              </div>
+
+              <Separator className="my-4" />
+
+              {/* Password Management */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <KeyRound className="h-4 w-4 text-muted-foreground" />
+                  Gerenciamento de Senha
+                </Label>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Manual password */}
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Nova senha (mín. 6 caracteres)"
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSetPassword}
+                      disabled={isResettingPassword || newPassword.length < 6}
+                      className="whitespace-nowrap"
+                    >
+                      {isResettingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4 mr-1" />}
+                      Definir Senha
+                    </Button>
+                  </div>
+
+                  {/* Generate random */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateRandomPassword}
+                      disabled={isResettingPassword}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Gerar Senha Aleatória
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Gera e aplica uma senha aleatória segura
+                    </p>
+                  </div>
+
+                  {/* Show generated password */}
+                  {generatedPassword && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted border">
+                      <code className="text-sm font-mono flex-1 select-all">{generatedPassword}</code>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyToClipboard(generatedPassword)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>
