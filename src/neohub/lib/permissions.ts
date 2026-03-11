@@ -61,7 +61,6 @@ export const PORTAL_NAMES: Record<Portal, string> = {
   hotleads: 'HotLeads',
   vision: 'Vision',
   neopay: 'NeoPay',
-  neorh: 'NeoRH',
 };
 
 // Ícones dos perfis (lucide-react)
