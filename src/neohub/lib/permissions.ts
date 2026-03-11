@@ -12,13 +12,13 @@ export type NeoHubProfile =
   | 'cliente_avivar'
   | 'ipromed';
 
-export type Portal = 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay' | 'neorh';
+export type Portal = 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads' | 'vision' | 'neopay';
 
 // Mapeamento de perfis para portais
 export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
-  administrador: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay', 'neorh'],
+  administrador: ['neocare', 'neoteam', 'neoacademy', 'neolicense', 'avivar', 'ipromed', 'vision', 'neopay'],
   licenciado: ['neolicense', 'hotleads'],
-  colaborador: ['neoteam', 'neorh'],
+  colaborador: ['neoteam'],
   medico: ['neoteam'],
   aluno: ['neoacademy'],
   paciente: ['neocare', 'vision'],
@@ -61,7 +61,6 @@ export const PORTAL_NAMES: Record<Portal, string> = {
   hotleads: 'HotLeads',
   vision: 'Vision',
   neopay: 'NeoPay',
-  neorh: 'NeoRH',
 };
 
 // Ícones dos perfis (lucide-react)
@@ -120,7 +119,7 @@ export function getPortalFromRoute(route: string): Portal | null {
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/avivar')) return 'avivar';
   if (route.startsWith('/cpg')) return 'ipromed';
-  if (route.startsWith('/neorh')) return 'neorh';
+  if (route.startsWith('/neorh')) return 'neoteam'; // legacy redirect
   return null;
 }
 
@@ -215,12 +214,6 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neopay_automations', name: 'Automações', route: '/neopay/automations', icon: 'Zap' },
     { code: 'neopay_settings', name: 'Configurações', route: '/neopay/settings', icon: 'Settings' },
     { code: 'neopay_reports', name: 'Relatórios', route: '/neopay/reports', icon: 'FileBarChart' },
-  ],
-  neorh: [
-    { code: 'neorh_dashboard', name: 'Dashboard', route: '/neorh', icon: 'Home' },
-    { code: 'neorh_colaboradores', name: 'Colaboradores', route: '/neorh/colaboradores', icon: 'Users' },
-    { code: 'neorh_cargos', name: 'Cargos', route: '/neorh/cargos', icon: 'Briefcase' },
-    { code: 'neorh_vagas', name: 'Vagas', route: '/neorh/vagas', icon: 'ClipboardList' },
   ],
 };
 

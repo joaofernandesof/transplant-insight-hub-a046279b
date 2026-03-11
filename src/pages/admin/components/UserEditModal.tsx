@@ -90,7 +90,7 @@ const PORTAL_CONFIG: Record<string, { name: string; icon: any; color: string }> 
   'neolicense': { name: 'NeoLicense', icon: Building2, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
   'avivar': { name: 'Avivar', icon: TrendingUp, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300' },
   'ipromed': { name: 'CPG Advocacia', icon: Scale, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
-  'neorh': { name: 'NeoRH', icon: Users, color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' },
+  
   'neopay': { name: 'NeoPay', icon: CreditCard, color: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' },
   'vision': { name: 'Vision', icon: Eye, color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300' },
   'hotleads': { name: 'HotLeads', icon: TrendingUp, color: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' },

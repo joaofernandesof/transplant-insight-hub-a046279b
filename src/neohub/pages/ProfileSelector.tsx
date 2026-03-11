@@ -127,16 +127,6 @@ const SYSTEM_MODULES: SystemModule[] = [
     requiredProfiles: ['ipromed', 'administrador'],
   },
   {
-    key: 'neorh',
-    name: 'NeoRH',
-    description: 'Gestão de Recursos Humanos',
-    icon: Users,
-    route: '/neorh',
-    color: 'bg-indigo-500',
-    portalKey: 'neorh',
-    requiredProfiles: ['colaborador', 'administrador'],
-  },
-  {
     key: 'vision',
     name: 'Vision',
     description: 'Análise capilar com IA',

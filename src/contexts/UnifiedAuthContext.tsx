@@ -159,7 +159,7 @@ const ROUTE_PROFILE_MAP: Record<string, ProfileKey[]> = {
   '/neohair': ['operador', 'gerente', 'administrador', 'super_administrador'],
   '/vision': ['operador', 'gerente', 'administrador', 'super_administrador'],
   '/flow': ['operador', 'coordenador', 'supervisor', 'gerente', 'administrador', 'super_administrador'],
-  '/neorh': ['operador', 'gerente', 'coordenador', 'administrador', 'super_administrador'],
+  
 };
 
 export const canAccessRoute = (profile: ProfileKey | null, route: string): boolean => {
