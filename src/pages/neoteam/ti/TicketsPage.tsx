@@ -484,7 +484,35 @@ export default function TicketsPage() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{format(parseISO(t.created_at), "dd/MM HH:mm")}</TableCell>
+                    <TableCell>
+                      {isTicketAdmin ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
+                              <CalendarIcon className="h-3 w-3 mr-1" />
+                              {t.due_date ? format(parseISO(t.due_date), "dd/MM/yyyy") : format(parseISO(t.created_at), "dd/MM HH:mm")}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={t.due_date ? parseISO(t.due_date) : undefined}
+                              onSelect={(date) => {
+                                if (date) {
+                                  updateTicketField.mutate({ id: t.id, field: "due_date", value: format(date, "yyyy-MM-dd") });
+                                }
+                              }}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          {t.due_date ? format(parseISO(t.due_date), "dd/MM/yyyy") : format(parseISO(t.created_at), "dd/MM HH:mm")}
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {isTicketAdmin ? (
                         <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
