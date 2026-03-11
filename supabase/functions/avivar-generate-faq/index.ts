@@ -475,6 +475,7 @@ Retorne APENAS um JSON válido no seguinte formato, sem texto adicional:
       const _estCost = (_logTokensIn / 1e6) * cIn + (_logTokensOut / 1e6) * cOut;
       const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       _sb.from("edge_function_logs").insert({ function_name: "avivar-generate-faq", execution_time_ms: Date.now() - _logStart, status: _logStatus, tokens_input: _logTokensIn, tokens_output: _logTokensOut, model_used: _logModel || null, estimated_cost_usd: _estCost, error_message: _logError || null }).then(() => {});
+      _sb.from("ai_usage_logs").insert({ portal: "Avivar", module: "FAQ Generator", action: "generate_faq", edge_function: "avivar-generate-faq", ai_model: _logModel || null, input_tokens: _logTokensIn, output_tokens: _logTokensOut, total_tokens: _logTokensIn + _logTokensOut, estimated_cost_usd: _estCost, processing_time_ms: Date.now() - _logStart, status: _logStatus, error_message: _logError || null }).then(() => {});
     } catch {}
   }
 });

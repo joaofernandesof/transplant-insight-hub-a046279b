@@ -315,6 +315,7 @@ STYLE TO APPLY: "${selectedStyle}"
       const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
       const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       _sb.from("edge_function_logs").insert({ function_name: "hair-scan-analysis", execution_time_ms: Date.now() - _logStart, status: _logStatus, model_used: _logModel || null, estimated_cost_usd: 0, error_message: _logError || null }).then(() => {});
+      _sb.from("ai_usage_logs").insert({ portal: "Vision", module: "Hair Scan", action: "scan_analysis", edge_function: "hair-scan-analysis", ai_model: _logModel || null, processing_time_ms: Date.now() - _logStart, status: _logStatus, error_message: _logError || null }).then(() => {});
     } catch {}
   }
 });
