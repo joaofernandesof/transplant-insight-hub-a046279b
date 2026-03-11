@@ -331,6 +331,29 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                 field="companionPhone"
                 onSave={handleFieldSave}
               />
+              {/* Almoço */}
+              <div className="col-span-2">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                  🍽️ Almoço
+                </Label>
+                <Select
+                  value={surgery.lunchChoice || ''}
+                  onValueChange={(value) => handleFieldSave('lunchChoice', value === 'none' ? null : value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecionar almoço" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Não definido</SelectItem>
+                    <SelectItem value="NORMAL">Normal</SelectItem>
+                    <SelectItem value="VEGETARIANO">Vegetariano</SelectItem>
+                    <SelectItem value="VEGANO">Vegano</SelectItem>
+                    <SelectItem value="SEM GLÚTEN">Sem Glúten</SelectItem>
+                    <SelectItem value="LOW CARB">Low Carb</SelectItem>
+                    <SelectItem value="OUTRO">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Separator />
