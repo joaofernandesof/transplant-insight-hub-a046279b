@@ -331,7 +331,7 @@ export default function TicketsPage() {
           </SelectContent>
         </Select>
 
-        {isAdmin && (
+        {isTicketAdmin && (
           <Select value={assignedFilter} onValueChange={setAssignedFilter}>
             <SelectTrigger className="w-[180px] h-9 text-sm">
               <SelectValue placeholder="Responsável" />
