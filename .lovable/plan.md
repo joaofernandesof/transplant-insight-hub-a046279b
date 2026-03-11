@@ -1,85 +1,48 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+## Plan: Ticket Assignment + Notifications for TI Team
 
-### Resumo
+### Current State
+The `neoteam_tickets` table already has `assigned_to` (uuid) and `assigned_name` (text) columns — they're just not used in the UI.
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+### Changes
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+**1. Add "Assumir" button and "Responsável" column to the tickets table** (`src/pages/neoteam/ti/TicketsPage.tsx`)
 
----
+- New table column **"Responsável"** showing the assigned person's name (or "—" if unassigned)
+- **"Assumir" button** on each unassigned ticket row — clicking it sets `assigned_to = current user id` and `assigned_name = current user name`, plus changes status to `in_progress`
+- If already assigned to the current user, show a "Liberar" (release) button to unassign
+- If assigned to someone else, show their name (no action)
 
-### 1. Nova tabela: `surgery_agenda_availability`
+**2. Realtime notifications for new tickets** (`src/pages/neoteam/ti/TicketsPage.tsx`)
+
+- Subscribe to `postgres_changes` on `neoteam_tickets` table for `INSERT` events
+- When a new ticket arrives, show a toast notification with the ticket title and a sound cue
+- Auto-refresh the tickets list
+
+**3. Enable realtime on the table** (migration)
 
 ```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
-
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
+ALTER PUBLICATION supabase_realtime ADD TABLE public.neoteam_tickets;
 ```
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+**4. Visual indicators**
 
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+- Unassigned tickets get a subtle highlight (e.g., left border orange)
+- Assigned tickets show the responsible person's name with an avatar initial badge
 
-### 3. Visualização de Disponibilidade (todos os usuários)
+### UI Flow
 
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
+```text
+┌──────────┬────────────┬───────┬───────────┬────────────┬──────┬──────────┬──────────┐
+│ Nº       │ Título     │ Prior │ Solic.    │ Responsável│ 📎   │ Data     │ Status   │
+├──────────┼────────────┼───────┼───────────┼────────────┼──────┼──────────┼──────────┤
+│ TI-ABC   │ PC lento   │ Alta  │ João      │ [Assumir]  │ 2    │ 11/03    │ Aberto   │
+│ TI-DEF   │ Email      │ Média │ Maria     │ Nicholas ✓ │ —    │ 10/03    │ Em And.  │
+└──────────┴────────────┴───────┴───────────┴────────────┴──────┴──────────┴──────────┘
 ```
 
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+### Files Modified
+- `src/pages/neoteam/ti/TicketsPage.tsx` — add Responsável column, Assumir/Liberar logic, realtime subscription
+- New migration — enable realtime on `neoteam_tickets`
 
