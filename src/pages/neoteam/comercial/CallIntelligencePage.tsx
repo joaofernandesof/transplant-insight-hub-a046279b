@@ -58,7 +58,7 @@ export default function CallIntelligencePage() {
   }
 
   return (
-    <div className="p-4 lg:p-6 pt-14 lg:pt-6 space-y-6">
+    <div className="flex flex-col h-[calc(100vh-3rem)] p-4 lg:p-6 pt-14 lg:pt-6 overflow-hidden">
       <NeoTeamBreadcrumb />
 
       <div className="flex items-center gap-3">
