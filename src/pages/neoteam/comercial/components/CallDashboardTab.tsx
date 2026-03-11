@@ -7,8 +7,9 @@ import {
   PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMemo, useState } from 'react';
-import { format, parseISO, startOfWeek, startOfMonth, eachDayOfInterval, eachWeekOfInterval, subDays } from 'date-fns';
+import { format, parseISO, startOfWeek, startOfMonth, eachDayOfInterval, eachWeekOfInterval, subDays, subWeeks, subMonths, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface Props {
