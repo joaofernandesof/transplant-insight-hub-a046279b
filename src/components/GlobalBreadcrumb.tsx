@@ -92,6 +92,7 @@ const routeLabels: Record<string, string> = {
   '/system-metrics': 'Métricas do Sistema',
   '/admin/sentinel': 'System Sentinel',
   '/admin/event-logs': 'Log de Eventos',
+  '/admin/ai-usage': 'Uso de IA',
   '/weekly-reports': 'Relatórios Semanais',
   '/comparison': 'Comparar Clínicas',
   '/access-matrix': 'Matriz de Acessos',
