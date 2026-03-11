@@ -377,7 +377,7 @@ export default function TicketsPage() {
                 <TableHead>Solicitante</TableHead>
                 <TableHead>Responsável</TableHead>
                 <TableHead>Anexos</TableHead>
-                <TableHead>Data</TableHead>
+                <TableHead>Prazo</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
