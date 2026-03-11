@@ -282,7 +282,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     if (categorizedMenu) {
       let filtered = categorizedMenu.map(category => ({
         ...category,
-        items: filterMenuByPermissions(category.items, hasPermission, isAdmin),
+        items: filterMenuByPermissions(category.items, hasPermission, effectiveIsAdmin),
       })).filter(category => category.items.length > 0);
 
       // If inside a sector, show only that sector's items + home
