@@ -32,7 +32,7 @@ import { PROFILE_ROUTES, getDefaultRouteForProfile } from "@/neohub/lib/permissi
 import { MobileAppWrapper } from "@/components/MobileAppWrapper";
 import { useMobileEnvironment } from "@/hooks/useMobileEnvironment";
 import { Loader2 } from "lucide-react";
-import { NeoRHBanner } from "@/neohub/components/NeoRHBanner";
+// NeoRH merged into NeoTeam RH sector
 
 // ====================================
 // Pages - Públicas
@@ -556,6 +556,18 @@ function NeoTeamRoutes() {
           {/* ===== SETOR RH ===== */}
           <Route path="rh/equipe" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><TeamRosterPage /></Suspense>} />
           <Route path="rh/cargos" element={<NeoTeamStaffRoles />} />
+          <Route path="rh/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHDashboard')))}</Suspense>} />
+          <Route path="rh/colaboradores" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHColaboradores')))}</Suspense>} />
+          <Route path="rh/cargos-rh" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHCargos')))}</Suspense>} />
+          <Route path="rh/vagas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHVagas')))}</Suspense>} />
+          <Route path="rh/job-description" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHJobDescription')))}</Suspense>} />
+          <Route path="rh/performance" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceDashboard')))}</Suspense>} />
+          <Route path="rh/performance/cycles" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceCycles')))}</Suspense>} />
+          <Route path="rh/performance/evaluations" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceEvaluations')))}</Suspense>} />
+          <Route path="rh/performance/ranking" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceRanking')))}</Suspense>} />
+          <Route path="rh/performance/kpis" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceKPIs')))}</Suspense>} />
+          <Route path="rh/performance/pdi" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformancePDI')))}</Suspense>} />
+          <Route path="rh/performance/talent-score" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceTalentScore')))}</Suspense>} />
 
           {/* ===== SETOR COMPRAS ===== */}
           <Route path="compras/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
@@ -615,46 +627,7 @@ function NeoTeamRoutes() {
   );
 }
 
-// ====================================
-// NeoRH Routes (Portal de RH)
-// ====================================
-function NeoRHRoutes() {
-  const NeoRHDashboard = lazy(() => import('@/neohub/pages/neorh/NeoRHDashboard'));
-  const NeoRHColaboradores = lazy(() => import('@/neohub/pages/neorh/NeoRHColaboradores'));
-  const NeoRHCargos = lazy(() => import('@/neohub/pages/neorh/NeoRHCargos'));
-  const NeoRHVagas = lazy(() => import('@/neohub/pages/neorh/NeoRHVagas'));
-  const NeoRHJobDescription = lazy(() => import('@/neohub/pages/neorh/NeoRHJobDescription'));
-  const PerformanceDashboard = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceDashboard'));
-  const PerformanceCycles = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceCycles'));
-  const PerformanceEvaluations = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceEvaluations'));
-  const PerformanceRanking = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceRanking'));
-  const PerformanceKPIs = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceKPIs'));
-  const PerformancePDI = lazy(() => import('@/neohub/pages/neorh/performance/PerformancePDI'));
-  const PerformanceTalentScore = lazy(() => import('@/neohub/pages/neorh/performance/PerformanceTalentScore'));
-
-  return (
-    <ProfileGuard allowedProfiles={['operador', 'administrador']}>
-      <UnifiedSidebar>
-        <NeoRHBanner />
-        <Routes>
-          <Route index element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHDashboard /></Suspense>} />
-          <Route path="colaboradores" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHColaboradores /></Suspense>} />
-          <Route path="cargos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHCargos /></Suspense>} />
-          <Route path="vagas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHVagas /></Suspense>} />
-          <Route path="job-description" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoRHJobDescription /></Suspense>} />
-          <Route path="performance" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceDashboard /></Suspense>} />
-          <Route path="performance/cycles" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceCycles /></Suspense>} />
-          <Route path="performance/evaluations" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceEvaluations /></Suspense>} />
-          <Route path="performance/ranking" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceRanking /></Suspense>} />
-          <Route path="performance/kpis" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceKPIs /></Suspense>} />
-          <Route path="performance/pdi" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformancePDI /></Suspense>} />
-          <Route path="performance/talent-score" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><PerformanceTalentScore /></Suspense>} />
-          <Route path="*" element={<Navigate to="/neorh" replace />} />
-        </Routes>
-      </UnifiedSidebar>
-    </ProfileGuard>
-  );
-}
+// NeoRH portal removed — all routes merged into NeoTeam RH sector (/neoteam/rh/*)
 
 import {
   AcademyHome, 
@@ -954,7 +927,20 @@ function AppRoutes() {
       <Route path="/hotleads/*" element={<ProtectedRoute><HotLeadsRoutes /></ProtectedRoute>} />
       <Route path="/avivar/*" element={<ProtectedRoute><AvivarRoutes /></ProtectedRoute>} />
       <Route path="/neoacademy/*" element={<ProtectedRoute><NeoAcademyRoutes /></ProtectedRoute>} />
-      <Route path="/neorh/*" element={<ProtectedRoute><NeoRHRoutes /></ProtectedRoute>} />
+      {/* NeoRH legacy redirects → NeoTeam RH */}
+      <Route path="/neorh" element={<Navigate to="/neoteam/rh/dashboard" replace />} />
+      <Route path="/neorh/colaboradores" element={<Navigate to="/neoteam/rh/colaboradores" replace />} />
+      <Route path="/neorh/cargos" element={<Navigate to="/neoteam/rh/cargos-rh" replace />} />
+      <Route path="/neorh/vagas" element={<Navigate to="/neoteam/rh/vagas" replace />} />
+      <Route path="/neorh/job-description" element={<Navigate to="/neoteam/rh/job-description" replace />} />
+      <Route path="/neorh/performance" element={<Navigate to="/neoteam/rh/performance" replace />} />
+      <Route path="/neorh/performance/cycles" element={<Navigate to="/neoteam/rh/performance/cycles" replace />} />
+      <Route path="/neorh/performance/evaluations" element={<Navigate to="/neoteam/rh/performance/evaluations" replace />} />
+      <Route path="/neorh/performance/ranking" element={<Navigate to="/neoteam/rh/performance/ranking" replace />} />
+      <Route path="/neorh/performance/kpis" element={<Navigate to="/neoteam/rh/performance/kpis" replace />} />
+      <Route path="/neorh/performance/pdi" element={<Navigate to="/neoteam/rh/performance/pdi" replace />} />
+      <Route path="/neorh/performance/talent-score" element={<Navigate to="/neoteam/rh/performance/talent-score" replace />} />
+      <Route path="/neorh/*" element={<Navigate to="/neoteam/rh/dashboard" replace />} />
 
       {/* ====================================
           Rotas Legadas - Redirects para Portais
