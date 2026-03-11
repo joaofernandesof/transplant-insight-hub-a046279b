@@ -139,6 +139,14 @@ serve(async (req) => {
         fullTranscript = sentences.map((s: any) => `${s.speaker_name}: ${s.text}`).join('\n');
       }
 
+      // Check content-based duplicate
+      const leadName = transcript.title.replace('Reunião com ', '').trim();
+      const contentKey = `${leadName.toLowerCase()}::${fullTranscript.trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ')}`;
+      if (existingContentKeys.has(contentKey)) {
+        skipped++;
+        continue;
+      }
+
       // Build a rich resumo from the summary
       const summary = transcript.summary || {};
       let resumo = '';
