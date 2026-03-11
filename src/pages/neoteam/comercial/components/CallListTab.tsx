@@ -264,8 +264,8 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex flex-col h-full">
+      <div className="sticky top-0 z-20 bg-background pb-4 flex items-center gap-3 flex-wrap">
         <div className="relative max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
