@@ -78,7 +78,8 @@ function useNewTicketSound() {
 }
 
 export default function TicketsPage() {
-  const { user, isAdmin } = useUnifiedAuth();
+  const { user, isAdmin, isSuperAdmin } = useUnifiedAuth();
+  const isTicketAdmin = isAdmin || isSuperAdmin || user?.profiles?.includes('administrador');
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -295,7 +296,7 @@ export default function TicketsPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader><DialogTitle>Abrir Chamado</DialogTitle></DialogHeader>
-            <TicketForm onSubmit={(f: any) => createTicket.mutate(f)} loading={createTicket.isPending} isAdmin={isAdmin} />
+            <TicketForm onSubmit={(f: any) => createTicket.mutate(f)} loading={createTicket.isPending} isAdmin={isTicketAdmin} />
           </DialogContent>
         </Dialog>
       </div>
@@ -330,7 +331,7 @@ export default function TicketsPage() {
           </SelectContent>
         </Select>
 
-        {isAdmin && (
+        {isTicketAdmin && (
           <Select value={assignedFilter} onValueChange={setAssignedFilter}>
             <SelectTrigger className="w-[180px] h-9 text-sm">
               <SelectValue placeholder="Responsável" />
@@ -384,7 +385,7 @@ export default function TicketsPage() {
                     <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{t.priority}</Badge></TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
                     <TableCell>
-                      {isAdmin ? (
+                      {isTicketAdmin ? (
                         isUnassigned ? (
                           <Button
                             size="sm"
@@ -452,7 +453,7 @@ export default function TicketsPage() {
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{format(parseISO(t.created_at), "dd/MM HH:mm")}</TableCell>
                     <TableCell>
-                      {isAdmin ? (
+                      {isTicketAdmin ? (
                         <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
                           <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
                           <SelectContent>
