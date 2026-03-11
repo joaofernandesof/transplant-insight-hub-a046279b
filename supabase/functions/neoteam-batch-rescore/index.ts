@@ -22,7 +22,8 @@ serve(async (req) => {
       if (authErr || !user) throw new Error("Usuário não autenticado");
     }
 
-    const { account_id, call_ids } = await req.json();
+    const { account_id, call_ids, limit: batchLimit } = await req.json();
+    const maxBatch = batchLimit || 3;
     if (!account_id) throw new Error("account_id obrigatório");
 
     // Get calls that need rescoring
