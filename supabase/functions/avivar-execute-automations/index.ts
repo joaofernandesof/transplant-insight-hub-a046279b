@@ -47,7 +47,7 @@ function replaceVariables(
     // Fetch lead data
     const { data: lead } = await supabase
       .from("avivar_kanban_leads")
-      .select("id, name, phone, email, kanban_id, column_id, account_id, contact_id, notes, tags, custom_fields")
+      .select("id, name, phone, email, kanban_id, column_id, account_id, contact_id, notes, tags, custom_fields, responsible_id")
       .eq("id", lead_id)
       .single();
 
