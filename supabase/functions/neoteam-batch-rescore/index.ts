@@ -31,7 +31,8 @@ serve(async (req) => {
       .from("call_analysis")
       .select("id, call_id")
       .eq("account_id", account_id)
-      .is("closer_primeiro_impacto", null);
+      .is("closer_primeiro_impacto", null)
+      .limit(maxBatch);
 
     if (call_ids?.length) {
       query = query.in("call_id", call_ids);
