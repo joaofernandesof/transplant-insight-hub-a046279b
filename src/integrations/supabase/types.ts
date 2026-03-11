@@ -17011,6 +17011,44 @@ export type Database = {
           },
         ]
       }
+      neoteam_ticket_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoteam_tickets: {
         Row: {
           assigned_name: string | null
