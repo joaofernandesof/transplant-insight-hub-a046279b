@@ -3,21 +3,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { Loader2, UserPlus, Eye, EyeOff, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-const PROFILES = [
-  { value: 'administrador', label: 'Administrador' },
-  { value: 'licenciado', label: 'Licenciado' },
-  { value: 'colaborador', label: 'Colaborador' },
-  { value: 'aluno', label: 'Aluno' },
-  { value: 'medico', label: 'Médico' },
-  { value: 'paciente', label: 'Paciente' },
-  { value: 'cliente_avivar', label: 'Cliente Avivar' },
-  { value: 'ipromed', label: 'CPG Advocacia' },
-];
 
 interface AddUserDialogProps {
   open: boolean;
@@ -35,20 +23,10 @@ export function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogPr
     phone: '',
     cpf: '',
   });
-  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
 
   const resetForm = () => {
     setForm({ full_name: '', email: '', password: '', phone: '', cpf: '' });
-    setSelectedProfiles([]);
     setShowPassword(false);
-  };
-
-  const toggleProfile = (profile: string) => {
-    setSelectedProfiles(prev =>
-      prev.includes(profile)
-        ? prev.filter(p => p !== profile)
-        : [...prev, profile]
-    );
   };
 
   const handleSubmit = async () => {
@@ -71,7 +49,7 @@ export function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogPr
           full_name: form.full_name,
           phone: form.phone || null,
           cpf: form.cpf || null,
-          profiles: selectedProfiles,
+          profiles: [],
           allowed_portals: [],
         },
       });
@@ -181,22 +159,11 @@ export function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogPr
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Perfis de Acesso</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {PROFILES.map(p => (
-                <div key={p.value} className="flex items-center gap-2">
-                  <Checkbox
-                    id={`profile-${p.value}`}
-                    checked={selectedProfiles.includes(p.value)}
-                    onCheckedChange={() => toggleProfile(p.value)}
-                  />
-                  <Label htmlFor={`profile-${p.value}`} className="text-sm cursor-pointer">
-                    {p.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+            <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Após criar o usuário, configure os acessos por portal na aba de edição do usuário.
+            </p>
           </div>
         </div>
 
