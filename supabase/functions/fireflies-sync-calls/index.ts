@@ -155,8 +155,7 @@ serve(async (req) => {
       if (summary.action_items) resumo += `## Action Items\n${summary.action_items}\n\n`;
       if (summary.keywords?.length) resumo += `## Keywords\n${summary.keywords.join(', ')}\n`;
 
-      // Extract lead name from title "Reunião com ..."
-      const leadName = transcript.title.replace('Reunião com ', '').trim();
+      // leadName already extracted above
       
       // Parse date
       const callDate = transcript.date ? new Date(transcript.date).toISOString() : new Date().toISOString();
