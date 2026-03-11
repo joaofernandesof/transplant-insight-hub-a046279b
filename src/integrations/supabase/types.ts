@@ -10812,6 +10812,7 @@ export type Database = {
           amount: number
           approved_at: string | null
           approved_by: string | null
+          attachment_urls: string[] | null
           attachments: Json | null
           bank_data: string | null
           category: string
@@ -10819,6 +10820,7 @@ export type Database = {
           created_at: string
           description: string
           due_date: string
+          financial_account: string | null
           id: string
           is_urgent: boolean
           notes: string | null
@@ -10840,6 +10842,7 @@ export type Database = {
           amount: number
           approved_at?: string | null
           approved_by?: string | null
+          attachment_urls?: string[] | null
           attachments?: Json | null
           bank_data?: string | null
           category?: string
@@ -10847,6 +10850,7 @@ export type Database = {
           created_at?: string
           description: string
           due_date: string
+          financial_account?: string | null
           id?: string
           is_urgent?: boolean
           notes?: string | null
@@ -10868,6 +10872,7 @@ export type Database = {
           amount?: number
           approved_at?: string | null
           approved_by?: string | null
+          attachment_urls?: string[] | null
           attachments?: Json | null
           bank_data?: string | null
           category?: string
@@ -10875,6 +10880,7 @@ export type Database = {
           created_at?: string
           description?: string
           due_date?: string
+          financial_account?: string | null
           id?: string
           is_urgent?: boolean
           notes?: string | null
