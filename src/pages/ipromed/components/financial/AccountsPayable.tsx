@@ -479,8 +479,6 @@ export default function AccountsPayable() {
               </TableHeader>
               <TableBody>
                 {filteredPayables.map(payable => {
-                  const status = statusConfig[payable.status];
-                  const StatusIcon = status.icon;
                   const category = categories.find(c => c.value === payable.category);
                   const isMock = payable.id.startsWith('mock-');
                   
