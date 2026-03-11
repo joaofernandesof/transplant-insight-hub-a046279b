@@ -33,7 +33,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { addDays } from "date-fns";
-import { usePayables, PayableInsert } from "@/pages/ipromed/hooks/usePayables";
+import { usePayables } from "@/pages/ipromed/hooks/usePayables";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -65,6 +65,24 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<{ name: string; url: string }[]>([]);
 
+  const [form, setForm] = useState({
+    description: '',
+    supplier: '',
+    amount: '',
+    due_date: addDays(new Date(), 30).toISOString().split('T')[0],
+    category: '',
+    cost_center: '',
+    financial_account: '',
+    payment_method: '',
+    bank_data: '',
+    notes: '',
+    is_urgent: false,
+    requester_name: user?.fullName || '',
+    requester_department: '',
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   // Conta Azul data
   const { data: categorias, isLoading: loadingCategorias, refetch: refetchCategorias } = useContaAzulCategorias();
   const { data: centrosCusto, isLoading: loadingCentros, refetch: refetchCentros } = useContaAzulCentrosDeCusto();
@@ -84,24 +102,6 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
       </Card>
     );
   }
-
-  const [form, setForm] = useState({
-    description: '',
-    supplier: '',
-    amount: '',
-    due_date: addDays(new Date(), 30).toISOString().split('T')[0],
-    category: '',
-    cost_center: '',
-    financial_account: '',
-    payment_method: '',
-    bank_data: '',
-    notes: '',
-    is_urgent: false,
-    requester_name: user.fullName || '',
-    requester_department: '',
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -123,7 +123,6 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
 
     try {
       for (const file of Array.from(files)) {
-        const ext = file.name.split('.').pop();
         const path = `${user.authUserId}/${Date.now()}-${file.name}`;
 
         const { error } = await supabase.storage
@@ -134,10 +133,6 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
           toast.error(`Erro ao anexar ${file.name}: ${error.message}`);
           continue;
         }
-
-        const { data: urlData } = supabase.storage
-          .from('payment-attachments')
-          .getPublicUrl(path);
 
         uploaded.push({ name: file.name, url: path });
       }
@@ -281,7 +276,7 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Label htmlFor="urgent-toggle" className="text-sm font-medium text-rose-600">
+            <Label htmlFor="urgent-toggle" className="text-sm font-medium text-destructive">
               Urgente
             </Label>
             <Switch
@@ -292,9 +287,9 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
           </div>
         </div>
         {form.is_urgent && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-rose-50 border border-rose-200 mt-2">
-            <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
-            <p className="text-xs text-rose-700">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 mt-2">
+            <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+            <p className="text-xs text-destructive">
               Pagamentos urgentes seguem fluxo acelerado com aprovação via diretoria.
             </p>
           </div>
@@ -501,7 +496,7 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
             onClick={handleSubmit}
             disabled={isCreating}
             size="lg"
-            className={form.is_urgent ? 'bg-rose-600 hover:bg-rose-700' : ''}
+            className={form.is_urgent ? 'bg-destructive hover:bg-destructive/90' : ''}
           >
             {isCreating ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
