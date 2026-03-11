@@ -18,6 +18,7 @@ import {
   BookOpen,
   Megaphone,
   ShoppingBag,
+  ShoppingCart,
   Handshake,
   Briefcase,
   DollarSign,
@@ -67,6 +68,7 @@ import {
   Target,
   Link2,
   Phone,
+  HardHat,
 } from 'lucide-react';
 
 // Tipos base
@@ -293,7 +295,6 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_tasks', code: 'neoteam_tasks', title: 'Tarefas', icon: ListTodo, route: '/neoteam/tasks' },
       { id: 'neoteam_cleaning', code: 'neoteam_cleaning', title: 'Limpeza', icon: Sparkles, route: '/neoteam/limpeza' },
       { id: 'neoteam_inventory', code: 'neoteam_inventory', title: 'Inventário', icon: Package, route: '/neoteam/inventory' },
-      { id: 'neoteam_assets', code: 'neoteam_assets', title: 'Controle Patrimonial', icon: Landmark, route: '/neoteam/assets' },
       { id: 'neoteam_diary', code: 'neoteam_diary', title: 'Diário de Bordo', icon: NotebookPen, route: '/neoteam/diario' },
     ],
   },
@@ -374,6 +375,27 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_team_roster', code: 'neoteam_team_roster', title: 'Equipe', icon: Users, route: '/neoteam/equipe', adminOnly: true },
       { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/staff-roles', adminOnly: true },
       { id: 'neoteam_performance', code: 'neoteam_performance', title: 'Gestão de Performance', icon: TrendingUp, route: '/neorh/performance', adminOnly: true },
+    ],
+  },
+  {
+    id: 'setor_compras',
+    title: 'Setor de Compras',
+    icon: ShoppingCart,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_compras_dashboard', code: 'neoteam_compras_dashboard', title: 'Dashboard Compras', icon: ShoppingCart, route: '/neoteam/compras' },
+    ],
+  },
+  {
+    id: 'setor_manutencao',
+    title: 'Setor de Manutenção',
+    icon: HardHat,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_assets', code: 'neoteam_assets', title: 'Controle Patrimonial', icon: Landmark, route: '/neoteam/assets' },
+      { id: 'neoteam_manutencao_dashboard', code: 'neoteam_manutencao_dashboard', title: 'Ordens de Manutenção', icon: Wrench, route: '/neoteam/manutencao' },
     ],
   },
   {

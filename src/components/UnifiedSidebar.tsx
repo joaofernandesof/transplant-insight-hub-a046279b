@@ -273,6 +273,8 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     ti: 'setor_ti',
     rh: 'setor_rh',
     administracao: 'setor_admin',
+    compras: 'setor_compras',
+    manutencao: 'setor_manutencao',
   };
 
   // Group menu items by category - use categorized menu if available
