@@ -49,7 +49,7 @@ export function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogPr
           full_name: form.full_name,
           phone: form.phone || null,
           cpf: form.cpf || null,
-          profiles: selectedProfiles,
+          profiles: [],
           allowed_portals: [],
         },
       });
