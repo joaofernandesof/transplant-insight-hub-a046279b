@@ -212,6 +212,7 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
     
     // Calculate BANT total
     analysis.bant_total = (analysis.bant_budget || 0) + (analysis.bant_authority || 0) + (analysis.bant_need || 0) + (analysis.bant_timeline || 0);
+    analysis.closer_score_total = (analysis.closer_primeiro_impacto || 0) + (analysis.closer_exploracao_spin || 0) + (analysis.closer_conexao_emocional || 0) + (analysis.closer_clareza_pitch || 0) + (analysis.closer_gatilhos_mentais || 0) + (analysis.closer_gestao_fala || 0) + (analysis.closer_fechamento || 0);
 
     // Save to database if call_id provided
     if (call_id && account_id) {
