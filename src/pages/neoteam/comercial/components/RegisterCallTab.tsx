@@ -46,6 +46,7 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
     setSaving(true);
     const result = await onSubmit({
       ...form,
+      closer_name: effectiveCloserName,
       data_call: new Date(form.data_call).toISOString(),
     });
     setSaving(false);
