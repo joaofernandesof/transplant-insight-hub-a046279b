@@ -129,14 +129,32 @@ serve(async (req) => {
       });
     }
 
-    // Fire-and-forget: log execution
+    // Fire-and-forget: log AI usage
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     const logClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    logClient.from("edge_function_logs").insert({
-      function_name: "code-assistant-chat",
-      execution_time_ms: Date.now() - _logStart,
+
+    // Get user from auth header
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+    try {
+      const auth = req.headers.get("authorization");
+      if (auth) {
+        const { data: { user } } = await logClient.auth.getUser(auth.replace("Bearer ", ""));
+        userId = user?.id || null;
+        userEmail = user?.email || null;
+      }
+    } catch {}
+
+    logClient.from("ai_usage_logs").insert({
+      user_id: userId,
+      user_email: userEmail,
+      portal: "Admin",
+      module: "Code Assistant",
+      action: "chat_stream",
+      edge_function: "code-assistant-chat",
+      ai_model: "google/gemini-3-flash-preview",
+      processing_time_ms: Date.now() - _logStart,
       status: "success",
-      model_used: "google/gemini-3-flash-preview",
     }).then(() => {}).catch(() => {});
 
     return new Response(response.body, {
