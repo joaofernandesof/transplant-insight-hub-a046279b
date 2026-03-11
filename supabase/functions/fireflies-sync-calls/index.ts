@@ -160,8 +160,15 @@ serve(async (req) => {
         fullTranscript = sentences.map((s: any) => `${s.speaker_name}: ${s.text}`).join('\n');
       }
 
-      // Check content-based duplicate
-      const leadName = transcript.title.replace('Reunião com ', '').trim();
+      // Extract lead name - try removing common prefixes
+      let leadName = transcript.title;
+      const prefixes = ['Reunião com ', 'REUNIÃO COM ', 'Reunião com Dr. ', 'Reunião com Dr(a). ', 'Reunião com Dra. '];
+      for (const prefix of prefixes) {
+        if (leadName.startsWith(prefix)) {
+          leadName = leadName.slice(prefix.length).trim();
+          break;
+        }
+      }
       const contentKey = `${leadName.toLowerCase()}::${fullTranscript.trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ')}`;
       if (existingContentKeys.has(contentKey)) {
         skipped++;
