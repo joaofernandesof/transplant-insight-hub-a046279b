@@ -1,7 +1,7 @@
 import type { SalesCall, CallAnalysisRecord } from '@/hooks/useCallIntelligence';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap } from 'lucide-react';
+import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap, Snowflake, Sun, Clock } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -69,9 +69,9 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
     const counts = { quente: 0, morno: 0, frio: 0 };
     analyses.forEach(a => { counts[a.classificacao_lead] = (counts[a.classificacao_lead] || 0) + 1; });
     return [
-      { name: 'Quente 🔥', value: counts.quente, color: '#ef4444' },
-      { name: 'Morno ☀️', value: counts.morno, color: '#f59e0b' },
-      { name: 'Frio ❄️', value: counts.frio, color: '#3b82f6' },
+      { name: 'Quente', value: counts.quente, color: '#ef4444' },
+      { name: 'Morno', value: counts.morno, color: '#f59e0b' },
+      { name: 'Frio', value: counts.frio, color: '#3b82f6' },
     ].filter(d => d.value > 0);
   }, [analyses]);
 
@@ -184,10 +184,30 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
 
       {/* ── Row 2: Status pills ── */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <Card><CardContent className="p-3 text-center"><span className="text-xl font-bold text-emerald-600">{stats.fechou}</span><div className="text-xs text-muted-foreground">Fechou ✅</div></CardContent></Card>
-        <Card><CardContent className="p-3 text-center"><span className="text-xl font-bold text-amber-600">{stats.followup}</span><div className="text-xs text-muted-foreground">Follow-up 📋</div></CardContent></Card>
-        <Card><CardContent className="p-3 text-center"><span className="text-xl font-bold text-red-600">{stats.perdido}</span><div className="text-xs text-muted-foreground">Perdido ❌</div></CardContent></Card>
-        <Card><CardContent className="p-3 text-center"><span className="text-xl font-bold">{stats.probMediaFechamento}%</span><div className="text-xs text-muted-foreground">Prob. Média Fechamento</div></CardContent></Card>
+        <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/40"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div>
+            <div><span className="text-xl font-bold text-emerald-600">{stats.fechou}</span><div className="text-xs text-muted-foreground">Fechou</div></div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/40"><Clock className="h-4 w-4 text-amber-600" /></div>
+            <div><span className="text-xl font-bold text-amber-600">{stats.followup}</span><div className="text-xs text-muted-foreground">Follow-up</div></div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-red-500 bg-red-50/50 dark:bg-red-950/20">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/40"><XCircle className="h-4 w-4 text-red-600" /></div>
+            <div><span className="text-xl font-bold text-red-600">{stats.perdido}</span><div className="text-xs text-muted-foreground">Perdido</div></div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-violet-500 bg-violet-50/50 dark:bg-violet-950/20">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/40"><TrendingUp className="h-4 w-4 text-violet-600" /></div>
+            <div><span className="text-xl font-bold">{stats.probMediaFechamento}%</span><div className="text-xs text-muted-foreground">Prob. Média Fechamento</div></div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── Row 3: Charts row ── */}
@@ -344,7 +364,7 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'}`}>
-                            {i === 0 ? '🏆' : i + 1}
+                            {i === 0 ? <Award className="h-3.5 w-3.5" /> : i + 1}
                           </div>
                           <span className="font-semibold text-sm">{c.name}</span>
                         </div>
@@ -365,9 +385,9 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
                         </div>
                       </div>
                       <div className="flex gap-1 text-[10px]">
-                        <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded">🔥 {c.quente}</span>
-                        <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">☀️ {c.morno}</span>
-                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">❄️ {c.frio}</span>
+                        <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Flame className="h-2.5 w-2.5" /> {c.quente}</span>
+                        <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Sun className="h-2.5 w-2.5" /> {c.morno}</span>
+                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Snowflake className="h-2.5 w-2.5" /> {c.frio}</span>
                       </div>
                     </CardContent>
                   </Card>
