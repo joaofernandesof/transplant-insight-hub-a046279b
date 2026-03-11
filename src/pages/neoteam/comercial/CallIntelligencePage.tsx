@@ -42,7 +42,7 @@ export default function CallIntelligencePage() {
 
   const handleViewAnalysis = (callId: string) => {
     setSelectedCallId(callId);
-    setActiveTab('analise');
+    setActiveTab('lista');
   };
 
   const handleCallCreated = () => {
