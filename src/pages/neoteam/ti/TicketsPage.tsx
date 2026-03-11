@@ -255,7 +255,10 @@ export default function TicketsPage() {
     onError: () => toast.error("Erro ao atualizar responsável"),
   });
 
-  const filtered = statusFilter === "all" ? tickets : tickets.filter((t: any) => t.status === statusFilter);
+  const filteredByStatus = statusFilter === "all" ? tickets : tickets.filter((t: any) => t.status === statusFilter);
+  const filtered = requesterFilter === "mine" 
+    ? filteredByStatus.filter((t: any) => t.requester_id === user?.id) 
+    : filteredByStatus;
 
   const stats = {
     open: tickets.filter((t: any) => t.status === "open").length,
