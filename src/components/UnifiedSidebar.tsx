@@ -257,6 +257,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     processos: 'setor_processos',
     financeiro: 'setor_financeiro',
     juridico: 'setor_juridico',
+    comercial: 'setor_comercial',
     marketing: 'setor_marketing',
     ti: 'setor_ti',
     rh: 'setor_rh',
