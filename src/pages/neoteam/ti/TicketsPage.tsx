@@ -304,6 +304,18 @@ export default function TicketsPage() {
         </CardContent></Card>
       </div>
 
+      <div className="flex items-center gap-3 flex-wrap">
+        <Select value={requesterFilter} onValueChange={setRequesterFilter}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <SelectValue placeholder="Solicitante" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os chamados</SelectItem>
+            <SelectItem value="mine">Meus chamados</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card>
         <CardContent className="p-0">
           <Table>
