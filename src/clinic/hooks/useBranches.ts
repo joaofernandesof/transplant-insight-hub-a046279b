@@ -18,12 +18,16 @@ export function useBranches(options?: { showAll?: boolean }) {
 
       return data?.map(d => d.name) || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
-  // When showAll is true, bypass role restrictions
-  const userBranches = options?.showAll || !user || isAdmin || isGestao
+  // When showAll is true (e.g. NeoTeam context), always return all branches
+  // regardless of user's staff profile status
+  const userBranches = options?.showAll
     ? allBranches
-    : [user.branch, ...user.additionalBranches];
+    : (!user || isAdmin || isGestao)
+      ? allBranches
+      : [user.branch, ...(user.additionalBranches || [])].filter(Boolean);
 
   return {
     branches: userBranches,
