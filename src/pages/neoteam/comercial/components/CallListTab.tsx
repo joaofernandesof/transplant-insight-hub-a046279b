@@ -331,7 +331,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                     </div>
                   </TableHead>
                   <TableHead className="w-[160px]"><SortableHeader col="lead_extracted" label="Lead" /></TableHead>
-                  <TableHead className="w-[660px]"><SortableHeader col="lead_nome" label="Título" /></TableHead>
+                  <TableHead className="w-[1980px]"><SortableHeader col="lead_nome" label="Título" /></TableHead>
                   <TableHead className="w-[140px]">
                     <div className="space-y-1">
                       <SortableHeader col="produto" label="Produto" />
