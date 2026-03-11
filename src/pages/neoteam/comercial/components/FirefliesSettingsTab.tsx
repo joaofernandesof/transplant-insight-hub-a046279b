@@ -97,8 +97,8 @@ export function FirefliesSettingsTab({ accountId }: Props) {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-orange-500/10">
-              <Flame className="h-5 w-5 text-orange-500" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Flame className="h-5 w-5 text-primary" />
             </div>
             <div>
               <CardTitle className="text-lg">Integração Fireflies.ai</CardTitle>
@@ -107,7 +107,7 @@ export function FirefliesSettingsTab({ accountId }: Props) {
               </CardDescription>
             </div>
             {isSaved && (
-              <Badge variant="outline" className="ml-auto text-green-600 border-green-600/30">
+              <Badge variant="outline" className="ml-auto text-primary border-primary/30">
                 <CheckCircle2 className="h-3 w-3 mr-1" /> Configurado
               </Badge>
             )}
