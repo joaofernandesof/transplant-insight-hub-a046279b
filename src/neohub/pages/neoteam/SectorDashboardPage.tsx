@@ -2,7 +2,7 @@
  * SectorDashboardPage - Dashboard analítico por setor
  * Carrega KPIs reais do banco de dados para cada setor do NeoTeam
  */
-import { useParams, Navigate } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
