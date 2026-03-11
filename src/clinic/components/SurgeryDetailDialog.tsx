@@ -686,8 +686,23 @@ function EditableField({ icon: Icon, label, value, displayValue, field, type = '
     </div>
   );
 }
+function LunchField({ value, onSave }: { value: string; onSave: (val: string) => void }) {
+  const [localValue, setLocalValue] = useState(value);
+  useEffect(() => { setLocalValue(value); }, [value]);
+  const commit = () => { if (localValue !== value) onSave(localValue); };
+  return (
+    <Input
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === 'Enter' && commit()}
+      placeholder="Ex: Normal, Vegetariano..."
+      className="h-7 text-sm mt-0.5"
+    />
+  );
+}
 
-function EditableTextarea({ value, field, onSave }: {
+
   value: string;
   field: string;
   onSave: (field: string, value: string) => void;
