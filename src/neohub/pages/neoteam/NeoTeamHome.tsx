@@ -68,7 +68,7 @@ export default function NeoTeamHome() {
             return (
               <button
                 key={sector.code}
-                onClick={() => navigate(`/neoteam/setor/${sector.code}`)}
+                onClick={() => navigate(`/neoteam/${sector.code.replace(/_/g, '-')}`)}
                 className={`flex flex-col items-center gap-3 p-6 rounded-2xl border ${colors.border} ${colors.bg} hover:shadow-lg hover:scale-[1.02] transition-all duration-200 group`}
               >
                 <div className="p-3 rounded-xl bg-background/80 shadow-sm">

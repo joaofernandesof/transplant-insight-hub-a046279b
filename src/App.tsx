@@ -9,7 +9,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
+
+// Legacy redirect: /neoteam/setor/:code → /neoteam/:code
+function LegacySectorRedirect() {
+  const { code } = useParams<{ code: string }>();
+  const slug = code?.replace(/_/g, '-') ?? '';
+  return <Navigate to={`/neoteam/${slug}`} replace />;
+}
 import { ThemeProvider } from "next-themes";
 import { UnifiedAuthProvider, useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { DataProvider } from "@/contexts/DataContext";
@@ -485,8 +492,12 @@ function NeoTeamRoutes() {
       <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoTeamHome />} />
-          {/* Sector Dashboard */}
-          <Route path="setor/:code" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
+          {/* Sector Dashboards - direct routes */}
+          {['tecnico', 'sucesso-paciente', 'operacional', 'processos', 'financeiro', 'juridico', 'comercial', 'marketing', 'ti', 'rh', 'compras', 'manutencao'].map(slug => (
+            <Route key={slug} path={slug} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
+          ))}
+          {/* Legacy redirect from /neoteam/setor/:code */}
+          <Route path="setor/:code" element={<LegacySectorRedirect />} />
 
           {/* ===== SETOR TÉCNICO ===== */}
           <Route path="tecnico/agenda" element={<NeoTeamSchedule />} />

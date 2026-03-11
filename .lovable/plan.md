@@ -1,32 +1,85 @@
 
 
-# Mudar rota dos setores de `/neoteam/setor/{code}` para `/neoteam/{code}`
+## Disponibilidade da Agenda Cirúrgica
 
-## Problema
-Atualmente, ao clicar em um setor na home do NeoTeam, a rota é `/neoteam/setor/rh`, `/neoteam/setor/ti`, etc. O usuário quer que seja `/neoteam/rh`, `/neoteam/ti`, etc.
+### Resumo
 
-## Mudanças
+Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
+1. **Bloqueio de datas específicas** por filial
+2. **Limite de agendamentos por dia** por filial
 
-### 1. `src/App.tsx`
-- Substituir a rota `setor/:code` por rotas individuais para cada setor: `rh`, `ti`, `tecnico`, `sucesso-paciente`, `operacional`, `processos`, `financeiro`, `juridico`, `comercial`, `marketing`, `compras`, `manutencao` — todas apontando para `SectorDashboardPage`
-- Adicionar redirect de `setor/:code` para `/neoteam/:code` (compatibilidade)
+A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
 
-### 2. `src/neohub/pages/neoteam/SectorDashboardPage.tsx`
-- Alterar a lógica para extrair o `code` do setor a partir do pathname (último segmento da URL) em vez de `useParams({ code })`, já que agora não há mais o prefixo `setor/`
-- Mapear slugs com hífen para códigos com underscore (ex: `sucesso-paciente` → `sucesso_paciente`)
+---
 
-### 3. `src/neohub/pages/neoteam/NeoTeamHome.tsx`
-- Alterar navegação de `navigate('/neoteam/setor/${sector.code}')` para `navigate('/neoteam/${sectorSlug}')` com mapeamento de underscore para hífen
+### 1. Nova tabela: `surgery_agenda_availability`
 
-### 4. `src/components/UnifiedSidebar.tsx`
-- Remover a regex de `/neoteam/setor/` no `activeSectorCode` — a lógica existente de `/neoteam/{known-sector-slug}` já cobre o novo padrão
+```sql
+CREATE TABLE surgery_agenda_availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  branch TEXT NOT NULL,
+  date DATE NOT NULL,
+  max_slots INTEGER NOT NULL DEFAULT 5,
+  is_blocked BOOLEAN NOT NULL DEFAULT false,
+  blocked_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(branch, date)
+);
 
-### 5. `src/neohub/components/NeoTeamBreadcrumb.tsx`
-- Já possui labels para `/neoteam/tecnico`, `/neoteam/rh`, etc. — sem mudanças necessárias
+-- RLS: leitura para autenticados, escrita para admins
+ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
 
-### Arquivos alterados
-- `src/App.tsx`
-- `src/neohub/pages/neoteam/SectorDashboardPage.tsx`
-- `src/neohub/pages/neoteam/NeoTeamHome.tsx`
-- `src/components/UnifiedSidebar.tsx`
+CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Admins can manage" ON surgery_agenda_availability
+  FOR ALL TO authenticated USING (
+    public.has_role(auth.uid(), 'admin')
+  );
+```
+
+### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+
+Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
+- **Aba "Configuração da Agenda"** com:
+  - Seletor de filial
+  - Calendário mensal interativo onde o admin pode:
+    - Clicar em um dia para bloquear/desbloquear
+    - Definir o número máximo de agendamentos para cada dia
+  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+
+### 3. Visualização de Disponibilidade (todos os usuários)
+
+Na aba "Agenda" existente, adicionar um componente visual mostrando:
+- Um mini calendário ou barra de disponibilidade por filial
+- Dias bloqueados marcados em vermelho
+- Dias com vagas esgotadas marcados em amarelo/laranja
+- Dias disponíveis em verde
+- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
+
+### 4. Novo hook: `useSurgeryAgendaAvailability`
+
+```typescript
+// src/clinic/hooks/useSurgeryAgendaAvailability.ts
+// - Busca configurações de disponibilidade por filial e período
+// - Cruza com contagem de cirurgias agendadas por dia
+// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
+// - Mutations para admin: criar/atualizar configuração
+```
+
+### 5. Validação no agendamento
+
+Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
+- Se a data está bloqueada para a filial selecionada → impedir agendamento
+- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
+
+### Estrutura de arquivos
+
+- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
+- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
+- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
+- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
+- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
+- Migração SQL para criar a tabela
 
