@@ -32,7 +32,7 @@ import { PROFILE_ROUTES, getDefaultRouteForProfile } from "@/neohub/lib/permissi
 import { MobileAppWrapper } from "@/components/MobileAppWrapper";
 import { useMobileEnvironment } from "@/hooks/useMobileEnvironment";
 import { Loader2 } from "lucide-react";
-import { NeoRHBanner } from "@/neohub/components/NeoRHBanner";
+// NeoRH merged into NeoTeam RH sector
 
 // ====================================
 // Pages - Públicas
