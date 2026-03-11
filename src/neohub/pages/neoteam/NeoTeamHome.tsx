@@ -31,6 +31,7 @@ const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }
   marketing: { bg: 'bg-pink-200 dark:bg-pink-800/40', icon: 'text-pink-800 dark:text-pink-300', border: 'border-pink-400 dark:border-pink-600' },
   ti: { bg: 'bg-purple-200 dark:bg-purple-800/40', icon: 'text-purple-800 dark:text-purple-300', border: 'border-purple-400 dark:border-purple-600' },
   rh: { bg: 'bg-orange-200 dark:bg-orange-800/40', icon: 'text-orange-800 dark:text-orange-300', border: 'border-orange-400 dark:border-orange-600' },
+  comercial: { bg: 'bg-teal-200 dark:bg-teal-800/40', icon: 'text-teal-800 dark:text-teal-300', border: 'border-teal-400 dark:border-teal-600' },
 };
 
 export default function NeoTeamHome() {
