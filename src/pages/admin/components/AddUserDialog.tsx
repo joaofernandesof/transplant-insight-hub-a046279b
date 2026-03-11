@@ -3,21 +3,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { Loader2, UserPlus, Eye, EyeOff, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-const PROFILES = [
-  { value: 'administrador', label: 'Administrador' },
-  { value: 'licenciado', label: 'Licenciado' },
-  { value: 'colaborador', label: 'Colaborador' },
-  { value: 'aluno', label: 'Aluno' },
-  { value: 'medico', label: 'Médico' },
-  { value: 'paciente', label: 'Paciente' },
-  { value: 'cliente_avivar', label: 'Cliente Avivar' },
-  { value: 'ipromed', label: 'CPG Advocacia' },
-];
 
 interface AddUserDialogProps {
   open: boolean;
