@@ -24,6 +24,15 @@ export interface Payable {
   attachments?: any[];
   recurrence?: 'unico' | 'mensal' | 'trimestral' | 'anual';
   parent_id?: string;
+  workflow_stage: string;
+  is_urgent: boolean;
+  requester_name?: string;
+  requester_department?: string;
+  rejection_reason?: string;
+  pending_reason?: string;
+  bank_data?: string;
+  approved_by?: string;
+  approved_at?: string;
   created_at: string;
   updated_at: string;
 }
