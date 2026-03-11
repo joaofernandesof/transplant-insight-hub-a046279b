@@ -489,8 +489,8 @@ function NeoTeamRoutes() {
           {['tecnico', 'sucesso-paciente', 'operacional', 'processos', 'financeiro', 'juridico', 'comercial', 'marketing', 'ti', 'rh', 'compras', 'manutencao'].map(slug => (
             <Route key={slug} path={slug} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
           ))}
-          {/* Legacy redirect */}
-          <Route path="setor/:code" element={<SectorRedirect />} />
+          {/* Legacy redirect from /neoteam/setor/:code */}
+          <Route path="setor/:code" element={<Navigate to={window.location.pathname.replace('/setor/', '/')} replace />} />
 
           {/* ===== SETOR TÉCNICO ===== */}
           <Route path="tecnico/agenda" element={<NeoTeamSchedule />} />
