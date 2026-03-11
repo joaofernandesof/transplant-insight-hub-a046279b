@@ -23,11 +23,9 @@ export function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogPr
     phone: '',
     cpf: '',
   });
-  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
 
   const resetForm = () => {
     setForm({ full_name: '', email: '', password: '', phone: '', cpf: '' });
-    setSelectedProfiles([]);
     setShowPassword(false);
   };
 
