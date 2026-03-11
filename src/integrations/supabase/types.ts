@@ -17082,7 +17082,9 @@ export type Database = {
           closed_at: string | null
           created_at: string | null
           description: string | null
+          due_date: string | null
           id: string
+          link_url: string | null
           priority: string
           requester_email: string | null
           requester_id: string
@@ -17102,7 +17104,9 @@ export type Database = {
           closed_at?: string | null
           created_at?: string | null
           description?: string | null
+          due_date?: string | null
           id?: string
+          link_url?: string | null
           priority?: string
           requester_email?: string | null
           requester_id: string
@@ -17122,7 +17126,9 @@ export type Database = {
           closed_at?: string | null
           created_at?: string | null
           description?: string | null
+          due_date?: string | null
           id?: string
+          link_url?: string | null
           priority?: string
           requester_email?: string | null
           requester_id?: string

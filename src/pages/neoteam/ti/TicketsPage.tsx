@@ -12,8 +12,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX } from "lucide-react";
+import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX, CalendarIcon, Link } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: "bg-emerald-100 text-emerald-800",
@@ -75,7 +78,7 @@ function useNewTicketSound() {
 }
 
 export default function TicketsPage() {
-  const { user } = useUnifiedAuth();
+  const { user, isAdmin } = useUnifiedAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -141,19 +144,21 @@ export default function TicketsPage() {
   });
 
   const createTicket = useMutation({
-    mutationFn: async (form: { title: string; description: string; priority: string; files: File[] }) => {
+    mutationFn: async (form: { title: string; description: string; priority: string; category: string; link_url: string; due_date: string | null; files: File[] }) => {
       const ticketNumber = `TI-${Date.now().toString(36).toUpperCase()}`;
       const { data: ticketData, error } = await supabase.from("neoteam_tickets").insert({
         ticket_number: ticketNumber,
         title: form.title,
         description: form.description,
-        category: "general",
+        category: form.category || "general",
         priority: form.priority,
         requester_id: user?.id,
         requester_name: (user as any)?.name || user?.email || "Usuário",
         requester_email: user?.email || null,
         status: "open",
-      }).select("id").single();
+        link_url: form.link_url || null,
+        due_date: form.due_date || null,
+      } as any).select("id").single();
       if (error) throw error;
 
       // Upload attachments
@@ -271,7 +276,7 @@ export default function TicketsPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader><DialogTitle>Abrir Chamado</DialogTitle></DialogHeader>
-            <TicketForm onSubmit={(f: any) => createTicket.mutate(f)} loading={createTicket.isPending} />
+            <TicketForm onSubmit={(f: any) => createTicket.mutate(f)} loading={createTicket.isPending} isAdmin={isAdmin} />
           </DialogContent>
         </Dialog>
       </div>
@@ -408,8 +413,16 @@ export default function TicketsPage() {
   );
 }
 
-function TicketForm({ onSubmit, loading }: { onSubmit: (f: any) => void; loading: boolean }) {
-  const [form, setForm] = useState({ title: "", description: "", priority: "medium" });
+const TITLE_OPTIONS = [
+  "Kommo", "Feegow", "Clickup", "ClickSing", "Planilha", "Neohub", "Wordpress",
+  "Kiwify", "Acessos no Drive", "Stripe", "Bling", "Conta Azul", "Anota Ai",
+  "Facebook", "ManyChat", "Doctoralia", "FireFlies", "Google Agenda", "NuvemShop",
+  "Pluga", "Outros",
+];
+
+function TicketForm({ onSubmit, loading, isAdmin }: { onSubmit: (f: any) => void; loading: boolean; isAdmin: boolean }) {
+  const [form, setForm] = useState({ title: "", description: "", priority: "medium", category: "", link_url: "" });
+  const [dueDate, setDueDate] = useState<Date | undefined>();
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -437,18 +450,79 @@ function TicketForm({ onSubmit, loading }: { onSubmit: (f: any) => void; loading
 
   return (
     <div className="space-y-3">
-      <Input placeholder="Título do chamado *" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+      <div>
+        <label className="text-sm font-medium mb-1 block">Sistema *</label>
+        <Select value={form.title} onValueChange={v => setForm(f => ({ ...f, title: v }))}>
+          <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
+          <SelectContent>
+            {TITLE_OPTIONS.map(opt => (
+              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-1 block">Tipo *</label>
+        <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
+          <SelectTrigger><SelectValue placeholder="Melhoria ou Problema?" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="melhoria">Melhoria</SelectItem>
+            <SelectItem value="problema">Problema</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Textarea placeholder="Descrição detalhada" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
-      
-      <Select value={form.priority} onValueChange={v => setForm(f => ({ ...f, priority: v }))}>
-        <SelectTrigger><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="low">Baixa</SelectItem>
-          <SelectItem value="medium">Média</SelectItem>
-          <SelectItem value="high">Alta</SelectItem>
-          <SelectItem value="critical">Crítica</SelectItem>
-        </SelectContent>
-      </Select>
+
+      <div>
+        <label className="text-sm font-medium mb-1 block">Link URL</label>
+        <Input
+          placeholder="https://exemplo.com (opcional)"
+          value={form.link_url}
+          onChange={e => setForm(f => ({ ...f, link_url: e.target.value }))}
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-1 block">Prazo</label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dueDate ? format(dueDate, "dd/MM/yyyy") : "Selecione uma data"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={dueDate}
+              onSelect={setDueDate}
+              disabled={(date) => date < new Date()}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {isAdmin && (
+        <div>
+          <label className="text-sm font-medium mb-1 block">Prioridade</label>
+          <Select value={form.priority} onValueChange={v => setForm(f => ({ ...f, priority: v }))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Baixa</SelectItem>
+              <SelectItem value="medium">Média</SelectItem>
+              <SelectItem value="high">Alta</SelectItem>
+              <SelectItem value="critical">Crítica</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* File attachment area */}
       <div>
@@ -499,7 +573,16 @@ function TicketForm({ onSubmit, loading }: { onSubmit: (f: any) => void; loading
         )}
       </div>
 
-      <Button onClick={() => onSubmit({ ...form, files })} disabled={loading || !form.title} className="w-full">
+      <Button
+        onClick={() => onSubmit({
+          ...form,
+          priority: isAdmin ? form.priority : "medium",
+          due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
+          files,
+        })}
+        disabled={loading || !form.title || !form.category}
+        className="w-full"
+      >
         {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Enviando...</> : "Abrir Chamado"}
       </Button>
     </div>
