@@ -96,6 +96,8 @@ export default function AccountsPayable() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [selectedPayable, setSelectedPayable] = useState<Payable | null>(null);
+  const [sortColumn, setSortColumn] = useState<string>('due_date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Form state
   const [formData, setFormData] = useState<Partial<PayableInsert>>({
