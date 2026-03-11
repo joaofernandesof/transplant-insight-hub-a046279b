@@ -304,12 +304,12 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     // For main/admin, use main menu categories
     return MAIN_MENU_CATEGORIES.map(category => ({
       ...category,
-      items: filterMenuByPermissions(category.items, hasPermission, isAdmin).filter(item => {
-        if (isAdmin && item.id === 'home') return false;
+      items: filterMenuByPermissions(category.items, hasPermission, effectiveIsAdmin).filter(item => {
+        if (effectiveIsAdmin && item.id === 'home') return false;
         return true;
       })
     })).filter(category => category.items.length > 0);
-  }, [currentPortal, menuItems, isAdmin, activeSectorCode]);
+  }, [currentPortal, menuItems, effectiveIsAdmin, activeSectorCode, activeProfile]);
 
   // Track open state of collapsible categories
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
