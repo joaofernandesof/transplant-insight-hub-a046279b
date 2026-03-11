@@ -62,6 +62,8 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
         transcricao: '',
         resumo_manual: '',
       });
+      setCloserSelection('');
+      setCloserCustom('');
       onCreated();
     }
   };
