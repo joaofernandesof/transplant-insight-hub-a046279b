@@ -1,0 +1,1 @@
+ALTER TABLE public.avivar_kanban_leads REPLICA IDENTITY FULL;
