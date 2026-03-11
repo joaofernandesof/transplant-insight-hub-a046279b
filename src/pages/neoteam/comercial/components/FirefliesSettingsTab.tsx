@@ -276,8 +276,74 @@ export function FirefliesSettingsTab({ accountId }: Props) {
         </Card>
       )}
 
+      {/* Dedup Card */}
+      <DedupCard accountId={accountId} />
+
       {/* Import Historical Calls */}
       <ImportHistoricalCalls accountId={accountId} />
     </div>
+  );
+}
+
+function DedupCard({ accountId }: { accountId: string | null }) {
+  const [isRunning, setIsRunning] = useState(false);
+  const [result, setResult] = useState<{ removed: number; kept: number } | null>(null);
+
+  const handleDedup = async () => {
+    if (!accountId) return;
+    setIsRunning(true);
+    toast.loading('Removendo calls duplicadas...', { id: 'dedup' });
+    try {
+      const { data, error } = await supabase.functions.invoke('dedup-sales-calls', {
+        body: { account_id: accountId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setResult({ removed: data.removed, kept: data.kept });
+      if (data.removed > 0) {
+        toast.success(`✅ ${data.removed} calls duplicadas removidas!`, { id: 'dedup' });
+      } else {
+        toast.success('Nenhuma duplicata encontrada.', { id: 'dedup' });
+      }
+    } catch (err: any) {
+      toast.error('Erro: ' + (err.message || ''), { id: 'dedup' });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Trash2 className="h-5 w-5" />
+          Remover Duplicatas
+        </CardTitle>
+        <CardDescription>
+          Remove calls duplicadas (mesmo título + mesma transcrição)
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Button onClick={handleDedup} disabled={isRunning || !accountId} variant="destructive" className="w-full" size="lg">
+          {isRunning ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Removendo duplicatas...</>
+          ) : (
+            <><Trash2 className="h-4 w-4 mr-2" /> Limpar Duplicatas</>
+          )}
+        </Button>
+        {result && (
+          <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm grid grid-cols-2 gap-3">
+            <div className="text-center p-2 rounded-lg bg-background">
+              <p className="text-2xl font-bold text-destructive">{result.removed}</p>
+              <p className="text-xs text-muted-foreground">Removidas</p>
+            </div>
+            <div className="text-center p-2 rounded-lg bg-background">
+              <p className="text-2xl font-bold text-primary">{result.kept}</p>
+              <p className="text-xs text-muted-foreground">Mantidas</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
