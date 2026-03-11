@@ -382,7 +382,7 @@ export default function TicketsPage() {
                       <p className="font-medium">{t.title}</p>
                       {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{t.description}</p>}
                     </TableCell>
-                    <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{t.priority}</Badge></TableCell>
+                    <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{PRIORITY_LABELS[t.priority] || t.priority}</Badge></TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
                     <TableCell>
                       {isTicketAdmin ? (
