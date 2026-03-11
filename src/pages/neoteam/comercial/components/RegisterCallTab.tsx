@@ -127,7 +127,7 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
             />
           </div>
           <div className="space-y-2">
-            <Label>Status da Call</Label>
+            <Label>Resultado da Call</Label>
             <Select value={form.status_call} onValueChange={v => setForm(f => ({ ...f, status_call: v as any }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
