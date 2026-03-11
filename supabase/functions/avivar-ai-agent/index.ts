@@ -5402,6 +5402,16 @@ Responda APENAS com o resumo, sem explicações adicionais.`;
         error_message: (error as Error).message?.substring(0, 500),
         model_used: "google/gemini-3-flash-preview",
       }).then(() => {}).catch(() => {});
+      sc.from("ai_usage_logs").insert({
+        portal: "Avivar",
+        module: "AI Agent",
+        action: "agent_response",
+        edge_function: "avivar-ai-agent",
+        ai_model: "google/gemini-3-flash-preview",
+        processing_time_ms: duration,
+        status: "error",
+        error_message: (error as Error).message?.substring(0, 500),
+      }).then(() => {}).catch(() => {});
     } catch {}
 
     return new Response(
