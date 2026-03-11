@@ -66,6 +66,7 @@ import {
   Hash,
   Target,
   Link2,
+  Phone,
 } from 'lucide-react';
 
 // Tipos base
