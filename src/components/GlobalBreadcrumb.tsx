@@ -206,9 +206,9 @@ interface DynamicRoute {
 
 const dynamicRoutes: DynamicRoute[] = [
   {
-    pattern: /^\/neoteam\/patients\/[^/]+$/,
+    pattern: /^\/neoteam\/tecnico\/pacientes\/[^/]+$/,
     getLabel: () => 'Detalhes do Paciente',
-    parentPath: '/neoteam/patients',
+    parentPath: '/neoteam/tecnico/pacientes',
     parentLabel: 'Pacientes'
   },
   {
@@ -224,9 +224,9 @@ const dynamicRoutes: DynamicRoute[] = [
     parentLabel: 'Provas'
   },
   {
-    pattern: /^\/neoteam\/postvenda\/chamados\/[^/]+$/,
+    pattern: /^\/neoteam\/sucesso-paciente\/postvenda\/chamados\/[^/]+$/,
     getLabel: () => 'Detalhes do Chamado',
-    parentPath: '/neoteam/postvenda/chamados',
+    parentPath: '/neoteam/sucesso-paciente/postvenda/chamados',
     parentLabel: 'Chamados'
   },
 ];
