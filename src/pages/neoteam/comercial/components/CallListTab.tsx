@@ -246,10 +246,40 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
-                  <TableHead className="w-[130px]"><SortableHeader col="closer_name" label="Closer" /></TableHead>
+                  <TableHead className="w-[130px]">
+                    <div className="space-y-1">
+                      <SortableHeader col="closer_name" label="Closer" />
+                      <Select value={filterCloser} onValueChange={setFilterCloser}>
+                        <SelectTrigger className="h-6 text-[10px] w-[100px] border-dashed">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          {uniqueClosers.map(c => (
+                            <SelectItem key={c} value={c!}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableHead>
                   <TableHead className="w-[160px]"><SortableHeader col="lead_extracted" label="Lead" /></TableHead>
                   <TableHead className="w-[220px]"><SortableHeader col="lead_nome" label="Título" /></TableHead>
-                  <TableHead className="w-[140px]"><SortableHeader col="produto" label="Produto" /></TableHead>
+                  <TableHead className="w-[140px]">
+                    <div className="space-y-1">
+                      <SortableHeader col="produto" label="Produto" />
+                      <Select value={filterProduto} onValueChange={setFilterProduto}>
+                        <SelectTrigger className="h-6 text-[10px] w-[110px] border-dashed">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          {uniqueProducts.map(p => (
+                            <SelectItem key={p} value={p}>{p}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableHead>
                   <TableHead className="w-[100px]">
                     <div className="space-y-1">
                       <SortableHeader col="status_call" label="Status" />
