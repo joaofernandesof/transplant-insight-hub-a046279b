@@ -159,22 +159,11 @@ export function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogPr
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Perfis de Acesso</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {PROFILES.map(p => (
-                <div key={p.value} className="flex items-center gap-2">
-                  <Checkbox
-                    id={`profile-${p.value}`}
-                    checked={selectedProfiles.includes(p.value)}
-                    onCheckedChange={() => toggleProfile(p.value)}
-                  />
-                  <Label htmlFor={`profile-${p.value}`} className="text-sm cursor-pointer">
-                    {p.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+            <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Após criar o usuário, configure os acessos por portal na aba de edição do usuário.
+            </p>
           </div>
         </div>
 
