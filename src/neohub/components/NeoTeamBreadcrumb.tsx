@@ -52,6 +52,8 @@ const routeLabels: Record<string, string> = {
   '/neoteam/galleries': 'Galerias de Fotos',
   // Setor de RH
   '/neoteam/staff-roles': 'Cargos & Funções',
+  // Setor Comercial
+  '/neoteam/analise-calls': 'Análise de Calls',
   // Administração
   '/neoteam/settings': 'Configurações',
   '/neoteam/reports': 'Relatórios',

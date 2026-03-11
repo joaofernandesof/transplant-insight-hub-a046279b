@@ -329,6 +329,16 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     ],
   },
   {
+    id: 'setor_comercial',
+    title: 'Setor Comercial',
+    icon: Phone,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_call_analysis', code: 'neoteam_call_analysis', title: 'Análise de Calls', icon: Phone, route: '/neoteam/analise-calls' },
+    ],
+  },
+  {
     id: 'setor_marketing',
     title: 'Setor de Marketing',
     icon: MegaphoneIcon,
