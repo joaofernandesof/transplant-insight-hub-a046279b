@@ -103,14 +103,21 @@ serve(async (req) => {
 
     console.log(`[Fireflies Sync] Found ${filteredTranscripts.length} matching transcripts out of ${allTranscripts.length} total`);
 
-    // 3. Get already imported external_ids
+    // 3. Get already imported - check by external_id AND by lead_nome+transcricao
     const { data: existingCalls } = await supabase
       .from('sales_calls')
-      .select('external_id')
-      .eq('account_id', account_id)
-      .not('external_id', 'is', null);
+      .select('external_id, lead_nome, transcricao')
+      .eq('account_id', account_id);
 
-    const existingIds = new Set((existingCalls || []).map((c: any) => c.external_id));
+    const existingIds = new Set((existingCalls || []).filter((c: any) => c.external_id).map((c: any) => c.external_id));
+    
+    // Build content dedup set
+    const existingContentKeys = new Set(
+      (existingCalls || []).map((c: any) => {
+        const content = (c.transcricao || '').trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ');
+        return `${(c.lead_nome || '').trim().toLowerCase()}::${content}`;
+      })
+    );
 
     // 4. Import new ones
     let imported = 0;
