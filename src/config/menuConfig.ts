@@ -376,7 +376,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_rh_dashboard', code: 'neoteam_rh_dashboard', title: 'Dashboard RH', icon: LayoutDashboard, route: '/neoteam/rh/dashboard', adminOnly: true },
       { id: 'neoteam_rh_colaboradores', code: 'neoteam_rh_colaboradores', title: 'Colaboradores', icon: Users, route: '/neoteam/rh/colaboradores', adminOnly: true },
-      { id: 'neoteam_team_roster', code: 'neoteam_team_roster', title: 'Equipe', icon: Users, route: '/neoteam/rh/equipe', adminOnly: true },
+      
       { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/rh/cargos', adminOnly: true },
       { id: 'neoteam_rh_cargos', code: 'neoteam_rh_cargos', title: 'Cargos (RH)', icon: Briefcase, route: '/neoteam/rh/cargos-rh', adminOnly: true },
       { id: 'neoteam_rh_vagas', code: 'neoteam_rh_vagas', title: 'Vagas', icon: ClipboardList, route: '/neoteam/rh/vagas', adminOnly: true },
