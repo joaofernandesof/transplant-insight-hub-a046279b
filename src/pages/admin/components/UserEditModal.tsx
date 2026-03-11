@@ -186,7 +186,53 @@ export function UserEditModal({
   const [loadingModules, setLoadingModules] = useState<string | null>(null);
   const [neohubUserId, setNeohubUserId] = useState<string | null>(null);
 
-  // Reset form when user changes
+  // Password reset state
+  const [newPassword, setNewPassword] = useState('');
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+
+  const handleSetPassword = async () => {
+    if (!user || !newPassword || newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    setIsResettingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-user-password', {
+        body: { target_user_id: user.user_id, new_password: newPassword },
+      });
+      if (error) throw error;
+      toast.success('Senha alterada com sucesso!');
+      setNewPassword('');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao alterar senha');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const handleGenerateRandomPassword = async () => {
+    if (!user) return;
+    setIsResettingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-user-password', {
+        body: { target_user_id: user.user_id, generate_random: true },
+      });
+      if (error) throw error;
+      const pwd = data?.generated_password;
+      setGeneratedPassword(pwd);
+      toast.success('Senha gerada com sucesso! Copie e envie ao usuário.');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao gerar senha');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Senha copiada!');
+  };
   useEffect(() => {
     if (user) {
       setFormData({
