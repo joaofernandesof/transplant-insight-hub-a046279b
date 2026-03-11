@@ -151,6 +151,7 @@ export default function TicketsPage() {
         priority: form.priority,
         requester_id: user?.id,
         requester_name: (user as any)?.name || user?.email || "Usuário",
+        requester_email: user?.email || null,
         status: "open",
       }).select("id").single();
       if (error) throw error;
