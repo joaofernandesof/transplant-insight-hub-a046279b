@@ -490,7 +490,7 @@ function NeoTeamRoutes() {
             <Route key={slug} path={slug} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
           ))}
           {/* Legacy redirect from /neoteam/setor/:code */}
-          <Route path="setor/:code" element={<Navigate to={window.location.pathname.replace('/setor/', '/')} replace />} />
+          <Route path="setor/:code" element={<LegacySectorRedirect />} />
 
           {/* ===== SETOR TÉCNICO ===== */}
           <Route path="tecnico/agenda" element={<NeoTeamSchedule />} />
