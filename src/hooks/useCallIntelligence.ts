@@ -147,7 +147,7 @@ export function useCallIntelligence(accountId?: string) {
       toast.error('Erro ao registrar call: ' + (err.message || ''));
       return null;
     }
-  }, [accountId, user, analyzeCall]);
+  }, [accountId, user]);
 
   const analyzeCall = useCallback(async (callId: string) => {
     const call = calls.find(c => c.id === callId);
