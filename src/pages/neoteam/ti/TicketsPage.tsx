@@ -453,7 +453,7 @@ export default function TicketsPage() {
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{format(parseISO(t.created_at), "dd/MM HH:mm")}</TableCell>
                     <TableCell>
-                      {isAdmin ? (
+                      {isTicketAdmin ? (
                         <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
                           <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
                           <SelectContent>
