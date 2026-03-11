@@ -418,7 +418,7 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
 
               {/* Individual Pie Charts */}
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                {closerStats.map((c, i) => {
+                {sortedCloserStats.map((c, i) => {
                   const pieData = [
                     { name: 'Fechou', value: c.fechou, color: '#10b981' },
                     { name: 'Follow-up', value: c.followup, color: '#f59e0b' },
