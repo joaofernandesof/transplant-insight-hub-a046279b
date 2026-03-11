@@ -384,7 +384,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
-      { id: 'neoteam_compras_dashboard', code: 'neoteam_compras_dashboard', title: 'Dashboard Compras', icon: ShoppingCart, route: '/neoteam/compras' },
+      { id: 'neoteam_compras_dashboard', code: 'neoteam_compras_dashboard', title: 'Dashboard Compras', icon: ShoppingCart, route: '/neoteam/setor/compras' },
     ],
   },
   {
