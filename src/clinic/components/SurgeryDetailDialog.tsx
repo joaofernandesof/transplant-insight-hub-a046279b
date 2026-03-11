@@ -333,12 +333,11 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
               />
               {/* Almoço */}
               <EditableField
-                label="🍽️ Almoço"
+                icon={UtensilsCrossed}
+                label="Almoço"
                 value={surgery.lunchChoice || ''}
                 field="lunchChoice"
                 onSave={handleFieldSave}
-                placeholder="Ex: Normal, Vegetariano..."
-                className="col-span-2"
               />
             </div>
 
