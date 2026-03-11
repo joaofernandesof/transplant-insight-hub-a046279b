@@ -485,51 +485,118 @@ function NeoTeamRoutes() {
       <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoTeamHome />} />
-          <Route path="schedule" element={<NeoTeamSchedule />} />
-          <Route path="agenda-cirurgica" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ClinicDashboardPage /></Suspense>} />
-          {/* vendidos-sem-data agora é aba dentro de agenda-cirurgica */}
-          <Route path="waiting-room" element={<NeoTeamWaitingRoom />} />
-          <Route path="waiting-room/reports" element={<NeoTeamWaitingRoomReports />} />
-          <Route path="doctor-view" element={<NeoTeamDoctorView />} />
-          <Route path="patients" element={<NeoTeamPatients />} />
-          <Route path="patients/:id" element={<NeoTeamPatientDetail />} />
-          <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
-          <Route path="documents" element={<NeoTeamDocuments />} />
-          <Route path="tasks" element={<NeoTeamTasks />} />
-          <Route path="processos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProcessLibraryPage /></Suspense>} />
-          <Route path="processos/:id" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProcessEditorPage /></Suspense>} />
-          <Route path="events" element={<NeoTeamEvents />} />
-          <Route path="galleries" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamGalleries /></Suspense>} />
-          <Route path="anamnesis" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamAnamnesis /></Suspense>} />
-          <Route path="legal-dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><LegalDashboardPage /></Suspense>} />
-          <Route path="contracts-import" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ContractsImportPage /></Suspense>} />
-          <Route path="procedures" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProceduresPage /></Suspense>} />
-          <Route path="inventory" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><InventoryPage /></Suspense>} />
-          <Route path="contract-review" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ContractReviewPage /></Suspense>} />
-          <Route path="limpeza" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CleaningRoutinePage /></Suspense>} />
-          <Route path="postvenda" element={<PostVendaHome />} />
-          <Route path="postvenda/chamados" element={<ChamadoListPage />} />
-          <Route path="postvenda/chamados/:id" element={<ChamadoDetailPage />} />
-          <Route path="postvenda/sla" element={<PostVendaSlaPage />} />
-          <Route path="postvenda/nps" element={<PostVendaNpsPage />} />
-          {/* Distrato agora é um tipo de chamado, acessível via filtro */}
-          <Route path="postvenda/distrato" element={<Navigate to="/neoteam/postvenda?tab=chamados&tipo=distrato" replace />} />
-          <Route path="pops" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPopsPage /></Suspense>} />
-          <Route path="diario" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamDiaryPage /></Suspense>} />
+          {/* Sector Dashboard */}
           <Route path="setor/:code" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
-          <Route path="financeiro" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><FinancialDashboardPage /></Suspense>} />
-          <Route path="financeiro/contas_a_pagar" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ContasAPagarPage /></Suspense>} />
-          <Route path="equipe" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><TeamRosterPage /></Suspense>} />
-          <Route path="retencao" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><RetentionPage /></Suspense>} />
-          <Route path="contratos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><LegalContractsPage /></Suspense>} />
-          <Route path="chamados" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><TicketsPage /></Suspense>} />
-          <Route path="campanhas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CampaignsPage /></Suspense>} />
-          <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
-          <Route path="portal-links" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPortalLinks /></Suspense>} />
-          <Route path="settings" element={<NeoTeamSettings />} />
-          <Route path="assets" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><AssetManagementPage /></Suspense>} />
-          <Route path="call-intelligence" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CallIntelligencePage /></Suspense>} />
-          <Route path="reports" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
+
+          {/* ===== SETOR TÉCNICO ===== */}
+          <Route path="tecnico/agenda" element={<NeoTeamSchedule />} />
+          <Route path="tecnico/agenda-cirurgica" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ClinicDashboardPage /></Suspense>} />
+          <Route path="tecnico/sala-de-espera" element={<NeoTeamWaitingRoom />} />
+          <Route path="tecnico/sala-de-espera/reports" element={<NeoTeamWaitingRoomReports />} />
+          <Route path="tecnico/visao-medico" element={<NeoTeamDoctorView />} />
+          <Route path="tecnico/pacientes" element={<NeoTeamPatients />} />
+          <Route path="tecnico/pacientes/:id" element={<NeoTeamPatientDetail />} />
+          <Route path="tecnico/prontuarios" element={<NeoTeamMedicalRecords />} />
+          <Route path="tecnico/anamnese" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamAnamnesis /></Suspense>} />
+          <Route path="tecnico/procedimentos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProceduresPage /></Suspense>} />
+
+          {/* ===== SETOR SUCESSO DO PACIENTE ===== */}
+          <Route path="sucesso-paciente/postvenda" element={<PostVendaHome />} />
+          <Route path="sucesso-paciente/postvenda/chamados" element={<ChamadoListPage />} />
+          <Route path="sucesso-paciente/postvenda/chamados/:id" element={<ChamadoDetailPage />} />
+          <Route path="sucesso-paciente/postvenda/sla" element={<PostVendaSlaPage />} />
+          <Route path="sucesso-paciente/postvenda/nps" element={<PostVendaNpsPage />} />
+          <Route path="sucesso-paciente/retencao" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><RetentionPage /></Suspense>} />
+
+          {/* ===== SETOR OPERACIONAL ===== */}
+          <Route path="operacional/tarefas" element={<NeoTeamTasks />} />
+          <Route path="operacional/limpeza" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CleaningRoutinePage /></Suspense>} />
+          <Route path="operacional/inventario" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><InventoryPage /></Suspense>} />
+          <Route path="operacional/diario" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamDiaryPage /></Suspense>} />
+
+          {/* ===== SETOR PROCESSOS ===== */}
+          <Route path="processos/fluxos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProcessLibraryPage /></Suspense>} />
+          <Route path="processos/fluxos/:id" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProcessEditorPage /></Suspense>} />
+          <Route path="processos/pops" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPopsPage /></Suspense>} />
+          <Route path="processos/documentos" element={<NeoTeamDocuments />} />
+
+          {/* ===== SETOR FINANCEIRO ===== */}
+          <Route path="financeiro/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><FinancialDashboardPage /></Suspense>} />
+          <Route path="financeiro/contas-a-pagar" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ContasAPagarPage /></Suspense>} />
+          <Route path="financeiro/revisao-contratos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ContractReviewPage /></Suspense>} />
+          <Route path="financeiro/importar-contratos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ContractsImportPage /></Suspense>} />
+
+          {/* ===== SETOR JURÍDICO ===== */}
+          <Route path="juridico/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><LegalDashboardPage /></Suspense>} />
+          <Route path="juridico/contratos" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><LegalContractsPage /></Suspense>} />
+
+          {/* ===== SETOR COMERCIAL ===== */}
+          <Route path="comercial/call-intelligence" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CallIntelligencePage /></Suspense>} />
+
+          {/* ===== SETOR MARKETING ===== */}
+          <Route path="marketing/campanhas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CampaignsPage /></Suspense>} />
+          <Route path="marketing/eventos" element={<NeoTeamEvents />} />
+          <Route path="marketing/galerias" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamGalleries /></Suspense>} />
+
+          {/* ===== SETOR TI ===== */}
+          <Route path="ti/chamados" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><TicketsPage /></Suspense>} />
+          <Route path="ti/relatorios" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
+
+          {/* ===== SETOR RH ===== */}
+          <Route path="rh/equipe" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><TeamRosterPage /></Suspense>} />
+          <Route path="rh/cargos" element={<NeoTeamStaffRoles />} />
+
+          {/* ===== SETOR COMPRAS ===== */}
+          <Route path="compras/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
+
+          {/* ===== SETOR MANUTENÇÃO ===== */}
+          <Route path="manutencao/patrimonio" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><AssetManagementPage /></Suspense>} />
+          <Route path="manutencao/ordens" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
+
+          {/* ===== ADMINISTRAÇÃO ===== */}
+          <Route path="admin/portal-links" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPortalLinks /></Suspense>} />
+          <Route path="admin/configuracoes" element={<NeoTeamSettings />} />
+
+          {/* ===== REDIRECTS FROM LEGACY ROUTES ===== */}
+          <Route path="schedule" element={<Navigate to="/neoteam/tecnico/agenda" replace />} />
+          <Route path="agenda-cirurgica" element={<Navigate to="/neoteam/tecnico/agenda-cirurgica" replace />} />
+          <Route path="waiting-room" element={<Navigate to="/neoteam/tecnico/sala-de-espera" replace />} />
+          <Route path="waiting-room/reports" element={<Navigate to="/neoteam/tecnico/sala-de-espera/reports" replace />} />
+          <Route path="doctor-view" element={<Navigate to="/neoteam/tecnico/visao-medico" replace />} />
+          <Route path="patients" element={<Navigate to="/neoteam/tecnico/pacientes" replace />} />
+          <Route path="patients/:id" element={<Navigate to="/neoteam/tecnico/pacientes" replace />} />
+          <Route path="medical-records" element={<Navigate to="/neoteam/tecnico/prontuarios" replace />} />
+          <Route path="anamnesis" element={<Navigate to="/neoteam/tecnico/anamnese" replace />} />
+          <Route path="procedures" element={<Navigate to="/neoteam/tecnico/procedimentos" replace />} />
+          <Route path="postvenda" element={<Navigate to="/neoteam/sucesso-paciente/postvenda" replace />} />
+          <Route path="postvenda/*" element={<Navigate to="/neoteam/sucesso-paciente/postvenda" replace />} />
+          <Route path="retencao" element={<Navigate to="/neoteam/sucesso-paciente/retencao" replace />} />
+          <Route path="tasks" element={<Navigate to="/neoteam/operacional/tarefas" replace />} />
+          <Route path="limpeza" element={<Navigate to="/neoteam/operacional/limpeza" replace />} />
+          <Route path="inventory" element={<Navigate to="/neoteam/operacional/inventario" replace />} />
+          <Route path="diario" element={<Navigate to="/neoteam/operacional/diario" replace />} />
+          <Route path="processos" element={<Navigate to="/neoteam/processos/fluxos" replace />} />
+          <Route path="processos/:id" element={<Navigate to="/neoteam/processos/fluxos" replace />} />
+          <Route path="pops" element={<Navigate to="/neoteam/processos/pops" replace />} />
+          <Route path="documents" element={<Navigate to="/neoteam/processos/documentos" replace />} />
+          <Route path="financeiro" element={<Navigate to="/neoteam/financeiro/dashboard" replace />} />
+          <Route path="financeiro/contas_a_pagar" element={<Navigate to="/neoteam/financeiro/contas-a-pagar" replace />} />
+          <Route path="contract-review" element={<Navigate to="/neoteam/financeiro/revisao-contratos" replace />} />
+          <Route path="contracts-import" element={<Navigate to="/neoteam/financeiro/importar-contratos" replace />} />
+          <Route path="legal-dashboard" element={<Navigate to="/neoteam/juridico/dashboard" replace />} />
+          <Route path="contratos" element={<Navigate to="/neoteam/juridico/contratos" replace />} />
+          <Route path="call-intelligence" element={<Navigate to="/neoteam/comercial/call-intelligence" replace />} />
+          <Route path="campanhas" element={<Navigate to="/neoteam/marketing/campanhas" replace />} />
+          <Route path="events" element={<Navigate to="/neoteam/marketing/eventos" replace />} />
+          <Route path="galleries" element={<Navigate to="/neoteam/marketing/galerias" replace />} />
+          <Route path="chamados" element={<Navigate to="/neoteam/ti/chamados" replace />} />
+          <Route path="reports" element={<Navigate to="/neoteam/ti/relatorios" replace />} />
+          <Route path="equipe" element={<Navigate to="/neoteam/rh/equipe" replace />} />
+          <Route path="staff-roles" element={<Navigate to="/neoteam/rh/cargos" replace />} />
+          <Route path="assets" element={<Navigate to="/neoteam/manutencao/patrimonio" replace />} />
+          <Route path="portal-links" element={<Navigate to="/neoteam/admin/portal-links" replace />} />
+          <Route path="settings" element={<Navigate to="/neoteam/admin/configuracoes" replace />} />
+
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>
       </UnifiedSidebar>
