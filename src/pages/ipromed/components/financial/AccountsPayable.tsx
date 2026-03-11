@@ -431,14 +431,14 @@ export default function AccountsPayable() {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="pendente">Pendentes</SelectItem>
-                <SelectItem value="vencido">Vencidos</SelectItem>
-                <SelectItem value="pago">Pagos</SelectItem>
+                {WORKFLOW_STAGES.map(stage => (
+                  <SelectItem key={stage.id} value={stage.id}>{stage.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
