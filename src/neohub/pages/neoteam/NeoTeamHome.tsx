@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   BarChart3, Stethoscope, HeadphonesIcon, ClipboardCheck, 
   GitCompare, DollarSign, Scale, Megaphone, CircuitBoard, UsersRound,
-  Link2, Phone,
+  Link2, Phone, ShoppingCart, Wrench,
   type LucideIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +19,8 @@ const SECTOR_ICONS: Record<string, LucideIcon> = {
   ti: CircuitBoard,
   rh: UsersRound,
   comercial: Phone,
+  compras: ShoppingCart,
+  manutencao: Wrench,
 };
 
 const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }> = {
@@ -32,6 +34,8 @@ const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }
   ti: { bg: 'bg-purple-200 dark:bg-purple-800/40', icon: 'text-purple-800 dark:text-purple-300', border: 'border-purple-400 dark:border-purple-600' },
   rh: { bg: 'bg-orange-200 dark:bg-orange-800/40', icon: 'text-orange-800 dark:text-orange-300', border: 'border-orange-400 dark:border-orange-600' },
   comercial: { bg: 'bg-teal-200 dark:bg-teal-800/40', icon: 'text-teal-800 dark:text-teal-300', border: 'border-teal-400 dark:border-teal-600' },
+  compras: { bg: 'bg-amber-200 dark:bg-amber-800/40', icon: 'text-amber-800 dark:text-amber-300', border: 'border-amber-400 dark:border-amber-600' },
+  manutencao: { bg: 'bg-stone-200 dark:bg-stone-800/40', icon: 'text-stone-800 dark:text-stone-300', border: 'border-stone-400 dark:border-stone-600' },
 };
 
 export default function NeoTeamHome() {
