@@ -576,6 +576,29 @@ function SortableTh({ label, sortKey, current, dir, onSort, align = 'center' }: 
   );
 }
 
+type ObjSortKey = 'objection' | 'solution' | 'count';
+function ObjSortableTh({ label, sortKey, current, dir, onSort }: {
+  label: string; sortKey: ObjSortKey; current: ObjSortKey; dir: 'asc' | 'desc';
+  onSort: (key: ObjSortKey) => void;
+}) {
+  const isActive = current === sortKey;
+  return (
+    <button
+      className={`inline-flex items-center gap-0.5 font-semibold text-xs cursor-pointer select-none transition-colors hover:text-foreground ${
+        isActive ? 'text-foreground' : 'text-muted-foreground'
+      }`}
+      onClick={() => onSort(sortKey)}
+    >
+      {label}
+      {isActive ? (
+        dir === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+      ) : (
+        <ArrowUpDown className="h-3 w-3 opacity-30" />
+      )}
+    </button>
+  );
+}
+
 function KpiCard({ icon, iconBg, value, label, valueColor }: { icon: React.ReactNode; iconBg: string; value: React.ReactNode; label: string; valueColor?: string }) {
   return (
     <Card>
