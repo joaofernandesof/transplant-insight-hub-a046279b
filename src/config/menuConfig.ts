@@ -229,6 +229,8 @@ export const NEOTEAM_MENU_ITEMS: MenuItem[] = [
       { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos' },
   { id: 'neoteam_pops', code: 'neoteam_pops', title: 'POPs', icon: BookMarked, route: '/neoteam/pops' },
   { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
+  // Setor Comercial
+  { id: 'neoteam_call_intelligence', code: 'neoteam_call_intelligence', title: 'Call Intelligence', icon: Phone, route: '/neoteam/call-intelligence' },
   // Setor Financeiro
   { id: 'neoteam_contract_review', code: 'neoteam_contract_review', title: 'Revisão de Contratos', icon: FileCheck, route: '/neoteam/contract-review', adminOnly: true },
   { id: 'neoteam_contracts_import', code: 'neoteam_contracts_import', title: 'Importar Contratos', icon: FileText, route: '/neoteam/contracts-import', adminOnly: true },
@@ -336,7 +338,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
-      { id: 'neoteam_call_analysis', code: 'neoteam_call_analysis', title: 'Análise de Calls', icon: Phone, route: '/neoteam/analise-calls' },
+      { id: 'neoteam_call_intelligence', code: 'neoteam_call_intelligence', title: 'Call Intelligence', icon: Phone, route: '/neoteam/call-intelligence' },
     ],
   },
   {

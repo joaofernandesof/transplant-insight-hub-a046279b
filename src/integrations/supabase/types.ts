@@ -3555,6 +3555,114 @@ export type Database = {
           },
         ]
       }
+      call_analysis: {
+        Row: {
+          account_id: string | null
+          acoes_realizadas: string | null
+          ai_model: string | null
+          bant_authority: number | null
+          bant_budget: number | null
+          bant_need: number | null
+          bant_timeline: number | null
+          bant_total: number | null
+          call_id: string
+          classificacao_lead:
+            | Database["public"]["Enums"]["call_classificacao_lead"]
+            | null
+          conclusao: string | null
+          created_at: string
+          dor_principal: string | null
+          estrategia_followup: string | null
+          id: string
+          motivo_nao_fechamento: string | null
+          objecoes: string | null
+          perfil_lead: string | null
+          pontos_fortes_closer: string | null
+          pontos_fracos_closer: string | null
+          probabilidade_fechamento: number | null
+          processing_time_ms: number | null
+          proximos_passos: string | null
+          resumo_call: string | null
+          urgencia: Database["public"]["Enums"]["call_urgencia"] | null
+          whatsapp_report: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          acoes_realizadas?: string | null
+          ai_model?: string | null
+          bant_authority?: number | null
+          bant_budget?: number | null
+          bant_need?: number | null
+          bant_timeline?: number | null
+          bant_total?: number | null
+          call_id: string
+          classificacao_lead?:
+            | Database["public"]["Enums"]["call_classificacao_lead"]
+            | null
+          conclusao?: string | null
+          created_at?: string
+          dor_principal?: string | null
+          estrategia_followup?: string | null
+          id?: string
+          motivo_nao_fechamento?: string | null
+          objecoes?: string | null
+          perfil_lead?: string | null
+          pontos_fortes_closer?: string | null
+          pontos_fracos_closer?: string | null
+          probabilidade_fechamento?: number | null
+          processing_time_ms?: number | null
+          proximos_passos?: string | null
+          resumo_call?: string | null
+          urgencia?: Database["public"]["Enums"]["call_urgencia"] | null
+          whatsapp_report?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          acoes_realizadas?: string | null
+          ai_model?: string | null
+          bant_authority?: number | null
+          bant_budget?: number | null
+          bant_need?: number | null
+          bant_timeline?: number | null
+          bant_total?: number | null
+          call_id?: string
+          classificacao_lead?:
+            | Database["public"]["Enums"]["call_classificacao_lead"]
+            | null
+          conclusao?: string | null
+          created_at?: string
+          dor_principal?: string | null
+          estrategia_followup?: string | null
+          id?: string
+          motivo_nao_fechamento?: string | null
+          objecoes?: string | null
+          perfil_lead?: string | null
+          pontos_fortes_closer?: string | null
+          pontos_fracos_closer?: string | null
+          probabilidade_fechamento?: number | null
+          processing_time_ms?: number | null
+          proximos_passos?: string | null
+          resumo_call?: string | null
+          urgencia?: Database["public"]["Enums"]["call_urgencia"] | null
+          whatsapp_report?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_analysis_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_analysis_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "sales_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carousel_banners: {
         Row: {
           bg_color: string | null
@@ -21040,6 +21148,65 @@ export type Database = {
           },
         ]
       }
+      sales_calls: {
+        Row: {
+          account_id: string | null
+          closer_id: string
+          closer_name: string | null
+          created_at: string
+          data_call: string
+          fonte_call: Database["public"]["Enums"]["sales_call_fonte"] | null
+          has_analysis: boolean | null
+          id: string
+          lead_nome: string
+          produto: string | null
+          resumo_manual: string | null
+          status_call: Database["public"]["Enums"]["sales_call_status"]
+          transcricao: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          closer_id: string
+          closer_name?: string | null
+          created_at?: string
+          data_call?: string
+          fonte_call?: Database["public"]["Enums"]["sales_call_fonte"] | null
+          has_analysis?: boolean | null
+          id?: string
+          lead_nome: string
+          produto?: string | null
+          resumo_manual?: string | null
+          status_call?: Database["public"]["Enums"]["sales_call_status"]
+          transcricao?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          closer_id?: string
+          closer_name?: string | null
+          created_at?: string
+          data_call?: string
+          fonte_call?: Database["public"]["Enums"]["sales_call_fonte"] | null
+          has_analysis?: boolean | null
+          id?: string
+          lead_nome?: string
+          produto?: string | null
+          resumo_manual?: string | null
+          status_call?: Database["public"]["Enums"]["sales_call_status"]
+          transcricao?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_calls_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       satisfaction_survey_responses: {
         Row: {
           ai_relation: string | null
@@ -24443,6 +24610,8 @@ export type Database = {
         | "retido"
         | "nao_retido"
       avivar_team_role: "admin" | "gestor" | "sdr" | "atendente"
+      call_classificacao_lead: "frio" | "morno" | "quente"
+      call_urgencia: "baixa" | "media" | "alta"
       chamado_etapa:
         | "triagem"
         | "atendimento"
@@ -24670,6 +24839,8 @@ export type Database = {
         | "inventory"
       procedure_execution_status: "em_andamento" | "finalizado" | "cancelado"
       risk_level: "low" | "medium" | "high" | "critical"
+      sales_call_fonte: "whatsapp" | "zoom" | "meet" | "telefone" | "presencial"
+      sales_call_status: "fechou" | "followup" | "perdido"
       sanitary_risk_level: "critico" | "semicritico" | "nao_critico"
       schedule_status:
         | "sem_data"
@@ -24862,6 +25033,8 @@ export const Constants = {
         "nao_retido",
       ],
       avivar_team_role: ["admin", "gestor", "sdr", "atendente"],
+      call_classificacao_lead: ["frio", "morno", "quente"],
+      call_urgencia: ["baixa", "media", "alta"],
       chamado_etapa: [
         "triagem",
         "atendimento",
@@ -25114,6 +25287,8 @@ export const Constants = {
       ],
       procedure_execution_status: ["em_andamento", "finalizado", "cancelado"],
       risk_level: ["low", "medium", "high", "critical"],
+      sales_call_fonte: ["whatsapp", "zoom", "meet", "telefone", "presencial"],
+      sales_call_status: ["fechou", "followup", "perdido"],
       sanitary_risk_level: ["critico", "semicritico", "nao_critico"],
       schedule_status: [
         "sem_data",
