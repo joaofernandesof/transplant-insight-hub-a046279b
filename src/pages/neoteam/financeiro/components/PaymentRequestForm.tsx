@@ -343,12 +343,30 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
               <DollarSign className="h-3.5 w-3.5" /> Valor (R$) *
             </Label>
             <Input
-              type="number"
-              step="0.01"
-              min="0.01"
+              type="text"
+              inputMode="decimal"
               placeholder="0,00"
               value={form.amount}
-              onChange={e => setForm(prev => ({ ...prev, amount: e.target.value }))}
+              onChange={e => {
+                // Allow only digits, dots and commas
+                let raw = e.target.value.replace(/[^\d.,]/g, '');
+                // Format as Brazilian currency: 1.000,00
+                // Remove all formatting first
+                let digits = raw.replace(/\./g, '').replace(',', '.');
+                // If there's a valid number, format it
+                if (digits === '' || digits === '.') {
+                  setForm(prev => ({ ...prev, amount: raw }));
+                  return;
+                }
+                // Split integer and decimal parts
+                const parts = digits.split('.');
+                const intPart = parts[0].replace(/^0+(?=\d)/, '');
+                const decPart = parts[1] !== undefined ? parts[1].slice(0, 2) : undefined;
+                // Add thousand separators
+                const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                const result = decPart !== undefined ? `${formatted},${decPart}` : formatted;
+                setForm(prev => ({ ...prev, amount: result }));
+              }}
               className={errors.amount ? 'border-destructive' : ''}
             />
             {errors.amount && <p className="text-xs text-destructive">{errors.amount}</p>}
