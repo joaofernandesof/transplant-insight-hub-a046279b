@@ -25,6 +25,13 @@ const PRIORITY_COLORS: Record<string, string> = {
   critical: "bg-red-100 text-red-800",
 };
 
+const PRIORITY_LABELS: Record<string, string> = {
+  low: "Baixa",
+  medium: "Média",
+  high: "Alta",
+  critical: "Urgente",
+};
+
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-red-100 text-red-800",
   in_progress: "bg-blue-100 text-blue-800",
@@ -382,7 +389,7 @@ export default function TicketsPage() {
                       <p className="font-medium">{t.title}</p>
                       {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{t.description}</p>}
                     </TableCell>
-                    <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{t.priority}</Badge></TableCell>
+                    <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{PRIORITY_LABELS[t.priority] || t.priority}</Badge></TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
                     <TableCell>
                       {isTicketAdmin ? (
@@ -584,7 +591,7 @@ function TicketForm({ onSubmit, loading, isAdmin }: { onSubmit: (f: any) => void
               <SelectItem value="low">Baixa</SelectItem>
               <SelectItem value="medium">Média</SelectItem>
               <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="critical">Crítica</SelectItem>
+              <SelectItem value="critical">Urgente</SelectItem>
             </SelectContent>
           </Select>
         </div>
