@@ -89,6 +89,9 @@ export default function CallIntelligencePage() {
             <TabsTrigger value="registrar" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
               <Plus className="h-4 w-4" /> Registrar
             </TabsTrigger>
+            <TabsTrigger value="agenda" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
+              <Calendar className="h-4 w-4" /> Agenda
+            </TabsTrigger>
             <TabsTrigger value="config" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
               <Settings className="h-4 w-4" /> Fireflies
             </TabsTrigger>
