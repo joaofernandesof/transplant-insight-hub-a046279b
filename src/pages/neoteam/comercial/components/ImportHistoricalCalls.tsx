@@ -1,47 +1,82 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { FileSpreadsheet, Upload, Loader2, CheckCircle2 } from 'lucide-react';
+import { FileSpreadsheet, Upload, Loader2, CheckCircle2, AlertTriangle, ArrowRight, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface Props {
   accountId: string | null;
 }
 
-interface ParsedRow {
-  resultado: string;
-  produto: string;
-  data_call: string;
-  lead_nome: string;
-  budget: number;
-  authority: number;
-  need: number;
-  timeline: number;
-  bant_total: number;
-  classificacao: string;
-  dor_principal: string;
-  objecao: string;
-  motivo_nao_fechamento: string;
-  urgencia: number;
-  followup: string;
-  status_final: string;
-  vendedor: string;
-  pontos_melhoria: string;
+// Target fields for the import
+const TARGET_FIELDS = [
+  { key: 'lead_nome', label: 'Nome do Lead', required: true },
+  { key: 'data_call', label: 'Data da Call', required: true },
+  { key: 'resultado', label: 'Resultado da Call', required: false },
+  { key: 'produto', label: 'Produto', required: false },
+  { key: 'vendedor', label: 'Closer/Vendedor', required: false },
+  { key: 'budget', label: 'BANT - Budget', required: false },
+  { key: 'authority', label: 'BANT - Authority', required: false },
+  { key: 'need', label: 'BANT - Need', required: false },
+  { key: 'timeline', label: 'BANT - Timeline', required: false },
+  { key: 'bant_total', label: 'BANT - Total', required: false },
+  { key: 'classificacao', label: 'Classificação do Lead', required: false },
+  { key: 'dor_principal', label: 'Dor Principal', required: false },
+  { key: 'objecao', label: 'Objeção', required: false },
+  { key: 'motivo_nao_fechamento', label: 'Motivo Não Fechamento', required: false },
+  { key: 'urgencia', label: 'Urgência', required: false },
+  { key: 'followup', label: 'Follow-up', required: false },
+  { key: 'status_final', label: 'Status Final', required: false },
+  { key: 'pontos_melhoria', label: 'Pontos de Melhoria', required: false },
+];
+
+// Auto-detect column mapping based on header text
+function autoDetectMapping(headers: string[]): Record<string, number> {
+  const mapping: Record<string, number> = {};
+  const patterns: Record<string, RegExp[]> = {
+    lead_nome: [/lead|nome.*lead|cliente|nome.*cliente|paciente/i, /^nome$/i],
+    data_call: [/data.*call|data.*liga|data.*reuni|data/i],
+    resultado: [/resultado|status.*call|resultado.*call/i],
+    produto: [/produto|curso|servi[cç]o|oferta/i],
+    vendedor: [/vendedor|closer|respons[aá]vel|consultor/i],
+    budget: [/budget|or[cç]amento/i, /^b$/i],
+    authority: [/authority|autoridade/i, /^a$/i],
+    need: [/need|necessidade/i, /^n$/i],
+    timeline: [/timeline|prazo|tempo/i, /^t$/i],
+    bant_total: [/bant.*total|total.*bant|pontua[cç][aã]o/i],
+    classificacao: [/classifica|temperatura|perfil/i],
+    dor_principal: [/dor.*princip|dor|principal.*dor/i],
+    objecao: [/obje[cç][aã]o|obje[cç][oõ]es/i],
+    motivo_nao_fechamento: [/motivo.*n[aã]o|n[aã]o.*fech/i],
+    urgencia: [/urg[eê]ncia/i],
+    followup: [/follow|acompanhamento/i],
+    status_final: [/status.*final/i],
+    pontos_melhoria: [/ponto.*melhor|melhoria|feedback/i],
+  };
+
+  for (const [field, regexList] of Object.entries(patterns)) {
+    for (const regex of regexList) {
+      const idx = headers.findIndex(h => regex.test(h));
+      if (idx !== -1 && !Object.values(mapping).includes(idx)) {
+        mapping[field] = idx;
+        break;
+      }
+    }
+  }
+  return mapping;
 }
 
 function parseDate(val: any): string {
   if (!val) return new Date().toISOString();
-
-  // Excel serial number
   if (typeof val === 'number') {
     const date = new Date((val - 25569) * 86400 * 1000);
     return date.toISOString();
   }
-
-  // String like "12/12/2025" or "5/1/2026"
   if (typeof val === 'string') {
     const parts = val.split('/');
     if (parts.length === 3) {
@@ -51,97 +86,154 @@ function parseDate(val: any): string {
       const date = new Date(year, month, day, 12, 0, 0);
       if (!isNaN(date.getTime())) return date.toISOString();
     }
-    // Try direct parse
     const d = new Date(val);
     if (!isNaN(d.getTime())) return d.toISOString();
   }
-
   return new Date().toISOString();
 }
 
+type Step = 'upload' | 'mapping' | 'importing' | 'result';
+
+interface ImportResult {
+  imported: number;
+  skipped: number;
+  errors: number;
+  errorDetails: string[];
+}
+
 export function ImportHistoricalCalls({ accountId }: Props) {
+  const [step, setStep] = useState<Step>('upload');
   const [isImporting, setIsImporting] = useState(false);
-  const [result, setResult] = useState<{ imported: number; skipped: number; errors: number } | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [dataRows, setDataRows] = useState<any[][]>([]);
+  const [mapping, setMapping] = useState<Record<string, number>>({});
+  const [fileName, setFileName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as any[][];
+
+        // Find header row
+        let headerIdx = -1;
+        for (let i = 0; i < Math.min(jsonData.length, 15); i++) {
+          const row = jsonData[i];
+          if (row && row.filter((cell: any) => String(cell).trim()).length >= 3) {
+            headerIdx = i;
+            break;
+          }
+        }
+
+        if (headerIdx === -1) {
+          toast.error('Não foi possível encontrar o cabeçalho da planilha');
+          return;
+        }
+
+        const rawHeaders = jsonData[headerIdx].map((h: any) => String(h).trim());
+        const rows = jsonData.slice(headerIdx + 1).filter(row =>
+          row && row.some((cell: any) => String(cell).trim())
+        );
+
+        setHeaders(rawHeaders);
+        setDataRows(rows);
+        setMapping(autoDetectMapping(rawHeaders));
+        setStep('mapping');
+        toast.success(`${rows.length} linhas encontradas em "${file.name}"`);
+      } catch (err: any) {
+        toast.error('Erro ao ler arquivo: ' + (err.message || ''));
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const updateMapping = (field: string, colIdx: string) => {
+    setMapping(prev => {
+      const next = { ...prev };
+      if (colIdx === '__none__') {
+        delete next[field];
+      } else {
+        next[field] = parseInt(colIdx);
+      }
+      return next;
+    });
+  };
 
   const handleImport = async () => {
-    if (!accountId) {
-      toast.error('Conta não configurada');
+    if (!accountId) { toast.error('Conta não configurada'); return; }
+    if (!mapping.lead_nome && mapping.lead_nome !== 0) {
+      toast.error('Mapeie pelo menos a coluna "Nome do Lead"');
       return;
     }
 
+    setStep('importing');
     setIsImporting(true);
     setResult(null);
-    toast.loading('Carregando planilha e importando calls...', { id: 'import-calls' });
 
     try {
-      // Fetch XLSX file
-      const response = await fetch('/data/controle-vendas.xlsx');
-      const arrayBuffer = await response.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as any[][];
-
-      // Find header row (looking for "RESULTADO DA CALL" or similar pattern)
-      let headerIdx = -1;
-      for (let i = 0; i < Math.min(jsonData.length, 10); i++) {
-        const row = jsonData[i];
-        if (row && row.some((cell: any) => String(cell).includes('RESULTADO'))) {
-          headerIdx = i;
-          break;
-        }
-      }
-
-      if (headerIdx === -1) {
-        throw new Error('Não foi possível encontrar o cabeçalho da planilha');
-      }
-
-      // Parse data rows (start after header)
-      const dataRows = jsonData.slice(headerIdx + 1);
-      const parsedRows: ParsedRow[] = [];
-
+      // Build parsed rows from mapping
+      const parsedRows = [];
       for (const row of dataRows) {
-        if (!row || !row[0] || String(row[0]).trim() === '') continue;
+        const getValue = (key: string) => {
+          const idx = mapping[key];
+          if (idx === undefined || idx === null) return '';
+          return String(row[idx] || '').trim();
+        };
+        const getNum = (key: string) => {
+          const v = getValue(key);
+          return parseInt(v) || 0;
+        };
 
-        const resultado = String(row[0] || '').trim();
-        const leadNome = String(row[3] || '').trim();
+        const leadNome = getValue('lead_nome');
         if (!leadNome || leadNome.length < 2) continue;
-
         // Skip header-like rows
-        if (resultado.includes('ANÁLISE') || resultado.includes('RESULTADO')) continue;
+        if (/resultado|an[aá]lise/i.test(leadNome)) continue;
 
         parsedRows.push({
-          resultado,
-          produto: String(row[1] || '').trim(),
-          data_call: parseDate(row[2]),
           lead_nome: leadNome,
-          budget: parseInt(row[13]) || 0,
-          authority: parseInt(row[14]) || 0,
-          need: parseInt(row[15]) || 0,
-          timeline: parseInt(row[16]) || 0,
-          bant_total: parseInt(row[17]) || 0,
-          classificacao: String(row[19] || row[18] || '').trim(),
-          dor_principal: String(row[20] || '').trim(),
-          objecao: String(row[21] || '').trim(),
-          motivo_nao_fechamento: String(row[22] || '').trim(),
-          urgencia: parseInt(row[23]) || 5,
-          followup: String(row[24] || '').trim(),
-          status_final: String(row[25] || '').trim(),
-          vendedor: String(row[26] || row[27] || '').trim(),
-          pontos_melhoria: String(row[12] || '').trim(),
+          data_call: parseDate(mapping.data_call !== undefined ? row[mapping.data_call] : ''),
+          resultado: getValue('resultado'),
+          produto: getValue('produto'),
+          vendedor: getValue('vendedor'),
+          budget: getNum('budget'),
+          authority: getNum('authority'),
+          need: getNum('need'),
+          timeline: getNum('timeline'),
+          bant_total: getNum('bant_total'),
+          classificacao: getValue('classificacao'),
+          dor_principal: getValue('dor_principal'),
+          objecao: getValue('objecao'),
+          motivo_nao_fechamento: getValue('motivo_nao_fechamento'),
+          urgencia: getNum('urgencia') || 5,
+          followup: getValue('followup'),
+          status_final: getValue('status_final'),
+          pontos_melhoria: getValue('pontos_melhoria'),
         });
       }
 
       if (parsedRows.length === 0) {
-        throw new Error('Nenhuma call válida encontrada na planilha');
+        toast.error('Nenhuma call válida encontrada');
+        setStep('mapping');
+        setIsImporting(false);
+        return;
       }
 
       toast.loading(`Importando ${parsedRows.length} calls...`, { id: 'import-calls' });
 
-      // Send in batches of 20 to avoid timeout
       const batchSize = 20;
       let totalImported = 0;
       let totalSkipped = 0;
       let totalErrors = 0;
+      const errorDetails: string[] = [];
 
       for (let i = 0; i < parsedRows.length; i += batchSize) {
         const batch = parsedRows.slice(i, i + batchSize);
@@ -150,8 +242,16 @@ export function ImportHistoricalCalls({ accountId }: Props) {
           body: { rows: batch, account_id: accountId },
         });
 
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
+        if (error) {
+          totalErrors += batch.length;
+          errorDetails.push(`Batch ${Math.floor(i / batchSize) + 1}: ${error.message || 'Erro desconhecido'}`);
+          continue;
+        }
+        if (data?.error) {
+          totalErrors += batch.length;
+          errorDetails.push(`Batch ${Math.floor(i / batchSize) + 1}: ${data.error}`);
+          continue;
+        }
 
         totalImported += data.imported || 0;
         totalSkipped += data.skipped || 0;
@@ -160,14 +260,25 @@ export function ImportHistoricalCalls({ accountId }: Props) {
         toast.loading(`Importando... ${Math.min(i + batchSize, parsedRows.length)}/${parsedRows.length}`, { id: 'import-calls' });
       }
 
-      setResult({ imported: totalImported, skipped: totalSkipped, errors: totalErrors });
-      toast.success(`✅ Importação concluída! ${totalImported} calls importadas.`, { id: 'import-calls' });
+      setResult({ imported: totalImported, skipped: totalSkipped, errors: totalErrors, errorDetails });
+      setStep('result');
+      toast.success(`Importação concluída! ${totalImported} calls importadas.`, { id: 'import-calls' });
     } catch (err: any) {
-      console.error('Import error:', err);
       toast.error('Erro na importação: ' + (err.message || ''), { id: 'import-calls' });
+      setStep('mapping');
     } finally {
       setIsImporting(false);
     }
+  };
+
+  const reset = () => {
+    setStep('upload');
+    setResult(null);
+    setHeaders([]);
+    setDataRows([]);
+    setMapping({});
+    setFileName('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
@@ -179,61 +290,170 @@ export function ImportHistoricalCalls({ accountId }: Props) {
           </div>
           <div>
             <CardTitle className="text-lg">Importar Histórico de Calls</CardTitle>
-            <CardDescription>
-              Importa calls da planilha de controle de vendas (IBRAMEC)
-            </CardDescription>
+            <CardDescription>Faça upload de uma planilha Excel (.xlsx/.xls) com os dados das calls</CardDescription>
           </div>
-          {result && result.imported > 0 && (
-            <Badge variant="outline" className="ml-auto text-primary border-primary/30">
-              <CheckCircle2 className="h-3 w-3 mr-1" /> {result.imported} importadas
-            </Badge>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-2 text-sm text-muted-foreground">
-          <p className="font-medium text-foreground">O que será importado:</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Todas as calls da planilha de controle de vendas</li>
-            <li>Indicadores BANT (Budget, Authority, Need, Timeline)</li>
-            <li>Classificação do lead (quente, morno, frio)</li>
-            <li>Dor principal, objeções e motivo de não fechamento</li>
-            <li>Estratégia de follow-up e pontos de melhoria do closer</li>
-            <li>Calls duplicadas serão ignoradas automaticamente</li>
-          </ul>
-        </div>
 
-        <Button
-          onClick={handleImport}
-          disabled={isImporting || !accountId}
-          className="w-full"
-          size="lg"
-        >
-          {isImporting ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Importando...</>
-          ) : (
-            <><Upload className="h-4 w-4 mr-2" /> Importar Planilha de Vendas</>
-          )}
-        </Button>
+        {/* STEP 1: Upload */}
+        {step === 'upload' && (
+          <>
+            <div className="rounded-lg border-2 border-dashed border-border/60 bg-muted/20 p-8 text-center">
+              <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+              <p className="text-sm font-medium mb-1">Selecione um arquivo Excel</p>
+              <p className="text-xs text-muted-foreground mb-4">.xlsx ou .xls — as colunas serão detectadas automaticamente</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="gap-2">
+                <Upload className="h-4 w-4" /> Selecionar Arquivo
+              </Button>
+            </div>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-2 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">O que será importado:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Todas as calls da planilha com mapeamento personalizado</li>
+                <li>Indicadores BANT (Budget, Authority, Need, Timeline)</li>
+                <li>Classificação do lead (quente, morno, frio)</li>
+                <li>Dor principal, objeções e motivo de não fechamento</li>
+                <li>Calls duplicadas serão ignoradas automaticamente</li>
+              </ul>
+            </div>
+          </>
+        )}
 
-        {result && (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2 text-sm">
-            <p className="font-semibold text-foreground">Resultado da importação:</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="text-center p-2 rounded-lg bg-background">
-                <p className="text-2xl font-bold text-primary">{result.imported}</p>
-                <p className="text-xs text-muted-foreground">Importadas</p>
+        {/* STEP 2: Mapping */}
+        {step === 'mapping' && (
+          <>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">📄 {fileName}</p>
+                <p className="text-xs text-muted-foreground">{dataRows.length} linhas · {headers.length} colunas detectadas</p>
               </div>
-              <div className="text-center p-2 rounded-lg bg-background">
-                <p className="text-2xl font-bold text-muted-foreground">{result.skipped}</p>
-                <p className="text-xs text-muted-foreground">Já existentes</p>
-              </div>
-              <div className="text-center p-2 rounded-lg bg-background">
-                <p className="text-2xl font-bold text-destructive">{result.errors}</p>
-                <p className="text-xs text-muted-foreground">Erros</p>
+              <Button variant="ghost" size="sm" onClick={reset}>
+                <X className="h-4 w-4 mr-1" /> Trocar arquivo
+              </Button>
+            </div>
+
+            <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+              <p className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Mapeamento De → Para</p>
+              <p className="text-xs text-muted-foreground mb-3">Verifique se as colunas foram detectadas corretamente. Ajuste se necessário.</p>
+
+              <div className="space-y-2">
+                {TARGET_FIELDS.map(field => (
+                  <div key={field.key} className="flex items-center gap-2">
+                    <div className="w-[200px] text-xs font-medium flex items-center gap-1">
+                      {field.label}
+                      {field.required && <span className="text-destructive">*</span>}
+                    </div>
+                    <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <Select
+                      value={mapping[field.key] !== undefined ? String(mapping[field.key]) : '__none__'}
+                      onValueChange={(v) => updateMapping(field.key, v)}
+                    >
+                      <SelectTrigger className="h-8 text-xs flex-1">
+                        <SelectValue placeholder="Não mapeado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">— Não mapeado —</SelectItem>
+                        {headers.map((h, i) => (
+                          <SelectItem key={i} value={String(i)}>
+                            Col {i + 1}: {h || `(sem nome)`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
               </div>
             </div>
+
+            {/* Preview first 3 rows */}
+            <div className="rounded-lg border border-border/50 overflow-hidden">
+              <p className="text-xs font-semibold p-2 bg-muted/40 text-muted-foreground uppercase tracking-wide">Prévia das primeiras 3 linhas</p>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {TARGET_FIELDS.filter(f => mapping[f.key] !== undefined).map(f => (
+                        <TableHead key={f.key} className="text-[10px] whitespace-nowrap">{f.label}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dataRows.slice(0, 3).map((row, ri) => (
+                      <TableRow key={ri}>
+                        {TARGET_FIELDS.filter(f => mapping[f.key] !== undefined).map(f => (
+                          <TableCell key={f.key} className="text-[10px] max-w-[150px] truncate">
+                            {String(row[mapping[f.key]] || '—')}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <Button onClick={handleImport} disabled={!accountId} className="w-full" size="lg">
+              <Upload className="h-4 w-4 mr-2" /> Importar {dataRows.length} Calls
+            </Button>
+          </>
+        )}
+
+        {/* STEP 3: Importing */}
+        {step === 'importing' && (
+          <div className="py-8 text-center space-y-3">
+            <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
+            <p className="text-sm font-medium">Importando calls...</p>
+            <p className="text-xs text-muted-foreground">Isso pode levar alguns segundos</p>
           </div>
+        )}
+
+        {/* STEP 4: Result */}
+        {step === 'result' && result && (
+          <>
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+                <p className="font-semibold text-foreground">Importação concluída!</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-3 rounded-lg bg-background border">
+                  <p className="text-2xl font-bold text-primary">{result.imported}</p>
+                  <p className="text-xs text-muted-foreground">Importadas</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-background border">
+                  <p className="text-2xl font-bold text-amber-600">{result.skipped}</p>
+                  <p className="text-xs text-muted-foreground">Duplicadas (ignoradas)</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-background border">
+                  <p className="text-2xl font-bold text-destructive">{result.errors}</p>
+                  <p className="text-xs text-muted-foreground">Erros</p>
+                </div>
+              </div>
+
+              {result.errorDetails.length > 0 && (
+                <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 space-y-1">
+                  <div className="flex items-center gap-1 text-destructive text-xs font-medium">
+                    <AlertTriangle className="h-3 w-3" /> Detalhes dos erros:
+                  </div>
+                  {result.errorDetails.map((err, i) => (
+                    <p key={i} className="text-[10px] text-muted-foreground">• {err}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Button onClick={reset} variant="outline" className="w-full">
+              Importar outra planilha
+            </Button>
+          </>
         )}
       </CardContent>
     </Card>
