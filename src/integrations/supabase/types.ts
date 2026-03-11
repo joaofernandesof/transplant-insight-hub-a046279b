@@ -21259,6 +21259,7 @@ export type Database = {
           closer_name: string | null
           created_at: string
           data_call: string
+          external_id: string | null
           fonte_call: Database["public"]["Enums"]["sales_call_fonte"] | null
           has_analysis: boolean | null
           id: string
@@ -21275,6 +21276,7 @@ export type Database = {
           closer_name?: string | null
           created_at?: string
           data_call?: string
+          external_id?: string | null
           fonte_call?: Database["public"]["Enums"]["sales_call_fonte"] | null
           has_analysis?: boolean | null
           id?: string
@@ -21291,6 +21293,7 @@ export type Database = {
           closer_name?: string | null
           created_at?: string
           data_call?: string
+          external_id?: string | null
           fonte_call?: Database["public"]["Enums"]["sales_call_fonte"] | null
           has_analysis?: boolean | null
           id?: string
@@ -24943,7 +24946,13 @@ export type Database = {
         | "inventory"
       procedure_execution_status: "em_andamento" | "finalizado" | "cancelado"
       risk_level: "low" | "medium" | "high" | "critical"
-      sales_call_fonte: "whatsapp" | "zoom" | "meet" | "telefone" | "presencial"
+      sales_call_fonte:
+        | "whatsapp"
+        | "zoom"
+        | "meet"
+        | "telefone"
+        | "presencial"
+        | "fireflies"
       sales_call_status: "fechou" | "followup" | "perdido"
       sanitary_risk_level: "critico" | "semicritico" | "nao_critico"
       schedule_status:
@@ -25391,7 +25400,14 @@ export const Constants = {
       ],
       procedure_execution_status: ["em_andamento", "finalizado", "cancelado"],
       risk_level: ["low", "medium", "high", "critical"],
-      sales_call_fonte: ["whatsapp", "zoom", "meet", "telefone", "presencial"],
+      sales_call_fonte: [
+        "whatsapp",
+        "zoom",
+        "meet",
+        "telefone",
+        "presencial",
+        "fireflies",
+      ],
       sales_call_status: ["fechou", "followup", "perdido"],
       sanitary_risk_level: ["critico", "semicritico", "nao_critico"],
       schedule_status: [
