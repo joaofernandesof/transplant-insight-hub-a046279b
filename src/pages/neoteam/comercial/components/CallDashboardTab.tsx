@@ -1,7 +1,7 @@
 import type { SalesCall, CallAnalysisRecord } from '@/hooks/useCallIntelligence';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap, Snowflake, Sun, Clock } from 'lucide-react';
+import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap, Snowflake, Sun, Clock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -31,8 +31,12 @@ interface Props {
 const COLORS = ['#f97316', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b'];
 const STATUS_COLORS = { fechou: '#10b981', followup: '#f59e0b', perdido: '#ef4444' };
 
+type CloserSortKey = 'name' | 'total' | 'fechou' | 'taxa' | 'followup' | 'taxaFollowup' | 'perdido' | 'taxaPerdido' | 'bantMedio' | 'spinMedio';
+
 export function CallDashboardTab({ stats, analyses, calls }: Props) {
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('dia');
+  const [closerSortKey, setCloserSortKey] = useState<CloserSortKey>('taxa');
+  const [closerSortDir, setCloserSortDir] = useState<'asc' | 'desc'>('desc');
 
   // ── Derived data ──
   const enrichedCalls = useMemo(() => {
@@ -153,9 +157,21 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
         bantMedio: s.bantCount > 0 ? Math.round(s.bantSum / s.bantCount) : 0,
         probMedia: s.probCount > 0 ? Math.round(s.probSum / s.probCount) : 0,
         spinMedio: s.spinCount > 0 ? Math.round(s.spinSum / s.spinCount) : 0,
-      }))
-      .sort((a, b) => b.taxa - a.taxa || b.bantMedio - a.bantMedio);
+      }));
   }, [enrichedCalls]);
+
+  const sortedCloserStats = useMemo(() => {
+    const sorted = [...closerStats];
+    sorted.sort((a, b) => {
+      const aVal = a[closerSortKey] ?? 0;
+      const bVal = b[closerSortKey] ?? 0;
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return closerSortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      return closerSortDir === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+    });
+    return sorted;
+  }, [closerStats, closerSortKey, closerSortDir]);
 
   // ── Top objections ──
   const topObjecoes = useMemo(() => {
@@ -345,7 +361,7 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
           <CardDescription>Ranking comparativo com distribuição de status individual</CardDescription>
         </CardHeader>
         <CardContent>
-          {closerStats.length === 0 ? (
+           {closerStats.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">Sem dados suficientes</p>
           ) : (
             <div className="space-y-6">
@@ -355,27 +371,27 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
                   <thead>
                     <tr className="border-b text-left">
                       <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs">#</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs">Closer</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Calls</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Fechou</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Conversão</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Follow-up</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Follow-up</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Perdido</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Perdido</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">BANT</th>
-                      <th className="pb-2 font-semibold text-muted-foreground text-xs text-center">SPIN</th>
+                      <SortableTh label="Closer" sortKey="name" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} align="left" />
+                      <SortableTh label="Calls" sortKey="total" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="Fechou" sortKey="fechou" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="% Conv." sortKey="taxa" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="Follow-up" sortKey="followup" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="% F-up" sortKey="taxaFollowup" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="Perdido" sortKey="perdido" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="% Perd." sortKey="taxaPerdido" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="BANT" sortKey="bantMedio" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="SPIN" sortKey="spinMedio" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
                     </tr>
                   </thead>
                   <tbody>
-                    {closerStats.map((c, i) => {
+                    {sortedCloserStats.map((c, i) => {
                       const medalColors = [
                         'bg-amber-100 text-amber-700 dark:bg-amber-900/40',
                         'bg-slate-100 text-slate-600 dark:bg-slate-800',
                         'bg-orange-100 text-orange-700 dark:bg-orange-900/40',
                       ];
                       return (
-                        <tr key={i} className={`border-b last:border-0 ${i === 0 ? 'bg-amber-50/50 dark:bg-amber-950/10' : 'hover:bg-muted/30'}`}>
+                        <tr key={c.name} className={`border-b last:border-0 ${i === 0 ? 'bg-amber-50/50 dark:bg-amber-950/10' : 'hover:bg-muted/30'}`}>
                           <td className="py-2.5 pr-3">
                             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? medalColors[i] : 'bg-muted text-muted-foreground'}`}>
                               {i === 0 ? <Award className="h-3.5 w-3.5" /> : i + 1}
@@ -402,7 +418,7 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
 
               {/* Individual Pie Charts */}
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                {closerStats.map((c, i) => {
+                {sortedCloserStats.map((c, i) => {
                   const pieData = [
                     { name: 'Fechou', value: c.fechou, color: '#10b981' },
                     { name: 'Follow-up', value: c.followup, color: '#f59e0b' },
@@ -473,6 +489,30 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
         <CloserRankingCard calls={calls} analyses={analyses} enrichedCalls={enrichedCalls} />
       </div>
     </div>
+  );
+}
+
+function SortableTh({ label, sortKey, current, dir, onSort, align = 'center' }: {
+  label: string; sortKey: CloserSortKey; current: CloserSortKey; dir: 'asc' | 'desc';
+  onSort: (key: CloserSortKey) => void; align?: 'left' | 'center';
+}) {
+  const isActive = current === sortKey;
+  return (
+    <th
+      className={`pb-2 pr-3 font-semibold text-xs cursor-pointer select-none transition-colors hover:text-foreground ${
+        isActive ? 'text-foreground' : 'text-muted-foreground'
+      } ${align === 'center' ? 'text-center' : 'text-left'}`}
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="inline-flex items-center gap-0.5">
+        {label}
+        {isActive ? (
+          dir === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </span>
+    </th>
   );
 }
 
