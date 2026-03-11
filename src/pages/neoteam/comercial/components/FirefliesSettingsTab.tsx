@@ -136,7 +136,7 @@ export function FirefliesSettingsTab({ accountId }: Props) {
       if (error) throw error;
       if (data?.success) {
         setTestResult('success');
-        toast.success(`Conexão OK! ${data.transcripts_count || 0} transcrições encontradas com filtro "Reunião com".`);
+        toast.success(`Conexão OK! ${data.transcripts_count || 0} transcrições encontradas no Fireflies.`);
       } else {
         setTestResult('error');
         toast.error(data?.error || 'Falha na conexão');
