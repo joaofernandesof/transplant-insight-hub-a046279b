@@ -55,6 +55,7 @@ import {
 import { format, isPast, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { usePayables, Payable, PayableInsert } from "../../hooks/usePayables";
+import { WORKFLOW_STAGES, STAGE_MAP } from "@/pages/neoteam/financeiro/config/workflowStages";
 
 const categories = [
   { value: 'prolabore', label: 'Pró-labore', icon: Users },
@@ -151,7 +152,7 @@ export default function AccountsPayable() {
     const matchesSearch = p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (p.supplier || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
-    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || p.workflow_stage === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
   }).sort((a, b) => {
     const dir = sortDirection === 'asc' ? 1 : -1;
@@ -161,7 +162,7 @@ export default function AccountsPayable() {
       case 'category': return dir * a.category.localeCompare(b.category);
       case 'amount': return dir * (Number(a.amount) - Number(b.amount));
       case 'due_date': return dir * a.due_date.localeCompare(b.due_date);
-      case 'status': return dir * a.status.localeCompare(b.status);
+      case 'status': return dir * (a.workflow_stage || '').localeCompare(b.workflow_stage || '');
       default: return 0;
     }
   });
@@ -430,14 +431,14 @@ export default function AccountsPayable() {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="pendente">Pendentes</SelectItem>
-                <SelectItem value="vencido">Vencidos</SelectItem>
-                <SelectItem value="pago">Pagos</SelectItem>
+                {WORKFLOW_STAGES.map(stage => (
+                  <SelectItem key={stage.id} value={stage.id}>{stage.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -478,8 +479,6 @@ export default function AccountsPayable() {
               </TableHeader>
               <TableBody>
                 {filteredPayables.map(payable => {
-                  const status = statusConfig[payable.status];
-                  const StatusIcon = status.icon;
                   const category = categories.find(c => c.value === payable.category);
                   const isMock = payable.id.startsWith('mock-');
                   
@@ -497,10 +496,14 @@ export default function AccountsPayable() {
                         {format(new Date(payable.due_date), "dd/MM/yyyy", { locale: ptBR })}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`gap-1 ${status.color}`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {status.label}
-                        </Badge>
+                        {(() => {
+                          const stage = STAGE_MAP[payable.workflow_stage || 'solicitacao_pendente'];
+                          return (
+                            <Badge className={`gap-1 text-white ${stage?.color || 'bg-slate-500'}`}>
+                              {stage?.shortLabel || payable.workflow_stage || 'Solicitação'}
+                            </Badge>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
