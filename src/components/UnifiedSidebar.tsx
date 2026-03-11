@@ -222,8 +222,19 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     return false;
   };
 
-  // Função de verificação de permissão (TODO: integrar com sistema real)
+  // Simulação de perfil: quando admin simula um perfil não-admin, tratar como não-admin
+  const isSimulatedAdmin = !activeProfile || 
+    activeProfile === 'administrador' || 
+    activeProfile === 'super_administrador';
+  
+  const effectiveIsAdmin = isAdmin && isSimulatedAdmin;
+
+  // Função de verificação de permissão baseada no perfil simulado
   const hasPermission = (moduleCode: string, action?: string): boolean => {
+    // Se admin real e não está simulando outro perfil, acesso total
+    if (effectiveIsAdmin) return true;
+    // Se está simulando, verificar permissões reais do perfil simulado
+    // TODO: consultar module_permissions para o perfil simulado
     return true;
   };
 
