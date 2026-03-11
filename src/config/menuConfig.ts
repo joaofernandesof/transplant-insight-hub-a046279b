@@ -66,6 +66,7 @@ import {
   Hash,
   Target,
   Link2,
+  Phone,
 } from 'lucide-react';
 
 // Tipos base
@@ -326,6 +327,16 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_legal_dashboard', code: 'neoteam_legal_dashboard', title: 'Dashboard Jurídico', icon: Scale, route: '/neoteam/legal-dashboard', adminOnly: true },
       { id: 'neoteam_legal_contracts', code: 'neoteam_legal_contracts', title: 'Gestão de Contratos', icon: Gavel, route: '/neoteam/contratos', adminOnly: true },
+    ],
+  },
+  {
+    id: 'setor_comercial',
+    title: 'Setor Comercial',
+    icon: Phone,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_call_analysis', code: 'neoteam_call_analysis', title: 'Análise de Calls', icon: Phone, route: '/neoteam/analise-calls' },
     ],
   },
   {
