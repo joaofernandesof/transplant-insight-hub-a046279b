@@ -447,3 +447,154 @@ function KpiCard({ icon, iconBg, value, label, valueColor }: { icon: React.React
 function EmptyChart() {
   return <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Sem dados suficientes</div>;
 }
+
+type RankingMetric = 'vendas' | 'media_analise' | 'qtd_calls' | 'taxa_conversao';
+type RankingPeriodo = 'tudo' | '7d' | '14d' | '30d' | '3m' | '6m';
+
+const PERIODO_LABELS: Record<RankingPeriodo, string> = {
+  tudo: 'Todo período',
+  '7d': 'Últimos 7 dias',
+  '14d': 'Últimas 2 semanas',
+  '30d': 'Último mês',
+  '3m': 'Últimos 3 meses',
+  '6m': 'Últimos 6 meses',
+};
+
+function CloserRankingCard({ calls, analyses, enrichedCalls }: { calls: SalesCall[]; analyses: CallAnalysisRecord[]; enrichedCalls: (SalesCall & { analysis: CallAnalysisRecord | null })[] }) {
+  const [metric, setMetric] = useState<RankingMetric>('vendas');
+  const [rankPeriodo, setRankPeriodo] = useState<RankingPeriodo>('tudo');
+
+  const filteredCalls = useMemo(() => {
+    if (rankPeriodo === 'tudo') return enrichedCalls;
+    const now = new Date();
+    const cutoff = rankPeriodo === '7d' ? subDays(now, 7)
+      : rankPeriodo === '14d' ? subWeeks(now, 2)
+      : rankPeriodo === '30d' ? subMonths(now, 1)
+      : rankPeriodo === '3m' ? subMonths(now, 3)
+      : subMonths(now, 6);
+    return enrichedCalls.filter(c => isAfter(parseISO(c.data_call), cutoff));
+  }, [enrichedCalls, rankPeriodo]);
+
+  const ranked = useMemo(() => {
+    const map = new Map<string, {
+      name: string; total: number; fechou: number;
+      bantSum: number; bantCount: number; probSum: number; probCount: number;
+    }>();
+
+    filteredCalls.forEach(c => {
+      const name = c.closer_name || 'Desconhecido';
+      if (!map.has(c.closer_id)) {
+        map.set(c.closer_id, { name, total: 0, fechou: 0, bantSum: 0, bantCount: 0, probSum: 0, probCount: 0 });
+      }
+      const s = map.get(c.closer_id)!;
+      s.total++;
+      if (c.status_call === 'fechou') s.fechou++;
+      if (c.analysis) {
+        s.bantSum += c.analysis.bant_total || 0;
+        s.bantCount++;
+        s.probSum += c.analysis.probabilidade_fechamento || 0;
+        s.probCount++;
+      }
+    });
+
+    return Array.from(map.values())
+      .map(s => ({
+        ...s,
+        taxa: s.total > 0 ? Math.round((s.fechou / s.total) * 100) : 0,
+        bantMedio: s.bantCount > 0 ? Math.round(s.bantSum / s.bantCount) : 0,
+        probMedia: s.probCount > 0 ? Math.round(s.probSum / s.probCount) : 0,
+      }))
+      .sort((a, b) => {
+        if (metric === 'vendas') return b.fechou - a.fechou || b.taxa - a.taxa;
+        if (metric === 'media_analise') return b.bantMedio - a.bantMedio;
+        if (metric === 'qtd_calls') return b.total - a.total;
+        return b.taxa - a.taxa || b.fechou - a.fechou;
+      });
+  }, [filteredCalls, metric]);
+
+  const getMainValue = (c: typeof ranked[0]) => {
+    if (metric === 'vendas') return { value: c.fechou, label: `${c.fechou} vendas`, sub: `${c.taxa}% conversão` };
+    if (metric === 'media_analise') return { value: c.bantMedio, label: `${c.bantMedio}/40`, sub: `BANT médio` };
+    if (metric === 'qtd_calls') return { value: c.total, label: `${c.total} calls`, sub: `${c.fechou} vendas` };
+    return { value: c.taxa, label: `${c.taxa}%`, sub: `${c.fechou}/${c.total} calls` };
+  };
+
+  const metricTabs: { key: RankingMetric; label: string; icon: React.ReactNode }[] = [
+    { key: 'vendas', label: 'Vendas', icon: <CheckCircle2 className="h-3 w-3" /> },
+    { key: 'taxa_conversao', label: 'Conversão', icon: <TrendingUp className="h-3 w-3" /> },
+    { key: 'qtd_calls', label: 'Calls', icon: <Phone className="h-3 w-3" /> },
+    { key: 'media_analise', label: 'BANT', icon: <Target className="h-3 w-3" /> },
+  ];
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <CardTitle className="text-sm flex items-center gap-2"><Award className="h-4 w-4 text-amber-600" /> Ranking de Closers</CardTitle>
+          <Select value={rankPeriodo} onValueChange={(v) => setRankPeriodo(v as RankingPeriodo)}>
+            <SelectTrigger className="w-[160px] h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(PERIODO_LABELS).map(([k, v]) => (
+                <SelectItem key={k} value={k} className="text-xs">{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-1 mt-1">
+          {metricTabs.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setMetric(t.key)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                metric === t.key
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {ranked.length === 0 ? <EmptyChart /> : (
+          <div className="space-y-2">
+            {ranked.map((c, i) => {
+              const mv = getMainValue(c);
+              const medalColors = [
+                'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+                'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+                'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
+              ];
+              return (
+                <div key={i} className={`flex items-center gap-3 p-2 rounded-lg border transition-colors ${
+                  i === 0 ? 'bg-amber-50/60 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/40' : 'border-transparent hover:bg-muted/40'
+                }`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                    i < 3 ? medalColors[i] : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{c.name}</div>
+                    <div className="text-[11px] text-muted-foreground">{c.total} calls • {c.taxa}% conversão • BANT {c.bantMedio}/40</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className={`font-bold text-sm ${
+                      metric === 'vendas' ? 'text-emerald-600' :
+                      metric === 'taxa_conversao' ? 'text-blue-600' :
+                      metric === 'qtd_calls' ? 'text-violet-600' : 'text-amber-600'
+                    }`}>{mv.label}</span>
+                    <div className="text-[10px] text-muted-foreground">{mv.sub}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
