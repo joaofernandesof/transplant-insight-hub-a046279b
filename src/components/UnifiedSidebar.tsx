@@ -118,7 +118,6 @@ const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
   neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100', headerBg: 'bg-gradient-to-r from-amber-900 to-amber-800', headerText: 'text-white', icon: Building2, accentBorder: 'border-l-amber-500', accentBg: 'bg-amber-500' },
   avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-900 to-orange-800', headerText: 'text-white', icon: Zap, accentBorder: 'border-l-orange-500', accentBg: 'bg-orange-500' },
   hotleads: { name: 'HotLeads', color: 'text-orange-500', bgColor: 'bg-orange-500/10', headerBg: 'bg-gradient-to-r from-orange-600 to-red-600', headerText: 'text-white', icon: Flame, accentBorder: 'border-l-red-500', accentBg: 'bg-red-500' },
-  neorh: { name: 'NeoRH', color: 'text-indigo-700', bgColor: 'bg-indigo-100', headerBg: 'bg-gradient-to-r from-indigo-900 to-indigo-800', headerText: 'text-white', icon: Users, accentBorder: 'border-l-indigo-500', accentBg: 'bg-indigo-500' },
   main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10', headerBg: 'bg-gradient-to-r from-slate-900 to-slate-800', headerText: 'text-white', icon: LayoutGrid, accentBorder: 'border-l-slate-500', accentBg: 'bg-slate-500' },
 };
 
