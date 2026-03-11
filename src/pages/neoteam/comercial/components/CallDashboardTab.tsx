@@ -502,21 +502,47 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2"><Activity className="h-4 w-4" /> Top Objeções</CardTitle>
+            <div className="relative mt-2">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar objeção ou solução..."
+                value={objSearch}
+                onChange={e => setObjSearch(e.target.value)}
+                className="pl-8 h-8 text-xs"
+              />
+            </div>
           </CardHeader>
-          <CardContent>
-            {objecoesChartData.length > 0 ? (
-              <div className="h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={objecoesChartData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
-                    <YAxis dataKey="name" type="category" width={180} tick={{ fontSize: 10 }} />
-                    <Tooltip />
-                    <Bar dataKey="count" name="Ocorrências" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : <EmptyChart />}
+          <CardContent className="p-0">
+            <ScrollArea className="h-[280px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="sticky top-0 bg-background z-10">
+                      <ObjSortableTh label="Objeção" sortKey="objection" current={objSortKey} dir={objSortDir} onSort={(k) => { if (objSortKey === k) setObjSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setObjSortKey(k); setObjSortDir('desc'); } }} />
+                    </TableHead>
+                    <TableHead className="sticky top-0 bg-background z-10">
+                      <ObjSortableTh label="Solução Sugerida" sortKey="solution" current={objSortKey} dir={objSortDir} onSort={(k) => { if (objSortKey === k) setObjSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setObjSortKey(k); setObjSortDir('desc'); } }} />
+                    </TableHead>
+                    <TableHead className="sticky top-0 bg-background z-10 w-[60px] text-center">
+                      <ObjSortableTh label="#" sortKey="count" current={objSortKey} dir={objSortDir} onSort={(k) => { if (objSortKey === k) setObjSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setObjSortKey(k); setObjSortDir('desc'); } }} />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredObjRows.length > 0 ? filteredObjRows.map((row, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-xs font-medium max-w-[200px]">{row.objection}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-[250px]">{row.solution}</TableCell>
+                      <TableCell className="text-xs text-center font-semibold">{row.count}</TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-muted-foreground py-6 text-xs">Nenhuma objeção encontrada</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </CardContent>
         </Card>
 
