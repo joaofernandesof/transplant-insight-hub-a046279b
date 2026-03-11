@@ -323,6 +323,24 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                             </span>
                           ) : <span className="text-muted-foreground text-xs">—</span>}
                         </TableCell>
+                        <TableCell><BantCell value={analysis?.closer_primeiro_impacto} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_exploracao_spin} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_conexao_emocional} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_clareza_pitch} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_gatilhos_mentais} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_gestao_fala} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_fechamento} /></TableCell>
+                        <TableCell>
+                          {analysis?.closer_score_total ? (
+                            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-[10px] font-bold ${
+                              analysis.closer_score_total >= 50 ? 'bg-emerald-100 text-emerald-700' :
+                              analysis.closer_score_total >= 35 ? 'bg-amber-100 text-amber-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {analysis.closer_score_total}
+                            </span>
+                          ) : <span className="text-muted-foreground text-xs">—</span>}
+                        </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             {call.has_analysis ? (
