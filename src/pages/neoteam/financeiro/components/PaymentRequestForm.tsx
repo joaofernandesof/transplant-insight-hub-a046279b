@@ -107,7 +107,8 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
     const errs: Record<string, string> = {};
     if (!form.description.trim()) errs.description = 'Descrição é obrigatória';
     if (!form.supplier.trim()) errs.supplier = 'Favorecido é obrigatório';
-    if (!form.amount || Number(form.amount) <= 0) errs.amount = 'Valor deve ser maior que zero';
+    const parsedAmount = parseFloat(form.amount.replace(/\./g, '').replace(',', '.'));
+    if (!form.amount || isNaN(parsedAmount) || parsedAmount <= 0) errs.amount = 'Valor deve ser maior que zero';
     if (!form.due_date) errs.due_date = 'Data de vencimento é obrigatória';
     if (!form.category) errs.category = 'Categoria é obrigatória';
     setErrors(errs);
