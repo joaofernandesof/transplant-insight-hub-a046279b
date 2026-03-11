@@ -166,7 +166,7 @@ Avalie usando a função fornecida.`;
         }
 
         // Small delay between calls to avoid rate limits
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 500));
       } catch (callErr: any) {
         console.error(`Error processing ${call.lead_nome}:`, callErr);
         results.push({ call_id: call.id, lead: call.lead_nome, status: "error", reason: callErr.message });
