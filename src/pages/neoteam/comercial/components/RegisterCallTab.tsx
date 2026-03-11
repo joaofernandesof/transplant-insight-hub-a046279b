@@ -14,8 +14,12 @@ interface Props {
   accountId: string | null;
 }
 
+const CLOSERS = ['Isaac', 'Juan', 'Hygor', 'João'];
+
 export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
   const [saving, setSaving] = useState(false);
+  const [closerSelection, setCloserSelection] = useState('');
+  const [closerCustom, setCloserCustom] = useState('');
   const [form, setForm] = useState({
     closer_name: '',
     lead_nome: '',
@@ -26,6 +30,8 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
     transcricao: '',
     resumo_manual: '',
   });
+
+  const effectiveCloserName = closerSelection === '__other__' ? closerCustom : closerSelection;
 
   const handleSubmit = async () => {
     if (!form.lead_nome.trim()) {
@@ -40,6 +46,7 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
     setSaving(true);
     const result = await onSubmit({
       ...form,
+      closer_name: effectiveCloserName,
       data_call: new Date(form.data_call).toISOString(),
     });
     setSaving(false);
@@ -55,6 +62,8 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
         transcricao: '',
         resumo_manual: '',
       });
+      setCloserSelection('');
+      setCloserCustom('');
       onCreated();
     }
   };
@@ -69,11 +78,25 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Closer</Label>
-            <Input
-              value={form.closer_name}
-              onChange={e => setForm(f => ({ ...f, closer_name: e.target.value }))}
-              placeholder="Nome do closer"
-            />
+            <Select value={closerSelection} onValueChange={setCloserSelection}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o closer" />
+              </SelectTrigger>
+              <SelectContent>
+                {CLOSERS.map(name => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+                <SelectItem value="__other__">Outro (escrever o nome)</SelectItem>
+              </SelectContent>
+            </Select>
+            {closerSelection === '__other__' && (
+              <Input
+                value={closerCustom}
+                onChange={e => setCloserCustom(e.target.value)}
+                placeholder="Digite o nome do closer"
+                className="mt-1"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <Label>Lead *</Label>
