@@ -361,7 +361,7 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
           <CardDescription>Ranking comparativo com distribuição de status individual</CardDescription>
         </CardHeader>
         <CardContent>
-          {closerStats.length === 0 ? (
+           {closerStats.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">Sem dados suficientes</p>
           ) : (
             <div className="space-y-6">
@@ -371,27 +371,27 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
                   <thead>
                     <tr className="border-b text-left">
                       <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs">#</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs">Closer</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Calls</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Fechou</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Conversão</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Follow-up</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Follow-up</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Perdido</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Perdido</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">BANT</th>
-                      <th className="pb-2 font-semibold text-muted-foreground text-xs text-center">SPIN</th>
+                      <SortableTh label="Closer" sortKey="name" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} align="left" />
+                      <SortableTh label="Calls" sortKey="total" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="Fechou" sortKey="fechou" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="% Conv." sortKey="taxa" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="Follow-up" sortKey="followup" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="% F-up" sortKey="taxaFollowup" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="Perdido" sortKey="perdido" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="% Perd." sortKey="taxaPerdido" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="BANT" sortKey="bantMedio" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
+                      <SortableTh label="SPIN" sortKey="spinMedio" current={closerSortKey} dir={closerSortDir} onSort={(k) => { if (closerSortKey === k) setCloserSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setCloserSortKey(k); setCloserSortDir('desc'); }}} />
                     </tr>
                   </thead>
                   <tbody>
-                    {closerStats.map((c, i) => {
+                    {sortedCloserStats.map((c, i) => {
                       const medalColors = [
                         'bg-amber-100 text-amber-700 dark:bg-amber-900/40',
                         'bg-slate-100 text-slate-600 dark:bg-slate-800',
                         'bg-orange-100 text-orange-700 dark:bg-orange-900/40',
                       ];
                       return (
-                        <tr key={i} className={`border-b last:border-0 ${i === 0 ? 'bg-amber-50/50 dark:bg-amber-950/10' : 'hover:bg-muted/30'}`}>
+                        <tr key={c.name} className={`border-b last:border-0 ${i === 0 ? 'bg-amber-50/50 dark:bg-amber-950/10' : 'hover:bg-muted/30'}`}>
                           <td className="py-2.5 pr-3">
                             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? medalColors[i] : 'bg-muted text-muted-foreground'}`}>
                               {i === 0 ? <Award className="h-3.5 w-3.5" /> : i + 1}
