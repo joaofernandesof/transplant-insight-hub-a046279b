@@ -83,10 +83,10 @@ const formatCurrency = (value: number) =>
 
 // Mock data for fallback when DB is empty
 const mockPayables: Payable[] = [
-  { id: 'mock-1', user_id: '', description: 'Pró-labore - Janeiro', supplier: 'Sócio 1', amount: 15000, due_date: '2026-01-30', status: 'pendente', category: 'prolabore', created_at: '', updated_at: '' },
-  { id: 'mock-2', user_id: '', description: 'Perito - Processo 001', supplier: 'Dr. Carlos Mendes', amount: 3500, due_date: '2026-02-05', status: 'pendente', category: 'perito', created_at: '', updated_at: '' },
-  { id: 'mock-3', user_id: '', description: 'Custas - TRT', supplier: 'TRT-15', amount: 850, due_date: '2026-01-25', status: 'vencido', category: 'custas', created_at: '', updated_at: '' },
-  { id: 'mock-4', user_id: '', description: 'Software Jurídico - Mensal', supplier: 'Astrea', amount: 450, due_date: '2026-01-15', status: 'pago', payment_date: '2026-01-14', category: 'software', created_at: '', updated_at: '' },
+  { id: 'mock-1', user_id: '', description: 'Pró-labore - Janeiro', supplier: 'Sócio 1', amount: 15000, due_date: '2026-01-30', status: 'pendente', category: 'prolabore', workflow_stage: 'validacao_financeira', is_urgent: false, created_at: '', updated_at: '' },
+  { id: 'mock-2', user_id: '', description: 'Perito - Processo 001', supplier: 'Dr. Carlos Mendes', amount: 3500, due_date: '2026-02-05', status: 'pendente', category: 'perito', workflow_stage: 'aprovacao_gestor', is_urgent: false, created_at: '', updated_at: '' },
+  { id: 'mock-3', user_id: '', description: 'Custas - TRT', supplier: 'TRT-15', amount: 850, due_date: '2026-01-25', status: 'vencido', category: 'custas', workflow_stage: 'solicitacao_pendente', is_urgent: true, created_at: '', updated_at: '' },
+  { id: 'mock-4', user_id: '', description: 'Software Jurídico - Mensal', supplier: 'Astrea', amount: 450, due_date: '2026-01-15', status: 'pago', payment_date: '2026-01-14', category: 'software', workflow_stage: 'pago', is_urgent: false, created_at: '', updated_at: '' },
 ];
 
 export default function AccountsPayable() {
