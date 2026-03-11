@@ -40,7 +40,15 @@ Regras:
 - Priorizar melhoria de performance
 - Não inventar informações - se não há dados suficientes, indicar "Não identificado na call"
 - Scores BANT de 1 a 10 cada
-- Probabilidade de fechamento de 0 a 100`;
+- Probabilidade de fechamento de 0 a 100
+- Avalie a performance do closer em 7 dimensões (nota 1-10 cada):
+  1. Primeiro Impacto: como abriu a call, rapport, tom inicial
+  2. Exploração SPIN: uso de perguntas Situação/Problema/Implicação/Necessidade
+  3. Conexão Emocional: empatia, escuta ativa, vínculo com o lead
+  4. Clareza do Pitch: apresentação clara do produto/serviço e proposta de valor
+  5. Gatilhos Mentais: uso de escassez, urgência, prova social, autoridade
+  6. Gestão da Fala: controle do tempo, pausas, assertividade, evitar monólogos
+  7. Fechamento: técnica de fechamento, pedido de decisão, condução ao próximo passo`;
 
     const userPrompt = `Analise a seguinte call comercial:
 
