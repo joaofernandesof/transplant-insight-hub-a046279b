@@ -34,8 +34,56 @@ const FONTE_LABELS: Record<string, string> = {
   fireflies: '🔥 Fireflies',
 };
 
-type SortKey = 'data_call' | 'closer_name' | 'lead_nome' | 'produto' | 'fonte_call' | 'status_call' | 'bant' | 'classificacao';
+type SortKey = 'data_call' | 'closer_name' | 'lead_nome' | 'lead_extracted' | 'produto' | 'fonte_call' | 'status_call' | 'bant' | 'classificacao';
 type SortDir = 'asc' | 'desc';
+
+/**
+ * Extracts the lead name from a call title.
+ * Patterns:
+ * - "Dr. Hygor Guerreiro - Dr(a). Rogério Cardoso..." → "Rogério Cardoso..."
+ * - "Dr(a). Douglas Aquino - Curso BROWS 360" → "Douglas Aquino"
+ * - "Dra. Cassia Senger - Curso Formação 360..." → "Cassia Senger"
+ * - Plain name → returns as-is
+ */
+function extractLeadName(title: string): string {
+  if (!title) return '—';
+
+  // If title has " - ", split and try to extract the lead part
+  const parts = title.split(' - ');
+
+  // For fireflies pattern: "Closer - Lead - Curso..."
+  // Try to find a part that looks like a lead name (has Dr/Dra prefix or is a person name)
+  let leadPart = '';
+
+  if (parts.length >= 3) {
+    // "Dr. Hygor Guerreiro - Dr(a). Rogério Cardoso - Curso..."
+    // The second part is likely the lead
+    leadPart = parts[1].trim();
+  } else if (parts.length === 2) {
+    // Could be "Lead - Curso..." or "Closer - Lead..."
+    const firstHasTitle = /^(dr|dra|dr\(a\))\b/i.test(parts[0].trim());
+    const secondHasCurso = /curso/i.test(parts[1]);
+
+    if (secondHasCurso) {
+      leadPart = parts[0].trim();
+    } else {
+      leadPart = parts[1].trim();
+    }
+  } else {
+    leadPart = title;
+  }
+
+  // Remove "Curso ..." suffix if still present
+  leadPart = leadPart.replace(/\s*[-–]\s*Curso\s.*/i, '').trim();
+  leadPart = leadPart.replace(/\s*Curso\s.*/i, '').trim();
+
+  // Clean up Dr/Dra/Dr(a) prefix for display
+  const cleanName = leadPart
+    .replace(/^(Dr\(a\)\.\s*|Dra?\.\s*)/i, '')
+    .trim();
+
+  return cleanName || leadPart || '—';
+}
 
 export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze, onViewAnalysis }: Props) {
   const [search, setSearch] = useState('');
@@ -64,8 +112,10 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
 
   const filtered = useMemo(() => {
     let result = calls.filter(c => {
+      const extracted = extractLeadName(c.lead_nome);
       const matchSearch = !search ||
         c.lead_nome.toLowerCase().includes(search.toLowerCase()) ||
+        extracted.toLowerCase().includes(search.toLowerCase()) ||
         c.closer_name?.toLowerCase().includes(search.toLowerCase()) ||
         c.produto?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === 'all' || c.status_call === filterStatus;
@@ -83,6 +133,8 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
           return dir * (a.closer_name || '').localeCompare(b.closer_name || '');
         case 'lead_nome':
           return dir * a.lead_nome.localeCompare(b.lead_nome);
+        case 'lead_extracted':
+          return dir * extractLeadName(a.lead_nome).localeCompare(extractLeadName(b.lead_nome));
         case 'produto':
           return dir * (a.produto || '').localeCompare(b.produto || '');
         case 'fonte_call':
@@ -120,7 +172,6 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
 
   return (
     <div className="space-y-4">
-      {/* Search */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -147,8 +198,13 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                   </button>
                 </TableHead>
                 <TableHead>
+                  <button onClick={() => toggleSort('lead_extracted')} className="flex items-center text-xs font-semibold hover:text-primary transition-colors">
+                    Lead <SortIcon col="lead_extracted" />
+                  </button>
+                </TableHead>
+                <TableHead>
                   <button onClick={() => toggleSort('lead_nome')} className="flex items-center text-xs font-semibold hover:text-primary transition-colors">
-                    Lead <SortIcon col="lead_nome" />
+                    Título <SortIcon col="lead_nome" />
                   </button>
                 </TableHead>
                 <TableHead>
@@ -187,7 +243,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                 <TableHead>
                   <div className="space-y-1">
                     <button onClick={() => toggleSort('classificacao')} className="flex items-center text-xs font-semibold hover:text-primary transition-colors">
-                      Lead <SortIcon col="classificacao" />
+                      Class. <SortIcon col="classificacao" />
                     </button>
                     <Select value={filterClassificacao} onValueChange={setFilterClassificacao}>
                       <SelectTrigger className="h-6 text-[10px] w-[100px] border-dashed">
@@ -208,7 +264,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                     {calls.length === 0 ? 'Nenhuma call registrada ainda' : 'Nenhuma call encontrada com os filtros'}
                   </TableCell>
                 </TableRow>
@@ -216,13 +272,17 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                 filtered.map(call => {
                   const analysis = getAnalysis(call.id);
                   const status = STATUS_LABELS[call.status_call] || { label: call.status_call, color: 'bg-muted' };
+                  const extractedLead = extractLeadName(call.lead_nome);
                   return (
                     <TableRow key={call.id}>
                       <TableCell className="text-sm whitespace-nowrap">
                         {format(new Date(call.data_call), 'dd/MM/yy HH:mm', { locale: ptBR })}
                       </TableCell>
                       <TableCell className="font-medium text-sm">{call.closer_name || '—'}</TableCell>
-                      <TableCell className="font-medium text-sm">{call.lead_nome}</TableCell>
+                      <TableCell className="font-medium text-sm text-primary">{extractedLead}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[250px] truncate" title={call.lead_nome}>
+                        {call.lead_nome}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{call.produto || '—'}</TableCell>
                       <TableCell className="text-xs">{FONTE_LABELS[call.fonte_call] || call.fonte_call}</TableCell>
                       <TableCell>
