@@ -15,11 +15,12 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Auth check
+    // Auth check (optional for service-level calls)
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Não autorizado");
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (authErr || !user) throw new Error("Usuário não autenticado");
+    if (authHeader && !authHeader.includes(serviceKey)) {
+      const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+      if (authErr || !user) throw new Error("Usuário não autenticado");
+    }
 
     const { account_id, call_ids } = await req.json();
     if (!account_id) throw new Error("account_id obrigatório");
