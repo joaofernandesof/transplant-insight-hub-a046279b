@@ -116,13 +116,14 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
     const map = new Map<string, {
       name: string; total: number; fechou: number; followup: number; perdido: number;
       bantSum: number; bantCount: number; probSum: number; probCount: number;
+      spinSum: number; spinCount: number;
       quente: number; morno: number; frio: number;
     }>();
 
     enrichedCalls.forEach(c => {
       const name = c.closer_name || 'Desconhecido';
       if (!map.has(name)) {
-        map.set(name, { name, total: 0, fechou: 0, followup: 0, perdido: 0, bantSum: 0, bantCount: 0, probSum: 0, probCount: 0, quente: 0, morno: 0, frio: 0 });
+        map.set(name, { name, total: 0, fechou: 0, followup: 0, perdido: 0, bantSum: 0, bantCount: 0, probSum: 0, probCount: 0, spinSum: 0, spinCount: 0, quente: 0, morno: 0, frio: 0 });
       }
       const s = map.get(name)!;
       s.total++;
@@ -135,6 +136,10 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
         s.bantCount++;
         s.probSum += c.analysis.probabilidade_fechamento || 0;
         s.probCount++;
+        if (c.analysis.closer_exploracao_spin != null) {
+          s.spinSum += c.analysis.closer_exploracao_spin;
+          s.spinCount++;
+        }
         s[c.analysis.classificacao_lead]++;
       }
     });
@@ -143,8 +148,11 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
       .map(s => ({
         ...s,
         taxa: s.total > 0 ? Math.round((s.fechou / s.total) * 100) : 0,
+        taxaFollowup: s.total > 0 ? Math.round((s.followup / s.total) * 100) : 0,
+        taxaPerdido: s.total > 0 ? Math.round((s.perdido / s.total) * 100) : 0,
         bantMedio: s.bantCount > 0 ? Math.round(s.bantSum / s.bantCount) : 0,
         probMedia: s.probCount > 0 ? Math.round(s.probSum / s.probCount) : 0,
+        spinMedio: s.spinCount > 0 ? Math.round(s.spinSum / s.spinCount) : 0,
       }))
       .sort((a, b) => b.taxa - a.taxa || b.bantMedio - a.bantMedio);
   }, [enrichedCalls]);
@@ -350,11 +358,13 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
                       <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs">Closer</th>
                       <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Calls</th>
                       <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Fechou</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Conversão</th>
                       <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Follow-up</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Follow-up</th>
                       <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Perdido</th>
-                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Conversão</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">% Perdido</th>
                       <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">BANT</th>
-                      <th className="pb-2 font-semibold text-muted-foreground text-xs text-center">Prob. Fech.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground text-xs text-center">SPIN</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -374,13 +384,15 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
                           <td className="py-2.5 pr-3 font-semibold">{c.name}</td>
                           <td className="py-2.5 pr-3 text-center font-medium">{c.total}</td>
                           <td className="py-2.5 pr-3 text-center font-bold text-emerald-600">{c.fechou}</td>
-                          <td className="py-2.5 pr-3 text-center font-bold text-amber-600">{c.followup}</td>
-                          <td className="py-2.5 pr-3 text-center font-bold text-red-600">{c.perdido}</td>
                           <td className="py-2.5 pr-3 text-center">
                             <span className={`font-bold ${c.taxa >= 20 ? 'text-emerald-600' : c.taxa >= 10 ? 'text-amber-600' : 'text-red-600'}`}>{c.taxa}%</span>
                           </td>
+                          <td className="py-2.5 pr-3 text-center font-bold text-amber-600">{c.followup}</td>
+                          <td className="py-2.5 pr-3 text-center font-medium text-amber-600">{c.taxaFollowup}%</td>
+                          <td className="py-2.5 pr-3 text-center font-bold text-red-600">{c.perdido}</td>
+                          <td className="py-2.5 pr-3 text-center font-medium text-red-600">{c.taxaPerdido}%</td>
                           <td className="py-2.5 pr-3 text-center font-medium">{c.bantMedio}<span className="text-muted-foreground text-xs">/40</span></td>
-                          <td className="py-2.5 text-center font-medium text-violet-600">{c.probMedia}%</td>
+                          <td className="py-2.5 text-center font-medium text-violet-600">{c.spinMedio > 0 ? `${c.spinMedio}/10` : '—'}</td>
                         </tr>
                       );
                     })}
