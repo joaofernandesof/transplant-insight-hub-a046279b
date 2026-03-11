@@ -39,6 +39,12 @@ export function FirefliesSettingsTab({ accountId }: Props) {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
 
+  // Filter keywords state
+  const [filterKeywords, setFilterKeywords] = useState<string[]>(['Reunião com']);
+  const [newKeyword, setNewKeyword] = useState('');
+  const [filterMode, setFilterMode] = useState<'include' | 'all'>('include');
+  const [isSavingFilter, setIsSavingFilter] = useState(false);
+
   // Browse dialog state
   const [browseOpen, setBrowseOpen] = useState(false);
   const [isLoadingCalls, setIsLoadingCalls] = useState(false);
@@ -58,9 +64,10 @@ export function FirefliesSettingsTab({ accountId }: Props) {
     analyzed: number;
   } | null>(null);
 
-  // Load saved key status
+  // Load saved key and filter settings
   useEffect(() => {
     if (!accountId) return;
+    // Load API key
     supabase
       .from('avivar_account_settings')
       .select('setting_value')
@@ -73,6 +80,20 @@ export function FirefliesSettingsTab({ accountId }: Props) {
           const val = data.setting_value as any;
           if (typeof val === 'string') setApiKey(val);
           else if (val?.key) setApiKey(val.key);
+        }
+      });
+    // Load filter config
+    supabase
+      .from('avivar_account_settings')
+      .select('setting_value')
+      .eq('account_id', accountId)
+      .eq('setting_key', 'fireflies_filter_config')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.setting_value) {
+          const val = data.setting_value as any;
+          if (val?.keywords && Array.isArray(val.keywords)) setFilterKeywords(val.keywords);
+          if (val?.mode) setFilterMode(val.mode);
         }
       });
   }, [accountId]);
@@ -115,7 +136,7 @@ export function FirefliesSettingsTab({ accountId }: Props) {
       if (error) throw error;
       if (data?.success) {
         setTestResult('success');
-        toast.success(`Conexão OK! ${data.transcripts_count || 0} transcrições encontradas com filtro "Reunião com".`);
+        toast.success(`Conexão OK! ${data.transcripts_count || 0} transcrições encontradas no Fireflies.`);
       } else {
         setTestResult('error');
         toast.error(data?.error || 'Falha na conexão');
@@ -364,6 +385,112 @@ export function FirefliesSettingsTab({ accountId }: Props) {
               ) : (
                 <><AlertCircle className="h-4 w-4" /> Falha na conexão. Verifique sua API Key.</>
               )}
+            </div>
+          )}
+
+          {/* Filter Keywords Config */}
+          {isSaved && (
+            <div className="mt-6 pt-4 border-t border-border/50 space-y-3">
+              <div>
+                <Label className="text-sm font-semibold">Filtro de importação automática</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Defina quais palavras-chave no título da call determinam se ela será importada na sincronização automática.
+                </p>
+              </div>
+
+              <div className="flex gap-2 items-center">
+                <Select value={filterMode} onValueChange={(v: 'include' | 'all') => setFilterMode(v)}>
+                  <SelectTrigger className="w-[220px] h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="include">Importar apenas com palavras-chave</SelectItem>
+                    <SelectItem value="all">Importar TODAS as calls</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {filterMode === 'include' && (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {filterKeywords.map((kw, i) => (
+                      <Badge key={i} variant="secondary" className="gap-1 text-xs pr-1">
+                        {kw}
+                        <button
+                          onClick={() => setFilterKeywords(prev => prev.filter((_, idx) => idx !== i))}
+                          className="ml-0.5 hover:text-destructive transition-colors rounded-full p-0.5"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                    {filterKeywords.length === 0 && (
+                      <span className="text-xs text-muted-foreground italic">Nenhuma palavra-chave (nada será importado)</span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Ex: Reunião com, REUNIÃO -, Dr., Dra."
+                      value={newKeyword}
+                      onChange={(e) => setNewKeyword(e.target.value)}
+                      className="h-8 text-sm flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newKeyword.trim()) {
+                          e.preventDefault();
+                          if (!filterKeywords.includes(newKeyword.trim())) {
+                            setFilterKeywords(prev => [...prev, newKeyword.trim()]);
+                          }
+                          setNewKeyword('');
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8"
+                      disabled={!newKeyword.trim()}
+                      onClick={() => {
+                        if (newKeyword.trim() && !filterKeywords.includes(newKeyword.trim())) {
+                          setFilterKeywords(prev => [...prev, newKeyword.trim()]);
+                        }
+                        setNewKeyword('');
+                      }}
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    A call será importada se o título <strong>contiver</strong> qualquer uma dessas palavras-chave (case-insensitive). Pressione Enter para adicionar.
+                  </p>
+                </div>
+              )}
+
+              <Button
+                size="sm"
+                onClick={async () => {
+                  if (!accountId) return;
+                  setIsSavingFilter(true);
+                  try {
+                    const { error } = await supabase
+                      .from('avivar_account_settings')
+                      .upsert({
+                        account_id: accountId,
+                        setting_key: 'fireflies_filter_config',
+                        setting_value: { mode: filterMode, keywords: filterKeywords } as any,
+                      }, { onConflict: 'account_id,setting_key' });
+                    if (error) throw error;
+                    toast.success('Filtro salvo com sucesso!');
+                  } catch (err: any) {
+                    toast.error('Erro ao salvar filtro: ' + (err.message || ''));
+                  } finally {
+                    setIsSavingFilter(false);
+                  }
+                }}
+                disabled={isSavingFilter}
+              >
+                <Save className="h-3.5 w-3.5 mr-1.5" />
+                {isSavingFilter ? 'Salvando...' : 'Salvar Filtro'}
+              </Button>
             </div>
           )}
         </CardContent>
