@@ -568,6 +568,8 @@ function NeoTeamRoutes() {
           <Route path="rh/performance/kpis" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceKPIs')))}</Suspense>} />
           <Route path="rh/performance/pdi" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformancePDI')))}</Suspense>} />
           <Route path="rh/performance/talent-score" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceTalentScore')))}</Suspense>} />
+          <Route path="rh/offboarding" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/offboarding/OffboardingPage')))}</Suspense>} />
+          <Route path="rh/offboarding/:id" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/offboarding/OffboardingProcessDetail')))}</Suspense>} />
 
           {/* ===== SETOR COMPRAS ===== */}
           <Route path="compras/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
