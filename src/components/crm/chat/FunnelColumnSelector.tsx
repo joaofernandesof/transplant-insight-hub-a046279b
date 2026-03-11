@@ -115,11 +115,10 @@ export function FunnelColumnSelector({
 
         if (findError) throw findError;
 
+        const leadCode = `L${Date.now().toString().slice(-6)}`;
+
         if (currentLead) {
-          // Generate a new lead code
-          const leadCode = `L${Date.now().toString().slice(-6)}`;
-          
-          // Create new lead in the target kanban/column
+          // Create new lead in the target kanban/column from existing kanban lead
           const { error: insertError } = await supabase
             .from('avivar_kanban_leads')
             .insert([{
@@ -139,7 +138,47 @@ export function FunnelColumnSelector({
 
           if (insertError) throw insertError;
         } else {
-          throw new Error('Lead não encontrado');
+          // Lead not in kanban yet — try to find in leads table and create in kanban
+          const { data: crmLead, error: crmError } = await supabase
+            .from('leads')
+            .select('*')
+            .eq('phone', phone)
+            .limit(1)
+            .maybeSingle();
+
+          if (crmError) throw crmError;
+          if (!crmLead) throw new Error('Lead não encontrado');
+
+          // Get user's account
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('Usuário não autenticado');
+
+          const { data: membership } = await supabase
+            .from('avivar_account_members')
+            .select('account_id')
+            .eq('user_id', user.id)
+            .eq('is_active', true)
+            .limit(1)
+            .maybeSingle();
+
+          if (!membership) throw new Error('Conta não encontrada');
+
+          const { error: insertError } = await supabase
+            .from('avivar_kanban_leads')
+            .insert([{
+              user_id: user.id,
+              account_id: membership.account_id,
+              kanban_id: kanbanId,
+              column_id: columnId,
+              name: crmLead.name,
+              phone: crmLead.phone,
+              email: crmLead.email,
+              notes: crmLead.notes,
+              source: crmLead.source || 'inbox',
+              lead_code: leadCode,
+            }] as any);
+
+          if (insertError) throw insertError;
         }
       }
     },
