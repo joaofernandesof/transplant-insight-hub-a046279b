@@ -82,6 +82,7 @@ export default function TicketsPage() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [requesterFilter, setRequesterFilter] = useState("all");
   const playSound = useNewTicketSound();
 
   const { data: tickets = [], isLoading } = useQuery({
@@ -254,7 +255,10 @@ export default function TicketsPage() {
     onError: () => toast.error("Erro ao atualizar responsável"),
   });
 
-  const filtered = statusFilter === "all" ? tickets : tickets.filter((t: any) => t.status === statusFilter);
+  const filteredByStatus = statusFilter === "all" ? tickets : tickets.filter((t: any) => t.status === statusFilter);
+  const filtered = requesterFilter === "mine" 
+    ? filteredByStatus.filter((t: any) => t.requester_id === user?.id) 
+    : filteredByStatus;
 
   const stats = {
     open: tickets.filter((t: any) => t.status === "open").length,
@@ -298,6 +302,18 @@ export default function TicketsPage() {
           <p className="text-2xl font-bold">{stats.total}</p>
           <p className="text-xs text-muted-foreground">Total</p>
         </CardContent></Card>
+      </div>
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <Select value={requesterFilter} onValueChange={setRequesterFilter}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <SelectValue placeholder="Solicitante" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os chamados</SelectItem>
+            <SelectItem value="mine">Meus chamados</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
