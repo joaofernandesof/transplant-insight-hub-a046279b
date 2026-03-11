@@ -453,12 +453,24 @@ export default function AccountsPayable() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Descrição</TableHead>
-                  <TableHead className="font-semibold">Fornecedor</TableHead>
-                  <TableHead className="font-semibold">Categoria</TableHead>
-                  <TableHead className="font-semibold">Valor</TableHead>
-                  <TableHead className="font-semibold">Vencimento</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('description')}>
+                    <span className="flex items-center">Descrição<SortIcon column="description" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('supplier')}>
+                    <span className="flex items-center">Fornecedor<SortIcon column="supplier" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('category')}>
+                    <span className="flex items-center">Categoria<SortIcon column="category" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('amount')}>
+                    <span className="flex items-center">Valor<SortIcon column="amount" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('due_date')}>
+                    <span className="flex items-center">Vencimento<SortIcon column="due_date" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('status')}>
+                    <span className="flex items-center">Status<SortIcon column="status" /></span>
+                  </TableHead>
                   <TableHead className="font-semibold w-[120px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
