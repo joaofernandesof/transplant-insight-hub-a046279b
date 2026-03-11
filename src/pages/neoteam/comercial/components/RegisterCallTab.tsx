@@ -15,6 +15,7 @@ interface Props {
 }
 
 const CLOSERS = ['Isaac', 'Juan', 'Hygor', 'João'];
+const PRODUTOS = ['Formação 360', 'Brows Transplant 360', 'Conecta Capilar', 'Fellowship', 'Licença', 'Avivar'];
 
 export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
   const [saving, setSaving] = useState(false);
