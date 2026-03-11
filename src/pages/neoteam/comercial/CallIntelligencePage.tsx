@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Phone, BarChart3, Plus, Brain, Loader2, Settings } from 'lucide-react';
+import { Phone, BarChart3, Plus, Brain, Loader2, Settings, Calendar } from 'lucide-react';
 import { CallListTab } from './components/CallListTab';
 import { RegisterCallTab } from './components/RegisterCallTab';
 import { CallDashboardTab } from './components/CallDashboardTab';
 import { CallAnalysisView } from './components/CallAnalysisView';
 import { FirefliesSettingsTab } from './components/FirefliesSettingsTab';
+import { AgendaTab } from './components/AgendaTab';
 
 // We need an account_id - for NeoTeam we'll use the user's first avivar account or fallback
 import { supabase } from '@/integrations/supabase/client';
@@ -88,6 +89,9 @@ export default function CallIntelligencePage() {
             <TabsTrigger value="registrar" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
               <Plus className="h-4 w-4" /> Registrar
             </TabsTrigger>
+            <TabsTrigger value="agenda" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
+              <Calendar className="h-4 w-4" /> Agenda
+            </TabsTrigger>
             <TabsTrigger value="config" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
               <Settings className="h-4 w-4" /> Fireflies
             </TabsTrigger>
@@ -133,6 +137,10 @@ export default function CallIntelligencePage() {
               onCreated={handleCallCreated}
               accountId={accountId}
             />
+          </TabsContent>
+
+          <TabsContent value="agenda" className="mt-0">
+            <AgendaTab accountId={accountId} />
           </TabsContent>
 
           <TabsContent value="config" className="mt-0">
