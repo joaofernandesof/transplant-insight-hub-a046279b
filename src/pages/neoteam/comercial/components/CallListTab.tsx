@@ -332,7 +332,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                   </TableHead>
                   <TableHead className="w-[160px]"><SortableHeader col="lead_extracted" label="Lead" /></TableHead>
                   <TableHead className="min-w-[300px]"><SortableHeader col="lead_nome" label="Título" /></TableHead>
-                  <TableHead className="w-[140px]">
+                  <TableHead className="w-[120px]">
                     <div className="space-y-1">
                       <SortableHeader col="produto" label="Produto" />
                       <Select value={filterProduto} onValueChange={setFilterProduto}>
