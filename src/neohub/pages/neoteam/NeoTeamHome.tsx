@@ -18,6 +18,7 @@ const SECTOR_ICONS: Record<string, LucideIcon> = {
   marketing: Megaphone,
   ti: CircuitBoard,
   rh: UsersRound,
+  comercial: Phone,
 };
 
 const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }> = {
