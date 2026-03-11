@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   Brain, Loader2, Copy, CheckCircle2, AlertTriangle,
   Flame, Snowflake, Sun, MessageSquare, Target, TrendingUp,
-  ThumbsUp, ThumbsDown, ArrowRight, BarChart3,
+  ThumbsUp, ThumbsDown, ArrowRight, BarChart3, ExternalLink, FileText,
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
