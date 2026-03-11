@@ -422,7 +422,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                         </TableCell>
                         <TableCell className="text-xs font-medium">{call.closer_name || '—'}</TableCell>
                         <TableCell className="text-xs font-medium text-primary">{extractedLead}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground min-w-[600px] whitespace-normal">
+                        <TableCell className="text-xs text-muted-foreground min-w-[300px] whitespace-normal">
                           {call.lead_nome}
                         </TableCell>
                         <TableCell>
