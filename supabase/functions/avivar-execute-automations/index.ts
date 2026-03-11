@@ -5,7 +5,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
+// Replace template variables like {{nome}}, {{telefone}}, {{email}}, {{etapa}}, {{empresa}}
+function replaceVariables(
+  text: string,
+  lead: Record<string, any>,
+  columnMap: Record<string, string>,
+  toColumnId: string
+): string {
+  const firstName = lead.name ? lead.name.split(" ")[0] : "";
+  return text
+    .replace(/\{\{nome\}\}/gi, lead.name || "")
+    .replace(/\{\{primeiro_nome\}\}/gi, firstName)
+    .replace(/\{\{telefone\}\}/gi, lead.phone || "")
+    .replace(/\{\{email\}\}/gi, lead.email || "")
+    .replace(/\{\{etapa\}\}/gi, columnMap[toColumnId] || "")
+    .replace(/\{\{empresa\}\}/gi, (lead.custom_fields as any)?.empresa || "")
+    .replace(/\{\{procedimento\}\}/gi, (lead.custom_fields as any)?.procedimento || "");
+}
+
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
