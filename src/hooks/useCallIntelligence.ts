@@ -134,12 +134,20 @@ export function useCallIntelligence(accountId?: string) {
       } as any).select().single();
       if (error) throw error;
       toast.success('Call registrada!');
-      return data as unknown as SalesCall;
+      const newCall = data as unknown as SalesCall;
+      
+      // Auto-analyze if has transcript/resumo
+      const content = newCall.transcricao || newCall.resumo_manual;
+      if (content && content.trim().length >= 30) {
+        setTimeout(() => analyzeCall(newCall.id), 500);
+      }
+      
+      return newCall;
     } catch (err: any) {
       toast.error('Erro ao registrar call: ' + (err.message || ''));
       return null;
     }
-  }, [accountId, user]);
+  }, [accountId, user, analyzeCall]);
 
   const analyzeCall = useCallback(async (callId: string) => {
     const call = calls.find(c => c.id === callId);
