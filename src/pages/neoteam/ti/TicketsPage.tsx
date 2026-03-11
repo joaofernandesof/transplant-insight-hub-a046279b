@@ -195,11 +195,30 @@ export default function TicketsPage() {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      // Find the ticket to get old status and requester info
+      const ticket = tickets.find((t: any) => t.id === id);
+      const oldStatus = ticket?.status;
+
       const updates: any = { status, updated_at: new Date().toISOString() };
       if (status === "resolved") updates.resolved_at = new Date().toISOString();
       if (status === "closed") updates.closed_at = new Date().toISOString();
       const { error } = await supabase.from("neoteam_tickets").update(updates).eq("id", id);
       if (error) throw error;
+
+      // Notify requester via email (fire-and-forget)
+      if (ticket?.requester_email && oldStatus !== status) {
+        supabase.functions.invoke("notify-ticket-status", {
+          body: {
+            ticket_number: ticket.ticket_number,
+            title: ticket.title,
+            requester_name: ticket.requester_name,
+            requester_email: ticket.requester_email,
+            old_status: oldStatus,
+            new_status: status,
+            assigned_name: ticket.assigned_name,
+          },
+        }).catch((err) => console.error("Email notification error:", err));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["neoteam_tickets"] });

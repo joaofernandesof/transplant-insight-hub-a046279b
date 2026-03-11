@@ -122,3 +122,6 @@ verify_jwt = false
 
 [functions.avivar-execute-automations]
 verify_jwt = false
+
+[functions.notify-ticket-status]
+verify_jwt = false
