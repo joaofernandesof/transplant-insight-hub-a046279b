@@ -584,7 +584,7 @@ function TicketForm({ onSubmit, loading, isAdmin }: { onSubmit: (f: any) => void
               <SelectItem value="low">Baixa</SelectItem>
               <SelectItem value="medium">Média</SelectItem>
               <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="critical">Crítica</SelectItem>
+              <SelectItem value="critical">Urgente</SelectItem>
             </SelectContent>
           </Select>
         </div>
