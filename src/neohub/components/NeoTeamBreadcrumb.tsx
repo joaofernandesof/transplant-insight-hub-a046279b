@@ -53,7 +53,7 @@ const routeLabels: Record<string, string> = {
   // Setor de RH
   '/neoteam/staff-roles': 'Cargos & Funções',
   // Setor Comercial
-  '/neoteam/analise-calls': 'Análise de Calls',
+  '/neoteam/call-intelligence': 'Call Intelligence',
   // Administração
   '/neoteam/settings': 'Configurações',
   '/neoteam/reports': 'Relatórios',

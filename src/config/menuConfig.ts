@@ -336,7 +336,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
-      { id: 'neoteam_call_analysis', code: 'neoteam_call_analysis', title: 'Análise de Calls', icon: Phone, route: '/neoteam/analise-calls' },
+      { id: 'neoteam_call_intelligence', code: 'neoteam_call_intelligence', title: 'Call Intelligence', icon: Phone, route: '/neoteam/call-intelligence' },
     ],
   },
   {
