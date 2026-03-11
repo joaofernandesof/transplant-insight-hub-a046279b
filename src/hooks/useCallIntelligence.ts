@@ -139,7 +139,7 @@ export function useCallIntelligence(accountId?: string) {
       // Auto-analyze if has transcript/resumo
       const content = newCall.transcricao || newCall.resumo_manual;
       if (content && content.trim().length >= 30) {
-        setTimeout(() => analyzeCall(newCall.id), 500);
+        setTimeout(() => analyzeCallRef.current?.(newCall.id), 500);
       }
       
       return newCall;
