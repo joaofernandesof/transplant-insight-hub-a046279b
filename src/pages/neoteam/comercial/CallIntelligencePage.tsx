@@ -58,81 +58,87 @@ export default function CallIntelligencePage() {
   }
 
   return (
-    <div className="p-4 lg:p-6 pt-14 lg:pt-6 space-y-6">
-      <NeoTeamBreadcrumb />
+    <div className="flex flex-col h-[calc(100vh-3rem)] p-4 lg:p-6 pt-14 lg:pt-6 overflow-hidden">
+      <div className="shrink-0 space-y-4 mb-4">
+        <NeoTeamBreadcrumb />
 
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-primary/10">
-          <Phone className="h-6 w-6 text-primary" />
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-primary/10">
+            <Phone className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Call Intelligence</h1>
+            <p className="text-muted-foreground text-sm">
+              Análise de calls comerciais com IA • Relatórios BANT • Scripts WhatsApp
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold">Call Intelligence</h1>
-          <p className="text-muted-foreground text-sm">
-            Análise de calls comerciais com IA • Relatórios BANT • Scripts WhatsApp
-          </p>
-        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="bg-transparent h-auto p-0 flex flex-wrap gap-3 w-full justify-start">
+            <TabsTrigger value="dashboard" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
+              <BarChart3 className="h-4 w-4" /> Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="lista" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
+              <Phone className="h-4 w-4" /> Calls
+              {hook.calls.length > 0 && (
+                <Badge variant="secondary" className="ml-1 text-xs">{hook.calls.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="registrar" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
+              <Plus className="h-4 w-4" /> Registrar
+            </TabsTrigger>
+            <TabsTrigger value="config" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
+              <Settings className="h-4 w-4" /> Fireflies
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-transparent h-auto p-0 flex flex-wrap gap-3 w-full justify-start">
-          <TabsTrigger value="dashboard" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
-            <BarChart3 className="h-4 w-4" /> Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="lista" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
-            <Phone className="h-4 w-4" /> Calls
-            {hook.calls.length > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">{hook.calls.length}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="registrar" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
-            <Plus className="h-4 w-4" /> Registrar
-          </TabsTrigger>
-          <TabsTrigger value="config" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
-            <Settings className="h-4 w-4" /> Fireflies
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex-1 min-h-0 overflow-auto">
+        <Tabs value={activeTab}>
+          <TabsContent value="dashboard" className="mt-0">
+            <CallDashboardTab stats={hook.stats} analyses={hook.analyses} calls={hook.calls} />
+          </TabsContent>
 
-        <TabsContent value="dashboard" className="mt-4">
-          <CallDashboardTab stats={hook.stats} analyses={hook.analyses} calls={hook.calls} />
-        </TabsContent>
-
-        <TabsContent value="lista" className="mt-4">
-          {selectedCallId ? (
-            <div className="space-y-3">
-              <Button variant="outline" size="sm" onClick={() => setSelectedCallId(null)} className="gap-1.5">
-                ← Voltar para lista
-              </Button>
-              <CallAnalysisView
-                call={hook.calls.find(c => c.id === selectedCallId) || null}
-                analysis={hook.getAnalysisForCall(selectedCallId)}
+          <TabsContent value="lista" className="mt-0">
+            {selectedCallId ? (
+              <div className="space-y-3">
+                <Button variant="outline" size="sm" onClick={() => setSelectedCallId(null)} className="gap-1.5">
+                  ← Voltar para lista
+                </Button>
+                <CallAnalysisView
+                  call={hook.calls.find(c => c.id === selectedCallId) || null}
+                  analysis={hook.getAnalysisForCall(selectedCallId)}
+                  isAnalyzing={hook.isAnalyzing}
+                  onAnalyze={() => hook.analyzeCall(selectedCallId)}
+                />
+              </div>
+            ) : (
+              <CallListTab
+                calls={hook.calls}
+                analyses={hook.analyses}
+                isLoading={hook.isLoading}
                 isAnalyzing={hook.isAnalyzing}
-                onAnalyze={() => hook.analyzeCall(selectedCallId)}
+                onAnalyze={hook.analyzeCall}
+                onViewAnalysis={handleViewAnalysis}
               />
-            </div>
-          ) : (
-            <CallListTab
-              calls={hook.calls}
-              analyses={hook.analyses}
-              isLoading={hook.isLoading}
-              isAnalyzing={hook.isAnalyzing}
-              onAnalyze={hook.analyzeCall}
-              onViewAnalysis={handleViewAnalysis}
+            )}
+          </TabsContent>
+
+          <TabsContent value="registrar" className="mt-0">
+            <RegisterCallTab
+              onSubmit={hook.createCall}
+              onCreated={handleCallCreated}
+              accountId={accountId}
             />
-          )}
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="registrar" className="mt-4">
-          <RegisterCallTab
-            onSubmit={hook.createCall}
-            onCreated={handleCallCreated}
-            accountId={accountId}
-          />
-        </TabsContent>
-
-        <TabsContent value="config" className="mt-4">
-          <FirefliesSettingsTab accountId={accountId} />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="config" className="mt-0">
+            <FirefliesSettingsTab accountId={accountId} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
