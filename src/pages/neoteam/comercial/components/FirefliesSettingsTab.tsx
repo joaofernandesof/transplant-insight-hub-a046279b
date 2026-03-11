@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ImportHistoricalCalls } from './ImportHistoricalCalls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -274,6 +275,9 @@ export function FirefliesSettingsTab({ accountId }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {/* Import Historical Calls */}
+      <ImportHistoricalCalls accountId={accountId} />
     </div>
   );
 }
