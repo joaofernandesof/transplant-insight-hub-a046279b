@@ -406,16 +406,20 @@ export default function TicketsPage() {
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{format(parseISO(t.created_at), "dd/MM HH:mm")}</TableCell>
                     <TableCell>
-                      <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
-                        <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="open">Aberto</SelectItem>
-                          <SelectItem value="in_progress">Em Andamento</SelectItem>
-                          <SelectItem value="waiting">Aguardando</SelectItem>
-                          <SelectItem value="resolved">Resolvido</SelectItem>
-                          <SelectItem value="closed">Fechado</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {isAdmin ? (
+                        <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
+                          <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="open">Aberto</SelectItem>
+                            <SelectItem value="in_progress">Em Andamento</SelectItem>
+                            <SelectItem value="waiting">Aguardando</SelectItem>
+                            <SelectItem value="resolved">Resolvido</SelectItem>
+                            <SelectItem value="closed">Fechado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge className={STATUS_COLORS[t.status] || ""}>{STATUS_LABELS[t.status] || t.status}</Badge>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
