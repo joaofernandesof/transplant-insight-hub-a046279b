@@ -25,6 +25,24 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   perdido: { label: 'Perdido ❌', color: 'bg-red-100 text-red-800' },
 };
 
+const PRODUCT_COLORS: Record<string, string> = {
+  'Formação 360': 'bg-blue-100 text-blue-800',
+  'BROWS 360': 'bg-purple-100 text-purple-800',
+  'Brows Transplant 360': 'bg-purple-100 text-purple-800',
+  'Conecta Capilar': 'bg-teal-100 text-teal-800',
+  'Fellowship': 'bg-indigo-100 text-indigo-800',
+  'Licença': 'bg-orange-100 text-orange-800',
+  'Avivar': 'bg-rose-100 text-rose-800',
+};
+
+function getProductColor(product: string): string {
+  if (!product || product === '—') return '';
+  for (const [key, color] of Object.entries(PRODUCT_COLORS)) {
+    if (product.toLowerCase().includes(key.toLowerCase())) return color;
+  }
+  return 'bg-muted text-muted-foreground';
+}
+
 type SortKey = 'data_call' | 'closer_name' | 'lead_nome' | 'lead_extracted' | 'produto' | 'status_call' | 'bant_b' | 'bant_a' | 'bant_n' | 'bant_t' | 'bant_total' | 'classificacao' | 'cl_impacto' | 'cl_spin' | 'cl_emocional' | 'cl_pitch' | 'cl_gatilhos' | 'cl_fala' | 'cl_fechamento' | 'cl_total';
 type SortDir = 'asc' | 'desc';
 
