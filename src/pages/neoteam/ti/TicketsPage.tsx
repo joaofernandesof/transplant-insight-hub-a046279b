@@ -78,7 +78,8 @@ function useNewTicketSound() {
 }
 
 export default function TicketsPage() {
-  const { user, isAdmin } = useUnifiedAuth();
+  const { user, isAdmin, isSuperAdmin } = useUnifiedAuth();
+  const isTicketAdmin = isAdmin || isSuperAdmin || user?.profiles?.includes('administrador');
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
