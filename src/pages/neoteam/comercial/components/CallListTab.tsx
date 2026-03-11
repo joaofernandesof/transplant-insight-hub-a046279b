@@ -105,7 +105,7 @@ function extractProduct(call: SalesCall): string {
   return '—';
 }
 
-export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze, onViewAnalysis }: Props) {
+export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze, onViewAnalysis, onDeleteCalls }: Props) {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterClassificacao, setFilterClassificacao] = useState<string>('all');
@@ -113,6 +113,8 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
   const [filterProduto, setFilterProduto] = useState<string>('all');
   const [sortKey, setSortKey] = useState<SortKey>('data_call');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getAnalysis = (callId: string) => analyses.find(a => a.call_id === callId);
 
