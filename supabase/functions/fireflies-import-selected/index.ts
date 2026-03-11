@@ -75,10 +75,7 @@ serve(async (req) => {
               duration
               participants
               organizer_email
-              fireflies_users {
-                name
-                email
-              }
+              fireflies_users
               sentences {
                 speaker_name
                 text
