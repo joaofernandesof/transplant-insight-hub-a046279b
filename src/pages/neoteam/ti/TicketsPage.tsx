@@ -329,6 +329,21 @@ export default function TicketsPage() {
             <SelectItem value="mine">Meus chamados</SelectItem>
           </SelectContent>
         </Select>
+
+        {isAdmin && (
+          <Select value={assignedFilter} onValueChange={setAssignedFilter}>
+            <SelectTrigger className="w-[180px] h-9 text-sm">
+              <SelectValue placeholder="Responsável" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos responsáveis</SelectItem>
+              <SelectItem value="unassigned">Sem responsável</SelectItem>
+              {assignedUsers.map(([id, name]) => (
+                <SelectItem key={id as string} value={id as string}>{name as string}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <Card>
