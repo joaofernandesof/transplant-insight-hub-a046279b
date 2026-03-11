@@ -102,6 +102,13 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
                   proximos_passos: { type: "string", description: "Próximos passos recomendados" },
                   conclusao: { type: "string", description: "Conclusão geral da análise" },
                   probabilidade_fechamento: { type: "integer", description: "Probabilidade de fechamento de 0 a 100%" },
+                  closer_primeiro_impacto: { type: "integer", description: "Score 1-10: primeiro impacto, rapport, tom inicial" },
+                  closer_exploracao_spin: { type: "integer", description: "Score 1-10: uso de perguntas SPIN (Situação/Problema/Implicação/Necessidade)" },
+                  closer_conexao_emocional: { type: "integer", description: "Score 1-10: empatia, escuta ativa, vínculo" },
+                  closer_clareza_pitch: { type: "integer", description: "Score 1-10: clareza na apresentação do produto e proposta de valor" },
+                  closer_gatilhos_mentais: { type: "integer", description: "Score 1-10: uso de escassez, urgência, prova social, autoridade" },
+                  closer_gestao_fala: { type: "integer", description: "Score 1-10: controle do tempo, pausas, assertividade" },
+                  closer_fechamento: { type: "integer", description: "Score 1-10: técnica de fechamento e condução ao próximo passo" },
                   whatsapp_report: { type: "string", description: "Relatório completo formatado para WhatsApp com *negrito*, emojis e leitura rápida no celular. Deve seguir o formato: 📊 *ANÁLISE DA CALL DE VENDAS*\\n\\n👤 *Closer:* ...\\n🎯 *Lead:* ...\\netc." },
                 },
                 required: [
@@ -109,7 +116,10 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
                   "bant_budget", "bant_authority", "bant_need", "bant_timeline",
                   "classificacao_lead", "urgencia", "dor_principal", "motivo_nao_fechamento",
                   "estrategia_followup", "acoes_realizadas", "proximos_passos", "conclusao",
-                  "probabilidade_fechamento", "whatsapp_report"
+                  "probabilidade_fechamento",
+                  "closer_primeiro_impacto", "closer_exploracao_spin", "closer_conexao_emocional",
+                  "closer_clareza_pitch", "closer_gatilhos_mentais", "closer_gestao_fala", "closer_fechamento",
+                  "whatsapp_report"
                 ],
                 additionalProperties: false,
               },
