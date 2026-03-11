@@ -232,16 +232,73 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
     return <span className={`text-xs font-semibold ${color}`}>{value}</span>;
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(c => c.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    setIsDeleting(true);
+    await onDeleteCalls(Array.from(selectedIds));
+    setSelectedIds(new Set());
+    setIsDeleting(false);
+  };
+
+  const handleDeleteSingle = async (id: string) => {
+    setIsDeleting(true);
+    await onDeleteCalls([id]);
+    setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+    setIsDeleting(false);
+  };
+
   return (
     <div className="space-y-4">
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Buscar por lead, closer ou produto..."
-          className="pl-9"
-        />
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar por lead, closer ou produto..."
+            className="pl-9"
+          />
+        </div>
+        {selectedIds.size > 0 && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={isDeleting}>
+                {isDeleting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1.5" />}
+                Excluir {selectedIds.size} call{selectedIds.size > 1 ? 's' : ''}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir {selectedIds.size} call{selectedIds.size > 1 ? 's' : ''}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação não pode ser desfeita. As calls e suas análises serão removidas permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       <Card className="flex-1 min-h-0 overflow-hidden">
