@@ -314,16 +314,6 @@ export function ImportHistoricalCalls({ accountId }: Props) {
                 <Upload className="h-4 w-4" /> Selecionar Arquivo
               </Button>
             </div>
-            <div className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-2 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">O que será importado:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Todas as calls da planilha com mapeamento personalizado</li>
-                <li>Indicadores BANT (Budget, Authority, Need, Timeline)</li>
-                <li>Classificação do lead (quente, morno, frio)</li>
-                <li>Dor principal, objeções e motivo de não fechamento</li>
-                <li>Calls duplicadas serão ignoradas automaticamente</li>
-              </ul>
-            </div>
           </>
         )}
 
