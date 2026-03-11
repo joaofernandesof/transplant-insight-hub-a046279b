@@ -239,11 +239,11 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
         />
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
+      <Card className="flex-1 min-h-0 overflow-hidden">
+        <CardContent className="p-0 h-full">
+          <div className="overflow-auto h-full">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
                 <TableRow>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
                   <TableHead className="w-[130px]">
