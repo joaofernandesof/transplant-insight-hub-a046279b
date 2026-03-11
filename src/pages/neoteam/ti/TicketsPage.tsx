@@ -296,7 +296,7 @@ export default function TicketsPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader><DialogTitle>Abrir Chamado</DialogTitle></DialogHeader>
-            <TicketForm onSubmit={(f: any) => createTicket.mutate(f)} loading={createTicket.isPending} isAdmin={isAdmin} />
+            <TicketForm onSubmit={(f: any) => createTicket.mutate(f)} loading={createTicket.isPending} isAdmin={isTicketAdmin} />
           </DialogContent>
         </Dialog>
       </div>
