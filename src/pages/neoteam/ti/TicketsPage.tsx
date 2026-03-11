@@ -25,6 +25,13 @@ const PRIORITY_COLORS: Record<string, string> = {
   critical: "bg-red-100 text-red-800",
 };
 
+const PRIORITY_LABELS: Record<string, string> = {
+  low: "Baixa",
+  medium: "Média",
+  high: "Alta",
+  critical: "Urgente",
+};
+
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-red-100 text-red-800",
   in_progress: "bg-blue-100 text-blue-800",
