@@ -31,8 +31,12 @@ interface Props {
 const COLORS = ['#f97316', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b'];
 const STATUS_COLORS = { fechou: '#10b981', followup: '#f59e0b', perdido: '#ef4444' };
 
+type CloserSortKey = 'name' | 'total' | 'fechou' | 'taxa' | 'followup' | 'taxaFollowup' | 'perdido' | 'taxaPerdido' | 'bantMedio' | 'spinMedio';
+
 export function CallDashboardTab({ stats, analyses, calls }: Props) {
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('dia');
+  const [closerSortKey, setCloserSortKey] = useState<CloserSortKey>('taxa');
+  const [closerSortDir, setCloserSortDir] = useState<'asc' | 'desc'>('desc');
 
   // ── Derived data ──
   const enrichedCalls = useMemo(() => {
