@@ -385,7 +385,7 @@ export default function TicketsPage() {
                     <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{t.priority}</Badge></TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
                     <TableCell>
-                      {isAdmin ? (
+                      {isTicketAdmin ? (
                         isUnassigned ? (
                           <Button
                             size="sm"
