@@ -273,20 +273,13 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     manutencao: 'setor_manutencao',
   };
 
-  // Detect active sector from route: /neoteam/setor/{code} OR /neoteam/{sector-slug}/{module}
+  // Detect active sector from route: /neoteam/{sector-slug} or /neoteam/{sector-slug}/{module}
   const activeSectorCode = useMemo(() => {
-    // First check /neoteam/setor/{code} pattern (sector dashboard)
-    const sectorDashMatch = location.pathname.match(/\/neoteam\/setor\/([^/]+)/);
-    if (sectorDashMatch) return sectorDashMatch[1];
-    
-    // Then check /neoteam/{known-sector-slug}/... pattern
     const moduleMatch = location.pathname.match(/\/neoteam\/([^/]+)/);
     if (moduleMatch) {
       const slug = moduleMatch[1];
-      // Only return if it's a known sector slug (not 'setor' itself or unknown paths)
       if (SECTOR_TO_CATEGORY[slug]) return slug;
     }
-    
     return null;
   }, [location.pathname]);
 

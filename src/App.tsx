@@ -485,8 +485,12 @@ function NeoTeamRoutes() {
       <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoTeamHome />} />
-          {/* Sector Dashboard */}
-          <Route path="setor/:code" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
+          {/* Sector Dashboards - direct routes */}
+          {['tecnico', 'sucesso-paciente', 'operacional', 'processos', 'financeiro', 'juridico', 'comercial', 'marketing', 'ti', 'rh', 'compras', 'manutencao'].map(slug => (
+            <Route key={slug} path={slug} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
+          ))}
+          {/* Legacy redirect */}
+          <Route path="setor/:code" element={<SectorRedirect />} />
 
           {/* ===== SETOR TÉCNICO ===== */}
           <Route path="tecnico/agenda" element={<NeoTeamSchedule />} />

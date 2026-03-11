@@ -42,7 +42,10 @@ const SECTOR_GRADIENTS: Record<string, string> = {
 };
 
 export default function SectorDashboardPage() {
-  const { code } = useParams<{ code: string }>();
+  const location = useLocation();
+  // Extract sector slug from pathname: /neoteam/{slug} or /neoteam/{slug}/...
+  const slug = location.pathname.split('/')[2] ?? '';
+  const code = slug.replace(/-/g, '_') || undefined;
 
   // Fetch sector metadata from DB
   const { data: sector, isLoading: sectorLoading } = useQuery({
