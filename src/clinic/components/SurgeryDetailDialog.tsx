@@ -702,7 +702,7 @@ function LunchField({ value, onSave }: { value: string; onSave: (val: string) =>
   );
 }
 
-
+function EditableTextarea({ value, field, onSave }: {
   value: string;
   field: string;
   onSave: (field: string, value: string) => void;
