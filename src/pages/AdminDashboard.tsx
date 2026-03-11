@@ -81,7 +81,7 @@ const moduleCategories = [
     modules: [
       { id: 'surgery', title: 'Agenda de Cirurgias', description: 'Calendário cirúrgico', icon: Calendar, path: '/admin/surgery-schedule', color: 'bg-rose-500' },
       { id: 'neoteam', title: 'NeoTeam', description: 'Painel colaboradores', icon: Users, path: '/neoteam', color: 'bg-cyan-500' },
-      { id: 'waiting', title: 'Sala de Espera', description: 'Fila de atendimento', icon: Clock, path: '/neoteam/waiting-room', color: 'bg-amber-500' },
+      { id: 'waiting', title: 'Sala de Espera', description: 'Fila de atendimento', icon: Clock, path: '/neoteam/tecnico/sala-de-espera', color: 'bg-amber-500' },
     ]
   },
   {
@@ -138,7 +138,7 @@ const moduleCategories = [
 const profileAccess = [
   { profile: 'licenciado', title: 'Licenciado', description: 'Dono de clínica', icon: Award, path: '/neolicense', color: 'bg-amber-500' },
   { profile: 'colaborador', title: 'Colaborador', description: 'Equipe clínica', icon: Users, path: '/neoteam', color: 'bg-blue-500' },
-  { profile: 'medico', title: 'Médico', description: 'Visão clínica', icon: Stethoscope, path: '/neoteam/doctor-view', color: 'bg-cyan-500' },
+  { profile: 'medico', title: 'Médico', description: 'Visão clínica', icon: Stethoscope, path: '/neoteam/tecnico/visao-medico', color: 'bg-cyan-500' },
   { profile: 'aluno', title: 'Aluno', description: 'IBRAMEC', icon: GraduationCap, path: '/academy', color: 'bg-indigo-500' },
   { profile: 'paciente', title: 'Paciente', description: 'NeoCare', icon: Heart, path: '/neocare', color: 'bg-emerald-500' },
 ];

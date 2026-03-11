@@ -254,15 +254,10 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     );
   }, [currentPortal, effectiveIsAdmin, activeProfile]);
 
-  // Detect active sector from route (e.g. /neoteam/setor/tecnico)
-  const activeSectorCode = useMemo(() => {
-    const match = location.pathname.match(/\/neoteam\/setor\/([^/]+)/);
-    return match ? match[1] : null;
-  }, [location.pathname]);
-
-  // Map sector codes to category IDs
+  // Known sector URL slugs → category IDs
   const SECTOR_TO_CATEGORY: Record<string, string> = {
     tecnico: 'setor_clinico',
+    'sucesso-paciente': 'setor_sucesso_paciente',
     sucesso_paciente: 'setor_sucesso_paciente',
     operacional: 'setor_operacional',
     processos: 'setor_processos',
@@ -272,10 +267,28 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     marketing: 'setor_marketing',
     ti: 'setor_ti',
     rh: 'setor_rh',
+    admin: 'setor_admin',
     administracao: 'setor_admin',
     compras: 'setor_compras',
     manutencao: 'setor_manutencao',
   };
+
+  // Detect active sector from route: /neoteam/setor/{code} OR /neoteam/{sector-slug}/{module}
+  const activeSectorCode = useMemo(() => {
+    // First check /neoteam/setor/{code} pattern (sector dashboard)
+    const sectorDashMatch = location.pathname.match(/\/neoteam\/setor\/([^/]+)/);
+    if (sectorDashMatch) return sectorDashMatch[1];
+    
+    // Then check /neoteam/{known-sector-slug}/... pattern
+    const moduleMatch = location.pathname.match(/\/neoteam\/([^/]+)/);
+    if (moduleMatch) {
+      const slug = moduleMatch[1];
+      // Only return if it's a known sector slug (not 'setor' itself or unknown paths)
+      if (SECTOR_TO_CATEGORY[slug]) return slug;
+    }
+    
+    return null;
+  }, [location.pathname]);
 
   // Group menu items by category - use categorized menu if available
   const groupedMenuItems = useMemo((): MenuCategory[] => {

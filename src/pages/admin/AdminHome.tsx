@@ -42,7 +42,7 @@ const portals = [
   { id: 'neolicense', title: 'NeoLicense', icon: Building2, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
   { id: 'neocare', title: 'NeoCare Pacientes', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
   { id: 'neoteam', title: 'NeoTeam Operações', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
-  { id: 'doctor', title: 'Portal Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
+  { id: 'doctor', title: 'Portal Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/tecnico/visao-medico' },
   { id: 'avivar', title: 'Avivar CRM', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
   { id: 'ipromed', title: 'CPG Advocacia', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/cpg' },
   { id: 'vision', title: 'Vision IA', icon: Eye, gradient: 'from-pink-500 to-rose-500', path: '/vision' },
