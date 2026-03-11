@@ -247,12 +247,12 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     
     // For main/admin, flatten all categories
     return MAIN_MENU_CATEGORIES.flatMap(category => 
-      filterMenuByPermissions(category.items, hasPermission, isAdmin).filter(item => {
-        if (isAdmin && item.id === 'home') return false;
+      filterMenuByPermissions(category.items, hasPermission, effectiveIsAdmin).filter(item => {
+        if (effectiveIsAdmin && item.id === 'home') return false;
         return true;
       })
     );
-  }, [currentPortal, isAdmin]);
+  }, [currentPortal, effectiveIsAdmin, activeProfile]);
 
   // Detect active sector from route (e.g. /neoteam/setor/tecnico)
   const activeSectorCode = useMemo(() => {
