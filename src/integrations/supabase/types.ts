@@ -119,6 +119,69 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_logs: {
+        Row: {
+          action: string
+          ai_model: string | null
+          created_at: string
+          edge_function: string
+          error_message: string | null
+          estimated_cost_usd: number | null
+          id: string
+          input_tokens: number | null
+          metadata: Json | null
+          module: string
+          output_tokens: number | null
+          portal: string
+          processing_time_ms: number | null
+          status: string
+          total_tokens: number | null
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action?: string
+          ai_model?: string | null
+          created_at?: string
+          edge_function: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          id?: string
+          input_tokens?: number | null
+          metadata?: Json | null
+          module?: string
+          output_tokens?: number | null
+          portal?: string
+          processing_time_ms?: number | null
+          status?: string
+          total_tokens?: number | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          ai_model?: string | null
+          created_at?: string
+          edge_function?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          id?: string
+          input_tokens?: number | null
+          metadata?: Json | null
+          module?: string
+          output_tokens?: number | null
+          portal?: string
+          processing_time_ms?: number | null
+          status?: string
+          total_tokens?: number | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       alert_history: {
         Row: {
           alert_id: string | null
