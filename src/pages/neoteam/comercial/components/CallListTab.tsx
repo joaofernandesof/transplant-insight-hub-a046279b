@@ -307,6 +307,12 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
                   <TableHead className="w-[130px]">
                     <div className="space-y-1">
