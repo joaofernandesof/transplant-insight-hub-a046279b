@@ -131,12 +131,39 @@ export default function AccountsPayable() {
     status: p.status === 'pendente' && isPast(new Date(p.due_date)) ? 'vencido' as const : p.status,
   }));
 
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortColumn !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="h-3 w-3 ml-1" /> 
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
   const filteredPayables = processedPayables.filter(p => {
     const matchesSearch = p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (p.supplier || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
+  }).sort((a, b) => {
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    switch (sortColumn) {
+      case 'description': return dir * a.description.localeCompare(b.description);
+      case 'supplier': return dir * (a.supplier || '').localeCompare(b.supplier || '');
+      case 'category': return dir * a.category.localeCompare(b.category);
+      case 'amount': return dir * (Number(a.amount) - Number(b.amount));
+      case 'due_date': return dir * a.due_date.localeCompare(b.due_date);
+      case 'status': return dir * a.status.localeCompare(b.status);
+      default: return 0;
+    }
   });
 
   const stats = isUsingMock ? {
