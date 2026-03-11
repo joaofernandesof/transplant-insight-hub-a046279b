@@ -74,7 +74,7 @@ export default function CallIntelligencePage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="dashboard" className="gap-1.5">
             <BarChart3 className="h-4 w-4" /> Dashboard
           </TabsTrigger>
@@ -87,9 +87,6 @@ export default function CallIntelligencePage() {
           <TabsTrigger value="registrar" className="gap-1.5">
             <Plus className="h-4 w-4" /> Registrar
           </TabsTrigger>
-          <TabsTrigger value="analise" className="gap-1.5">
-            <Brain className="h-4 w-4" /> Análise
-          </TabsTrigger>
           <TabsTrigger value="config" className="gap-1.5">
             <Settings className="h-4 w-4" /> Fireflies
           </TabsTrigger>
@@ -100,14 +97,28 @@ export default function CallIntelligencePage() {
         </TabsContent>
 
         <TabsContent value="lista" className="mt-4">
-          <CallListTab
-            calls={hook.calls}
-            analyses={hook.analyses}
-            isLoading={hook.isLoading}
-            isAnalyzing={hook.isAnalyzing}
-            onAnalyze={hook.analyzeCall}
-            onViewAnalysis={handleViewAnalysis}
-          />
+          {selectedCallId ? (
+            <div className="space-y-3">
+              <Button variant="outline" size="sm" onClick={() => setSelectedCallId(null)} className="gap-1.5">
+                ← Voltar para lista
+              </Button>
+              <CallAnalysisView
+                call={hook.calls.find(c => c.id === selectedCallId) || null}
+                analysis={hook.getAnalysisForCall(selectedCallId)}
+                isAnalyzing={hook.isAnalyzing}
+                onAnalyze={() => hook.analyzeCall(selectedCallId)}
+              />
+            </div>
+          ) : (
+            <CallListTab
+              calls={hook.calls}
+              analyses={hook.analyses}
+              isLoading={hook.isLoading}
+              isAnalyzing={hook.isAnalyzing}
+              onAnalyze={hook.analyzeCall}
+              onViewAnalysis={handleViewAnalysis}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="registrar" className="mt-4">
@@ -116,24 +127,6 @@ export default function CallIntelligencePage() {
             onCreated={handleCallCreated}
             accountId={accountId}
           />
-        </TabsContent>
-
-        <TabsContent value="analise" className="mt-4">
-          {selectedCallId ? (
-            <CallAnalysisView
-              call={hook.calls.find(c => c.id === selectedCallId) || null}
-              analysis={hook.getAnalysisForCall(selectedCallId)}
-              isAnalyzing={hook.isAnalyzing}
-              onAnalyze={() => hook.analyzeCall(selectedCallId)}
-            />
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                <Brain className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p>Selecione uma call na aba "Calls" para ver ou gerar a análise.</p>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         <TabsContent value="config" className="mt-4">
