@@ -75,10 +75,7 @@ serve(async (req) => {
               duration
               participants
               organizer_email
-              fireflies_users {
-                name
-                email
-              }
+              fireflies_users
               sentences {
                 speaker_name
                 text
@@ -103,8 +100,10 @@ serve(async (req) => {
         });
 
         if (!ffResponse.ok) {
+          const errBody = await ffResponse.text();
+          console.error(`Fireflies API error for ${transcriptId}:`, ffResponse.status, errBody);
           errors++;
-          errorDetails.push(`Transcript ${transcriptId}: Fireflies API ${ffResponse.status}`);
+          errorDetails.push(`Transcript ${transcriptId}: Fireflies API ${ffResponse.status} - ${errBody.slice(0, 200)}`);
           continue;
         }
 
