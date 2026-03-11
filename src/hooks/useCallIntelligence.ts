@@ -240,9 +240,25 @@ export function useCallIntelligence(accountId?: string) {
       : 0,
   };
 
+  const deleteCalls = useCallback(async (callIds: string[]) => {
+    if (!callIds.length) return;
+    try {
+      // Delete analyses first
+      await supabase.from('call_analysis').delete().in('call_id', callIds);
+      // Delete calls
+      const { error } = await supabase.from('sales_calls').delete().in('id', callIds);
+      if (error) throw error;
+      setCalls(prev => prev.filter(c => !callIds.includes(c.id)));
+      setAnalyses(prev => prev.filter(a => !callIds.includes(a.call_id)));
+      toast.success(`${callIds.length} call${callIds.length > 1 ? 's' : ''} excluída${callIds.length > 1 ? 's' : ''}`);
+    } catch (err: any) {
+      toast.error('Erro ao excluir: ' + (err.message || ''));
+    }
+  }, []);
+
   return {
     calls, analyses, isLoading, isAnalyzing, stats,
-    createCall, analyzeCall, getAnalysisForCall,
+    createCall, analyzeCall, getAnalysisForCall, deleteCalls,
     refreshCalls: fetchCalls, refreshAnalyses: fetchAnalyses,
   };
 }

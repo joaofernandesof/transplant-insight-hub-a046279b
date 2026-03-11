@@ -122,6 +122,7 @@ export default function CallIntelligencePage() {
                 isAnalyzing={hook.isAnalyzing}
                 onAnalyze={hook.analyzeCall}
                 onViewAnalysis={handleViewAnalysis}
+                onDeleteCalls={hook.deleteCalls}
               />
             )}
           </TabsContent>
