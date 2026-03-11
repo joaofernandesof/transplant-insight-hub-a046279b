@@ -1133,8 +1133,8 @@ function AppRoutes() {
       {/* ====================================
           Pós-Venda (Redirect para NeoTeam)
           ==================================== */}
-      <Route path="/postvenda" element={<Navigate to="/neoteam/postvenda" replace />} />
-      <Route path="/postvenda/*" element={<Navigate to="/neoteam/postvenda" replace />} />
+      <Route path="/postvenda" element={<Navigate to="/neoteam/sucesso-paciente/postvenda" replace />} />
+      <Route path="/postvenda/*" element={<Navigate to="/neoteam/sucesso-paciente/postvenda" replace />} />
 
       {/* ====================================
           Apps Externos (temporário - serão migrados)
