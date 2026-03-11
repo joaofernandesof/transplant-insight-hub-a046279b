@@ -261,6 +261,14 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                       </Select>
                     </div>
                   </TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_impacto" label="Imp." /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_spin" label="SPIN" /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_emocional" label="Emo." /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_pitch" label="Pitch" /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_gatilhos" label="Gat." /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_fala" label="Fala" /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_fechamento" label="Fech." /></TableHead>
+                  <TableHead className="w-[50px]"><SortableHeader col="cl_total" label="Score" /></TableHead>
                   <TableHead className="w-[80px] text-xs font-semibold">Ações</TableHead>
                 </TableRow>
               </TableHeader>
