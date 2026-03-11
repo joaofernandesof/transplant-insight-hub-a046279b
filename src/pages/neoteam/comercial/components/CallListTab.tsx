@@ -399,7 +399,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={21} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={23} className="text-center py-8 text-muted-foreground">
                       {calls.length === 0 ? 'Nenhuma call registrada ainda' : 'Nenhuma call encontrada com os filtros'}
                     </TableCell>
                   </TableRow>
@@ -410,7 +410,13 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                     const extractedLead = extractLeadName(call.lead_nome);
                     const product = extractProduct(call);
                     return (
-                      <TableRow key={call.id}>
+                      <TableRow key={call.id} className={selectedIds.has(call.id) ? 'bg-primary/5' : ''}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.has(call.id)}
+                            onCheckedChange={() => toggleSelect(call.id)}
+                          />
+                        </TableCell>
                         <TableCell className="text-xs whitespace-nowrap">
                           {format(new Date(call.data_call), 'dd/MM/yy HH:mm', { locale: ptBR })}
                         </TableCell>
