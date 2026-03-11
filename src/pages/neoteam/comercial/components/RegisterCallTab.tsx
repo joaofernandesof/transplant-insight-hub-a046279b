@@ -100,7 +100,7 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
             )}
           </div>
           <div className="space-y-2">
-            <Label>Lead *</Label>
+            <Label>Nome do Lead *</Label>
             <Input
               value={form.lead_nome}
               onChange={e => setForm(f => ({ ...f, lead_nome: e.target.value }))}
@@ -109,11 +109,14 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
           </div>
           <div className="space-y-2">
             <Label>Produto</Label>
-            <Input
-              value={form.produto}
-              onChange={e => setForm(f => ({ ...f, produto: e.target.value }))}
-              placeholder="Ex: Harmonização Facial"
-            />
+            <Select value={form.produto} onValueChange={v => setForm(f => ({ ...f, produto: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecione o produto" /></SelectTrigger>
+              <SelectContent>
+                {PRODUTOS.map(p => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label>Data da Call</Label>
@@ -131,19 +134,6 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
                 <SelectItem value="fechou">✅ Fechou</SelectItem>
                 <SelectItem value="followup">📋 Follow-up</SelectItem>
                 <SelectItem value="perdido">❌ Perdido</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Fonte da Call</Label>
-            <Select value={form.fonte_call} onValueChange={v => setForm(f => ({ ...f, fonte_call: v }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="telefone">📞 Telefone</SelectItem>
-                <SelectItem value="whatsapp">📱 WhatsApp</SelectItem>
-                <SelectItem value="zoom">💻 Zoom</SelectItem>
-                <SelectItem value="meet">🎥 Meet</SelectItem>
-                <SelectItem value="presencial">🏢 Presencial</SelectItem>
               </SelectContent>
             </Select>
           </div>
