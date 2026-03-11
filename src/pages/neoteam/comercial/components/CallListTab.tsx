@@ -161,6 +161,22 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
           const order = { quente: 3, morno: 2, frio: 1 };
           return dir * ((order[aA?.classificacao_lead as keyof typeof order] || 0) - (order[bA?.classificacao_lead as keyof typeof order] || 0));
         }
+        case 'cl_impacto':
+          return dir * ((aA?.closer_primeiro_impacto || 0) - (bA?.closer_primeiro_impacto || 0));
+        case 'cl_spin':
+          return dir * ((aA?.closer_exploracao_spin || 0) - (bA?.closer_exploracao_spin || 0));
+        case 'cl_emocional':
+          return dir * ((aA?.closer_conexao_emocional || 0) - (bA?.closer_conexao_emocional || 0));
+        case 'cl_pitch':
+          return dir * ((aA?.closer_clareza_pitch || 0) - (bA?.closer_clareza_pitch || 0));
+        case 'cl_gatilhos':
+          return dir * ((aA?.closer_gatilhos_mentais || 0) - (bA?.closer_gatilhos_mentais || 0));
+        case 'cl_fala':
+          return dir * ((aA?.closer_gestao_fala || 0) - (bA?.closer_gestao_fala || 0));
+        case 'cl_fechamento':
+          return dir * ((aA?.closer_fechamento || 0) - (bA?.closer_fechamento || 0));
+        case 'cl_total':
+          return dir * ((aA?.closer_score_total || 0) - (bA?.closer_score_total || 0));
         default:
           return 0;
       }
