@@ -422,32 +422,7 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2"><Award className="h-4 w-4 text-amber-600" /> Ranking de Closers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {closerStats.length === 0 ? <EmptyChart /> : (
-              <div className="space-y-3">
-                {closerStats.slice(0, 5).map((c, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : 'bg-muted text-muted-foreground'}`}>
-                      {i + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{c.name}</div>
-                      <div className="text-xs text-muted-foreground">{c.total} calls • {c.taxa}% conversão</div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`font-bold text-sm ${c.bantMedio >= 30 ? 'text-emerald-600' : c.bantMedio >= 20 ? 'text-amber-600' : 'text-red-600'}`}>{c.bantMedio}/40</span>
-                      <div className="text-[10px] text-muted-foreground">BANT</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <CloserRankingCard calls={calls} analyses={analyses} enrichedCalls={enrichedCalls} />
       </div>
     </div>
   );
