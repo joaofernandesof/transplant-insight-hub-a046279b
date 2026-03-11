@@ -106,6 +106,8 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterClassificacao, setFilterClassificacao] = useState<string>('all');
+  const [filterCloser, setFilterCloser] = useState<string>('all');
+  const [filterProduto, setFilterProduto] = useState<string>('all');
   const [sortKey, setSortKey] = useState<SortKey>('data_call');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
