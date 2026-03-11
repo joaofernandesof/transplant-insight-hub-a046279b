@@ -82,6 +82,7 @@ export default function TicketsPage() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [requesterFilter, setRequesterFilter] = useState("all");
   const playSound = useNewTicketSound();
 
   const { data: tickets = [], isLoading } = useQuery({
