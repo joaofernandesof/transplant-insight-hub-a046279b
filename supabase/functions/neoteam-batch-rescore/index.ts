@@ -23,7 +23,7 @@ serve(async (req) => {
     }
 
     const { account_id, call_ids, limit: batchLimit } = await req.json();
-    const maxBatch = batchLimit || 3;
+    const maxBatch = batchLimit || 8;
     if (!account_id) throw new Error("account_id obrigatório");
 
     // Get calls that need rescoring
