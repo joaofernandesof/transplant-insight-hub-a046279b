@@ -468,8 +468,7 @@ function NeoTeamRoutes() {
   const NeoTeamPopsPage = lazy(() => import('@/pages/neoteam/pops/NeoTeamPopsPage'));
   const NeoTeamDiaryPage = lazy(() => import('@/pages/neoteam/diary/NeoTeamDiaryPage'));
   const SectorDashboardPage = lazy(() => import('@/neohub/pages/neoteam/SectorDashboardPage'));
-  const FinancialDashboardPage = lazy(() => import('@/pages/neoteam/financeiro/FinancialDashboardPage'));
-  const AccountsPage = lazy(() => import('@/pages/neoteam/financeiro/AccountsPage'));
+  const FinancialDashboardPage = lazy(() => import('@/pages/ipromed/IpromedFinancial'));
   const TeamRosterPage = lazy(() => import('@/pages/neoteam/rh/TeamRosterPage'));
   const RetentionPage = lazy(() => import('@/pages/neoteam/sucesso/RetentionPage'));
   const LegalContractsPage = lazy(() => import('@/pages/neoteam/juridico/LegalContractsPage'));
