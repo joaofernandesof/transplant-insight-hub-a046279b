@@ -18,6 +18,7 @@ import {
   BookOpen,
   Megaphone,
   ShoppingBag,
+  ShoppingCart,
   Handshake,
   Briefcase,
   DollarSign,
@@ -67,6 +68,7 @@ import {
   Target,
   Link2,
   Phone,
+  HardHat,
 } from 'lucide-react';
 
 // Tipos base
