@@ -94,7 +94,7 @@ const PORTAL_ICONS: Record<string, React.ElementType> = {
   ipromed: Scale,
   vision: Eye,
   neopay: CreditCard,
-  neorh: UserCog,
+  
 };
 
 export default function AdminHome() {
