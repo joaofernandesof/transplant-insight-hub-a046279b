@@ -80,13 +80,6 @@ const portals: PortalNode[] = [
     icon: <Flame className="h-6 w-6" />,
     color: 'bg-gradient-to-br from-orange-500 to-red-500',
   },
-  {
-    id: 'neorh',
-    name: 'NeoRH',
-    subtitle: 'Recursos Humanos',
-    icon: <UserCog className="h-6 w-6" />,
-    color: 'bg-gradient-to-br from-indigo-500 to-blue-600',
-  },
 ];
 
 interface HubDiagramProps {

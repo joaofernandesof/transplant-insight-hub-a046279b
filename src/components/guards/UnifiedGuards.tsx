@@ -180,7 +180,7 @@ function getPortalKeyFromRoute(route: string): string | null {
   if (route.startsWith('/vision')) return 'vision';
   if (route.startsWith('/neopay')) return 'neopay';
   if (route.startsWith('/neoacademy')) return 'neoacademy';
-  if (route.startsWith('/neorh')) return 'neorh';
+  if (route.startsWith('/neorh')) return 'neoteam'; // legacy redirect
   if (route.startsWith('/cpg') || route.startsWith('/ipromed')) return 'ipromed';
   return null;
 }

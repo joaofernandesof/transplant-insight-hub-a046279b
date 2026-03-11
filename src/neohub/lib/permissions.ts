@@ -215,12 +215,6 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'neopay_settings', name: 'Configurações', route: '/neopay/settings', icon: 'Settings' },
     { code: 'neopay_reports', name: 'Relatórios', route: '/neopay/reports', icon: 'FileBarChart' },
   ],
-  neorh: [
-    { code: 'neorh_dashboard', name: 'Dashboard', route: '/neorh', icon: 'Home' },
-    { code: 'neorh_colaboradores', name: 'Colaboradores', route: '/neorh/colaboradores', icon: 'Users' },
-    { code: 'neorh_cargos', name: 'Cargos', route: '/neorh/cargos', icon: 'Briefcase' },
-    { code: 'neorh_vagas', name: 'Vagas', route: '/neorh/vagas', icon: 'ClipboardList' },
-  ],
 };
 
 // Obter rota padrão para perfil

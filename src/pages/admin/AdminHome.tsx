@@ -302,18 +302,6 @@ export default function AdminHome() {
             ]}
           />
 
-          {/* NeoRH */}
-          <PortalWidget
-            id="neorh"
-            title="NeoRH"
-            onClick={() => navigate('/neorh')}
-            metrics={[
-              { label: 'Colaboradores', value: formatNumber(metrics.portals.find(p => p.id === 'neorh')?.totalUsers || 0) },
-              { label: 'Ativos', value: formatNumber(metrics.portals.find(p => p.id === 'neorh')?.activeUsers || 0) },
-              { label: 'Trend', value: `${metrics.portals.find(p => p.id === 'neorh')?.trend || 0}%` },
-              { label: 'Atividade', value: formatNumber(metrics.portals.find(p => p.id === 'neorh')?.recentActivity || 0) },
-            ]}
-          />
         </div>
       )}
     </div>
