@@ -103,14 +103,21 @@ serve(async (req) => {
 
     console.log(`[Fireflies Sync] Found ${filteredTranscripts.length} matching transcripts out of ${allTranscripts.length} total`);
 
-    // 3. Get already imported external_ids
+    // 3. Get already imported - check by external_id AND by lead_nome+transcricao
     const { data: existingCalls } = await supabase
       .from('sales_calls')
-      .select('external_id')
-      .eq('account_id', account_id)
-      .not('external_id', 'is', null);
+      .select('external_id, lead_nome, transcricao')
+      .eq('account_id', account_id);
 
-    const existingIds = new Set((existingCalls || []).map((c: any) => c.external_id));
+    const existingIds = new Set((existingCalls || []).filter((c: any) => c.external_id).map((c: any) => c.external_id));
+    
+    // Build content dedup set
+    const existingContentKeys = new Set(
+      (existingCalls || []).map((c: any) => {
+        const content = (c.transcricao || '').trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ');
+        return `${(c.lead_nome || '').trim().toLowerCase()}::${content}`;
+      })
+    );
 
     // 4. Import new ones
     let imported = 0;
@@ -132,6 +139,14 @@ serve(async (req) => {
         fullTranscript = sentences.map((s: any) => `${s.speaker_name}: ${s.text}`).join('\n');
       }
 
+      // Check content-based duplicate
+      const leadName = transcript.title.replace('Reunião com ', '').trim();
+      const contentKey = `${leadName.toLowerCase()}::${fullTranscript.trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ')}`;
+      if (existingContentKeys.has(contentKey)) {
+        skipped++;
+        continue;
+      }
+
       // Build a rich resumo from the summary
       const summary = transcript.summary || {};
       let resumo = '';
@@ -140,8 +155,7 @@ serve(async (req) => {
       if (summary.action_items) resumo += `## Action Items\n${summary.action_items}\n\n`;
       if (summary.keywords?.length) resumo += `## Keywords\n${summary.keywords.join(', ')}\n`;
 
-      // Extract lead name from title "Reunião com ..."
-      const leadName = transcript.title.replace('Reunião com ', '').trim();
+      // leadName already extracted above
       
       // Parse date
       const callDate = transcript.date ? new Date(transcript.date).toISOString() : new Date().toISOString();
