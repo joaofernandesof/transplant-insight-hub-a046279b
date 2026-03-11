@@ -133,6 +133,57 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
     const result = await response.json();
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
 
+    // Extract usage info for logging
+    const usage = result.usage || {};
+    const processingTime = Date.now() - startTime;
+
+    // Log AI usage
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+      const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+      // Get user info from auth header
+      const authHeader = req.headers.get("authorization");
+      let userId: string | null = null;
+      let userEmail: string | null = null;
+      let userName: string | null = null;
+      if (authHeader) {
+        try {
+          const { data: { user } } = await adminClient.auth.getUser(authHeader.replace("Bearer ", ""));
+          userId = user?.id || null;
+          userEmail = user?.email || null;
+        } catch {}
+      }
+
+      // Estimate cost (gemini-2.5-flash: ~$0.15/1M input, ~$0.60/1M output)
+      const inputTokens = usage.prompt_tokens || 0;
+      const outputTokens = usage.completion_tokens || 0;
+      const estimatedCost = (inputTokens * 0.00000015) + (outputTokens * 0.0000006);
+
+      await adminClient.from("ai_usage_logs").insert({
+        user_id: userId,
+        user_email: userEmail,
+        user_name: closer_name || userName,
+        portal: "NeoTeam",
+        module: "Call Intelligence",
+        action: "analyze_call",
+        edge_function: "neoteam-analyze-call",
+        ai_model: "google/gemini-2.5-flash",
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        total_tokens: usage.total_tokens || (inputTokens + outputTokens),
+        estimated_cost_usd: estimatedCost,
+        processing_time_ms: processingTime,
+        status: toolCall?.function?.arguments ? "success" : "error",
+        error_message: toolCall?.function?.arguments ? null : "No structured output",
+        metadata: { call_id, account_id, lead_nome },
+      });
+    } catch (logErr) {
+      console.error("Error logging AI usage:", logErr);
+    }
+
     if (!toolCall?.function?.arguments) {
       return new Response(JSON.stringify({ error: "IA não retornou análise estruturada" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -143,8 +194,6 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
     
     // Calculate BANT total
     analysis.bant_total = (analysis.bant_budget || 0) + (analysis.bant_authority || 0) + (analysis.bant_need || 0) + (analysis.bant_timeline || 0);
-    
-    const processingTime = Date.now() - startTime;
 
     // Save to database if call_id provided
     if (call_id && account_id) {
