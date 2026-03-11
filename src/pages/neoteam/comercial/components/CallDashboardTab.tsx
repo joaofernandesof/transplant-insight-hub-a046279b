@@ -157,9 +157,21 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
         bantMedio: s.bantCount > 0 ? Math.round(s.bantSum / s.bantCount) : 0,
         probMedia: s.probCount > 0 ? Math.round(s.probSum / s.probCount) : 0,
         spinMedio: s.spinCount > 0 ? Math.round(s.spinSum / s.spinCount) : 0,
-      }))
-      .sort((a, b) => b.taxa - a.taxa || b.bantMedio - a.bantMedio);
+      }));
   }, [enrichedCalls]);
+
+  const sortedCloserStats = useMemo(() => {
+    const sorted = [...closerStats];
+    sorted.sort((a, b) => {
+      const aVal = a[closerSortKey] ?? 0;
+      const bVal = b[closerSortKey] ?? 0;
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return closerSortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      return closerSortDir === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+    });
+    return sorted;
+  }, [closerStats, closerSortKey, closerSortDir]);
 
   // ── Top objections ──
   const topObjecoes = useMemo(() => {
