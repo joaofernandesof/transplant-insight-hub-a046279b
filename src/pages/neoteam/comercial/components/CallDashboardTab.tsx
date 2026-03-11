@@ -492,6 +492,30 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
   );
 }
 
+function SortableTh({ label, sortKey, current, dir, onSort, align = 'center' }: {
+  label: string; sortKey: CloserSortKey; current: CloserSortKey; dir: 'asc' | 'desc';
+  onSort: (key: CloserSortKey) => void; align?: 'left' | 'center';
+}) {
+  const isActive = current === sortKey;
+  return (
+    <th
+      className={`pb-2 pr-3 font-semibold text-xs cursor-pointer select-none transition-colors hover:text-foreground ${
+        isActive ? 'text-foreground' : 'text-muted-foreground'
+      } ${align === 'center' ? 'text-center' : 'text-left'}`}
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="inline-flex items-center gap-0.5">
+        {label}
+        {isActive ? (
+          dir === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </span>
+    </th>
+  );
+}
+
 function KpiCard({ icon, iconBg, value, label, valueColor }: { icon: React.ReactNode; iconBg: string; value: React.ReactNode; label: string; valueColor?: string }) {
   return (
     <Card>
