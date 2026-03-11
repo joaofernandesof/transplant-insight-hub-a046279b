@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import {
   User, Phone, FileText, Scissors, Calendar, Clock,
   CheckCircle2, XCircle, AlertCircle, Stethoscope, Users, Pencil,
-  ChevronDown, ChevronRight, Loader2, History, CalendarClock, CalendarX2, Trash2
+  ChevronDown, ChevronRight, Loader2, History, CalendarClock, CalendarX2, Trash2, UtensilsCrossed
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -332,17 +332,13 @@ export function SurgeryDetailDialog({ surgery, open, onOpenChange, onUpdate, onR
                 onSave={handleFieldSave}
               />
               {/* Almoço */}
-              <div className="col-span-2">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1.5">
-                  🍽️ Almoço
-                </Label>
-                <Input
-                  value={surgery.lunchChoice || ''}
-                  onChange={(e) => handleFieldSave('lunchChoice', e.target.value || null)}
-                  placeholder="Ex: Normal, Vegetariano..."
-                  className="w-full"
-                />
-              </div>
+              <EditableField
+                icon={UtensilsCrossed}
+                label="Almoço"
+                value={surgery.lunchChoice || ''}
+                field="lunchChoice"
+                onSave={handleFieldSave}
+              />
             </div>
 
             <Separator />
