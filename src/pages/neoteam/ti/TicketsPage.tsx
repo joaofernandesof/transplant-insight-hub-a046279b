@@ -241,6 +241,18 @@ export default function TicketsPage() {
     },
   });
 
+  const updateTicketField = useMutation({
+    mutationFn: async ({ id, field, value }: { id: string; field: string; value: any }) => {
+      const { error } = await supabase.from("neoteam_tickets").update({ [field]: value, updated_at: new Date().toISOString() } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["neoteam_tickets"] });
+      toast.success("Chamado atualizado");
+    },
+    onError: () => toast.error("Erro ao atualizar chamado"),
+  });
+
   const assignTicket = useMutation({
     mutationFn: async ({ id, assign }: { id: string; assign: boolean }) => {
       const updates: any = {
