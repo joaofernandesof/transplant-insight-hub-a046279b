@@ -241,6 +241,18 @@ export default function TicketsPage() {
     },
   });
 
+  const updateTicketField = useMutation({
+    mutationFn: async ({ id, field, value }: { id: string; field: string; value: any }) => {
+      const { error } = await supabase.from("neoteam_tickets").update({ [field]: value, updated_at: new Date().toISOString() } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["neoteam_tickets"] });
+      toast.success("Chamado atualizado");
+    },
+    onError: () => toast.error("Erro ao atualizar chamado"),
+  });
+
   const assignTicket = useMutation({
     mutationFn: async ({ id, assign }: { id: string; assign: boolean }) => {
       const updates: any = {
@@ -365,7 +377,7 @@ export default function TicketsPage() {
                 <TableHead>Solicitante</TableHead>
                 <TableHead>Responsável</TableHead>
                 <TableHead>Anexos</TableHead>
-                <TableHead>Data</TableHead>
+                <TableHead>Prazo</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -389,7 +401,21 @@ export default function TicketsPage() {
                       <p className="font-medium">{t.title}</p>
                       {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{t.description}</p>}
                     </TableCell>
-                    <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{PRIORITY_LABELS[t.priority] || t.priority}</Badge></TableCell>
+                    <TableCell>
+                      {isTicketAdmin ? (
+                        <Select value={t.priority} onValueChange={v => updateTicketField.mutate({ id: t.id, field: "priority", value: v })}>
+                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Baixa</SelectItem>
+                            <SelectItem value="medium">Média</SelectItem>
+                            <SelectItem value="high">Alta</SelectItem>
+                            <SelectItem value="critical">Urgente</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge className={PRIORITY_COLORS[t.priority]}>{PRIORITY_LABELS[t.priority] || t.priority}</Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
                     <TableCell>
                       {isTicketAdmin ? (
@@ -458,7 +484,35 @@ export default function TicketsPage() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{format(parseISO(t.created_at), "dd/MM HH:mm")}</TableCell>
+                    <TableCell>
+                      {isTicketAdmin ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
+                              <CalendarIcon className="h-3 w-3 mr-1" />
+                              {t.due_date ? format(parseISO(t.due_date), "dd/MM/yyyy") : format(parseISO(t.created_at), "dd/MM HH:mm")}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={t.due_date ? parseISO(t.due_date) : undefined}
+                              onSelect={(date) => {
+                                if (date) {
+                                  updateTicketField.mutate({ id: t.id, field: "due_date", value: format(date, "yyyy-MM-dd") });
+                                }
+                              }}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          {t.due_date ? format(parseISO(t.due_date), "dd/MM/yyyy") : format(parseISO(t.created_at), "dd/MM HH:mm")}
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {isTicketAdmin ? (
                         <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
