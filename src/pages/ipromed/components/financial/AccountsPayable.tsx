@@ -55,6 +55,7 @@ import {
 import { format, isPast, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { usePayables, Payable, PayableInsert } from "../../hooks/usePayables";
+import { WORKFLOW_STAGES, STAGE_MAP } from "@/pages/neoteam/financeiro/config/workflowStages";
 
 const categories = [
   { value: 'prolabore', label: 'Pró-labore', icon: Users },
