@@ -860,25 +860,10 @@ export default function AdminPanel() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuSub>
-                                        <DropdownMenuSubTrigger>
-                                          <Shield className="h-4 w-4 mr-2" />
-                                          Alterar Função
-                                        </DropdownMenuSubTrigger>
-                                        <DropdownMenuSubContent>
-                                          {ACCESS_PROFILES.map(p => (
-                                            <DropdownMenuItem key={p.id} onClick={() => {
-                                              supabase.from('user_roles').update({ role: p.id as any }).eq('user_id', userProfile.user_id).then(() => {
-                                                setUserRoles(prev => prev.map(r => r.user_id === userProfile.user_id ? { ...r, role: p.id } : r));
-                                                toast.success(`Função alterada para ${p.name}`);
-                                              });
-                                            }}>
-                                              <p.icon className="h-4 w-4 mr-2" />
-                                              {p.name}
-                                            </DropdownMenuItem>
-                                          ))}
-                                        </DropdownMenuSubContent>
-                                      </DropdownMenuSub>
+                                      <DropdownMenuItem onClick={() => openEditDialog(userProfile)}>
+                                          <Pencil className="h-4 w-4 mr-2" />
+                                          Editar Acessos por Portal
+                                        </DropdownMenuItem>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem onClick={() => toggleUserActive(userProfile.user_id, isUserActive)}>
                                         <Power className="h-4 w-4 mr-2" />
