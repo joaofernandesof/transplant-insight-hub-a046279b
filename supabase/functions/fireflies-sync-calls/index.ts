@@ -47,6 +47,18 @@ serve(async (req) => {
       });
     }
 
+    // 1b. Get filter config
+    const { data: filterSetting } = await supabase
+      .from('avivar_account_settings')
+      .select('setting_value')
+      .eq('account_id', account_id)
+      .eq('setting_key', 'fireflies_filter_config')
+      .maybeSingle();
+
+    const filterConfig = filterSetting?.setting_value as any;
+    const filterMode = filterConfig?.mode || 'include';
+    const filterKeywords: string[] = filterConfig?.keywords || ['Reunião com'];
+
     // 2. Fetch all transcripts from Fireflies
     const listQuery = `
       query {
@@ -96,8 +108,20 @@ serve(async (req) => {
     }
 
     const allTranscripts = ffData.data?.transcripts || [];
-    const filteredTranscripts = allTranscripts.filter((t: any) => t.title?.startsWith('Reunião com'));
+    
+    // Apply configurable filter
+    let filteredTranscripts: any[];
+    if (filterMode === 'all') {
+      filteredTranscripts = allTranscripts;
+    } else {
+      filteredTranscripts = allTranscripts.filter((t: any) => {
+        if (!t.title) return false;
+        const titleLower = t.title.toLowerCase();
+        return filterKeywords.some((kw: string) => titleLower.includes(kw.toLowerCase()));
+      });
+    }
 
+    console.log(`[Fireflies Sync] Filter mode: ${filterMode}, keywords: [${filterKeywords.join(', ')}]`);
     console.log(`[Fireflies Sync] Found ${filteredTranscripts.length} matching transcripts out of ${allTranscripts.length} total`);
 
     // 3. Get already imported - check by external_id AND by lead_nome+transcricao

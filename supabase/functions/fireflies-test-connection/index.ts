@@ -54,12 +54,11 @@ serve(async (req) => {
     }
 
     const transcripts = data.data?.transcripts || [];
-    const filtered = transcripts.filter((t: any) => t.title?.startsWith('Reunião com'));
 
     return new Response(JSON.stringify({
       success: true,
       total_transcripts: transcripts.length,
-      transcripts_count: filtered.length,
+      transcripts_count: transcripts.length,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
