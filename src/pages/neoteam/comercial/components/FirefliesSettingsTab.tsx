@@ -275,6 +275,9 @@ export function FirefliesSettingsTab({ accountId }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {/* Import Historical Calls */}
+      <ImportHistoricalCalls accountId={accountId} />
     </div>
   );
 }
