@@ -338,45 +338,60 @@ export default function TicketsPage() {
                     <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{t.priority}</Badge></TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
                     <TableCell>
-                      {isUnassigned ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs gap-1"
-                          onClick={() => assignTicket.mutate({ id: t.id, assign: true })}
-                          disabled={assignTicket.isPending}
-                        >
-                          <UserCheck className="h-3 w-3" />
-                          Assumir
-                        </Button>
-                      ) : isAssignedToMe ? (
-                        <div className="flex items-center gap-1.5">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
-                              {getInitials(t.assigned_name || "?")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs font-medium">{t.assigned_name}</span>
+                      {isAdmin ? (
+                        isUnassigned ? (
                           <Button
                             size="sm"
-                            variant="ghost"
-                            className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
-                            onClick={() => assignTicket.mutate({ id: t.id, assign: false })}
+                            variant="outline"
+                            className="h-7 text-xs gap-1"
+                            onClick={() => assignTicket.mutate({ id: t.id, assign: true })}
                             disabled={assignTicket.isPending}
-                            title="Liberar chamado"
                           >
-                            <UserX className="h-3 w-3" />
+                            <UserCheck className="h-3 w-3" />
+                            Assumir
                           </Button>
-                        </div>
+                        ) : isAssignedToMe ? (
+                          <div className="flex items-center gap-1.5">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
+                                {getInitials(t.assigned_name || "?")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs font-medium">{t.assigned_name}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
+                              onClick={() => assignTicket.mutate({ id: t.id, assign: false })}
+                              disabled={assignTicket.isPending}
+                              title="Liberar chamado"
+                            >
+                              <UserX className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
+                                {getInitials(t.assigned_name || "?")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs">{t.assigned_name}</span>
+                          </div>
+                        )
                       ) : (
-                        <div className="flex items-center gap-1.5">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
-                              {getInitials(t.assigned_name || "?")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs">{t.assigned_name}</span>
-                        </div>
+                        t.assigned_name ? (
+                          <div className="flex items-center gap-1.5">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
+                                {getInitials(t.assigned_name || "?")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs">{t.assigned_name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )
                       )}
                     </TableCell>
                     <TableCell>
