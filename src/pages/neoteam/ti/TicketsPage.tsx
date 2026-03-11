@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2 } from "lucide-react";
+import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -37,11 +38,48 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Fechado",
 };
 
+function getInitials(name: string) {
+  return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+}
+
+function useNewTicketSound() {
+  const play = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.4);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(1175, now + 0.15);
+      gain2.gain.setValueAtTime(0, now);
+      gain2.gain.setValueAtTime(0.25, now + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+      osc2.connect(gain2).connect(ctx.destination);
+      osc2.start(now + 0.15);
+      osc2.stop(now + 0.55);
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+  return play;
+}
+
 export default function TicketsPage() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const playSound = useNewTicketSound();
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["neoteam_tickets"],
@@ -54,6 +92,37 @@ export default function TicketsPage() {
       return data;
     },
   });
+
+  // Realtime subscription for new tickets
+  useEffect(() => {
+    const channel = supabase
+      .channel("neoteam-tickets-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "neoteam_tickets" },
+        (payload) => {
+          const newTicket = payload.new as any;
+          playSound();
+          toast("🎫 Novo chamado!", {
+            description: `${newTicket.ticket_number} — ${newTicket.title}`,
+            duration: 8000,
+          });
+          queryClient.invalidateQueries({ queryKey: ["neoteam_tickets"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "neoteam_tickets" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["neoteam_tickets"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, playSound]);
 
   // Fetch attachment counts per ticket
   const { data: attachmentCounts = {} } = useQuery({
@@ -137,6 +206,29 @@ export default function TicketsPage() {
     },
   });
 
+  const assignTicket = useMutation({
+    mutationFn: async ({ id, assign }: { id: string; assign: boolean }) => {
+      const updates: any = {
+        updated_at: new Date().toISOString(),
+      };
+      if (assign) {
+        updates.assigned_to = user?.id;
+        updates.assigned_name = (user as any)?.name || user?.email || "Operador";
+        updates.status = "in_progress";
+      } else {
+        updates.assigned_to = null;
+        updates.assigned_name = null;
+      }
+      const { error } = await supabase.from("neoteam_tickets").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["neoteam_tickets"] });
+      toast.success(variables.assign ? "Chamado assumido!" : "Chamado liberado");
+    },
+    onError: () => toast.error("Erro ao atualizar responsável"),
+  });
+
   const filtered = statusFilter === "all" ? tickets : tickets.filter((t: any) => t.status === statusFilter);
 
   const stats = {
@@ -192,6 +284,7 @@ export default function TicketsPage() {
                 <TableHead>Título</TableHead>
                 <TableHead>Prioridade</TableHead>
                 <TableHead>Solicitante</TableHead>
+                <TableHead>Responsável</TableHead>
                 <TableHead>Anexos</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead>Status</TableHead>
@@ -199,13 +292,19 @@ export default function TicketsPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={7} className="text-center py-8">Carregando...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-8">Carregando...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum chamado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum chamado</TableCell></TableRow>
               ) : filtered.map((t: any) => {
                 const count = (attachmentCounts as Record<string, number>)[t.id] || 0;
+                const isAssignedToMe = t.assigned_to === user?.id;
+                const isUnassigned = !t.assigned_to;
+
                 return (
-                  <TableRow key={t.id}>
+                  <TableRow
+                    key={t.id}
+                    className={isUnassigned && t.status === "open" ? "border-l-4 border-l-orange-400" : ""}
+                  >
                     <TableCell className="font-mono text-xs">{t.ticket_number}</TableCell>
                     <TableCell>
                       <p className="font-medium">{t.title}</p>
@@ -213,6 +312,48 @@ export default function TicketsPage() {
                     </TableCell>
                     <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{t.priority}</Badge></TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
+                    <TableCell>
+                      {isUnassigned ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs gap-1"
+                          onClick={() => assignTicket.mutate({ id: t.id, assign: true })}
+                          disabled={assignTicket.isPending}
+                        >
+                          <UserCheck className="h-3 w-3" />
+                          Assumir
+                        </Button>
+                      ) : isAssignedToMe ? (
+                        <div className="flex items-center gap-1.5">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
+                              {getInitials(t.assigned_name || "?")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs font-medium">{t.assigned_name}</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => assignTicket.mutate({ id: t.id, assign: false })}
+                            disabled={assignTicket.isPending}
+                            title="Liberar chamado"
+                          >
+                            <UserX className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
+                              {getInitials(t.assigned_name || "?")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs">{t.assigned_name}</span>
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {count > 0 ? (
                         <div className="flex items-center gap-1 text-muted-foreground">
