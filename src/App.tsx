@@ -9,7 +9,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
+
+// Legacy redirect: /neoteam/setor/:code → /neoteam/:code
+function LegacySectorRedirect() {
+  const { code } = useParams<{ code: string }>();
+  const slug = code?.replace(/_/g, '-') ?? '';
+  return <Navigate to={`/neoteam/${slug}`} replace />;
+}
 import { ThemeProvider } from "next-themes";
 import { UnifiedAuthProvider, useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { DataProvider } from "@/contexts/DataContext";
