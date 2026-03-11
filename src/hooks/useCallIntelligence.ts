@@ -57,6 +57,7 @@ export function useCallIntelligence(accountId?: string) {
   const [analyses, setAnalyses] = useState<CallAnalysisRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const analyzeCallRef = useRef<((callId: string) => Promise<any>) | null>(null);
 
   const fetchCalls = useCallback(async () => {
     if (!accountId) return;
