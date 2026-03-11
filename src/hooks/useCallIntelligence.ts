@@ -123,6 +123,20 @@ export function useCallIntelligence(accountId?: string) {
   }) => {
     if (!accountId || !user) { toast.error('Conta não configurada'); return null; }
     try {
+      // Check for duplicate: same lead_nome AND same transcricao content
+      const transcContent = (params.transcricao || '').trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ');
+      if (transcContent) {
+        const existing = calls.find(c => {
+          const existingContent = (c.transcricao || '').trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ');
+          return c.lead_nome.trim().toLowerCase() === params.lead_nome.trim().toLowerCase()
+            && existingContent === transcContent;
+        });
+        if (existing) {
+          toast.error('Call duplicada detectada! Já existe uma call com o mesmo título e transcrição.');
+          return null;
+        }
+      }
+
       const { data, error } = await supabase.from('sales_calls').insert({
         account_id: accountId,
         closer_id: user.id,
@@ -150,7 +164,7 @@ export function useCallIntelligence(accountId?: string) {
       toast.error('Erro ao registrar call: ' + (err.message || ''));
       return null;
     }
-  }, [accountId, user]);
+  }, [accountId, user, calls]);
 
   const analyzeCall = useCallback(async (callId: string) => {
     const call = calls.find(c => c.id === callId);
