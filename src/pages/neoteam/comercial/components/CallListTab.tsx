@@ -113,6 +113,10 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
 
   const getAnalysis = (callId: string) => analyses.find(a => a.call_id === callId);
 
+  // Unique values for filters
+  const uniqueClosers = useMemo(() => [...new Set(calls.map(c => c.closer_name).filter(Boolean))].sort(), [calls]);
+  const uniqueProducts = useMemo(() => [...new Set(calls.map(c => extractProduct(c)).filter(p => p !== '—'))].sort(), [calls]);
+
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
