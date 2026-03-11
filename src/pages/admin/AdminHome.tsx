@@ -64,7 +64,7 @@ const PORTAL_BORDER_COLORS: Record<string, string> = {
   ipromed: 'border-l-indigo-500',
   vision: 'border-l-pink-500',
   neopay: 'border-l-green-500',
-  neorh: 'border-l-indigo-500',
+  
 };
 
 const PORTAL_ICON_COLORS: Record<string, string> = {
