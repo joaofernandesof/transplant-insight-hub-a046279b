@@ -335,8 +335,35 @@ serve(async (req) => {
         );
       }
 
-      // NOTE: get_busy_times removed - sync is ONE-WAY (CRM → Google only)
-      // Google Calendar events do NOT block CRM availability
+      // Get events from Google Calendar
+      case "get_events": {
+        const { agenda_id, time_min, time_max } = body;
+        if (!agenda_id) throw new Error("agenda_id is required");
+
+        const { data: agenda } = await supabaseAdmin
+          .from("avivar_agendas")
+          .select("google_calendar_id, google_connected")
+          .eq("id", agenda_id)
+          .single();
+
+        if (!agenda?.google_connected || !agenda?.google_calendar_id) {
+          return new Response(
+            JSON.stringify({ success: false, events: [], reason: "not_connected" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const accessToken = await getValidAccessToken(supabaseAdmin, agenda_id);
+        const now = new Date();
+        const defaultMin = time_min || now.toISOString();
+        const defaultMax = time_max || new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        const events = await getEvents(accessToken, agenda.google_calendar_id, defaultMin, defaultMax);
+
+        return new Response(
+          JSON.stringify({ success: true, events }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       // Create event in Google Calendar (called after appointment is created)
       case "create_event": {
