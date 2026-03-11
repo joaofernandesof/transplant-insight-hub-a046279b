@@ -401,7 +401,21 @@ export default function TicketsPage() {
                       <p className="font-medium">{t.title}</p>
                       {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{t.description}</p>}
                     </TableCell>
-                    <TableCell><Badge className={PRIORITY_COLORS[t.priority]}>{PRIORITY_LABELS[t.priority] || t.priority}</Badge></TableCell>
+                    <TableCell>
+                      {isTicketAdmin ? (
+                        <Select value={t.priority} onValueChange={v => updateTicketField.mutate({ id: t.id, field: "priority", value: v })}>
+                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Baixa</SelectItem>
+                            <SelectItem value="medium">Média</SelectItem>
+                            <SelectItem value="high">Alta</SelectItem>
+                            <SelectItem value="critical">Urgente</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge className={PRIORITY_COLORS[t.priority]}>{PRIORITY_LABELS[t.priority] || t.priority}</Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
                     <TableCell>
                       {isTicketAdmin ? (
