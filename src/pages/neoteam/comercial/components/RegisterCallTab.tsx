@@ -14,6 +14,8 @@ interface Props {
   accountId: string | null;
 }
 
+const CLOSERS = ['Isaac', 'Juan', 'Hygor', 'João'];
+
 export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
