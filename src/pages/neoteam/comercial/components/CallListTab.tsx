@@ -350,7 +350,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                   </TableHead>
                   <TableHead className="w-[100px]">
                     <div className="space-y-1">
-                      <SortableHeader col="status_call" label="Status" />
+                      <SortableHeader col="status_call" label="Resultado da Call" />
                       <Select value={filterStatus} onValueChange={setFilterStatus}>
                         <SelectTrigger className="h-6 text-[10px] w-[90px] border-dashed">
                           <SelectValue />
