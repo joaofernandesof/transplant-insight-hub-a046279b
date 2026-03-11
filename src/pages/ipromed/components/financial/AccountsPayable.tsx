@@ -162,7 +162,7 @@ export default function AccountsPayable() {
       case 'category': return dir * a.category.localeCompare(b.category);
       case 'amount': return dir * (Number(a.amount) - Number(b.amount));
       case 'due_date': return dir * a.due_date.localeCompare(b.due_date);
-      case 'status': return dir * a.status.localeCompare(b.status);
+      case 'status': return dir * (a.workflow_stage || '').localeCompare(b.workflow_stage || '');
       default: return 0;
     }
   });
