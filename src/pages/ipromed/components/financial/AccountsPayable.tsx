@@ -191,6 +191,8 @@ export default function AccountsPayable() {
       category: formData.category || 'outros',
       notes: formData.notes,
       status: 'pendente',
+      workflow_stage: 'solicitacao_pendente',
+      is_urgent: false,
     });
     
     setIsFormOpen(false);
