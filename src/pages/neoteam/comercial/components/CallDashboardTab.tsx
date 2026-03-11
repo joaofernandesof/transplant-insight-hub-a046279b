@@ -519,10 +519,10 @@ function CloserRankingCard({ calls, analyses, enrichedCalls }: { calls: SalesCal
 
     filteredCalls.forEach(c => {
       const name = c.closer_name || 'Desconhecido';
-      if (!map.has(c.closer_id)) {
-        map.set(c.closer_id, { name, total: 0, fechou: 0, bantSum: 0, bantCount: 0, probSum: 0, probCount: 0 });
+      if (!map.has(name)) {
+        map.set(name, { name, total: 0, fechou: 0, bantSum: 0, bantCount: 0, probSum: 0, probCount: 0 });
       }
-      const s = map.get(c.closer_id)!;
+      const s = map.get(name)!;
       s.total++;
       if (c.status_call === 'fechou') s.fechou++;
       if (c.analysis) {
