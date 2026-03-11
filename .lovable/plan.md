@@ -1,85 +1,29 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+# Reformular formulário "Abrir Chamado" em /neoteam/ti/chamados
 
-### Resumo
+## Mudanças no `TicketForm` (src/pages/neoteam/ti/TicketsPage.tsx)
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+### 1. Título pré-definido (Select em vez de Input)
+Substituir o `<Input>` de título por um `<Select>` com as opções:
+Kommo, Feegow, Clickup, ClickSing, Planilha, Neohub, Wordpress, Kiwify, Acessos no Drive, Stripe, Bling, Conta Azul, Anota Ai, Facebook, ManyChat, Doctoralia, FireFlies, Google Agenda, NuvemShop, Pluga, Outros.
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+### 2. Remover prioridade do formulário para não-admins
+O componente `TicketForm` receberá uma prop `isAdmin` vinda do `useUnifiedAuth`. O `<Select>` de prioridade só aparece se `isAdmin === true`. Para não-admins, prioridade será fixada como `"medium"` no submit.
 
----
+### 3. Novo campo "Tipo" (Melhoria ou Problema)
+Adicionar um `<Select>` com duas opções: `melhoria` e `problema`. Será salvo no campo `category` do ticket (que já existe e atualmente é fixo `"general"`).
 
-### 1. Nova tabela: `surgery_agenda_availability`
+### 4. Novo campo "Link URL"
+Adicionar um `<Input>` opcional com placeholder "Link URL (opcional)" para o usuário colar uma URL de referência. Será salvo no campo `description` concatenado, ou em um campo dedicado se existir na tabela. Verificarei a tabela — se não houver coluna, salvarei como prefixo na descrição no formato `[URL: ...]\n{descrição}`.
 
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+### 5. Campo de prazo com calendário
+Adicionar um `<Popover>` + `<Calendar>` (date picker padrão shadcn) para o usuário selecionar uma data de prazo. O valor será salvo como `due_date` — verificarei se a coluna existe na tabela.
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+### Verificação de schema necessária
+Preciso verificar se `neoteam_tickets` tem colunas `due_date` e `link_url`. Se não, criarei uma migration para adicioná-las.
 
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
-```
-
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
-
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
-
-### 3. Visualização de Disponibilidade (todos os usuários)
-
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
-
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+### Arquivos alterados
+- `src/pages/neoteam/ti/TicketsPage.tsx` — reformular `TicketForm` e passar `isAdmin` prop
+- Possível migration SQL para adicionar colunas `due_date` e `link_url`
 
