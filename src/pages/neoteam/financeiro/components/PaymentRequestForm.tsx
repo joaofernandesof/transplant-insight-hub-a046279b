@@ -378,6 +378,7 @@ export default function PaymentRequestForm({ onSuccess }: PaymentRequestFormProp
             </Label>
             <Input
               type="date"
+              min={new Date().toISOString().split('T')[0]}
               value={form.due_date}
               onChange={e => setForm(prev => ({ ...prev, due_date: e.target.value }))}
               className={errors.due_date ? 'border-destructive' : ''}
