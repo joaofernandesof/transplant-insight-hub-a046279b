@@ -378,6 +378,27 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     ],
   },
   {
+    id: 'setor_compras',
+    title: 'Setor de Compras',
+    icon: ShoppingCart,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_compras_dashboard', code: 'neoteam_compras_dashboard', title: 'Dashboard Compras', icon: ShoppingCart, route: '/neoteam/compras' },
+    ],
+  },
+  {
+    id: 'setor_manutencao',
+    title: 'Setor de Manutenção',
+    icon: HardHat,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_assets', code: 'neoteam_assets', title: 'Controle Patrimonial', icon: Landmark, route: '/neoteam/assets' },
+      { id: 'neoteam_manutencao_dashboard', code: 'neoteam_manutencao_dashboard', title: 'Ordens de Manutenção', icon: Wrench, route: '/neoteam/manutencao' },
+    ],
+  },
+  {
     id: 'setor_admin',
     title: 'Administração',
     icon: Settings,
