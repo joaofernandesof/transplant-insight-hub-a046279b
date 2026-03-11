@@ -139,6 +139,10 @@ export default function CallIntelligencePage() {
             />
           </TabsContent>
 
+          <TabsContent value="agenda" className="mt-0">
+            <AgendaTab accountId={accountId} />
+          </TabsContent>
+
           <TabsContent value="config" className="mt-0">
             <FirefliesSettingsTab accountId={accountId} />
           </TabsContent>
