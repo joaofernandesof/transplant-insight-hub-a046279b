@@ -537,26 +537,7 @@ export default function AdminPanel() {
     }
   };
 
-  const bulkChangeRole = async (newRole: AppRole) => {
-    if (selectedUsers.size === 0) return;
-    setIsBulkProcessing(true);
-    try {
-      for (const userId of selectedUsers) {
-        if (userId === user?.id) continue;
-        await supabase
-          .from('user_roles')
-          .update({ role: newRole as any })
-          .eq('user_id', userId);
-      }
-      toast.success(`Perfil de ${selectedUsers.size} usuário(s) alterado para ${getRoleMeta(newRole).name}`);
-      setSelectedUsers(new Set());
-      fetchUsers();
-    } catch (error) {
-      toast.error('Erro ao alterar perfis em massa');
-    } finally {
-      setIsBulkProcessing(false);
-    }
-  };
+  // bulkChangeRole removed — roles must be assigned per-portal via UserEditModal
 
   const bulkDeleteUsers = async () => {
     if (selectedUsers.size === 0) return;
