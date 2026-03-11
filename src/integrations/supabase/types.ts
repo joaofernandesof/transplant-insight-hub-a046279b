@@ -17060,6 +17060,7 @@ export type Database = {
           description: string | null
           id: string
           priority: string
+          requester_email: string | null
           requester_id: string
           requester_name: string
           resolution_notes: string | null
@@ -17079,6 +17080,7 @@ export type Database = {
           description?: string | null
           id?: string
           priority?: string
+          requester_email?: string | null
           requester_id: string
           requester_name: string
           resolution_notes?: string | null
@@ -17098,6 +17100,7 @@ export type Database = {
           description?: string | null
           id?: string
           priority?: string
+          requester_email?: string | null
           requester_id?: string
           requester_name?: string
           resolution_notes?: string | null
