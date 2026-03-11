@@ -557,30 +557,32 @@ function TicketForm({ onSubmit, loading, isAdmin }: { onSubmit: (f: any) => void
         />
       </div>
 
-      <div>
-        <label className="text-sm font-medium mb-1 block">Prazo</label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dueDate ? format(dueDate, "dd/MM/yyyy") : "Selecione uma data"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={dueDate}
-              onSelect={setDueDate}
-              disabled={(date) => date < new Date()}
-              initialFocus
-              className={cn("p-3 pointer-events-auto")}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+      {isAdmin && (
+        <div>
+          <label className="text-sm font-medium mb-1 block">Prazo</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dueDate ? format(dueDate, "dd/MM/yyyy") : "Selecione uma data"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dueDate}
+                onSelect={setDueDate}
+                disabled={(date) => date < new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
 
       {isAdmin && (
         <div>
