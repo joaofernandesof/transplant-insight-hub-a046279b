@@ -1,0 +1,1 @@
+ALTER TABLE public.neoteam_tickets ADD COLUMN requester_email text;
