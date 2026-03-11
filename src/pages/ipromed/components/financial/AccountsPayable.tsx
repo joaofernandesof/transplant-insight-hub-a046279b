@@ -48,6 +48,9 @@ import {
   Loader2,
   Trash2,
   Edit,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { format, isPast, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -93,6 +96,8 @@ export default function AccountsPayable() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [selectedPayable, setSelectedPayable] = useState<Payable | null>(null);
+  const [sortColumn, setSortColumn] = useState<string>('due_date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Form state
   const [formData, setFormData] = useState<Partial<PayableInsert>>({
@@ -126,12 +131,39 @@ export default function AccountsPayable() {
     status: p.status === 'pendente' && isPast(new Date(p.due_date)) ? 'vencido' as const : p.status,
   }));
 
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortColumn !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="h-3 w-3 ml-1" /> 
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
   const filteredPayables = processedPayables.filter(p => {
     const matchesSearch = p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (p.supplier || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
+  }).sort((a, b) => {
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    switch (sortColumn) {
+      case 'description': return dir * a.description.localeCompare(b.description);
+      case 'supplier': return dir * (a.supplier || '').localeCompare(b.supplier || '');
+      case 'category': return dir * a.category.localeCompare(b.category);
+      case 'amount': return dir * (Number(a.amount) - Number(b.amount));
+      case 'due_date': return dir * a.due_date.localeCompare(b.due_date);
+      case 'status': return dir * a.status.localeCompare(b.status);
+      default: return 0;
+    }
   });
 
   const stats = isUsingMock ? {
@@ -421,12 +453,24 @@ export default function AccountsPayable() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Descrição</TableHead>
-                  <TableHead className="font-semibold">Fornecedor</TableHead>
-                  <TableHead className="font-semibold">Categoria</TableHead>
-                  <TableHead className="font-semibold">Valor</TableHead>
-                  <TableHead className="font-semibold">Vencimento</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('description')}>
+                    <span className="flex items-center">Descrição<SortIcon column="description" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('supplier')}>
+                    <span className="flex items-center">Fornecedor<SortIcon column="supplier" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('category')}>
+                    <span className="flex items-center">Categoria<SortIcon column="category" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('amount')}>
+                    <span className="flex items-center">Valor<SortIcon column="amount" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('due_date')}>
+                    <span className="flex items-center">Vencimento<SortIcon column="due_date" /></span>
+                  </TableHead>
+                  <TableHead className="font-semibold cursor-pointer select-none hover:bg-muted/80" onClick={() => handleSort('status')}>
+                    <span className="flex items-center">Status<SortIcon column="status" /></span>
+                  </TableHead>
                   <TableHead className="font-semibold w-[120px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
