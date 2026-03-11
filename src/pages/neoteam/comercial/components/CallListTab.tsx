@@ -25,7 +25,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   perdido: { label: 'Perdido ❌', color: 'bg-red-100 text-red-800' },
 };
 
-type SortKey = 'data_call' | 'closer_name' | 'lead_nome' | 'lead_extracted' | 'produto' | 'status_call' | 'bant_b' | 'bant_a' | 'bant_n' | 'bant_t' | 'bant_total' | 'classificacao';
+type SortKey = 'data_call' | 'closer_name' | 'lead_nome' | 'lead_extracted' | 'produto' | 'status_call' | 'bant_b' | 'bant_a' | 'bant_n' | 'bant_t' | 'bant_total' | 'classificacao' | 'cl_impacto' | 'cl_spin' | 'cl_emocional' | 'cl_pitch' | 'cl_gatilhos' | 'cl_fala' | 'cl_fechamento' | 'cl_total';
 type SortDir = 'asc' | 'desc';
 
 function extractLeadName(title: string): string {
@@ -161,6 +161,22 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
           const order = { quente: 3, morno: 2, frio: 1 };
           return dir * ((order[aA?.classificacao_lead as keyof typeof order] || 0) - (order[bA?.classificacao_lead as keyof typeof order] || 0));
         }
+        case 'cl_impacto':
+          return dir * ((aA?.closer_primeiro_impacto || 0) - (bA?.closer_primeiro_impacto || 0));
+        case 'cl_spin':
+          return dir * ((aA?.closer_exploracao_spin || 0) - (bA?.closer_exploracao_spin || 0));
+        case 'cl_emocional':
+          return dir * ((aA?.closer_conexao_emocional || 0) - (bA?.closer_conexao_emocional || 0));
+        case 'cl_pitch':
+          return dir * ((aA?.closer_clareza_pitch || 0) - (bA?.closer_clareza_pitch || 0));
+        case 'cl_gatilhos':
+          return dir * ((aA?.closer_gatilhos_mentais || 0) - (bA?.closer_gatilhos_mentais || 0));
+        case 'cl_fala':
+          return dir * ((aA?.closer_gestao_fala || 0) - (bA?.closer_gestao_fala || 0));
+        case 'cl_fechamento':
+          return dir * ((aA?.closer_fechamento || 0) - (bA?.closer_fechamento || 0));
+        case 'cl_total':
+          return dir * ((aA?.closer_score_total || 0) - (bA?.closer_score_total || 0));
         default:
           return 0;
       }
@@ -245,13 +261,21 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                       </Select>
                     </div>
                   </TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_impacto" label="Imp." /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_spin" label="SPIN" /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_emocional" label="Emo." /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_pitch" label="Pitch" /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_gatilhos" label="Gat." /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_fala" label="Fala" /></TableHead>
+                  <TableHead className="w-[40px]"><SortableHeader col="cl_fechamento" label="Fech." /></TableHead>
+                  <TableHead className="w-[50px]"><SortableHeader col="cl_total" label="Score" /></TableHead>
                   <TableHead className="w-[80px] text-xs font-semibold">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={21} className="text-center py-8 text-muted-foreground">
                       {calls.length === 0 ? 'Nenhuma call registrada ainda' : 'Nenhuma call encontrada com os filtros'}
                     </TableCell>
                   </TableRow>
@@ -296,6 +320,24 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                               {analysis.classificacao_lead === 'quente' && <><Flame className="h-3 w-3 text-red-500" /> Quente</>}
                               {analysis.classificacao_lead === 'morno' && <><Sun className="h-3 w-3 text-amber-500" /> Morno</>}
                               {analysis.classificacao_lead === 'frio' && <><Snowflake className="h-3 w-3 text-blue-500" /> Frio</>}
+                            </span>
+                          ) : <span className="text-muted-foreground text-xs">—</span>}
+                        </TableCell>
+                        <TableCell><BantCell value={analysis?.closer_primeiro_impacto} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_exploracao_spin} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_conexao_emocional} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_clareza_pitch} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_gatilhos_mentais} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_gestao_fala} /></TableCell>
+                        <TableCell><BantCell value={analysis?.closer_fechamento} /></TableCell>
+                        <TableCell>
+                          {analysis?.closer_score_total ? (
+                            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-[10px] font-bold ${
+                              analysis.closer_score_total >= 50 ? 'bg-emerald-100 text-emerald-700' :
+                              analysis.closer_score_total >= 35 ? 'bg-amber-100 text-amber-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {analysis.closer_score_total}
                             </span>
                           ) : <span className="text-muted-foreground text-xs">—</span>}
                         </TableCell>

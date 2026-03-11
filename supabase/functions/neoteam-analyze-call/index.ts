@@ -40,7 +40,15 @@ Regras:
 - Priorizar melhoria de performance
 - Não inventar informações - se não há dados suficientes, indicar "Não identificado na call"
 - Scores BANT de 1 a 10 cada
-- Probabilidade de fechamento de 0 a 100`;
+- Probabilidade de fechamento de 0 a 100
+- Avalie a performance do closer em 7 dimensões (nota 1-10 cada):
+  1. Primeiro Impacto: como abriu a call, rapport, tom inicial
+  2. Exploração SPIN: uso de perguntas Situação/Problema/Implicação/Necessidade
+  3. Conexão Emocional: empatia, escuta ativa, vínculo com o lead
+  4. Clareza do Pitch: apresentação clara do produto/serviço e proposta de valor
+  5. Gatilhos Mentais: uso de escassez, urgência, prova social, autoridade
+  6. Gestão da Fala: controle do tempo, pausas, assertividade, evitar monólogos
+  7. Fechamento: técnica de fechamento, pedido de decisão, condução ao próximo passo`;
 
     const userPrompt = `Analise a seguinte call comercial:
 
@@ -94,6 +102,13 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
                   proximos_passos: { type: "string", description: "Próximos passos recomendados" },
                   conclusao: { type: "string", description: "Conclusão geral da análise" },
                   probabilidade_fechamento: { type: "integer", description: "Probabilidade de fechamento de 0 a 100%" },
+                  closer_primeiro_impacto: { type: "integer", description: "Score 1-10: primeiro impacto, rapport, tom inicial" },
+                  closer_exploracao_spin: { type: "integer", description: "Score 1-10: uso de perguntas SPIN (Situação/Problema/Implicação/Necessidade)" },
+                  closer_conexao_emocional: { type: "integer", description: "Score 1-10: empatia, escuta ativa, vínculo" },
+                  closer_clareza_pitch: { type: "integer", description: "Score 1-10: clareza na apresentação do produto e proposta de valor" },
+                  closer_gatilhos_mentais: { type: "integer", description: "Score 1-10: uso de escassez, urgência, prova social, autoridade" },
+                  closer_gestao_fala: { type: "integer", description: "Score 1-10: controle do tempo, pausas, assertividade" },
+                  closer_fechamento: { type: "integer", description: "Score 1-10: técnica de fechamento e condução ao próximo passo" },
                   whatsapp_report: { type: "string", description: "Relatório completo formatado para WhatsApp com *negrito*, emojis e leitura rápida no celular. Deve seguir o formato: 📊 *ANÁLISE DA CALL DE VENDAS*\\n\\n👤 *Closer:* ...\\n🎯 *Lead:* ...\\netc." },
                 },
                 required: [
@@ -101,7 +116,10 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
                   "bant_budget", "bant_authority", "bant_need", "bant_timeline",
                   "classificacao_lead", "urgencia", "dor_principal", "motivo_nao_fechamento",
                   "estrategia_followup", "acoes_realizadas", "proximos_passos", "conclusao",
-                  "probabilidade_fechamento", "whatsapp_report"
+                  "probabilidade_fechamento",
+                  "closer_primeiro_impacto", "closer_exploracao_spin", "closer_conexao_emocional",
+                  "closer_clareza_pitch", "closer_gatilhos_mentais", "closer_gestao_fala", "closer_fechamento",
+                  "whatsapp_report"
                 ],
                 additionalProperties: false,
               },
@@ -194,6 +212,7 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
     
     // Calculate BANT total
     analysis.bant_total = (analysis.bant_budget || 0) + (analysis.bant_authority || 0) + (analysis.bant_need || 0) + (analysis.bant_timeline || 0);
+    analysis.closer_score_total = (analysis.closer_primeiro_impacto || 0) + (analysis.closer_exploracao_spin || 0) + (analysis.closer_conexao_emocional || 0) + (analysis.closer_clareza_pitch || 0) + (analysis.closer_gatilhos_mentais || 0) + (analysis.closer_gestao_fala || 0) + (analysis.closer_fechamento || 0);
 
     // Save to database if call_id provided
     if (call_id && account_id) {

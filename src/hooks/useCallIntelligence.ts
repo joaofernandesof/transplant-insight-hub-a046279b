@@ -48,6 +48,14 @@ export interface CallAnalysisRecord {
   conclusao: string | null;
   whatsapp_report: string | null;
   probabilidade_fechamento: number;
+  closer_primeiro_impacto: number | null;
+  closer_exploracao_spin: number | null;
+  closer_conexao_emocional: number | null;
+  closer_clareza_pitch: number | null;
+  closer_gatilhos_mentais: number | null;
+  closer_gestao_fala: number | null;
+  closer_fechamento: number | null;
+  closer_score_total: number | null;
   ai_model: string | null;
   processing_time_ms: number | null;
   created_at: string;

@@ -3632,6 +3632,14 @@ export type Database = {
           classificacao_lead:
             | Database["public"]["Enums"]["call_classificacao_lead"]
             | null
+          closer_clareza_pitch: number | null
+          closer_conexao_emocional: number | null
+          closer_exploracao_spin: number | null
+          closer_fechamento: number | null
+          closer_gatilhos_mentais: number | null
+          closer_gestao_fala: number | null
+          closer_primeiro_impacto: number | null
+          closer_score_total: number | null
           conclusao: string | null
           created_at: string
           dor_principal: string | null
@@ -3662,6 +3670,14 @@ export type Database = {
           classificacao_lead?:
             | Database["public"]["Enums"]["call_classificacao_lead"]
             | null
+          closer_clareza_pitch?: number | null
+          closer_conexao_emocional?: number | null
+          closer_exploracao_spin?: number | null
+          closer_fechamento?: number | null
+          closer_gatilhos_mentais?: number | null
+          closer_gestao_fala?: number | null
+          closer_primeiro_impacto?: number | null
+          closer_score_total?: number | null
           conclusao?: string | null
           created_at?: string
           dor_principal?: string | null
@@ -3692,6 +3708,14 @@ export type Database = {
           classificacao_lead?:
             | Database["public"]["Enums"]["call_classificacao_lead"]
             | null
+          closer_clareza_pitch?: number | null
+          closer_conexao_emocional?: number | null
+          closer_exploracao_spin?: number | null
+          closer_fechamento?: number | null
+          closer_gatilhos_mentais?: number | null
+          closer_gestao_fala?: number | null
+          closer_primeiro_impacto?: number | null
+          closer_score_total?: number | null
           conclusao?: string | null
           created_at?: string
           dor_principal?: string | null
