@@ -498,10 +498,14 @@ export default function AccountsPayable() {
                         {format(new Date(payable.due_date), "dd/MM/yyyy", { locale: ptBR })}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`gap-1 ${status.color}`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {status.label}
-                        </Badge>
+                        {(() => {
+                          const stage = STAGE_MAP[payable.workflow_stage || 'solicitacao_pendente'];
+                          return (
+                            <Badge className={`gap-1 text-white ${stage?.color || 'bg-slate-500'}`}>
+                              {stage?.shortLabel || payable.workflow_stage || 'Solicitação'}
+                            </Badge>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
