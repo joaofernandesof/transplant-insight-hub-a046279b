@@ -18,6 +18,8 @@ const CLOSERS = ['Isaac', 'Juan', 'Hygor', 'João'];
 
 export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
   const [saving, setSaving] = useState(false);
+  const [closerSelection, setCloserSelection] = useState('');
+  const [closerCustom, setCloserCustom] = useState('');
   const [form, setForm] = useState({
     closer_name: '',
     lead_nome: '',
@@ -28,6 +30,8 @@ export function RegisterCallTab({ onSubmit, onCreated, accountId }: Props) {
     transcricao: '',
     resumo_manual: '',
   });
+
+  const effectiveCloserName = closerSelection === '__other__' ? closerCustom : closerSelection;
 
   const handleSubmit = async () => {
     if (!form.lead_nome.trim()) {
