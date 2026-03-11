@@ -144,19 +144,21 @@ export default function TicketsPage() {
   });
 
   const createTicket = useMutation({
-    mutationFn: async (form: { title: string; description: string; priority: string; files: File[] }) => {
+    mutationFn: async (form: { title: string; description: string; priority: string; category: string; link_url: string; due_date: string | null; files: File[] }) => {
       const ticketNumber = `TI-${Date.now().toString(36).toUpperCase()}`;
       const { data: ticketData, error } = await supabase.from("neoteam_tickets").insert({
         ticket_number: ticketNumber,
         title: form.title,
         description: form.description,
-        category: "general",
+        category: form.category || "general",
         priority: form.priority,
         requester_id: user?.id,
         requester_name: (user as any)?.name || user?.email || "Usuário",
         requester_email: user?.email || null,
         status: "open",
-      }).select("id").single();
+        link_url: form.link_url || null,
+        due_date: form.due_date || null,
+      } as any).select("id").single();
       if (error) throw error;
 
       // Upload attachments
