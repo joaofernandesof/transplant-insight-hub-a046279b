@@ -697,22 +697,6 @@ export default function AdminPanel() {
                       {selectedUsers.size} selecionado(s)
                     </span>
                     <div className="flex items-center gap-2 ml-auto">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 gap-1">
-                            <Shield className="h-3.5 w-3.5" />
-                            Alterar Função
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {ACCESS_PROFILES.map(p => (
-                            <DropdownMenuItem key={p.id} onClick={() => bulkChangeRole(p.id)} disabled={isBulkProcessing}>
-                              <p.icon className="h-4 w-4 mr-2" />
-                              {p.name}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                       <Button
                         size="sm"
                         variant="outline"
