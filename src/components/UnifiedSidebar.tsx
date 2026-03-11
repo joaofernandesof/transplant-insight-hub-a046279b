@@ -97,7 +97,7 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
 };
 
 // Portal detection and metadata
-type PortalKey = 'admin' | 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'avivar' | 'hotleads' | 'neorh' | 'main';
+type PortalKey = 'admin' | 'neocare' | 'neoteam' | 'neoacademy' | 'neolicense' | 'avivar' | 'hotleads' | 'main';
 
 interface PortalConfig {
   name: string;
