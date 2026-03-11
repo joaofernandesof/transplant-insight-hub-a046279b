@@ -10810,60 +10810,87 @@ export type Database = {
       ipromed_payables: {
         Row: {
           amount: number
+          approved_at: string | null
+          approved_by: string | null
           attachments: Json | null
+          bank_data: string | null
           category: string
           cost_center: string | null
           created_at: string
           description: string
           due_date: string
           id: string
+          is_urgent: boolean
           notes: string | null
           parent_id: string | null
           payment_date: string | null
           payment_method: string | null
+          pending_reason: string | null
           recurrence: string | null
+          rejection_reason: string | null
+          requester_department: string | null
+          requester_name: string | null
           status: string
           supplier: string | null
           updated_at: string
           user_id: string
+          workflow_stage: string
         }
         Insert: {
           amount: number
+          approved_at?: string | null
+          approved_by?: string | null
           attachments?: Json | null
+          bank_data?: string | null
           category?: string
           cost_center?: string | null
           created_at?: string
           description: string
           due_date: string
           id?: string
+          is_urgent?: boolean
           notes?: string | null
           parent_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
+          pending_reason?: string | null
           recurrence?: string | null
+          rejection_reason?: string | null
+          requester_department?: string | null
+          requester_name?: string | null
           status?: string
           supplier?: string | null
           updated_at?: string
           user_id: string
+          workflow_stage?: string
         }
         Update: {
           amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
           attachments?: Json | null
+          bank_data?: string | null
           category?: string
           cost_center?: string | null
           created_at?: string
           description?: string
           due_date?: string
           id?: string
+          is_urgent?: boolean
           notes?: string | null
           parent_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
+          pending_reason?: string | null
           recurrence?: string | null
+          rejection_reason?: string | null
+          requester_department?: string | null
+          requester_name?: string | null
           status?: string
           supplier?: string | null
           updated_at?: string
           user_id?: string
+          workflow_stage?: string
         }
         Relationships: [
           {
