@@ -330,69 +330,105 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
         </CardContent>
       </Card>
 
-      {/* ── Row 5: Per-closer analysis ── */}
+      {/* ── Row 5: Per-closer analysis with ranking table + pie charts ── */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> Análise por Vendedor</CardTitle>
-          <CardDescription>Performance individual detalhada de cada closer</CardDescription>
+          <CardDescription>Ranking comparativo com distribuição de status individual</CardDescription>
         </CardHeader>
         <CardContent>
           {closerStats.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">Sem dados suficientes</p>
           ) : (
-            <div className="space-y-4">
-              {/* Comparative Bar Chart */}
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={closerStats} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" tick={{ fontSize: 10 }} />
-                    <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="fechou" name="Fechou" fill="#10b981" stackId="a" />
-                    <Bar dataKey="followup" name="Follow-up" fill="#f59e0b" stackId="a" />
-                    <Bar dataKey="perdido" name="Perdido" fill="#ef4444" stackId="a" />
-                  </BarChart>
-                </ResponsiveContainer>
+            <div className="space-y-6">
+              {/* Ranking Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left">
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs">#</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs">Closer</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Calls</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Fechou</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Follow-up</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Perdido</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">Conversão</th>
+                      <th className="pb-2 pr-3 font-semibold text-muted-foreground text-xs text-center">BANT</th>
+                      <th className="pb-2 font-semibold text-muted-foreground text-xs text-center">Prob. Fech.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {closerStats.map((c, i) => {
+                      const medalColors = [
+                        'bg-amber-100 text-amber-700 dark:bg-amber-900/40',
+                        'bg-slate-100 text-slate-600 dark:bg-slate-800',
+                        'bg-orange-100 text-orange-700 dark:bg-orange-900/40',
+                      ];
+                      return (
+                        <tr key={i} className={`border-b last:border-0 ${i === 0 ? 'bg-amber-50/50 dark:bg-amber-950/10' : 'hover:bg-muted/30'}`}>
+                          <td className="py-2.5 pr-3">
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? medalColors[i] : 'bg-muted text-muted-foreground'}`}>
+                              {i === 0 ? <Award className="h-3.5 w-3.5" /> : i + 1}
+                            </span>
+                          </td>
+                          <td className="py-2.5 pr-3 font-semibold">{c.name}</td>
+                          <td className="py-2.5 pr-3 text-center font-medium">{c.total}</td>
+                          <td className="py-2.5 pr-3 text-center font-bold text-emerald-600">{c.fechou}</td>
+                          <td className="py-2.5 pr-3 text-center font-bold text-amber-600">{c.followup}</td>
+                          <td className="py-2.5 pr-3 text-center font-bold text-red-600">{c.perdido}</td>
+                          <td className="py-2.5 pr-3 text-center">
+                            <span className={`font-bold ${c.taxa >= 20 ? 'text-emerald-600' : c.taxa >= 10 ? 'text-amber-600' : 'text-red-600'}`}>{c.taxa}%</span>
+                          </td>
+                          <td className="py-2.5 pr-3 text-center font-medium">{c.bantMedio}<span className="text-muted-foreground text-xs">/40</span></td>
+                          <td className="py-2.5 text-center font-medium text-violet-600">{c.probMedia}%</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Detail cards */}
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {closerStats.map((c, i) => (
-                  <Card key={i} className="border-muted">
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'}`}>
-                            {i === 0 ? <Award className="h-3.5 w-3.5" /> : i + 1}
+              {/* Individual Pie Charts */}
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                {closerStats.map((c, i) => {
+                  const pieData = [
+                    { name: 'Fechou', value: c.fechou, color: '#10b981' },
+                    { name: 'Follow-up', value: c.followup, color: '#f59e0b' },
+                    { name: 'Perdido', value: c.perdido, color: '#ef4444' },
+                  ].filter(d => d.value > 0);
+                  return (
+                    <Card key={i} className={`border ${i === 0 ? 'border-amber-200 dark:border-amber-800/40' : 'border-muted'}`}>
+                      <CardContent className="p-3 space-y-1">
+                        <div className="flex items-center gap-2 justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                              i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-muted text-muted-foreground'
+                            }`}>{i + 1}</span>
+                            <span className="font-semibold text-xs truncate">{c.name}</span>
                           </div>
-                          <span className="font-semibold text-sm">{c.name}</span>
+                          <span className="text-[10px] text-muted-foreground shrink-0">{c.total} calls</span>
                         </div>
-                        <span className="text-xs text-muted-foreground">{c.total} calls</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div>
-                          <div className="text-lg font-bold text-emerald-600">{c.taxa}%</div>
-                          <div className="text-[10px] text-muted-foreground">Conversão</div>
+                        <div className="h-[120px]">
+                          {pieData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie data={pieData} cx="50%" cy="50%" innerRadius={25} outerRadius={45} dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                                  {pieData.map((d, j) => <Cell key={j} fill={d.color} />)}
+                                </Pie>
+                                <Tooltip formatter={(value: number, name: string) => [`${value} calls`, name]} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          ) : <EmptyChart />}
                         </div>
-                        <div>
-                          <div className="text-lg font-bold text-amber-600">{c.bantMedio}<span className="text-xs">/40</span></div>
-                          <div className="text-[10px] text-muted-foreground">BANT</div>
+                        <div className="flex justify-center gap-2 text-[9px] text-muted-foreground">
+                          <span className="flex items-center gap-0.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> {c.fechou}</span>
+                          <span className="flex items-center gap-0.5"><span className="w-2 h-2 rounded-full bg-amber-500" /> {c.followup}</span>
+                          <span className="flex items-center gap-0.5"><span className="w-2 h-2 rounded-full bg-red-500" /> {c.perdido}</span>
                         </div>
-                        <div>
-                          <div className="text-lg font-bold text-violet-600">{c.probMedia}%</div>
-                          <div className="text-[10px] text-muted-foreground">Prob. Fech.</div>
-                        </div>
-                      </div>
-                      <div className="flex gap-1 text-[10px]">
-                        <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Flame className="h-2.5 w-2.5" /> {c.quente}</span>
-                        <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Sun className="h-2.5 w-2.5" /> {c.morno}</span>
-                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Snowflake className="h-2.5 w-2.5" /> {c.frio}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           )}
