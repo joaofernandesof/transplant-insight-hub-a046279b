@@ -184,10 +184,30 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
 
       {/* ── Row 2: Status pills ── */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <Card><CardContent className="p-3 text-center"><span className="text-xl font-bold text-emerald-600">{stats.fechou}</span><div className="text-xs text-muted-foreground">Fechou ✅</div></CardContent></Card>
-        <Card><CardContent className="p-3 text-center"><span className="text-xl font-bold text-amber-600">{stats.followup}</span><div className="text-xs text-muted-foreground">Follow-up 📋</div></CardContent></Card>
-        <Card><CardContent className="p-3 text-center"><span className="text-xl font-bold text-red-600">{stats.perdido}</span><div className="text-xs text-muted-foreground">Perdido ❌</div></CardContent></Card>
-        <Card><CardContent className="p-3 text-center"><span className="text-xl font-bold">{stats.probMediaFechamento}%</span><div className="text-xs text-muted-foreground">Prob. Média Fechamento</div></CardContent></Card>
+        <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/40"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div>
+            <div><span className="text-xl font-bold text-emerald-600">{stats.fechou}</span><div className="text-xs text-muted-foreground">Fechou</div></div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/40"><Clock className="h-4 w-4 text-amber-600" /></div>
+            <div><span className="text-xl font-bold text-amber-600">{stats.followup}</span><div className="text-xs text-muted-foreground">Follow-up</div></div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-red-500 bg-red-50/50 dark:bg-red-950/20">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/40"><XCircle className="h-4 w-4 text-red-600" /></div>
+            <div><span className="text-xl font-bold text-red-600">{stats.perdido}</span><div className="text-xs text-muted-foreground">Perdido</div></div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-violet-500 bg-violet-50/50 dark:bg-violet-950/20">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/40"><TrendingUp className="h-4 w-4 text-violet-600" /></div>
+            <div><span className="text-xl font-bold">{stats.probMediaFechamento}%</span><div className="text-xs text-muted-foreground">Prob. Média Fechamento</div></div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── Row 3: Charts row ── */}
