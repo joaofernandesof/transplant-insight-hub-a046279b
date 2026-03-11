@@ -385,9 +385,9 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
                         </div>
                       </div>
                       <div className="flex gap-1 text-[10px]">
-                        <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded">🔥 {c.quente}</span>
-                        <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">☀️ {c.morno}</span>
-                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">❄️ {c.frio}</span>
+                        <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Flame className="h-2.5 w-2.5" /> {c.quente}</span>
+                        <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Sun className="h-2.5 w-2.5" /> {c.morno}</span>
+                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Snowflake className="h-2.5 w-2.5" /> {c.frio}</span>
                       </div>
                     </CardContent>
                   </Card>
