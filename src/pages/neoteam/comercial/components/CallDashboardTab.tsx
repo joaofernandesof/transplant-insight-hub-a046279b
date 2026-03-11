@@ -69,9 +69,9 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
     const counts = { quente: 0, morno: 0, frio: 0 };
     analyses.forEach(a => { counts[a.classificacao_lead] = (counts[a.classificacao_lead] || 0) + 1; });
     return [
-      { name: 'Quente 🔥', value: counts.quente, color: '#ef4444' },
-      { name: 'Morno ☀️', value: counts.morno, color: '#f59e0b' },
-      { name: 'Frio ❄️', value: counts.frio, color: '#3b82f6' },
+      { name: 'Quente', value: counts.quente, color: '#ef4444' },
+      { name: 'Morno', value: counts.morno, color: '#f59e0b' },
+      { name: 'Frio', value: counts.frio, color: '#3b82f6' },
     ].filter(d => d.value > 0);
   }, [analyses]);
 
