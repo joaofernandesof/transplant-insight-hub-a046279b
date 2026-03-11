@@ -21260,6 +21260,7 @@ export type Database = {
           created_at: string
           data_call: string
           external_id: string | null
+          fireflies_url: string | null
           fonte_call: Database["public"]["Enums"]["sales_call_fonte"] | null
           has_analysis: boolean | null
           id: string
@@ -21277,6 +21278,7 @@ export type Database = {
           created_at?: string
           data_call?: string
           external_id?: string | null
+          fireflies_url?: string | null
           fonte_call?: Database["public"]["Enums"]["sales_call_fonte"] | null
           has_analysis?: boolean | null
           id?: string
@@ -21294,6 +21296,7 @@ export type Database = {
           created_at?: string
           data_call?: string
           external_id?: string | null
+          fireflies_url?: string | null
           fonte_call?: Database["public"]["Enums"]["sales_call_fonte"] | null
           has_analysis?: boolean | null
           id?: string
