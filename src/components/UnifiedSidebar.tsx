@@ -222,8 +222,19 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     return false;
   };
 
-  // Função de verificação de permissão (TODO: integrar com sistema real)
+  // Simulação de perfil: quando admin simula um perfil não-admin, tratar como não-admin
+  const isSimulatedAdmin = !activeProfile || 
+    activeProfile === 'administrador' || 
+    activeProfile === 'super_administrador';
+  
+  const effectiveIsAdmin = isAdmin && isSimulatedAdmin;
+
+  // Função de verificação de permissão baseada no perfil simulado
   const hasPermission = (moduleCode: string, action?: string): boolean => {
+    // Se admin real e não está simulando outro perfil, acesso total
+    if (effectiveIsAdmin) return true;
+    // Se está simulando, verificar permissões reais do perfil simulado
+    // TODO: consultar module_permissions para o perfil simulado
     return true;
   };
 
@@ -236,12 +247,12 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     
     // For main/admin, flatten all categories
     return MAIN_MENU_CATEGORIES.flatMap(category => 
-      filterMenuByPermissions(category.items, hasPermission, isAdmin).filter(item => {
-        if (isAdmin && item.id === 'home') return false;
+      filterMenuByPermissions(category.items, hasPermission, effectiveIsAdmin).filter(item => {
+        if (effectiveIsAdmin && item.id === 'home') return false;
         return true;
       })
     );
-  }, [currentPortal, isAdmin]);
+  }, [currentPortal, effectiveIsAdmin, activeProfile]);
 
   // Detect active sector from route (e.g. /neoteam/setor/tecnico)
   const activeSectorCode = useMemo(() => {
@@ -271,7 +282,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     if (categorizedMenu) {
       let filtered = categorizedMenu.map(category => ({
         ...category,
-        items: filterMenuByPermissions(category.items, hasPermission, isAdmin),
+        items: filterMenuByPermissions(category.items, hasPermission, effectiveIsAdmin),
       })).filter(category => category.items.length > 0);
 
       // If inside a sector, show only that sector's items + home
@@ -293,12 +304,12 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     // For main/admin, use main menu categories
     return MAIN_MENU_CATEGORIES.map(category => ({
       ...category,
-      items: filterMenuByPermissions(category.items, hasPermission, isAdmin).filter(item => {
-        if (isAdmin && item.id === 'home') return false;
+      items: filterMenuByPermissions(category.items, hasPermission, effectiveIsAdmin).filter(item => {
+        if (effectiveIsAdmin && item.id === 'home') return false;
         return true;
       })
     })).filter(category => category.items.length > 0);
-  }, [currentPortal, menuItems, isAdmin, activeSectorCode]);
+  }, [currentPortal, menuItems, effectiveIsAdmin, activeSectorCode, activeProfile]);
 
   // Track open state of collapsible categories
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
