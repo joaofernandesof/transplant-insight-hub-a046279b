@@ -37,6 +37,7 @@ const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }
   comercial: { bg: 'bg-teal-200 dark:bg-teal-800/40', icon: 'text-teal-800 dark:text-teal-300', border: 'border-teal-400 dark:border-teal-600' },
   compras: { bg: 'bg-amber-200 dark:bg-amber-800/40', icon: 'text-amber-800 dark:text-amber-300', border: 'border-amber-400 dark:border-amber-600' },
   manutencao: { bg: 'bg-stone-200 dark:bg-stone-800/40', icon: 'text-stone-800 dark:text-stone-300', border: 'border-stone-400 dark:border-stone-600' },
+  gestao: { bg: 'bg-slate-200 dark:bg-slate-800/40', icon: 'text-slate-800 dark:text-slate-300', border: 'border-slate-400 dark:border-slate-600' },
 };
 
 export default function NeoTeamHome() {
