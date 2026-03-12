@@ -337,6 +337,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_legal_dashboard', code: 'neoteam_legal_dashboard', title: 'Dashboard Jurídico', icon: Scale, route: '/neoteam/juridico/dashboard', adminOnly: true },
       { id: 'neoteam_legal_contracts', code: 'neoteam_legal_contracts', title: 'Gestão de Contratos', icon: Gavel, route: '/neoteam/juridico/contratos', adminOnly: true },
+      { id: 'neoteam_jur_chamados', code: 'neoteam_jur_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/juridico/chamados' },
     ],
   },
   {
