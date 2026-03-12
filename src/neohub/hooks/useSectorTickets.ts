@@ -178,7 +178,7 @@ export function useSectorTickets(sectorCode: string) {
         action: 'criado',
         description: 'Chamado criado',
         user_id: user?.id,
-        user_name: profile?.display_name || user?.email || 'Usuário',
+        user_name: userName,
       });
 
       return data;
