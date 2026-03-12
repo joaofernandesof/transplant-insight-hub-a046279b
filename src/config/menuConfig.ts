@@ -325,6 +325,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_contas_pagar', code: 'neoteam_contas_pagar', title: 'Contas a Pagar', icon: CreditCard, route: '/neoteam/financeiro/contas-a-pagar' },
       { id: 'neoteam_contract_review', code: 'neoteam_contract_review', title: 'Revisão de Contratos', icon: FileCheck, route: '/neoteam/financeiro/revisao-contratos', adminOnly: true },
       { id: 'neoteam_contracts_import', code: 'neoteam_contracts_import', title: 'Importar Contratos', icon: FileText, route: '/neoteam/financeiro/importar-contratos', adminOnly: true },
+      { id: 'neoteam_fin_chamados', code: 'neoteam_fin_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/financeiro/chamados' },
     ],
   },
   {
