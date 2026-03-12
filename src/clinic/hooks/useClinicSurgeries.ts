@@ -191,6 +191,7 @@ export function useClinicSurgeries() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
       queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
       toast.success('Cirurgia cadastrada com sucesso!');
     },
     onError: () => {
