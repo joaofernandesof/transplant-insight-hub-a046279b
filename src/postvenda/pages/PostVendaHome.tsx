@@ -93,7 +93,7 @@ export default function PostVendaHome() {
       id: c.id,
       title: `${c.paciente_nome}: ${c.tipo_demanda}`,
       status: 'overdue' as const,
-      onClick: () => navigate(`/neoteam/postvenda/chamados/${c.id}`),
+      onClick: () => navigate(`/neoteam/sucesso-paciente/postvenda/chamados/${c.id}`),
     }));
   }, [chamados, navigate]);
 
