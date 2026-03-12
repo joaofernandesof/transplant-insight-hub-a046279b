@@ -23,8 +23,23 @@ function detectProductFromTitle(title: string): string | null {
   const t = title.toLowerCase();
   if (t.includes('brows') || t.includes('sobrancelha')) return 'BROWS TRANSPLANT';
   if (t.includes('instrumentador') || t.includes('instrumen')) return 'INSTRUMENTADOR DE ELITE';
-  if (t.includes('formação') || t.includes('formacao') || t.includes('360')) return 'Formação 360';
+  if (t.includes('formação 360') || t.includes('formacao 360') || t.includes('transplante capilar')) return 'Formação 360';
   return null;
+}
+
+// Strip product suffix from lead name
+function cleanLeadName(name: string): string {
+  const productPatterns = [
+    /\s*[-–—]\s*(Curso\s+)?Brows\s+Transplant\s*\d*/i,
+    /\s*[-–—]\s*(Curso\s+)?Formação\s+360\s*(em\s+Transplante\s+Capilar)?\.?/i,
+    /\s*[-–—]\s*(Curso\s+)?Instrumentador\s+de\s+Elite\.?/i,
+    /\s*[-–—]\s*Curso\s+BROWS\s+\d*/i,
+  ];
+  let cleaned = name;
+  for (const pattern of productPatterns) {
+    cleaned = cleaned.replace(pattern, '').trim();
+  }
+  return cleaned || name;
 }
 
 Deno.serve(async (req) => {
