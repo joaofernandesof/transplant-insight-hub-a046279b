@@ -1,0 +1,1 @@
+ALTER TABLE public.sales_calls ADD COLUMN duration_minutes integer DEFAULT NULL;

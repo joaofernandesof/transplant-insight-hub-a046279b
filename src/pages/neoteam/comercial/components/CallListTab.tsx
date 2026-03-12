@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Brain, Eye, Loader2, Search, Flame, Snowflake, Sun, ArrowUp, ArrowDown, ArrowUpDown, Trash2, FileText } from 'lucide-react';
+import { Brain, Eye, Loader2, Search, Flame, Snowflake, Sun, ArrowUp, ArrowDown, ArrowUpDown, Trash2, FileText, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -46,7 +46,7 @@ function getProductColor(product: string): string {
   return 'bg-muted text-muted-foreground';
 }
 
-type SortKey = 'data_call' | 'closer_name' | 'lead_nome' | 'lead_extracted' | 'produto' | 'status_call' | 'bant_b' | 'bant_a' | 'bant_n' | 'bant_t' | 'bant_total' | 'classificacao' | 'cl_impacto' | 'cl_spin' | 'cl_emocional' | 'cl_pitch' | 'cl_gatilhos' | 'cl_fala' | 'cl_fechamento' | 'cl_total';
+type SortKey = 'data_call' | 'duration_minutes' | 'closer_name' | 'lead_nome' | 'lead_extracted' | 'produto' | 'status_call' | 'bant_b' | 'bant_a' | 'bant_n' | 'bant_t' | 'bant_total' | 'classificacao' | 'cl_impacto' | 'cl_spin' | 'cl_emocional' | 'cl_pitch' | 'cl_gatilhos' | 'cl_fala' | 'cl_fechamento' | 'cl_total';
 type SortDir = 'asc' | 'desc';
 
 function extractLeadName(title: string): string {
@@ -168,6 +168,8 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
       switch (sortKey) {
         case 'data_call':
           return dir * (new Date(a.data_call).getTime() - new Date(b.data_call).getTime());
+        case 'duration_minutes':
+          return dir * ((a.duration_minutes || 0) - (b.duration_minutes || 0));
         case 'closer_name':
           return dir * (a.closer_name || '').localeCompare(b.closer_name || '');
         case 'lead_nome':
@@ -317,6 +319,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                     <FileText className="h-3.5 w-3.5 text-muted-foreground mx-auto" />
                   </TableHead>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
+                  <TableHead className="w-[70px]"><SortableHeader col="duration_minutes" label="Tempo" /></TableHead>
                   <TableHead className="w-[130px]">
                     <div className="space-y-1">
                       <SortableHeader col="closer_name" label="Closer" />
@@ -402,7 +405,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={24} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={25} className="text-center py-8 text-muted-foreground">
                       {calls.length === 0 ? 'Nenhuma call registrada ainda' : 'Nenhuma call encontrada com os filtros'}
                     </TableCell>
                   </TableRow>
@@ -431,6 +434,16 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                         </TableCell>
                         <TableCell className="text-xs whitespace-nowrap">
                           {format(new Date(call.data_call), 'dd/MM/yy HH:mm', { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                          {call.duration_minutes ? (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {call.duration_minutes >= 60 
+                                ? `${Math.floor(call.duration_minutes / 60)}h${String(call.duration_minutes % 60).padStart(2, '0')}` 
+                                : `${call.duration_minutes}min`}
+                            </span>
+                          ) : '—'}
                         </TableCell>
                         <TableCell className="text-xs font-medium">{call.closer_name || '—'}</TableCell>
                         <TableCell className="text-xs font-medium text-primary">{extractedLead}</TableCell>
