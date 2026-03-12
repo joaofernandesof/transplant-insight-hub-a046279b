@@ -164,7 +164,7 @@ export function useSectorTickets(sectorCode: string) {
           ...input,
           sector_code: sectorCode,
           requester_id: user?.id!,
-          requester_name: profile?.display_name || user?.email || 'Usuário',
+          requester_name: userName,
           status: 'aberto',
           priority: input.priority || 'normal',
         })
