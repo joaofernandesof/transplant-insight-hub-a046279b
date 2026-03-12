@@ -724,7 +724,7 @@ export default function NeoTeamPatients() {
                   </TableCell>
                 </TableRow>
               ) : paginatedPatients.map((patient) => (
-                <TableRow key={patient.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/neoteam/patients/${patient.id}`)}>
+                <TableRow key={patient.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/neoteam/tecnico/pacientes/${patient.id}`)}>
                   {/* ID */}
                   <TableCell className="text-center">
                     <span className="font-mono text-sm text-muted-foreground">
