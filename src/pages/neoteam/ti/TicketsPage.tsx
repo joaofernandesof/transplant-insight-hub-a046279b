@@ -557,8 +557,8 @@ export default function TicketsPage() {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={cn("gap-1.5", STATUS_COLORS[t.status] || "")}>
-                          <span className={cn("h-2 w-2 rounded-full", STATUS_DOT_COLORS[t.status])} />
+                        <Badge className={cn("gap-1.5 whitespace-nowrap", STATUS_COLORS[t.status] || "")}>
+                          <span className={cn("h-2 w-2 shrink-0 rounded-full", STATUS_DOT_COLORS[t.status])} />
                           {STATUS_LABELS[t.status] || t.status}
                         </Badge>
                       )}
