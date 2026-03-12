@@ -23,6 +23,9 @@ export default function CallIntelligencePage() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+  const [lastSeenTimestamp, setLastSeenTimestamp] = useState<string | null>(() => {
+    return localStorage.getItem(CALLS_LAST_SEEN_KEY);
+  });
 
   // Fetch account
   useEffect(() => {
