@@ -19,6 +19,7 @@ interface Props {
   analysis: CallAnalysisRecord | null;
   isAnalyzing: boolean;
   onAnalyze: () => void;
+  accountId?: string | null;
 }
 
 function BantBar({ label, score, icon }: { label: string; score: number; icon: string }) {
