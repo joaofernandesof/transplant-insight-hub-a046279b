@@ -361,6 +361,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_campaigns', code: 'neoteam_campaigns', title: 'Campanhas', icon: Megaphone, route: '/neoteam/marketing/campanhas', adminOnly: true },
       { id: 'neoteam_event_organization', code: 'neoteam_event_organization', title: 'Gestão de Eventos', icon: ClipboardList, route: '/neoteam/marketing/eventos', adminOnly: true },
       { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/marketing/galerias', adminOnly: true },
+      { id: 'neoteam_mkt_chamados', code: 'neoteam_mkt_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/marketing/chamados' },
     ],
   },
   {
