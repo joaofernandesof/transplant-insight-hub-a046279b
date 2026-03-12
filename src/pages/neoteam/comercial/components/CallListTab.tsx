@@ -420,6 +420,15 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                             onCheckedChange={() => toggleSelect(call.id)}
                           />
                         </TableCell>
+                        <TableCell className="text-center">
+                          {call.has_analysis ? (
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-primary hover:text-primary/80" onClick={() => onViewAnalysis(call.id)} title="Ver relatório">
+                              <FileText className="h-3.5 w-3.5" />
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground/30"><FileText className="h-3.5 w-3.5 mx-auto" /></span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-xs whitespace-nowrap">
                           {format(new Date(call.data_call), 'dd/MM/yy HH:mm', { locale: ptBR })}
                         </TableCell>
