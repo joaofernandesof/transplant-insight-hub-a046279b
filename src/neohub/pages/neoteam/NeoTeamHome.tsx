@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   BarChart3, Stethoscope, HeadphonesIcon, ClipboardCheck, 
   GitCompare, DollarSign, Scale, Megaphone, CircuitBoard, UsersRound,
-  Link2, Phone, ShoppingCart, Wrench,
+  Link2, Phone, ShoppingCart, Wrench, GraduationCap,
   type LucideIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
