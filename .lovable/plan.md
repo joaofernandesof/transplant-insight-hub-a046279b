@@ -1,85 +1,41 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+## Diagnóstico
 
-### Resumo
+O problema é que a função `is_neohub_admin` no banco de dados só reconhece o perfil `'administrador'` — mas não reconhece `'super_administrador'`. Quem está logado provavelmente tem o perfil `super_administrador` sem ter `admin` na tabela `user_roles`, e por isso a verificação falha retornando 403.
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+Além disso, a edge function `admin-reset-user-password` **não está registrada** no `config.toml`, o que pode causar problemas com verificação de JWT.
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+## Plano de Correção
 
----
-
-### 1. Nova tabela: `surgery_agenda_availability`
+### 1. Atualizar a função `is_neohub_admin` no banco
+Adicionar verificação para o perfil `'super_administrador'` além de `'administrador'`:
 
 ```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
-
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
+CREATE OR REPLACE FUNCTION public.is_neohub_admin(_user_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.neohub_user_profiles nup
+    JOIN public.neohub_users nu ON nu.id = nup.neohub_user_id
+    WHERE nu.user_id = _user_id
+      AND nup.profile IN ('administrador', 'super_administrador')
+      AND nup.is_active = true
+      AND nu.is_active = true
+  )
+  OR EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = _user_id AND role = 'admin'
+  )
+$$;
 ```
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+### 2. Registrar a edge function no `config.toml`
+Adicionar entrada para `admin-reset-user-password` com `verify_jwt = false` (a validação já é feita manualmente no código).
 
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
-
-### 3. Visualização de Disponibilidade (todos os usuários)
-
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
-
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+### 3. Atualizar CORS headers da edge function
+Adicionar os headers extras que o Supabase JS client envia, para evitar falhas de preflight.
 
