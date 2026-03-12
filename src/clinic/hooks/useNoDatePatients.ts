@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { useClinicPatientsRaw } from './useClinicPatientsRaw';
 import { differenceInDays } from 'date-fns';
 import { useMemo, useState } from 'react';
 
@@ -49,15 +50,24 @@ export function useNoDatePatients() {
   const effectiveGestao = isGestao;
   const [filters, setFilters] = useState<NoDateFilters>(defaultFilters);
 
-  // Fetch sales with active contracts
+  // Shared patients cache for name lookups
+  const { data: rawPatients = [] } = useClinicPatientsRaw();
+  const patientNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of rawPatients) {
+      map.set(p.id, p.full_name);
+    }
+    return map;
+  }, [rawPatients]);
+
+  // Fetch sales with active contracts (WITHOUT patient JOIN)
   const { data: salesData = [], isLoading: loadingSales } = useQuery({
     queryKey: ['no-date-patients-sales', currentBranch, effectiveAdmin, effectiveGestao],
     queryFn: async () => {
       let query = supabase
         .from('clinic_sales')
         .select(`
-          id, sale_date, patient_id, branch, service_type, seller, category, vgv, contract_status, notes,
-          clinic_patients(full_name)
+          id, sale_date, patient_id, branch, service_type, seller, category, vgv, contract_status, notes
         `)
         .neq('contract_status', 'cancelado');
 
@@ -95,7 +105,7 @@ export function useNoDatePatients() {
     queryFn: async () => {
       let query = supabase
         .from('clinic_surgeries')
-        .select('id, patient_id, patient_name, branch, procedure, category, created_at, sale_id, clinic_patients!clinic_surgeries_patient_id_fkey(full_name)')
+        .select('id, patient_id, patient_name, branch, procedure, category, created_at, sale_id')
         .eq('schedule_status', 'sem_data')
         .is('surgery_date', null);
 
@@ -126,7 +136,7 @@ export function useNoDatePatients() {
       .map((sale: any): NoDatePatient => ({
         saleId: sale.id,
         patientId: sale.patient_id!,
-        patientName: sale.clinic_patients?.full_name || 'Paciente não vinculado',
+        patientName: (sale.patient_id ? patientNameMap.get(sale.patient_id) : null) || 'Paciente não vinculado',
         branch: sale.branch,
         procedure: sale.service_type || '-',
         category: sale.category,
@@ -145,7 +155,7 @@ export function useNoDatePatients() {
       .map((s: any): NoDatePatient => ({
         saleId: s.id, // use surgery id as key
         patientId: s.patient_id,
-        patientName: s.clinic_patients?.full_name || s.patient_name || 'Paciente não vinculado',
+        patientName: (s.patient_id ? patientNameMap.get(s.patient_id) : null) || s.patient_name || 'Paciente não vinculado',
         branch: s.branch || '-',
         procedure: s.procedure || '-',
         category: s.category,

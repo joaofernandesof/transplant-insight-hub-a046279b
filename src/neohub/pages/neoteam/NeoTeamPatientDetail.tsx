@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -98,6 +99,7 @@ const formatCurrency = (value: number) =>
 export default function NeoTeamPatientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [patient, setPatient] = useState<PatientData | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
@@ -405,6 +407,9 @@ export default function NeoTeamPatientDetail() {
         throw new Error('Nenhuma linha atualizada. Verifique suas permissões.');
       }
       toast.success('Observações salvas!');
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
       setPatient(prev => prev ? { ...prev, notes: newNotes, observations: observationsText } : null);
     } catch (err) {
       console.error('Error saving observations:', err);
@@ -602,6 +607,9 @@ export default function NeoTeamPatientDetail() {
       }
 
       toast.success('Paciente atualizado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
       setIsEditing(false);
       setEditData({});
       fetchPatient(); // Reload data
