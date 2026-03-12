@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import { useCallIntelligence } from '@/hooks/useCallIntelligence';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,15 +14,18 @@ import { CallAnalysisView } from './components/CallAnalysisView';
 import { FirefliesSettingsTab } from './components/FirefliesSettingsTab';
 import { AgendaTab } from './components/AgendaTab';
 
-// We need an account_id - for NeoTeam we'll use the user's first avivar account or fallback
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+
+const CALLS_LAST_SEEN_KEY = 'call-intelligence-calls-last-seen';
 
 export default function CallIntelligencePage() {
   const { user } = useAuth();
   const [accountId, setAccountId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+  const [lastSeenTimestamp, setLastSeenTimestamp] = useState<string | null>(() => {
+    return localStorage.getItem(CALLS_LAST_SEEN_KEY);
+  });
 
   // Fetch account
   useEffect(() => {
@@ -41,13 +44,28 @@ export default function CallIntelligencePage() {
 
   const hook = useCallIntelligence(accountId || undefined);
 
+  // Count new calls since last time user opened the Calls tab
+  const newCallsCount = useMemo(() => {
+    if (!lastSeenTimestamp || hook.calls.length === 0) return hook.calls.length > 0 && !lastSeenTimestamp ? hook.calls.length : 0;
+    return hook.calls.filter(c => c.created_at && c.created_at > lastSeenTimestamp).length;
+  }, [hook.calls, lastSeenTimestamp]);
+
+  const handleTabChange = useCallback((tab: string) => {
+    if (tab === 'lista') {
+      const now = new Date().toISOString();
+      localStorage.setItem(CALLS_LAST_SEEN_KEY, now);
+      setLastSeenTimestamp(now);
+    }
+    setActiveTab(tab);
+  }, []);
+
   const handleViewAnalysis = (callId: string) => {
     setSelectedCallId(callId);
-    setActiveTab('lista');
+    handleTabChange('lista');
   };
 
   const handleCallCreated = () => {
-    setActiveTab('lista');
+    handleTabChange('lista');
   };
 
   if (!user) {
@@ -75,15 +93,17 @@ export default function CallIntelligencePage() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="bg-transparent h-auto p-0 flex flex-wrap gap-3 w-full justify-start">
             <TabsTrigger value="dashboard" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
               <BarChart3 className="h-4 w-4" /> Dashboard
             </TabsTrigger>
-            <TabsTrigger value="lista" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
+            <TabsTrigger value="lista" className="relative border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
               <Phone className="h-4 w-4" /> Calls
-              {hook.calls.length > 0 && (
-                <Badge variant="secondary" className="ml-1 text-xs">{hook.calls.length}</Badge>
+              {newCallsCount > 0 && activeTab !== 'lista' && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold animate-in zoom-in-50">
+                  {newCallsCount}
+                </span>
               )}
             </TabsTrigger>
             <TabsTrigger value="registrar" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
