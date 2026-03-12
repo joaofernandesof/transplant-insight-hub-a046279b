@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 const SECTOR_ICONS: Record<string, LucideIcon> = {
   tecnico: Stethoscope,
   sucesso_paciente: HeadphonesIcon,
+  sucesso_aluno: GraduationCap,
   operacional: ClipboardCheck,
   processos: GitCompare,
   financeiro: DollarSign,
