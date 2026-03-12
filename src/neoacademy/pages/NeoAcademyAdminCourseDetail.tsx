@@ -582,7 +582,7 @@ export default function NeoAcademyAdminCourseDetail() {
           <form onSubmit={e => { e.preventDefault(); if (!moduleForm.title.trim()) { toast.error('Título obrigatório'); return; } saveModule.mutate(moduleForm); }} className="space-y-4 mt-2">
             <div><Label className="text-xs text-zinc-400">Título *</Label><Input value={moduleForm.title} onChange={e => setModuleForm(f => ({ ...f, title: e.target.value }))} className="bg-[#0a0a0f] border-white/10 text-white mt-1" required /></div>
             <div><Label className="text-xs text-zinc-400">Descrição</Label><Textarea value={moduleForm.description} onChange={e => setModuleForm(f => ({ ...f, description: e.target.value }))} className="bg-[#0a0a0f] border-white/10 text-white mt-1" /></div>
-            <div><Label className="text-xs text-zinc-400">URL da Capa</Label><Input value={moduleForm.thumbnail_url} onChange={e => setModuleForm(f => ({ ...f, thumbnail_url: e.target.value }))} placeholder="https://..." className="bg-[#0a0a0f] border-white/10 text-white mt-1" /></div>
+            <ImageUploadField label="Capa do Módulo" value={moduleForm.thumbnail_url} onChange={url => setModuleForm(f => ({ ...f, thumbnail_url: url }))} folder="modules/thumbnails" />
             <div className="flex items-center gap-2"><Switch checked={moduleForm.is_published} onCheckedChange={v => setModuleForm(f => ({ ...f, is_published: v }))} /><Label className="text-xs text-zinc-300">Publicado</Label></div>
             <div className="flex justify-end gap-3">
               <Button type="button" variant="ghost" onClick={() => setModuleDialog(false)} className="text-zinc-400">Cancelar</Button>
