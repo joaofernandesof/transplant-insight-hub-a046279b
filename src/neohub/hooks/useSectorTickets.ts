@@ -100,7 +100,7 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 
 export function useSectorTickets(sectorCode: string) {
   const queryClient = useQueryClient();
-  const { user, profile } = useUnifiedAuth();
+  const { user } = useUnifiedAuth();
 
   const { data: ticketTypes = [], isLoading: isLoadingTypes } = useQuery({
     queryKey: ['sector-ticket-types', sectorCode],
