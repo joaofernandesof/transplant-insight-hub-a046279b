@@ -15,6 +15,7 @@ import {
   Pencil, Copy, XCircle, CheckCircle2, Briefcase, DollarSign, MapPin,
   Target, Users2, GraduationCap, Clock, FileText, Plus, Trash2, Link2,
   History, ClipboardList, FolderOpen, AlertTriangle, ArrowRight, Settings2,
+  ExternalLink,
 } from 'lucide-react';
 
 // ── Types ──
@@ -59,9 +60,10 @@ const DEFAULT_ETAPA_CHECKLISTS: Record<string, { id: string; label: string }[]> 
     { id: 'va3', label: 'Critérios de seleção estabelecidos' },
   ],
   vaga_aberta: [
-    { id: 'vo1', label: 'Anúncio publicado nas plataformas' },
-    { id: 'vo2', label: 'Divulgação interna realizada' },
-    { id: 'vo3', label: 'Prazo de inscrição definido' },
+    { id: 'vo1', label: 'Link do Indeed preenchido (obrigatório)' },
+    { id: 'vo2', label: 'Anúncio publicado nas plataformas' },
+    { id: 'vo3', label: 'Divulgação interna realizada' },
+    { id: 'vo4', label: 'Prazo de inscrição definido' },
   ],
   selecao_curriculos: [
     { id: 'sc1', label: 'Currículos triados pelo RH' },
@@ -142,6 +144,32 @@ function saveDocuments(vagaId: string, docs: DocEntry[]) {
   localStorage.setItem(`vaga-docs-${vagaId}`, JSON.stringify(docs));
 }
 
+// ── Job Posting Links helpers ──
+
+interface JobPostingLinks {
+  indeed: string;
+  linkedin: string;
+  catho: string;
+  infojobs: string;
+  glassdoor: string;
+  outros: { label: string; url: string }[];
+}
+
+const EMPTY_LINKS: JobPostingLinks = {
+  indeed: '', linkedin: '', catho: '', infojobs: '', glassdoor: '', outros: [],
+};
+
+function getJobLinks(vagaId: string): JobPostingLinks {
+  try {
+    const raw = localStorage.getItem(`vaga-links-${vagaId}`);
+    return raw ? { ...EMPTY_LINKS, ...JSON.parse(raw) } : { ...EMPTY_LINKS };
+  } catch { return { ...EMPTY_LINKS }; }
+}
+
+function saveJobLinks(vagaId: string, links: JobPostingLinks) {
+  localStorage.setItem(`vaga-links-${vagaId}`, JSON.stringify(links));
+}
+
 // ── Component ──
 
 export function VagaDetailSheet({
@@ -165,6 +193,9 @@ export function VagaDetailSheet({
   const [newDocUrl, setNewDocUrl] = useState('');
   const [newItemLabel, setNewItemLabel] = useState('');
   const [editingEtapaChecklist, setEditingEtapaChecklist] = useState<string | null>(null);
+  const [jobLinks, setJobLinks] = useState<JobPostingLinks>({ ...EMPTY_LINKS });
+  const [newLinkLabel, setNewLinkLabel] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
 
   // Load state when vaga changes
   useEffect(() => {
@@ -172,6 +203,7 @@ export function VagaDetailSheet({
       setChecklistState(getChecklistState(vaga.id));
       setCustomItems(getCustomChecklistItems(vaga.id));
       setDocuments(getDocuments(vaga.id));
+      setJobLinks(getJobLinks(vaga.id));
       setActiveTab('resumo');
     }
   }, [vaga?.id]);
@@ -537,6 +569,146 @@ export function VagaDetailSheet({
                         <Button size="sm" className="h-7 text-xs" onClick={() => addCustomItem(etapa.id)}>
                           <Plus className="h-3 w-3 mr-1" /> Adicionar
                         </Button>
+                      </div>
+                    )}
+
+                    {/* ── Links de Divulgação (only for vaga_aberta) ── */}
+                    {etapa.id === 'vaga_aberta' && (
+                      <div className="mt-3 pt-3 border-t border-border/50 space-y-3">
+                        <p className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                          <ExternalLink className="h-3.5 w-3.5" /> Links de Divulgação
+                        </p>
+
+                        {/* Indeed (obrigatório) */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-medium flex items-center gap-1">
+                            Indeed <span className="text-destructive">*</span>
+                          </label>
+                          <Input
+                            placeholder="https://indeed.com/job/..."
+                            value={jobLinks.indeed}
+                            onChange={e => {
+                              const updated = { ...jobLinks, indeed: e.target.value };
+                              setJobLinks(updated);
+                              saveJobLinks(vaga.id, updated);
+                            }}
+                            className={cn("h-7 text-xs", !jobLinks.indeed && "border-destructive/50")}
+                          />
+                          {!jobLinks.indeed && (
+                            <p className="text-[10px] text-destructive">Link do Indeed é obrigatório</p>
+                          )}
+                        </div>
+
+                        {/* Optional platforms */}
+                        {[
+                          { key: 'linkedin' as const, label: 'LinkedIn', placeholder: 'https://linkedin.com/jobs/...' },
+                          { key: 'catho' as const, label: 'Catho', placeholder: 'https://catho.com.br/...' },
+                          { key: 'infojobs' as const, label: 'InfoJobs', placeholder: 'https://infojobs.com.br/...' },
+                          { key: 'glassdoor' as const, label: 'Glassdoor', placeholder: 'https://glassdoor.com.br/...' },
+                        ].map(platform => (
+                          <div key={platform.key} className="space-y-1">
+                            <label className="text-[11px] font-medium">{platform.label}</label>
+                            <div className="flex gap-1.5">
+                              <Input
+                                placeholder={platform.placeholder}
+                                value={jobLinks[platform.key]}
+                                onChange={e => {
+                                  const updated = { ...jobLinks, [platform.key]: e.target.value };
+                                  setJobLinks(updated);
+                                  saveJobLinks(vaga.id, updated);
+                                }}
+                                className="h-7 text-xs flex-1"
+                              />
+                              {jobLinks[platform.key] && (
+                                <a href={jobLinks[platform.key]} target="_blank" rel="noopener noreferrer">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                                    <ExternalLink className="h-3 w-3" />
+                                  </Button>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Custom extra links */}
+                        {jobLinks.outros.length > 0 && (
+                          <div className="space-y-1.5">
+                            {jobLinks.outros.map((link, idx) => (
+                              <div key={idx} className="flex items-center gap-1.5">
+                                <span className="text-[11px] font-medium min-w-[60px] truncate">{link.label}</span>
+                                <Input
+                                  value={link.url}
+                                  onChange={e => {
+                                    const updated = { ...jobLinks };
+                                    updated.outros[idx].url = e.target.value;
+                                    setJobLinks(updated);
+                                    saveJobLinks(vaga.id, updated);
+                                  }}
+                                  className="h-7 text-xs flex-1"
+                                />
+                                {link.url && (
+                                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                                      <ExternalLink className="h-3 w-3" />
+                                    </Button>
+                                  </a>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 shrink-0"
+                                  onClick={() => {
+                                    const updated = { ...jobLinks, outros: jobLinks.outros.filter((_, i) => i !== idx) };
+                                    setJobLinks(updated);
+                                    saveJobLinks(vaga.id, updated);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Add custom link */}
+                        <div className="flex gap-1.5">
+                          <Input
+                            placeholder="Nome (ex: Gupy)"
+                            value={newLinkLabel}
+                            onChange={e => setNewLinkLabel(e.target.value)}
+                            className="h-7 text-xs w-24"
+                          />
+                          <Input
+                            placeholder="URL"
+                            value={newLinkUrl}
+                            onChange={e => setNewLinkUrl(e.target.value)}
+                            className="h-7 text-xs flex-1"
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' && newLinkLabel.trim()) {
+                                const updated = { ...jobLinks, outros: [...jobLinks.outros, { label: newLinkLabel.trim(), url: newLinkUrl.trim() }] };
+                                setJobLinks(updated);
+                                saveJobLinks(vaga.id, updated);
+                                setNewLinkLabel('');
+                                setNewLinkUrl('');
+                              }
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs shrink-0"
+                            disabled={!newLinkLabel.trim()}
+                            onClick={() => {
+                              const updated = { ...jobLinks, outros: [...jobLinks.outros, { label: newLinkLabel.trim(), url: newLinkUrl.trim() }] };
+                              setJobLinks(updated);
+                              saveJobLinks(vaga.id, updated);
+                              setNewLinkLabel('');
+                              setNewLinkUrl('');
+                            }}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
