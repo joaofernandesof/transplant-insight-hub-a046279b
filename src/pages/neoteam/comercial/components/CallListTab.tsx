@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Brain, Eye, Loader2, Search, Flame, Snowflake, Sun, ArrowUp, ArrowDown, ArrowUpDown, Trash2 } from 'lucide-react';
+import { Brain, Eye, Loader2, Search, Flame, Snowflake, Sun, ArrowUp, ArrowDown, ArrowUpDown, Trash2, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
