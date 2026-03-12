@@ -8,11 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX, CalendarIcon, Link } from "lucide-react";
+import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX, CalendarIcon, Link, ExternalLink, Download, FileText, FileImage } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -89,6 +90,7 @@ export default function TicketsPage() {
   const isTicketAdmin = isAdmin || isSuperAdmin || user?.profiles?.includes('administrador');
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [requesterFilter, setRequesterFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
@@ -394,14 +396,18 @@ export default function TicketsPage() {
                 return (
                   <TableRow
                     key={t.id}
-                    className={isUnassigned && t.status === "open" ? "border-l-4 border-l-orange-400" : ""}
+                    className={cn(
+                      isUnassigned && t.status === "open" ? "border-l-4 border-l-orange-400" : "",
+                      isTicketAdmin ? "cursor-pointer hover:bg-muted/50" : ""
+                    )}
+                    onClick={() => isTicketAdmin && setSelectedTicket(t)}
                   >
                     <TableCell className="font-mono text-xs">{t.ticket_number}</TableCell>
                     <TableCell>
                       <p className="font-medium">{t.title}</p>
                       {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{t.description}</p>}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         <Select value={t.priority} onValueChange={v => updateTicketField.mutate({ id: t.id, field: "priority", value: v })}>
                           <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
@@ -417,7 +423,7 @@ export default function TicketsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         isUnassigned ? (
                           <Button
@@ -484,7 +490,7 @@ export default function TicketsPage() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         <Popover>
                           <PopoverTrigger asChild>
@@ -513,7 +519,7 @@ export default function TicketsPage() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
                           <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
@@ -536,7 +542,182 @@ export default function TicketsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Ticket Detail Dialog for admins */}
+      {selectedTicket && (
+        <TicketDetailDialog
+          ticket={selectedTicket}
+          open={!!selectedTicket}
+          onOpenChange={(open) => !open && setSelectedTicket(null)}
+          updateTicketField={updateTicketField}
+          isAdmin={isTicketAdmin}
+        />
+      )}
     </div>
+  );
+}
+
+function TicketDetailDialog({
+  ticket,
+  open,
+  onOpenChange,
+  updateTicketField,
+  isAdmin,
+}: {
+  ticket: any;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  updateTicketField: any;
+  isAdmin: boolean;
+}) {
+  const { data: attachments = [], isLoading: loadingAttachments } = useQuery({
+    queryKey: ["ticket_attachments", ticket.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("neoteam_ticket_attachments")
+        .select("*")
+        .eq("ticket_id", ticket.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  const isImage = (type: string) => type?.startsWith("image/");
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-xs text-muted-foreground">{ticket.ticket_number}</span>
+            <Badge className={STATUS_COLORS[ticket.status] || ""}>{STATUS_LABELS[ticket.status] || ticket.status}</Badge>
+            <Badge className={PRIORITY_COLORS[ticket.priority]}>{PRIORITY_LABELS[ticket.priority] || ticket.priority}</Badge>
+          </div>
+          <DialogTitle className="text-lg">{ticket.title}</DialogTitle>
+          <DialogDescription className="sr-only">Detalhes do chamado {ticket.ticket_number}</DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-5 pb-4">
+            {/* Info grid */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">Solicitante</span>
+                <p className="font-medium">{ticket.requester_name}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Responsável</span>
+                <p className="font-medium">{ticket.assigned_name || "Sem responsável"}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Criado em</span>
+                <p className="font-medium">{format(parseISO(ticket.created_at), "dd/MM/yyyy HH:mm")}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Categoria</span>
+                <p className="font-medium capitalize">{ticket.category || "—"}</p>
+              </div>
+              {ticket.resolved_at && (
+                <div>
+                  <span className="text-muted-foreground">Resolvido em</span>
+                  <p className="font-medium">{format(parseISO(ticket.resolved_at), "dd/MM/yyyy HH:mm")}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Due date editor */}
+            {isAdmin && (
+              <div>
+                <span className="text-sm text-muted-foreground block mb-1">Prazo</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !ticket.due_date && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {ticket.due_date ? format(parseISO(ticket.due_date), "dd/MM/yyyy") : "Definir prazo"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={ticket.due_date ? parseISO(ticket.due_date) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          updateTicketField.mutate({ id: ticket.id, field: "due_date", value: format(date, "yyyy-MM-dd") });
+                        }
+                      }}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+
+            {/* Description */}
+            {ticket.description && (
+              <div>
+                <span className="text-sm text-muted-foreground block mb-1">Descrição</span>
+                <div className="bg-muted/50 rounded-lg p-3 text-sm whitespace-pre-wrap">{ticket.description}</div>
+              </div>
+            )}
+
+            {/* Link URL */}
+            {ticket.link_url && (
+              <div>
+                <span className="text-sm text-muted-foreground block mb-1">Link</span>
+                <a
+                  href={ticket.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary underline flex items-center gap-1 hover:opacity-80"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {ticket.link_url}
+                </a>
+              </div>
+            )}
+
+            {/* Attachments */}
+            <div>
+              <span className="text-sm text-muted-foreground block mb-2">Anexos</span>
+              {loadingAttachments ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
+                </div>
+              ) : attachments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum anexo</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {attachments.map((att: any) => (
+                    <a
+                      key={att.id}
+                      href={att.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group border rounded-lg overflow-hidden hover:border-primary transition-colors"
+                    >
+                      {isImage(att.file_type) ? (
+                        <img src={att.file_url} alt={att.file_name} className="w-full h-24 object-cover" />
+                      ) : (
+                        <div className="w-full h-24 flex flex-col items-center justify-center bg-muted/50">
+                          <FileText className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="p-1.5 flex items-center gap-1">
+                        <Download className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        <span className="text-[10px] text-muted-foreground truncate">{att.file_name}</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 }
 
