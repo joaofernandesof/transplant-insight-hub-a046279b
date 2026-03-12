@@ -95,7 +95,7 @@ export function useClinicSurgeries() {
     return map;
   }, [rawPatients]);
 
-  const { data: surgeries = [], isLoading, error } = useQuery({
+  const { data: rawSurgeries = [], isLoading, error } = useQuery({
     queryKey: ['clinic-surgeries', currentBranch, isAdmin, isGestao],
     queryFn: async () => {
       let query = supabase
@@ -109,66 +109,64 @@ export function useClinicSurgeries() {
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
-
-      const today = new Date();
-
-      return (data || []).map((s: any): ClinicSurgery => {
-        return {
-          id: s.id,
-          patientId: s.patient_id || null,
-          patientName: (s.patient_id ? patientNameMap.get(s.patient_id) : null) || s.patient_name || 'Paciente não vinculado',
-          patientPhone: null,
-          saleId: s.sale_id || null,
-          branch: s.branch,
-          procedure: s.procedure,
-          category: s.category,
-          grade: s.grade,
-          outsourcing: s.outsourcing || false,
-          surgeryDate: s.surgery_date,
-          surgeryTime: s.surgery_time,
-          scheduleStatus: s.schedule_status as ScheduleStatus,
-          expectedMonth: s.expected_month,
-          doctorOnDuty: s.doctor_on_duty,
-          examsSent: s.exams_sent || false,
-          guidesSent: s.guides_sent || false,
-          contractSigned: s.contract_signed || false,
-          chartReady: s.chart_ready || false,
-          surgeryConfirmed: s.surgery_confirmed || false,
-          lunchChoice: s.lunch_choice,
-          bookingTermSigned: s.booking_term_signed || false,
-          dischargeTermSigned: s.discharge_term_signed || false,
-          gpiD1Done: s.gpi_d1_done || false,
-          companionName: s.companion_name,
-          companionPhone: s.companion_phone,
-          medicalRecord: s.medical_record,
-          trichotomyDatetime: s.trichotomy_datetime,
-          d20Contact: s.d20_contact || false,
-          d15Contact: s.d15_contact || false,
-          d10Contact: s.d10_contact || false,
-          d7Contact: s.d7_contact || false,
-          d2Contact: s.d2_contact || false,
-          d1Contact: s.d1_contact || false,
-          notes: s.notes,
-          createdAt: s.created_at,
-          saleDate: null,
-          vgv: s.vgv ? Number(s.vgv) : null,
-          seller: null,
-          contractStatus: s.contract_status || 'NAO_ENVIADO',
-          daysSinceSale: null,
-          upgradeValue: Number(s.upgrade_value) || 0,
-          upgradeCategory: (s as any).upgrade_category || null,
-          upsellValue: Number(s.upsell_value) || 0,
-          upsellCategory: (s as any).upsell_category || null,
-          depositPaid: Number(s.deposit_paid) || 0,
-          remainingPaid: Number(s.remaining_paid) || 0,
-          balanceDue: Number(s.balance_due) || 0,
-        };
-      });
+      return data || [];
     },
     enabled: !!session,
   });
+
+  const surgeries = useMemo(() => {
+    return rawSurgeries.map((s: any): ClinicSurgery => ({
+      id: s.id,
+      patientId: s.patient_id || null,
+      patientName: (s.patient_id ? patientNameMap.get(s.patient_id) : null) || s.patient_name || 'Paciente não vinculado',
+      patientPhone: null,
+      saleId: s.sale_id || null,
+      branch: s.branch,
+      procedure: s.procedure,
+      category: s.category,
+      grade: s.grade,
+      outsourcing: s.outsourcing || false,
+      surgeryDate: s.surgery_date,
+      surgeryTime: s.surgery_time,
+      scheduleStatus: s.schedule_status as ScheduleStatus,
+      expectedMonth: s.expected_month,
+      doctorOnDuty: s.doctor_on_duty,
+      examsSent: s.exams_sent || false,
+      guidesSent: s.guides_sent || false,
+      contractSigned: s.contract_signed || false,
+      chartReady: s.chart_ready || false,
+      surgeryConfirmed: s.surgery_confirmed || false,
+      lunchChoice: s.lunch_choice,
+      bookingTermSigned: s.booking_term_signed || false,
+      dischargeTermSigned: s.discharge_term_signed || false,
+      gpiD1Done: s.gpi_d1_done || false,
+      companionName: s.companion_name,
+      companionPhone: s.companion_phone,
+      medicalRecord: s.medical_record,
+      trichotomyDatetime: s.trichotomy_datetime,
+      d20Contact: s.d20_contact || false,
+      d15Contact: s.d15_contact || false,
+      d10Contact: s.d10_contact || false,
+      d7Contact: s.d7_contact || false,
+      d2Contact: s.d2_contact || false,
+      d1Contact: s.d1_contact || false,
+      notes: s.notes,
+      createdAt: s.created_at,
+      saleDate: null,
+      vgv: s.vgv ? Number(s.vgv) : null,
+      seller: null,
+      contractStatus: s.contract_status || 'NAO_ENVIADO',
+      daysSinceSale: null,
+      upgradeValue: Number(s.upgrade_value) || 0,
+      upgradeCategory: (s as any).upgrade_category || null,
+      upsellValue: Number(s.upsell_value) || 0,
+      upsellCategory: (s as any).upsell_category || null,
+      depositPaid: Number(s.deposit_paid) || 0,
+      remainingPaid: Number(s.remaining_paid) || 0,
+      balanceDue: Number(s.balance_due) || 0,
+    }));
+  }, [rawSurgeries, patientNameMap]);
 
   const createSurgery = useMutation({
     mutationFn: async (input: SurgeryInput) => {
