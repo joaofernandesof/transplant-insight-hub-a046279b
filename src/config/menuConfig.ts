@@ -272,6 +272,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_anamnesis', code: 'neoteam_anamnesis', title: 'Anamnese', icon: ClipboardList, route: '/neoteam/tecnico/anamnese' },
       { id: 'neoteam_doctor_view', code: 'neoteam_doctor_view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/tecnico/visao-medico', requiredProfiles: ['medico', 'administrador'] },
       { id: 'neoteam_procedures', code: 'neoteam_procedures', title: 'Procedimentos', icon: Syringe, route: '/neoteam/tecnico/procedimentos' },
+      { id: 'neoteam_tecnico_chamados', code: 'neoteam_tecnico_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/tecnico/chamados' },
     ],
   },
   {
