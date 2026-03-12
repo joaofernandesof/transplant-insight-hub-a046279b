@@ -93,15 +93,17 @@ export default function CallIntelligencePage() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="bg-transparent h-auto p-0 flex flex-wrap gap-3 w-full justify-start">
             <TabsTrigger value="dashboard" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
               <BarChart3 className="h-4 w-4" /> Dashboard
             </TabsTrigger>
-            <TabsTrigger value="lista" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
+            <TabsTrigger value="lista" className="relative border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
               <Phone className="h-4 w-4" /> Calls
-              {hook.calls.length > 0 && (
-                <Badge variant="secondary" className="ml-1 text-xs">{hook.calls.length}</Badge>
+              {newCallsCount > 0 && activeTab !== 'lista' && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold animate-in zoom-in-50">
+                  {newCallsCount}
+                </span>
               )}
             </TabsTrigger>
             <TabsTrigger value="registrar" className="border border-border bg-background rounded-lg px-5 py-3 gap-2 text-sm font-semibold shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md hover:bg-accent transition-all">
