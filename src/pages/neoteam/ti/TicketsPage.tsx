@@ -90,6 +90,7 @@ export default function TicketsPage() {
   const isTicketAdmin = isAdmin || isSuperAdmin || user?.profiles?.includes('administrador');
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [requesterFilter, setRequesterFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
