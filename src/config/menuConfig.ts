@@ -311,6 +311,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos/fluxos' },
       { id: 'neoteam_pops', code: 'neoteam_pops', title: 'POPs', icon: BookMarked, route: '/neoteam/processos/pops' },
       { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/processos/documentos' },
+      { id: 'neoteam_proc_chamados', code: 'neoteam_proc_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/processos/chamados' },
     ],
   },
   {
