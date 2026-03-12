@@ -2,17 +2,21 @@ import type { SalesCall, CallAnalysisRecord } from '@/hooks/useCallIntelligence'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap, Snowflake, Sun, Clock, ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { Phone, CheckCircle2, XCircle, Flame, Target, TrendingUp, BarChart3, Users, Calendar, Activity, Award, Zap, Snowflake, Sun, Clock, ArrowUpDown, ArrowUp, ArrowDown, Search, CalendarIcon, Filter, X } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMemo, useState } from 'react';
-import { format, parseISO, startOfWeek, startOfMonth, eachDayOfInterval, eachWeekOfInterval, subDays, subWeeks, subMonths, isAfter } from 'date-fns';
+import { useMemo, useState, useCallback } from 'react';
+import { format, parseISO, startOfWeek, startOfMonth, startOfDay, endOfDay, subDays, subWeeks, subMonths, isAfter, isBefore, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface Props {
@@ -36,10 +40,102 @@ const STATUS_COLORS = { fechou: '#10b981', followup: '#f59e0b', perdido: '#ef444
 
 type CloserSortKey = 'name' | 'total' | 'fechou' | 'taxa' | 'followup' | 'taxaFollowup' | 'perdido' | 'taxaPerdido' | 'bantMedio' | 'spinMedio';
 
-export function CallDashboardTab({ stats, analyses, calls }: Props) {
+type DatePreset = 'all' | 'today' | 'week' | '30days' | 'month' | 'custom';
+
+// Generate month options (last 12 months)
+function getMonthOptions() {
+  const months: { value: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = subMonths(now, i);
+    months.push({
+      value: format(d, 'yyyy-MM'),
+      label: format(d, 'MMMM yyyy', { locale: ptBR }),
+    });
+  }
+  return months;
+}
+
+export function CallDashboardTab({ stats: rawStats, analyses: allAnalyses, calls: allCalls }: Props) {
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [closerSortKey, setCloserSortKey] = useState<CloserSortKey>('taxa');
   const [closerSortDir, setCloserSortDir] = useState<'asc' | 'desc'>('desc');
+
+  // Date filter state
+  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [customFrom, setCustomFrom] = useState<Date | undefined>();
+  const [customTo, setCustomTo] = useState<Date | undefined>();
+  const [showCalendarFrom, setShowCalendarFrom] = useState(false);
+  const [showCalendarTo, setShowCalendarTo] = useState(false);
+
+  const monthOptions = useMemo(() => getMonthOptions(), []);
+
+  // Compute date range based on preset
+  const dateRange = useMemo<{ from: Date | null; to: Date | null }>(() => {
+    const now = new Date();
+    switch (datePreset) {
+      case 'today':
+        return { from: startOfDay(now), to: endOfDay(now) };
+      case 'week':
+        return { from: startOfDay(subDays(now, 6)), to: endOfDay(now) };
+      case '30days':
+        return { from: startOfDay(subDays(now, 29)), to: endOfDay(now) };
+      case 'month':
+        if (!selectedMonth) return { from: null, to: null };
+        const [y, m] = selectedMonth.split('-').map(Number);
+        const monthStart = new Date(y, m - 1, 1);
+        const monthEnd = new Date(y, m, 0, 23, 59, 59);
+        return { from: monthStart, to: monthEnd };
+      case 'custom':
+        return { from: customFrom ? startOfDay(customFrom) : null, to: customTo ? endOfDay(customTo) : null };
+      default:
+        return { from: null, to: null };
+    }
+  }, [datePreset, selectedMonth, customFrom, customTo]);
+
+  // Filter calls and analyses by date range
+  const calls = useMemo(() => {
+    if (!dateRange.from && !dateRange.to) return allCalls;
+    return allCalls.filter(c => {
+      const d = parseISO(c.data_call);
+      if (dateRange.from && isBefore(d, dateRange.from)) return false;
+      if (dateRange.to && isAfter(d, dateRange.to)) return false;
+      return true;
+    });
+  }, [allCalls, dateRange]);
+
+  const analyses = useMemo(() => {
+    if (!dateRange.from && !dateRange.to) return allAnalyses;
+    const callIds = new Set(calls.map(c => c.id));
+    return allAnalyses.filter(a => callIds.has(a.call_id));
+  }, [allAnalyses, calls, dateRange]);
+
+  // Recompute stats for filtered data
+  const stats = useMemo(() => {
+    if (datePreset === 'all') return rawStats;
+    const totalCalls = calls.length;
+    const fechou = calls.filter(c => c.status_call === 'fechou').length;
+    const followup = calls.filter(c => c.status_call === 'followup').length;
+    const perdido = calls.filter(c => c.status_call === 'perdido').length;
+    const taxaFechamento = totalCalls > 0 ? Math.round((fechou / totalCalls) * 100) : 0;
+    const analyzed = calls.filter(c => c.has_analysis).length;
+    const leadsQuentes = analyses.filter(a => a.classificacao_lead === 'quente').length;
+    const bantMedio = analyses.length > 0
+      ? Math.round(analyses.reduce((acc, a) => acc + (a.bant_total || 0), 0) / analyses.length)
+      : 0;
+    const probMediaFechamento = analyses.length > 0
+      ? Math.round(analyses.reduce((acc, a) => acc + (a.probabilidade_fechamento || 0), 0) / analyses.length)
+      : 0;
+    return { totalCalls, fechou, followup, perdido, taxaFechamento, analyzed, leadsQuentes, bantMedio, probMediaFechamento };
+  }, [datePreset, rawStats, calls, analyses]);
+
+  const clearFilter = useCallback(() => {
+    setDatePreset('all');
+    setSelectedMonth('');
+    setCustomFrom(undefined);
+    setCustomTo(undefined);
+  }, []);
 
   // ── Derived data ──
   const enrichedCalls = useMemo(() => {
@@ -230,8 +326,139 @@ export function CallDashboardTab({ stats, analyses, calls }: Props) {
     return Math.round(taxaScore * weights.taxa + bantScore * weights.bant + probScore * weights.prob + quenteScore * weights.quentes);
   }, [stats, analyses]);
 
+  const dateLabel = useMemo(() => {
+    switch (datePreset) {
+      case 'today': return 'Hoje';
+      case 'week': return 'Últimos 7 dias';
+      case '30days': return 'Últimos 30 dias';
+      case 'month': return selectedMonth ? format(new Date(parseInt(selectedMonth.split('-')[0]), parseInt(selectedMonth.split('-')[1]) - 1), 'MMMM yyyy', { locale: ptBR }) : '';
+      case 'custom': {
+        const parts: string[] = [];
+        if (customFrom) parts.push(format(customFrom, 'dd/MM/yy'));
+        if (customTo) parts.push(format(customTo, 'dd/MM/yy'));
+        return parts.join(' → ') || 'Período personalizado';
+      }
+      default: return 'Todas as datas';
+    }
+  }, [datePreset, selectedMonth, customFrom, customTo]);
+
   return (
     <div className="space-y-5">
+      {/* ── Date Filter Bar ── */}
+      <Card className="border-dashed">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+            
+            {/* Preset buttons */}
+            {([
+              { key: 'all', label: 'Tudo' },
+              { key: 'today', label: 'Hoje' },
+              { key: 'week', label: '7 dias' },
+              { key: '30days', label: '30 dias' },
+            ] as { key: DatePreset; label: string }[]).map(p => (
+              <button
+                key={p.key}
+                onClick={() => { setDatePreset(p.key); setSelectedMonth(''); setCustomFrom(undefined); setCustomTo(undefined); }}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border',
+                  datePreset === p.key
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-background text-muted-foreground border-border hover:bg-accent'
+                )}
+              >
+                {p.label}
+              </button>
+            ))}
+
+            {/* Month selector */}
+            <Select
+              value={datePreset === 'month' ? selectedMonth : ''}
+              onValueChange={(v) => { setDatePreset('month'); setSelectedMonth(v); setCustomFrom(undefined); setCustomTo(undefined); }}
+            >
+              <SelectTrigger className={cn(
+                'w-[140px] h-8 text-xs',
+                datePreset === 'month' ? 'border-primary ring-1 ring-primary/20' : ''
+              )}>
+                <SelectValue placeholder="Mês..." />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map(m => (
+                  <SelectItem key={m.value} value={m.value} className="text-xs capitalize">
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Custom date range */}
+            <div className="flex items-center gap-1">
+              <Popover open={showCalendarFrom} onOpenChange={setShowCalendarFrom}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      'h-8 text-xs gap-1.5 font-normal',
+                      datePreset === 'custom' && customFrom ? 'border-primary ring-1 ring-primary/20' : ''
+                    )}
+                  >
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {customFrom ? format(customFrom, 'dd/MM/yy') : 'De'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={customFrom}
+                    onSelect={(d) => { setCustomFrom(d || undefined); setDatePreset('custom'); setSelectedMonth(''); setShowCalendarFrom(false); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">→</span>
+              <Popover open={showCalendarTo} onOpenChange={setShowCalendarTo}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      'h-8 text-xs gap-1.5 font-normal',
+                      datePreset === 'custom' && customTo ? 'border-primary ring-1 ring-primary/20' : ''
+                    )}
+                  >
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {customTo ? format(customTo, 'dd/MM/yy') : 'Até'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={customTo}
+                    onSelect={(d) => { setCustomTo(d || undefined); setDatePreset('custom'); setSelectedMonth(''); setShowCalendarTo(false); }}
+                    initialFocus
+                    disabled={(date) => customFrom ? isBefore(date, customFrom) : false}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Active filter badge */}
+            {datePreset !== 'all' && (
+              <button
+                onClick={clearFilter}
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+              >
+                {dateLabel}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* ── Row 1: KPI Cards ── */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         <KpiCard icon={<Phone className="h-5 w-5 text-primary" />} iconBg="bg-primary/10" value={stats.totalCalls} label="Calls Registradas" />
