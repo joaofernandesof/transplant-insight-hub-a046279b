@@ -286,6 +286,7 @@ import {
 } from "./neohub/pages/neoteam";
 import NeoTeamCargos from "./neohub/pages/neoteam/NeoTeamCargos";
 import { SectorChamadosPage, SectorTicketDetailPage, SectorTicketConfigPage } from "./neohub/pages/neoteam/chamados";
+import { GestaoChamadosPage, GestaoDashboardPage } from "./neohub/pages/neoteam/gestao";
 
 // ====================================
 // Pages - ProfileSelector / PortalSelector
