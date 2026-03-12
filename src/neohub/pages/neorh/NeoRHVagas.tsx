@@ -15,8 +15,6 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { VagaDetailSheet } from './components/VagaDetailSheet';
-import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
 import {
   Plus, Pencil, Trash2, Eye, KanbanSquare, List, Briefcase, DollarSign, MapPin,
   GraduationCap, Target, Users2, Crown, BarChart3, Clock, TrendingUp,
