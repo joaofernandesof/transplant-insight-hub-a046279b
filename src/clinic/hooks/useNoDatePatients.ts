@@ -155,7 +155,7 @@ export function useNoDatePatients() {
       .map((s: any): NoDatePatient => ({
         saleId: s.id, // use surgery id as key
         patientId: s.patient_id,
-        patientName: s.clinic_patients?.full_name || s.patient_name || 'Paciente não vinculado',
+        patientName: (s.patient_id ? patientNameMap.get(s.patient_id) : null) || s.patient_name || 'Paciente não vinculado',
         branch: s.branch || '-',
         procedure: s.procedure || '-',
         category: s.category,
