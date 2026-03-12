@@ -21,6 +21,7 @@ const SECTOR_ICONS: Record<string, LucideIcon> = {
   comercial: Phone,
   compras: ShoppingCart,
   manutencao: Wrench,
+  gestao: BarChart3,
 };
 
 const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }> = {
