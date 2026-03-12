@@ -51,6 +51,20 @@ import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailabil
 
 import type { DateRange } from 'react-day-picker';
 
+// Checklist pendency filter definitions
+const CHECKLIST_FILTERS = [
+  { key: 'examsSent', label: 'Exames' },
+  { key: 'guidesSent', label: 'Guias' },
+  { key: 'contractSigned', label: 'Contrato' },
+  { key: 'chartReady', label: 'Prontuário' },
+  { key: 'surgeryConfirmed', label: 'Confirmação' },
+  { key: 'bookingTermSigned', label: 'Termo Reserva' },
+  { key: 'dischargeTermSigned', label: 'Termo Alta' },
+  { key: 'gpiD1Done', label: 'GPI D+1' },
+] as const;
+
+type ChecklistFilterKey = typeof CHECKLIST_FILTERS[number]['key'];
+
 // D-XX filter definitions
 const D_FILTERS = [
   { value: 'd-20', label: 'D-20', days: 20 },
@@ -96,6 +110,7 @@ export default function ClinicDashboard() {
   const [addDialogDate, setAddDialogDate] = useState<string | undefined>(undefined);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
+  const [activeChecklistFilters, setActiveChecklistFilters] = useState<Set<ChecklistFilterKey>>(new Set());
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [isSyncingNotes, setIsSyncingNotes] = useState(false);
   const [notesSynced, setNotesSynced] = useState(() => localStorage.getItem('surgery-notes-synced') === 'true');
@@ -158,6 +173,15 @@ export default function ClinicDashboard() {
   }, []);
 
   const clearDFilters = useCallback(() => setActiveDFilters(new Set()), []);
+
+  const toggleChecklistFilter = useCallback((key: ChecklistFilterKey) => {
+    setActiveChecklistFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
+  const clearChecklistFilters = useCallback(() => setActiveChecklistFilters(new Set()), []);
 
   const periodRange = useMemo(() => {
     const now = new Date();
@@ -275,6 +299,13 @@ export default function ClinicDashboard() {
       });
     }
 
+    // Checklist pendency filter (AND logic: all selected must be false/pending)
+    if (activeChecklistFilters.size > 0) {
+      items = items.filter(s => {
+        return Array.from(activeChecklistFilters).every(key => (s as any)[key] === false);
+      });
+    }
+
     items.sort((a, b) => {
       const aDate = a.surgeryDate ? parseISO(a.surgeryDate) : new Date(9999, 0);
       const bDate = b.surgeryDate ? parseISO(b.surgeryDate) : new Date(9999, 0);
@@ -299,7 +330,7 @@ export default function ClinicDashboard() {
     });
 
     return items;
-  }, [scheduledSurgeries, selectedBranch, periodRange, searchTerm, activeDFilters, availabilityFilter, effectiveBranchForAvail, getDayAvailability]);
+  }, [scheduledSurgeries, selectedBranch, periodRange, searchTerm, activeDFilters, activeChecklistFilters, availabilityFilter, effectiveBranchForAvail, getDayAvailability]);
 
   // KPIs computed from filteredSurgeries (driven by active filters)
   const kpiStats = useMemo(() => {
@@ -682,6 +713,36 @@ export default function ClinicDashboard() {
                     {opt.label}
                   </Button>
                 ))}
+              </div>
+
+              {/* Checklist Pendency Filter */}
+              <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto pb-1">
+                <span className="text-[11px] text-muted-foreground font-medium mr-1 shrink-0">Pendências:</span>
+                {CHECKLIST_FILTERS.map((cf) => (
+                  <Button
+                    key={cf.key}
+                    variant={activeChecklistFilters.has(cf.key) ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => toggleChecklistFilter(cf.key)}
+                    className={cn(
+                      'h-6 px-2 text-[11px] rounded-full whitespace-nowrap',
+                      activeChecklistFilters.has(cf.key) && 'bg-amber-600 text-white hover:bg-amber-700'
+                    )}
+                  >
+                    {cf.label}
+                  </Button>
+                ))}
+                {activeChecklistFilters.size > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearChecklistFilters}
+                    className="h-6 px-2 text-[11px] gap-1 text-muted-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                    Limpar
+                  </Button>
+                )}
               </div>
             </div>
 
