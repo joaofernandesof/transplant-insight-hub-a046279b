@@ -30,16 +30,17 @@ serve(async (req) => {
       );
     }
 
-    const systemPrompt = `Você é um especialista em análise de calls de vendas consultivas de alto ticket para clínicas médicas e estéticas.
+    const systemPrompt = `Você é um especialista em análise de calls de vendas consultivas de alto ticket do IBRAMEC (Instituto Brasileiro de Medicina Capilar).
 
 Sua função é analisar transcrições, resumos ou anotações de calls comerciais e gerar um relatório claro, crítico e altamente detalhado.
 
 Regras:
 - Linguagem clara e direta
-- Ser crítico com a atuação da closer
+- Ser crítico com a atuação do closer
 - Priorizar melhoria de performance
 - Não inventar informações - se não há dados suficientes, indicar "Não identificado na call"
 - Scores BANT de 0 a 10 cada (zero significa ausência total)
+- Scores SPIN de 0 a 10 cada (zero significa ausência total)
 - Probabilidade de fechamento de 0 a 100
 - Avalie a performance do closer em 7 dimensões (nota 0-10 cada, zero = não demonstrou nenhum aspecto):
   1. Primeiro Impacto: como abriu a call, rapport, tom inicial
@@ -50,11 +51,117 @@ Regras:
   6. Gestão da Fala: controle do tempo, pausas, assertividade, evitar monólogos
   7. Fechamento: técnica de fechamento, pedido de decisão, condução ao próximo passo`;
 
+    const whatsappFormatTemplate = `O campo whatsapp_report DEVE seguir EXATAMENTE este formato completo, seção por seção:
+
+📊 *ANÁLISE DA CALL DE VENDAS*
+
+👤 *Closer:* [Nome]
+🎯 *Lead:* [Nome do médico]
+📦 *Produto:* Formação 360 em Transplante Capilar
+📅 *Data:* [Data]
+📊 *Resultado:* [Fechou / Follow-up / Perdido]
+🌡️ *Classificação:* [Frio / Morno / Quente]
+⚡ *Prob. Fechamento:* [0 a 100%]
+🔗 *Link Fireflies:* [link]
+
+🧾 *CADASTRO DO MÉDICO*
+(Preencher apenas se os dados forem coletados durante a call)
+➡️ NOME COMPLETO: [Nome]
+➡️ TELEFONE: [Telefone]
+➡️ CPF: [CPF]
+➡️ E-MAIL: [Email]
+➡️ CRM OU DOCUMENTO: [CRM]
+➡️ DATA DE NASCIMENTO: [Data]
+➡️ RUA/AVENIDA: [Endereço]
+➡️ NÚMERO: [Número]
+➡️ COMPLEMENTO: [Complemento]
+➡️ BAIRRO: [Bairro]
+➡️ CIDADE: [Cidade]
+➡️ ESTADO: [Estado]
+➡️ CEP: [CEP]
+➡️ CURSO: [Formação 360 / Brows / Fellow]
+➡️ CIDADE DA TURMA: [Cidade]
+➡️ DATA DA TURMA: [Mês ou data]
+➡️ VALOR DO CONTRATO: [Valor]
+➡️ SINAL PAGO: [Valor]
+➡️ FORMA DE PGTO SINAL: [PIX / Cartão / Boleto]
+➡️ OBSERVAÇÕES ADICIONAIS: [Observações]
+
+📝 *RESUMO*
+Resumo claro da call em 5 a 8 linhas descrevendo: perfil do médico, motivação principal, momento profissional, objeções levantadas, resultado da call.
+
+🎯 *BANT*
+B: X/10
+A: X/10
+N: X/10
+T: X/10
+Total: XX/40
+
+Interpretação:
+0–15 → Lead fraco | 16–25 → Lead médio | 26–35 → Lead qualificado | 36–40 → Lead muito qualificado
+
+*Budget:* Análise da capacidade financeira
+*Authority:* Análise do poder de decisão
+*Need:* Análise do nível de interesse/necessidade
+*Timing:* Análise da urgência para iniciar
+
+📊 *ANÁLISE DO FLUXO SPIN*
+S: X/10
+P: X/10
+I: X/10
+N: X/10
+Total: XX/40
+
+*Situation:* Análise se o closer investigou cenário do médico
+*Problem:* Análise se identificou dores reais
+*Implication:* Análise se ampliou o problema
+*Need Payoff:* Análise se apresentou a solução
+
+🧠 *ANÁLISE DO PITCH DO CURSO*
+*Conhecimento técnico:* X/10 - Análise
+*Local de cirurgia:* X/10 - Análise
+*Equipe:* X/10 - Análise
+*Paciente:* X/10 - Análise
+
+💰 *ANÁLISE DA MONETIZAÇÃO*
+Nota: X/10
+Análise se o closer explicou valor médio, custo e margem de lucro do transplante.
+
+⭐ *ANÁLISE DE PROVA SOCIAL*
+Nota: X/10
+Verificar se foram citados: transplantes mensais, avaliações Google, resultados reais, alunos formados.
+
+⚠️ *OBJEÇÕES IDENTIFICADAS*
+Listar cada objeção: como foi apresentada, como o closer respondeu, se foi resolvida.
+
+📉 *MOMENTOS DE PERDA DE OPORTUNIDADE*
+Pontos onde a venda poderia avançar mais.
+
+📈 *PONTOS FORTES DA CALL*
+Principais acertos do closer.
+
+📉 *PONTOS DE MELHORIA*
+Melhorias necessárias.
+
+🔥 *CLASSIFICAÇÃO DO LEAD*
+[Frio/Morno/Quente] + Justificativa breve.
+
+⚡ *PROBABILIDADE DE FECHAMENTO*
+XX% + Justificativa baseada em: interesse, perfil financeiro, timing, objeções.
+
+➡️ *PRÓXIMOS PASSOS*
+Plano de ação detalhado.
+
+📋 *CONDUTA / TAREFAS A FAZER*
+• Tarefa 1
+• Tarefa 2
+...`;
+
     const userPrompt = `Analise a seguinte call comercial:
 
 CLOSER: ${closer_name || "Não informado"}
 LEAD: ${lead_nome || "Não informado"}  
-PRODUTO: ${produto || "Não informado"}
+PRODUTO: ${produto || "Formação 360 em Transplante Capilar"}
 DATA: ${data_call || "Não informada"}
 STATUS: ${status_call || "Não informado"}
 ${fireflies_url ? `LINK FIREFLIES: ${fireflies_url}` : ""}
@@ -62,11 +169,10 @@ ${fireflies_url ? `LINK FIREFLIES: ${fireflies_url}` : ""}
 TRANSCRIÇÃO/RESUMO:
 ${transcript}
 
-Gere a análise completa usando a função fornecida. Inclua também o campo whatsapp_report com uma versão formatada para WhatsApp usando *negrito* com asteriscos e emojis. O relatório DEVE incluir:
-1. Os dados básicos (closer, lead, produto, data, status)
-2. ${fireflies_url ? `O link da call no Fireflies: ${fireflies_url}` : "Link da call (se disponível)"}
-3. Uma seção "📋 *CONDUTA / TAREFAS A FAZER*" com as ações concretas identificadas na call (follow-up, enviar material, agendar retorno, etc.)
-4. Resumo, BANT, classificação e próximos passos`;
+Gere a análise completa usando a função fornecida. 
+
+IMPORTANTE: O campo whatsapp_report DEVE seguir EXATAMENTE o formato detalhado abaixo, incluindo TODAS as seções na ordem especificada:
+${whatsappFormatTemplate}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
