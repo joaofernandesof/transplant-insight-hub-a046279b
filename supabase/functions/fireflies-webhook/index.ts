@@ -319,7 +319,7 @@ Deno.serve(async (req) => {
             transcript: content,
             closer_name: closerName,
             lead_nome: leadName,
-            produto: null,
+            produto: detectedProduct,
             data_call: callDate,
             status_call: 'followup',
             call_id: insertedCall.id,
