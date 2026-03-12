@@ -606,7 +606,7 @@ export default function NeoAcademyAdminCourseDetail() {
               <div><Label className="text-xs text-zinc-400">Duração (segundos)</Label><Input type="number" value={lessonForm.video_duration_seconds} onChange={e => setLessonForm(f => ({ ...f, video_duration_seconds: e.target.value }))} className="bg-[#0a0a0f] border-white/10 text-white mt-1" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label className="text-xs text-zinc-400">URL da Capa</Label><Input value={lessonForm.thumbnail_url} onChange={e => setLessonForm(f => ({ ...f, thumbnail_url: e.target.value }))} placeholder="https://..." className="bg-[#0a0a0f] border-white/10 text-white mt-1" /></div>
+              <ImageUploadField label="Capa da Aula" value={lessonForm.thumbnail_url} onChange={url => setLessonForm(f => ({ ...f, thumbnail_url: url }))} folder="lessons/thumbnails" />
               <div className="flex items-center gap-4 pt-6">
                 <div className="flex items-center gap-2"><Switch checked={lessonForm.is_published} onCheckedChange={v => setLessonForm(f => ({ ...f, is_published: v }))} /><Label className="text-xs text-zinc-300">Publicada</Label></div>
                 <div className="flex items-center gap-2"><Switch checked={lessonForm.is_preview} onCheckedChange={v => setLessonForm(f => ({ ...f, is_preview: v }))} /><Label className="text-xs text-zinc-300">Preview</Label></div>
