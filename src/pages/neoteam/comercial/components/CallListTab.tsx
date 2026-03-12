@@ -319,6 +319,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                     <FileText className="h-3.5 w-3.5 text-muted-foreground mx-auto" />
                   </TableHead>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
+                  <TableHead className="w-[70px]"><SortableHeader col="duration_minutes" label="Tempo" /></TableHead>
                   <TableHead className="w-[130px]">
                     <div className="space-y-1">
                       <SortableHeader col="closer_name" label="Closer" />
