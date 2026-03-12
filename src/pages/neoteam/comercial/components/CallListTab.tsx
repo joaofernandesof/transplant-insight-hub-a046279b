@@ -312,6 +312,9 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                       checked={filtered.length > 0 && selectedIds.size === filtered.length}
                       onCheckedChange={toggleSelectAll}
                     />
+                   </TableHead>
+                  <TableHead className="w-[40px]" title="Relatório">
+                    <FileText className="h-3.5 w-3.5 text-muted-foreground mx-auto" />
                   </TableHead>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
                   <TableHead className="w-[130px]">
