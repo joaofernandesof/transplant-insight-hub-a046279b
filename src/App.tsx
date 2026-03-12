@@ -282,10 +282,9 @@ import {
   NeoTeamTasks,
   NeoTeamSettings,
   NeoTeamStaffRoles,
-} from "./neohub/pages/neoteam";
-import NeoTeamCargos from "./neohub/pages/neoteam/NeoTeamCargos";
   NeoTeamEvents
 } from "./neohub/pages/neoteam";
+import NeoTeamCargos from "./neohub/pages/neoteam/NeoTeamCargos";
 
 // ====================================
 // Pages - ProfileSelector / PortalSelector
