@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   BarChart3, Stethoscope, HeadphonesIcon, ClipboardCheck, 
   GitCompare, DollarSign, Scale, Megaphone, CircuitBoard, UsersRound,
-  Link2, Phone, ShoppingCart, Wrench,
+  Link2, Phone, ShoppingCart, Wrench, GraduationCap,
   type LucideIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 const SECTOR_ICONS: Record<string, LucideIcon> = {
   tecnico: Stethoscope,
   sucesso_paciente: HeadphonesIcon,
+  sucesso_aluno: GraduationCap,
   operacional: ClipboardCheck,
   processos: GitCompare,
   financeiro: DollarSign,
@@ -27,6 +28,7 @@ const SECTOR_ICONS: Record<string, LucideIcon> = {
 const SECTOR_COLORS: Record<string, { bg: string; icon: string; border: string }> = {
   tecnico: { bg: 'bg-cyan-200 dark:bg-cyan-800/40', icon: 'text-cyan-800 dark:text-cyan-300', border: 'border-cyan-400 dark:border-cyan-600' },
   sucesso_paciente: { bg: 'bg-yellow-200 dark:bg-yellow-800/40', icon: 'text-yellow-800 dark:text-yellow-300', border: 'border-yellow-400 dark:border-yellow-600' },
+  sucesso_aluno: { bg: 'bg-lime-200 dark:bg-lime-800/40', icon: 'text-lime-800 dark:text-lime-300', border: 'border-lime-400 dark:border-lime-600' },
   operacional: { bg: 'bg-blue-200 dark:bg-blue-800/40', icon: 'text-blue-800 dark:text-blue-300', border: 'border-blue-400 dark:border-blue-600' },
   processos: { bg: 'bg-indigo-200 dark:bg-indigo-800/40', icon: 'text-indigo-800 dark:text-indigo-300', border: 'border-indigo-400 dark:border-indigo-600' },
   financeiro: { bg: 'bg-emerald-200 dark:bg-emerald-800/40', icon: 'text-emerald-800 dark:text-emerald-300', border: 'border-emerald-400 dark:border-emerald-600' },
