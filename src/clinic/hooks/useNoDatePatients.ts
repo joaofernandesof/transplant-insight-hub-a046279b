@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { useClinicPatientsRaw } from './useClinicPatientsRaw';
 import { differenceInDays } from 'date-fns';
 import { useMemo, useState } from 'react';
 
