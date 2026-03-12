@@ -80,6 +80,9 @@ const routeLabels: Record<string, string> = {
   '/neoteam/manutencao': 'Manutenção',
   '/neoteam/manutencao/patrimonio': 'Controle Patrimonial',
   '/neoteam/manutencao/ordens': 'Ordens de Manutenção',
+  // Setor de Sucesso do Aluno
+  '/neoteam/sucesso-aluno': 'Sucesso do Aluno',
+  '/neoteam/sucesso-aluno/chamados': 'Chamados',
   // Administração
   '/neoteam/admin': 'Administração',
   '/neoteam/admin/portal-links': 'Portal de Links',
