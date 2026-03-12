@@ -434,6 +434,16 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     ],
   },
   {
+    id: 'setor_sucesso_aluno',
+    title: 'Setor de Sucesso do Aluno',
+    icon: GraduationCap,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_sucesso_aluno_chamados', code: 'neoteam_sucesso_aluno_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/sucesso-aluno/chamados' },
+    ],
+  },
+  {
     id: 'setor_admin',
     title: 'Administração',
     icon: Settings,
