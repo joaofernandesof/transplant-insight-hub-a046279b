@@ -203,6 +203,7 @@ export function VagaDetailSheet({
       setChecklistState(getChecklistState(vaga.id));
       setCustomItems(getCustomChecklistItems(vaga.id));
       setDocuments(getDocuments(vaga.id));
+      setJobLinks(getJobLinks(vaga.id));
       setActiveTab('resumo');
     }
   }, [vaga?.id]);
