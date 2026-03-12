@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 import { useClinicSurgeries, ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useNoDatePatients } from '../hooks/useNoDatePatients';
 import { useBranches } from '../hooks/useBranches';
