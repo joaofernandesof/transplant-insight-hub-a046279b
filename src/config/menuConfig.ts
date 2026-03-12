@@ -407,6 +407,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: false,
     items: [
       { id: 'neoteam_compras_dashboard', code: 'neoteam_compras_dashboard', title: 'Dashboard Compras', icon: ShoppingCart, route: '/neoteam/compras/dashboard' },
+      { id: 'neoteam_compras_chamados', code: 'neoteam_compras_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/compras/chamados' },
     ],
   },
   {
