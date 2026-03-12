@@ -571,6 +571,146 @@ export function VagaDetailSheet({
                         </Button>
                       </div>
                     )}
+
+                    {/* ── Links de Divulgação (only for vaga_aberta) ── */}
+                    {etapa.id === 'vaga_aberta' && (
+                      <div className="mt-3 pt-3 border-t border-border/50 space-y-3">
+                        <p className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                          <ExternalLink className="h-3.5 w-3.5" /> Links de Divulgação
+                        </p>
+
+                        {/* Indeed (obrigatório) */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-medium flex items-center gap-1">
+                            Indeed <span className="text-destructive">*</span>
+                          </label>
+                          <Input
+                            placeholder="https://indeed.com/job/..."
+                            value={jobLinks.indeed}
+                            onChange={e => {
+                              const updated = { ...jobLinks, indeed: e.target.value };
+                              setJobLinks(updated);
+                              saveJobLinks(vaga.id, updated);
+                            }}
+                            className={cn("h-7 text-xs", !jobLinks.indeed && "border-destructive/50")}
+                          />
+                          {!jobLinks.indeed && (
+                            <p className="text-[10px] text-destructive">Link do Indeed é obrigatório</p>
+                          )}
+                        </div>
+
+                        {/* Optional platforms */}
+                        {[
+                          { key: 'linkedin' as const, label: 'LinkedIn', placeholder: 'https://linkedin.com/jobs/...' },
+                          { key: 'catho' as const, label: 'Catho', placeholder: 'https://catho.com.br/...' },
+                          { key: 'infojobs' as const, label: 'InfoJobs', placeholder: 'https://infojobs.com.br/...' },
+                          { key: 'glassdoor' as const, label: 'Glassdoor', placeholder: 'https://glassdoor.com.br/...' },
+                        ].map(platform => (
+                          <div key={platform.key} className="space-y-1">
+                            <label className="text-[11px] font-medium">{platform.label}</label>
+                            <div className="flex gap-1.5">
+                              <Input
+                                placeholder={platform.placeholder}
+                                value={jobLinks[platform.key]}
+                                onChange={e => {
+                                  const updated = { ...jobLinks, [platform.key]: e.target.value };
+                                  setJobLinks(updated);
+                                  saveJobLinks(vaga.id, updated);
+                                }}
+                                className="h-7 text-xs flex-1"
+                              />
+                              {jobLinks[platform.key] && (
+                                <a href={jobLinks[platform.key]} target="_blank" rel="noopener noreferrer">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                                    <ExternalLink className="h-3 w-3" />
+                                  </Button>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Custom extra links */}
+                        {jobLinks.outros.length > 0 && (
+                          <div className="space-y-1.5">
+                            {jobLinks.outros.map((link, idx) => (
+                              <div key={idx} className="flex items-center gap-1.5">
+                                <span className="text-[11px] font-medium min-w-[60px] truncate">{link.label}</span>
+                                <Input
+                                  value={link.url}
+                                  onChange={e => {
+                                    const updated = { ...jobLinks };
+                                    updated.outros[idx].url = e.target.value;
+                                    setJobLinks(updated);
+                                    saveJobLinks(vaga.id, updated);
+                                  }}
+                                  className="h-7 text-xs flex-1"
+                                />
+                                {link.url && (
+                                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                                      <ExternalLink className="h-3 w-3" />
+                                    </Button>
+                                  </a>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 shrink-0"
+                                  onClick={() => {
+                                    const updated = { ...jobLinks, outros: jobLinks.outros.filter((_, i) => i !== idx) };
+                                    setJobLinks(updated);
+                                    saveJobLinks(vaga.id, updated);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Add custom link */}
+                        <div className="flex gap-1.5">
+                          <Input
+                            placeholder="Nome (ex: Gupy)"
+                            value={newLinkLabel}
+                            onChange={e => setNewLinkLabel(e.target.value)}
+                            className="h-7 text-xs w-24"
+                          />
+                          <Input
+                            placeholder="URL"
+                            value={newLinkUrl}
+                            onChange={e => setNewLinkUrl(e.target.value)}
+                            className="h-7 text-xs flex-1"
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' && newLinkLabel.trim()) {
+                                const updated = { ...jobLinks, outros: [...jobLinks.outros, { label: newLinkLabel.trim(), url: newLinkUrl.trim() }] };
+                                setJobLinks(updated);
+                                saveJobLinks(vaga.id, updated);
+                                setNewLinkLabel('');
+                                setNewLinkUrl('');
+                              }
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs shrink-0"
+                            disabled={!newLinkLabel.trim()}
+                            onClick={() => {
+                              const updated = { ...jobLinks, outros: [...jobLinks.outros, { label: newLinkLabel.trim(), url: newLinkUrl.trim() }] };
+                              setJobLinks(updated);
+                              saveJobLinks(vaga.id, updated);
+                              setNewLinkLabel('');
+                              setNewLinkUrl('');
+                            }}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
