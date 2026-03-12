@@ -603,6 +603,10 @@ function NeoTeamRoutes() {
             </React.Fragment>
           ))}
 
+          {/* ===== GESTÃO ===== */}
+          <Route path="gestao/chamados" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><GestaoChamadosPage /></Suspense>} />
+          <Route path="gestao/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><GestaoDashboardPage /></Suspense>} />
+
           {/* ===== ADMINISTRAÇÃO ===== */}
           <Route path="admin/portal-links" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPortalLinks /></Suspense>} />
           <Route path="admin/configuracoes" element={<NeoTeamSettings />} />

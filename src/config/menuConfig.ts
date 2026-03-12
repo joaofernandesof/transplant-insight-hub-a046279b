@@ -423,6 +423,17 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     ],
   },
   {
+    id: 'setor_gestao',
+    title: 'Gestão',
+    icon: BarChart3,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_gestao_dashboard', code: 'neoteam_gestao_dashboard', title: 'Dashboard', icon: LayoutDashboard, route: '/neoteam/gestao/dashboard', adminOnly: true },
+      { id: 'neoteam_gestao_chamados', code: 'neoteam_gestao_chamados', title: 'Central de Chamados', icon: ClipboardList, route: '/neoteam/gestao/chamados', adminOnly: true },
+    ],
+  },
+  {
     id: 'setor_admin',
     title: 'Administração',
     icon: Settings,
