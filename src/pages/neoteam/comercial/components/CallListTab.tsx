@@ -303,7 +303,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
 
       <Card className="flex-1 min-h-0 overflow-hidden">
         <CardContent className="p-0 h-full">
-          <div className="overflow-auto h-full">
+          <div className="overflow-auto h-full [&>div]:!overflow-visible">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
                 <TableRow>
