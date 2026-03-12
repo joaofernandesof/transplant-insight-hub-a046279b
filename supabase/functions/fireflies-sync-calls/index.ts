@@ -6,6 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// Detect product from call title patterns
+function detectProductFromTitle(title: string): string | null {
+  if (!title) return null;
+  const t = title.toLowerCase();
+  if (t.includes('brows') || t.includes('sobrancelha')) return 'BROWS TRANSPLANT';
+  if (t.includes('instrumentador') || t.includes('instrumen')) return 'INSTRUMENTADOR DE ELITE';
+  if (t.includes('formação') || t.includes('formacao') || t.includes('360')) return 'Formação 360';
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
