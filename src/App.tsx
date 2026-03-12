@@ -286,6 +286,7 @@ import {
 } from "./neohub/pages/neoteam";
 import NeoTeamCargos from "./neohub/pages/neoteam/NeoTeamCargos";
 import { SectorChamadosPage, SectorTicketDetailPage, SectorTicketConfigPage } from "./neohub/pages/neoteam/chamados";
+import { GestaoChamadosPage, GestaoDashboardPage } from "./neohub/pages/neoteam/gestao";
 
 // ====================================
 // Pages - ProfileSelector / PortalSelector
@@ -601,6 +602,10 @@ function NeoTeamRoutes() {
               <Route path={`${slug}/chamados/config`} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorTicketConfigPage sectorCode={code} sectorSlug={slug} /></Suspense>} />
             </React.Fragment>
           ))}
+
+          {/* ===== GESTÃO ===== */}
+          <Route path="gestao/chamados" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><GestaoChamadosPage /></Suspense>} />
+          <Route path="gestao/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><GestaoDashboardPage /></Suspense>} />
 
           {/* ===== ADMINISTRAÇÃO ===== */}
           <Route path="admin/portal-links" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPortalLinks /></Suspense>} />
