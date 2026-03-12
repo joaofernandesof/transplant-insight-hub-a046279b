@@ -312,6 +312,7 @@ Deno.serve(async (req) => {
             status_call: 'followup',
             call_id: insertedCall.id,
             account_id,
+            fireflies_url: `https://app.fireflies.ai/view/${transcript.id}`,
           }),
         })
 
