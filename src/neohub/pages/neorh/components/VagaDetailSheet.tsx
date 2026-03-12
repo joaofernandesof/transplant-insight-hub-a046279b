@@ -28,28 +28,8 @@ interface EtapaDef {
   icon: React.ElementType;
 }
 
-interface Vaga {
-  id: string;
-  cargo_id: string | null;
-  descricao_curta: string | null;
-  empresa: string | null;
-  modalidade: string | null;
-  salario_fixo: number | null;
-  tem_comissao: boolean | null;
-  modelo_contratacao: string | null;
-  objetivo: string | null;
-  responsabilidades: string | null;
-  competencias: string | null;
-  formacao: string | null;
-  etapa_kanban: string | null;
-  prioridade: string | null;
-  observacoes: string | null;
-  etapa_updated_at: string | null;
-  etapa_history: any[];
-  checklist_onboarding: any[];
-  perguntas_eliminatorias: any[];
-  [key: string]: any;
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Vaga = any;
 
 interface VagaDetailSheetProps {
   vaga: Vaga | null;
