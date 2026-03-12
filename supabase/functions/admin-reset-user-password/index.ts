@@ -48,14 +48,16 @@ serve(async (req: Request) => {
       });
     }
 
-    // Check if caller is admin
-    const { data: adminCheck } = await supabaseAdmin
-      .from("neohub_users")
-      .select("is_admin")
-      .eq("user_id", callerData.user.id)
-      .maybeSingle();
+    // Check if caller is admin (user_roles table or neohub_users)
+    const { data: hasRole } = await supabaseAdmin.rpc("has_role", {
+      _user_id: callerData.user.id,
+      _role: "admin",
+    });
+    const { data: isNeohubAdmin } = await supabaseAdmin.rpc("is_neohub_admin", {
+      _user_id: callerData.user.id,
+    });
 
-    if (!adminCheck?.is_admin) {
+    if (!hasRole && !isNeohubAdmin) {
       return new Response(JSON.stringify({ error: "Apenas administradores podem alterar senhas" }), {
         status: 403,
         headers: { "Content-Type": "application/json", ...corsHeaders },
