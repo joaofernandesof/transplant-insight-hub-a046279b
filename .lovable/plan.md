@@ -1,85 +1,73 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+# Plano: Clonar Configuração CRM de Lucas Araujo → Mario Cezar da Motta
 
-### Resumo
+## Contas Identificadas
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+| | Lucas Araujo (origem) | Mario Cezar da Motta (destino) |
+|---|---|---|
+| **Account ID** | `a0000001-...0002` | `fb81072b-...` |
+| **User ID** | `860ae553-...` | `2adaf727-...` |
+| **Agent** | Ana (ID: `10234867-...`) | Ana (ID: `978eac9e-...`) |
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+## O que será copiado
 
----
+### 1. Agente de IA (prompts, fluxo, configurações)
+Copiar do agente de Lucas para o agente de Mario:
+- `ai_identity`, `ai_objective`, `ai_instructions`, `ai_restrictions`
+- `tone_of_voice`, `attendance_mode`
+- `fluxo_atendimento` (passos cronológicos completos)
+- `services`, `payment_methods`, `consultation_type`, `consultation_duration`
+- `schedule`, `chatbot_flows`, `business_units`
+- `image_gallery`, `before_after_images`
 
-### 1. Nova tabela: `surgery_agenda_availability`
+**Nota**: Campos específicos do negócio (company_name, address, city, professional_name, crm, instagram) **não** serão sobrescritos, pois são dados próprios da clínica do Mario.
 
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+### 2. Kanbans e Colunas
+Lucas tem 2 kanbans (Comercial + Pós-Venda) com 11 colunas. Mario já tem 3 kanbans (Comercial + Pós-Venda + Pacientes) com 11 colunas. A estrutura é idêntica nos 2 kanbans em comum.
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+**Ação**: Replicar as `ai_instruction` das colunas (atualmente `null` em ambos, então nada a fazer).
 
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
+### 3. Réguas de Follow-up
+Lucas tem 4 réguas de follow-up. Mario tem 2. Vou:
+- Deletar as 2 réguas existentes do Mario
+- Inserir as 4 réguas de Lucas adaptadas com os IDs de coluna do Mario
 
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
-```
+**Mapeamento de colunas** (Lucas → Mario):
+- Lead de Entrada: `c3605c92` → `5fae0089`
+- Triagem: `09e022aa` → `0f277871`
+- Tentando Agendar: `adac8570` → `9d78014e`
+- Reagendamento: `164c7060` → `01146388`
+- Agendado: `3a066d55` → `c385b9c3`
+- Follow Up: `427bec61` → `34238dd9`
+- Cliente: `8691bd29` → `4940f69c`
+- Desqualificados: `5870e650` → `499b2c9b`
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+**Mapeamento de kanbans** (Lucas → Mario):
+- Comercial: `105dae7e` → `356323e1`
+- Pós-Venda: `3941f916` → `baa5a543`
 
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+### 4. Lembretes de Consulta
+Lucas tem 5 lembretes. Mario tem 0. Vou inserir os 5 lembretes adaptados.
 
-### 3. Visualização de Disponibilidade (todos os usuários)
+### 5. Checklists de Coluna
+Lucas tem 5 checklists (sistema) na coluna "Lead de Entrada". Mario já tem 5 checklists. Vou manter os existentes (são os mesmos campos de sistema).
 
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
+### 6. Base de Conhecimento
+Lucas tem múltiplos documentos (FAQ, RAG completo). Mario tem 1 documento. **Não** vou copiar os documentos de conhecimento pois são específicos de cada clínica (Lucas = Neofolic, Mario = Desiree Hickmann).
 
-### 4. Novo hook: `useSurgeryAgendaAvailability`
+### 7. Target Kanbans/Stages do Agente
+Atualizar o `target_kanbans` e `target_stages` do agente do Mario para apontar para seus próprios kanbans/colunas (mapeando dos de Lucas).
 
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
+## Etapas de Execução
 
-### 5. Validação no agendamento
+1. **UPDATE** agente do Mario com prompts/config do Lucas (preservando dados do negócio)
+2. **DELETE** follow-up rules existentes do Mario
+3. **INSERT** follow-up rules de Lucas com UUIDs mapeados
+4. **INSERT** reminder rules de Lucas adaptadas para Mario
+5. **UPDATE** target_kanbans/target_stages do agente
 
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+## Observação
+- Dados específicos do negócio do Mario (nome da clínica, endereço, CRM, fluxo de atendimento com menções ao Dr. Mario Farinazzo) serão **preservados**
+- Apenas a estrutura de prompts genéricos, regras de follow-up e lembretes serão copiados
 
