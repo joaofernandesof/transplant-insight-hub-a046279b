@@ -67,6 +67,7 @@ const routeLabels: Record<string, string> = {
   // Setor de TI
   '/neoteam/ti': 'TI',
   '/neoteam/ti/chamados': 'Chamados',
+  '/neoteam/ti/controle-de-bots': 'Controle de Bots',
   '/neoteam/ti/relatorios': 'Relatórios',
   // Setor de RH
   '/neoteam/rh': 'RH',

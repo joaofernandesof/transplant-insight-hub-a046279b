@@ -555,6 +555,7 @@ function NeoTeamRoutes() {
 
           {/* ===== SETOR TI ===== */}
           <Route path="ti/chamados" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><TicketsPage /></Suspense>} />
+          <Route path="ti/controle-de-bots" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><BotControlPage /></Suspense>} />
           <Route path="ti/relatorios" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
 
           {/* ===== SETOR RH ===== */}

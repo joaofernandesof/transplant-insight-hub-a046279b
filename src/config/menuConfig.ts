@@ -372,6 +372,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: false,
     items: [
       { id: 'neoteam_tickets', code: 'neoteam_tickets_ti', title: 'Chamados', icon: CircuitBoard, route: '/neoteam/ti/chamados' },
+      { id: 'neoteam_bot_control', code: 'neoteam_bot_control', title: 'Controle de Bots', icon: CircuitBoard, route: '/neoteam/ti/controle-de-bots' },
       { id: 'neoteam_reports_cat', code: 'neoteam_reports', title: 'Relatórios', icon: FileBarChart, route: '/neoteam/ti/relatorios' },
     ],
   },
