@@ -21781,6 +21781,276 @@ export type Database = {
           },
         ]
       }
+      sector_ticket_history: {
+        Row: {
+          action: string
+          created_at: string | null
+          description: string | null
+          from_stage_name: string | null
+          id: string
+          metadata: Json | null
+          ticket_id: string
+          to_stage_name: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          description?: string | null
+          from_stage_name?: string | null
+          id?: string
+          metadata?: Json | null
+          ticket_id: string
+          to_stage_name?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          description?: string | null
+          from_stage_name?: string | null
+          id?: string
+          metadata?: Json | null
+          ticket_id?: string
+          to_stage_name?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sector_ticket_history_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "sector_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sector_ticket_stage_checklists: {
+        Row: {
+          created_at: string | null
+          field_type: string | null
+          id: string
+          is_required: boolean | null
+          label: string
+          options: Json | null
+          order_index: number | null
+          stage_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          field_type?: string | null
+          id?: string
+          is_required?: boolean | null
+          label: string
+          options?: Json | null
+          order_index?: number | null
+          stage_id: string
+        }
+        Update: {
+          created_at?: string | null
+          field_type?: string | null
+          id?: string
+          is_required?: boolean | null
+          label?: string
+          options?: Json | null
+          order_index?: number | null
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sector_ticket_stage_checklists_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "sector_ticket_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sector_ticket_stages: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_final: boolean | null
+          is_initial: boolean | null
+          name: string
+          order_index: number | null
+          responsible_role: string | null
+          sla_hours: number | null
+          ticket_type_id: string
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_final?: boolean | null
+          is_initial?: boolean | null
+          name: string
+          order_index?: number | null
+          responsible_role?: string | null
+          sla_hours?: number | null
+          ticket_type_id: string
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_final?: boolean | null
+          is_initial?: boolean | null
+          name?: string
+          order_index?: number | null
+          responsible_role?: string | null
+          sla_hours?: number | null
+          ticket_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sector_ticket_stages_ticket_type_id_fkey"
+            columns: ["ticket_type_id"]
+            isOneToOne: false
+            referencedRelation: "sector_ticket_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sector_ticket_types: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          order_index: number | null
+          sector_code: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          order_index?: number | null
+          sector_code: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          order_index?: number | null
+          sector_code?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sector_tickets: {
+        Row: {
+          assigned_name: string | null
+          assigned_to: string | null
+          branch: string | null
+          checklist_data: Json | null
+          created_at: string | null
+          current_stage_id: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          priority: string | null
+          requester_id: string
+          requester_name: string
+          sector_code: string
+          sla_breached: boolean | null
+          sla_deadline: string | null
+          status: string | null
+          ticket_number: number
+          ticket_type_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_name?: string | null
+          assigned_to?: string | null
+          branch?: string | null
+          checklist_data?: Json | null
+          created_at?: string | null
+          current_stage_id?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          requester_id: string
+          requester_name: string
+          sector_code: string
+          sla_breached?: boolean | null
+          sla_deadline?: string | null
+          status?: string | null
+          ticket_number?: number
+          ticket_type_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_name?: string | null
+          assigned_to?: string | null
+          branch?: string | null
+          checklist_data?: Json | null
+          created_at?: string | null
+          current_stage_id?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          requester_id?: string
+          requester_name?: string
+          sector_code?: string
+          sla_breached?: boolean | null
+          sla_deadline?: string | null
+          status?: string | null
+          ticket_number?: number
+          ticket_type_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sector_tickets_current_stage_id_fkey"
+            columns: ["current_stage_id"]
+            isOneToOne: false
+            referencedRelation: "sector_ticket_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sector_tickets_ticket_type_id_fkey"
+            columns: ["ticket_type_id"]
+            isOneToOne: false
+            referencedRelation: "sector_ticket_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sentinel_alert_recipients: {
         Row: {
           created_at: string

@@ -272,6 +272,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_anamnesis', code: 'neoteam_anamnesis', title: 'Anamnese', icon: ClipboardList, route: '/neoteam/tecnico/anamnese' },
       { id: 'neoteam_doctor_view', code: 'neoteam_doctor_view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/tecnico/visao-medico', requiredProfiles: ['medico', 'administrador'] },
       { id: 'neoteam_procedures', code: 'neoteam_procedures', title: 'Procedimentos', icon: Syringe, route: '/neoteam/tecnico/procedimentos' },
+      { id: 'neoteam_tecnico_chamados', code: 'neoteam_tecnico_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/tecnico/chamados' },
     ],
   },
   {
@@ -283,6 +284,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/sucesso-paciente/postvenda' },
       { id: 'neoteam_retention', code: 'neoteam_retention', title: 'Retenção & Churn', icon: Heart, route: '/neoteam/sucesso-paciente/retencao' },
+      { id: 'neoteam_sp_chamados', code: 'neoteam_sp_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/sucesso-paciente/chamados' },
     ],
   },
   {
@@ -296,6 +298,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_cleaning', code: 'neoteam_cleaning', title: 'Limpeza', icon: Sparkles, route: '/neoteam/operacional/limpeza' },
       { id: 'neoteam_inventory', code: 'neoteam_inventory', title: 'Inventário', icon: Package, route: '/neoteam/operacional/inventario' },
       { id: 'neoteam_diary', code: 'neoteam_diary', title: 'Diário de Bordo', icon: NotebookPen, route: '/neoteam/operacional/diario' },
+      { id: 'neoteam_op_chamados', code: 'neoteam_op_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/operacional/chamados' },
     ],
   },
   {
@@ -308,6 +311,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_processos', code: 'neoteam_processos', title: 'Fluxos de Processo', icon: GitCompare, route: '/neoteam/processos/fluxos' },
       { id: 'neoteam_pops', code: 'neoteam_pops', title: 'POPs', icon: BookMarked, route: '/neoteam/processos/pops' },
       { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/processos/documentos' },
+      { id: 'neoteam_proc_chamados', code: 'neoteam_proc_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/processos/chamados' },
     ],
   },
   {
@@ -321,6 +325,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_contas_pagar', code: 'neoteam_contas_pagar', title: 'Contas a Pagar', icon: CreditCard, route: '/neoteam/financeiro/contas-a-pagar' },
       { id: 'neoteam_contract_review', code: 'neoteam_contract_review', title: 'Revisão de Contratos', icon: FileCheck, route: '/neoteam/financeiro/revisao-contratos', adminOnly: true },
       { id: 'neoteam_contracts_import', code: 'neoteam_contracts_import', title: 'Importar Contratos', icon: FileText, route: '/neoteam/financeiro/importar-contratos', adminOnly: true },
+      { id: 'neoteam_fin_chamados', code: 'neoteam_fin_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/financeiro/chamados' },
     ],
   },
   {
@@ -332,6 +337,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_legal_dashboard', code: 'neoteam_legal_dashboard', title: 'Dashboard Jurídico', icon: Scale, route: '/neoteam/juridico/dashboard', adminOnly: true },
       { id: 'neoteam_legal_contracts', code: 'neoteam_legal_contracts', title: 'Gestão de Contratos', icon: Gavel, route: '/neoteam/juridico/contratos', adminOnly: true },
+      { id: 'neoteam_jur_chamados', code: 'neoteam_jur_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/juridico/chamados' },
     ],
   },
   {
@@ -342,6 +348,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: false,
     items: [
       { id: 'neoteam_call_intelligence', code: 'neoteam_call_intelligence', title: 'Call Intelligence', icon: Phone, route: '/neoteam/comercial/call-intelligence' },
+      { id: 'neoteam_com_chamados', code: 'neoteam_com_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/comercial/chamados' },
     ],
   },
   {
@@ -354,6 +361,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_campaigns', code: 'neoteam_campaigns', title: 'Campanhas', icon: Megaphone, route: '/neoteam/marketing/campanhas', adminOnly: true },
       { id: 'neoteam_event_organization', code: 'neoteam_event_organization', title: 'Gestão de Eventos', icon: ClipboardList, route: '/neoteam/marketing/eventos', adminOnly: true },
       { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/marketing/galerias', adminOnly: true },
+      { id: 'neoteam_mkt_chamados', code: 'neoteam_mkt_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/marketing/chamados' },
     ],
   },
   {
@@ -388,6 +396,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_perf_pdi', code: 'neoteam_perf_pdi', title: 'PDIs', icon: ClipboardList, route: '/neoteam/rh/performance/pdi', adminOnly: true },
       { id: 'neoteam_perf_talent', code: 'neoteam_perf_talent', title: 'Talent Score', icon: Crown, route: '/neoteam/rh/performance/talent-score', adminOnly: true },
       { id: 'neoteam_rh_offboarding', code: 'neoteam_rh_offboarding', title: 'Offboarding', icon: UserCog, route: '/neoteam/rh/offboarding', adminOnly: true },
+      { id: 'neoteam_rh_chamados', code: 'neoteam_rh_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/rh/chamados' },
     ],
   },
   {
@@ -398,6 +407,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     defaultOpen: false,
     items: [
       { id: 'neoteam_compras_dashboard', code: 'neoteam_compras_dashboard', title: 'Dashboard Compras', icon: ShoppingCart, route: '/neoteam/compras/dashboard' },
+      { id: 'neoteam_compras_chamados', code: 'neoteam_compras_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/compras/chamados' },
     ],
   },
   {
@@ -409,6 +419,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_assets', code: 'neoteam_assets', title: 'Controle Patrimonial', icon: Landmark, route: '/neoteam/manutencao/patrimonio' },
       { id: 'neoteam_manutencao_dashboard', code: 'neoteam_manutencao_dashboard', title: 'Ordens de Manutenção', icon: Wrench, route: '/neoteam/manutencao/ordens' },
+      { id: 'neoteam_manut_chamados', code: 'neoteam_manut_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/manutencao/chamados' },
     ],
   },
   {
