@@ -867,7 +867,7 @@ export default function ClinicDashboard() {
               Configuração da Agenda
             </DialogTitle>
           </DialogHeader>
-          <AgendaAvailabilityConfig isAdmin={isAdmin} />
+          <AgendaAvailabilityConfig isAdmin={canManageAgenda} />
         </DialogContent>
       </Dialog>
     </div>
