@@ -290,7 +290,13 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
       let filtered = categorizedMenu.map(category => ({
         ...category,
         items: filterMenuByPermissions(category.items, hasPermission, effectiveIsAdmin),
-      })).filter(category => category.items.length > 0);
+      }));
+
+      // For NeoTeam, keep all sector headers visible (even if items are filtered out)
+      // For other portals, hide empty categories
+      if (currentPortal !== 'neoteam') {
+        filtered = filtered.filter(category => category.items.length > 0);
+      }
 
       // If inside a sector, show only that sector's items + home
       if (activeSectorCode && currentPortal === 'neoteam') {
