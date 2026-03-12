@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, subDays, subMonths, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Flame, Save, Eye, EyeOff, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Search, CheckSquare } from 'lucide-react';
+import { Flame, Save, Eye, EyeOff, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Search, CheckSquare, Webhook, Copy, ExternalLink } from 'lucide-react';
 
 interface Props {
   accountId: string | null;
