@@ -168,6 +168,8 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
       switch (sortKey) {
         case 'data_call':
           return dir * (new Date(a.data_call).getTime() - new Date(b.data_call).getTime());
+        case 'duration_minutes':
+          return dir * ((a.duration_minutes || 0) - (b.duration_minutes || 0));
         case 'closer_name':
           return dir * (a.closer_name || '').localeCompare(b.closer_name || '');
         case 'lead_nome':
