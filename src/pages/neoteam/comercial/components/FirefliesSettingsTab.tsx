@@ -101,6 +101,23 @@ export function FirefliesSettingsTab({ accountId }: Props) {
           if (val?.mode) setFilterMode(val.mode);
         }
       });
+    // Load WhatsApp group config
+    supabase
+      .from('avivar_account_settings')
+      .select('setting_value')
+      .eq('account_id', accountId)
+      .eq('setting_key', 'call_intelligence_whatsapp_group')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.setting_value) {
+          const val = data.setting_value as any;
+          const gid = typeof val === 'string' ? val : val?.group_id;
+          if (gid) {
+            setWhatsappGroupId(gid);
+            setIsGroupSaved(true);
+          }
+        }
+      });
   }, [accountId]);
 
   const handleSave = async () => {
