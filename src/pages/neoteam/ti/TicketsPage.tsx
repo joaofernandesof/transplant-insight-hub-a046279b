@@ -544,17 +544,23 @@ export default function TicketsPage() {
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
-                          <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className={cn("w-[140px] h-8 border-0 font-medium", STATUS_COLORS[t.status])}><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="open">Aberto</SelectItem>
-                            <SelectItem value="in_progress">Em Andamento</SelectItem>
-                            <SelectItem value="waiting">Aguardando</SelectItem>
-                            <SelectItem value="resolved">Resolvido</SelectItem>
-                            <SelectItem value="closed">Fechado</SelectItem>
+                            {Object.entries(STATUS_LABELS).map(([k, label]) => (
+                              <SelectItem key={k} value={k}>
+                                <span className="flex items-center gap-2">
+                                  <span className={cn("h-2 w-2 rounded-full", STATUS_DOT_COLORS[k])} />
+                                  {label}
+                                </span>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={STATUS_COLORS[t.status] || ""}>{STATUS_LABELS[t.status] || t.status}</Badge>
+                        <Badge className={cn("gap-1.5", STATUS_COLORS[t.status] || "")}>
+                          <span className={cn("h-2 w-2 rounded-full", STATUS_DOT_COLORS[t.status])} />
+                          {STATUS_LABELS[t.status] || t.status}
+                        </Badge>
                       )}
                     </TableCell>
                   </TableRow>
