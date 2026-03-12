@@ -59,9 +59,10 @@ const DEFAULT_ETAPA_CHECKLISTS: Record<string, { id: string; label: string }[]> 
     { id: 'va3', label: 'Critérios de seleção estabelecidos' },
   ],
   vaga_aberta: [
-    { id: 'vo1', label: 'Anúncio publicado nas plataformas' },
-    { id: 'vo2', label: 'Divulgação interna realizada' },
-    { id: 'vo3', label: 'Prazo de inscrição definido' },
+    { id: 'vo1', label: 'Link do Indeed preenchido (obrigatório)' },
+    { id: 'vo2', label: 'Anúncio publicado nas plataformas' },
+    { id: 'vo3', label: 'Divulgação interna realizada' },
+    { id: 'vo4', label: 'Prazo de inscrição definido' },
   ],
   selecao_curriculos: [
     { id: 'sc1', label: 'Currículos triados pelo RH' },
