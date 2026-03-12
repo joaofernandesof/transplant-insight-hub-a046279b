@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 import { useClinicSurgeries, ClinicSurgery } from '../hooks/useClinicSurgeries';
 import { useNoDatePatients } from '../hooks/useNoDatePatients';
 import { useBranches } from '../hooks/useBranches';
@@ -80,7 +81,10 @@ type DFilter = typeof D_FILTERS[number]['value'];
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin: isClinicAdmin, isGestao } = useClinicAuth();
   const { isAdmin: isUnifiedAdmin } = useUnifiedAuth();
+  const { canWrite, canDelete: canDeleteModule } = usePermissions();
   const isAdmin = isClinicAdmin || isUnifiedAdmin;
+  const canManageAgenda = isAdmin || canWrite('neoteam_surgical_dashboard');
+  const canDeleteSurgery = isAdmin || canDeleteModule('neoteam_surgical_dashboard');
   const { scheduledSurgeries, noDateSurgeries, updateSurgery, rescheduleSurgery, deleteSurgery } = useClinicSurgeries();
   const { violatedIds } = useLockViolations(scheduledSurgeries);
   const { allPatients: noDatePatients } = useNoDatePatients();
@@ -818,7 +822,7 @@ export default function ClinicDashboard() {
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
               onReschedule={(id, newDate, newTime) => rescheduleSurgery.mutate({ id, newDate, newTime })}
               onDelete={(id) => deleteSurgery.mutate(id)}
-              canDelete={isAdmin}
+              canDelete={canDeleteSurgery}
               title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
               violatedIds={violatedIds}
               selectedBranch={selectedBranch}
@@ -833,7 +837,7 @@ export default function ClinicDashboard() {
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
               onReschedule={(id, newDate, newTime) => rescheduleSurgery.mutate({ id, newDate, newTime })}
               onDelete={(id) => deleteSurgery.mutate(id)}
-              canDelete={isAdmin}
+              canDelete={canDeleteSurgery}
             />
           </>
         ) : (
@@ -863,7 +867,7 @@ export default function ClinicDashboard() {
               Configuração da Agenda
             </DialogTitle>
           </DialogHeader>
-          <AgendaAvailabilityConfig isAdmin={isAdmin} />
+          <AgendaAvailabilityConfig isAdmin={canManageAgenda} />
         </DialogContent>
       </Dialog>
     </div>
