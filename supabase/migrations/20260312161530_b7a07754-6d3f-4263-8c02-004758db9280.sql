@@ -1,0 +1,1 @@
+UPDATE public.neoteam_sectors SET name = 'Pós-vendas' WHERE code = 'sucesso_paciente';
