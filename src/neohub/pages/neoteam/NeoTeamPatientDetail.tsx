@@ -99,6 +99,7 @@ const formatCurrency = (value: number) =>
 export default function NeoTeamPatientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [patient, setPatient] = useState<PatientData | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
