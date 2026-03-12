@@ -67,7 +67,7 @@ serve(async (req) => {
 
       try {
         const systemPrompt = `Você é um especialista em análise de calls de vendas consultivas de alto ticket.
-Avalie a performance do closer/vendedor em 7 dimensões com notas de 1 a 10.
+Avalie a performance do closer/vendedor em 7 dimensões com notas de 0 a 10 (zero = não demonstrou nenhum aspecto).
 Se o conteúdo for um resumo curto (não transcrição completa), dê notas baseadas no que pode ser inferido.
 Se não há informação suficiente para uma dimensão específica, dê nota 5 (neutro).`;
 
