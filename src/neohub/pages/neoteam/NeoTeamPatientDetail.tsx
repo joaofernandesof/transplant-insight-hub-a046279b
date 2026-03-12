@@ -571,6 +571,36 @@ export default function NeoTeamPatientDetail() {
       // Log changes to audit table
       await logPatientChanges(changes);
 
+      // Sync category to clinic_surgeries if it changed
+      const categoryChanged = changes.find(c => c.field === 'category');
+      if (categoryChanged && id) {
+        const newCategory = editData.category || null;
+        try {
+          await supabase
+            .from('clinic_surgeries')
+            .update({ category: newCategory })
+            .eq('patient_id', id);
+          console.log('[PatientDetail] Synced category to clinic_surgeries:', newCategory);
+        } catch (syncErr) {
+          console.error('[PatientDetail] Failed to sync category to surgeries:', syncErr);
+        }
+      }
+
+      // Sync branch to clinic_surgeries if it changed
+      const branchChanged = changes.find(c => c.field === 'branch');
+      if (branchChanged && id) {
+        const newBranch = editData.branch || null;
+        try {
+          await supabase
+            .from('clinic_surgeries')
+            .update({ branch: newBranch })
+            .eq('patient_id', id);
+          console.log('[PatientDetail] Synced branch to clinic_surgeries:', newBranch);
+        } catch (syncErr) {
+          console.error('[PatientDetail] Failed to sync branch to surgeries:', syncErr);
+        }
+      }
+
       toast.success('Paciente atualizado com sucesso!');
       setIsEditing(false);
       setEditData({});
