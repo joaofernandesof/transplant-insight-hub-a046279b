@@ -81,7 +81,10 @@ type DFilter = typeof D_FILTERS[number]['value'];
 export default function ClinicDashboard() {
   const { user, currentBranch, isAdmin: isClinicAdmin, isGestao } = useClinicAuth();
   const { isAdmin: isUnifiedAdmin } = useUnifiedAuth();
+  const { canWrite, canDelete: canDeleteModule } = usePermissions();
   const isAdmin = isClinicAdmin || isUnifiedAdmin;
+  const canManageAgenda = isAdmin || canWrite('neoteam_surgical_dashboard');
+  const canDeleteSurgery = isAdmin || canDeleteModule('neoteam_surgical_dashboard');
   const { scheduledSurgeries, noDateSurgeries, updateSurgery, rescheduleSurgery, deleteSurgery } = useClinicSurgeries();
   const { violatedIds } = useLockViolations(scheduledSurgeries);
   const { allPatients: noDatePatients } = useNoDatePatients();
