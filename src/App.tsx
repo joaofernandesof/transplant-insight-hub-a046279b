@@ -934,7 +934,7 @@ function AppRoutes() {
       {/* NeoRH legacy redirects → NeoTeam RH */}
       <Route path="/neorh" element={<Navigate to="/neoteam/rh/dashboard" replace />} />
       <Route path="/neorh/colaboradores" element={<Navigate to="/neoteam/rh/colaboradores" replace />} />
-      <Route path="/neorh/cargos" element={<Navigate to="/neoteam/rh/cargos-rh" replace />} />
+      <Route path="/neorh/cargos" element={<Navigate to="/neoteam/rh/cargos" replace />} />
       <Route path="/neorh/vagas" element={<Navigate to="/neoteam/rh/vagas" replace />} />
       <Route path="/neorh/job-description" element={<Navigate to="/neoteam/rh/job-description" replace />} />
       <Route path="/neorh/performance" element={<Navigate to="/neoteam/rh/performance" replace />} />

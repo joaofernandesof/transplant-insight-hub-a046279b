@@ -378,7 +378,6 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_rh_colaboradores', code: 'neoteam_rh_colaboradores', title: 'Colaboradores', icon: Users, route: '/neoteam/rh/colaboradores', adminOnly: true },
       
       { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/rh/cargos', adminOnly: true },
-      { id: 'neoteam_rh_cargos', code: 'neoteam_rh_cargos', title: 'Cargos (RH)', icon: Briefcase, route: '/neoteam/rh/cargos-rh', adminOnly: true },
       { id: 'neoteam_rh_vagas', code: 'neoteam_rh_vagas', title: 'Vagas', icon: ClipboardList, route: '/neoteam/rh/vagas', adminOnly: true },
       { id: 'neoteam_rh_jd', code: 'neoteam_rh_jd', title: 'Gerador de JD', icon: FileText, route: '/neoteam/rh/job-description', adminOnly: true },
       { id: 'neoteam_performance', code: 'neoteam_performance', title: 'Performance', icon: TrendingUp, route: '/neoteam/rh/performance', adminOnly: true },
