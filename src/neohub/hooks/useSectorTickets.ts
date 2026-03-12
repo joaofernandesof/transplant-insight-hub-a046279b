@@ -254,7 +254,7 @@ export function useSectorTickets(sectorCode: string) {
         action: 'atribuido',
         description: `Atribuído para ${assignedName}`,
         user_id: user?.id,
-        user_name: profile?.display_name || user?.email || 'Usuário',
+        user_name: userName,
       });
     },
     onSuccess: () => {
