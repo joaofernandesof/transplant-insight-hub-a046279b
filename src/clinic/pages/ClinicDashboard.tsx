@@ -51,6 +51,20 @@ import { useSurgeryAgendaAvailability } from '../hooks/useSurgeryAgendaAvailabil
 
 import type { DateRange } from 'react-day-picker';
 
+// Checklist pendency filter definitions
+const CHECKLIST_FILTERS = [
+  { key: 'examsSent', label: 'Exames' },
+  { key: 'guidesSent', label: 'Guias' },
+  { key: 'contractSigned', label: 'Contrato' },
+  { key: 'chartReady', label: 'Prontuário' },
+  { key: 'surgeryConfirmed', label: 'Confirmação' },
+  { key: 'bookingTermSigned', label: 'Termo Reserva' },
+  { key: 'dischargeTermSigned', label: 'Termo Alta' },
+  { key: 'gpiD1Done', label: 'GPI D+1' },
+] as const;
+
+type ChecklistFilterKey = typeof CHECKLIST_FILTERS[number]['key'];
+
 // D-XX filter definitions
 const D_FILTERS = [
   { value: 'd-20', label: 'D-20', days: 20 },
