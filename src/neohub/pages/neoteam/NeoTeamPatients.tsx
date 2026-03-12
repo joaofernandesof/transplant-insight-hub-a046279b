@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -163,9 +164,47 @@ export default function NeoTeamPatients() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(100);
   
-  // Data states
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: patients = [], isLoading } = useQuery({
+    queryKey: ['clinic-patients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clinic_patients')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(1000);
+
+      if (error) throw error;
+
+      return (data || []).map((p: any, index: number): Patient => {
+        const parsed = parseNotes(p.notes);
+        return {
+          id: p.id,
+          sequenceId: index + 1,
+          name: p.full_name,
+          email: p.email || '',
+          phone: p.phone || '',
+          cpf: p.cpf || '',
+          birthDate: parsed['nascimento'] || parsed['data nascimento'] || '',
+          maritalStatus: parsed['estado civil'] || '',
+          nationality: parsed['nacionalidade'] || '',
+          address: parsed['endereço'] || parsed['endereco'] || '',
+          city: parsed['cidade'] || '',
+          state: parsed['estado'] || parsed['uf'] || '',
+          gender: 'O' as const,
+          totalVisits: 0,
+          status: 'active' as const,
+          tags: [],
+          branch: parsed['filial'] || '',
+          category: parsed['categoria'] || '',
+          baldnessGrade: parsed['grau'] || '',
+          createdAt: p.created_at,
+          surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || '',
+          consultant: parsed['consultor'] || '',
+          seller: parsed['vendedor'] || '',
+        };
+      });
+    },
+  });
 
   // Dialog states
   const [showNewPatient, setShowNewPatient] = useState(false);
@@ -187,58 +226,6 @@ export default function NeoTeamPatients() {
     const set = new Set(patients.map(p => p.baldnessGrade).filter(Boolean) as string[]);
     return Array.from(set).sort((a, b) => Number(a) - Number(b));
   }, [patients]);
-
-  useEffect(() => {
-    const fetchPatients = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('clinic_patients')
-          .select('*')
-          .order('created_at', { ascending: true })
-          .limit(1000);
-
-        if (error) throw error;
-
-        const mappedPatients: Patient[] = (data || []).map((p, index) => {
-          const parsed = parseNotes(p.notes);
-          return {
-            id: p.id,
-            sequenceId: index + 1, // Sequential ID based on creation order
-            name: p.full_name,
-            email: p.email || '',
-            phone: p.phone || '',
-            cpf: p.cpf || '',
-            birthDate: parsed['nascimento'] || parsed['data nascimento'] || '',
-            maritalStatus: parsed['estado civil'] || '',
-            nationality: parsed['nacionalidade'] || '',
-            address: parsed['endereço'] || parsed['endereco'] || '',
-            city: parsed['cidade'] || '',
-            state: parsed['estado'] || parsed['uf'] || '',
-            gender: 'O' as const,
-            totalVisits: 0,
-            status: 'active' as const,
-            tags: [],
-            branch: parsed['filial'] || '',
-            category: parsed['categoria'] || '',
-            baldnessGrade: parsed['grau'] || '',
-            createdAt: p.created_at,
-            surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || '',
-            consultant: parsed['consultor'] || '',
-            seller: parsed['vendedor'] || '',
-          };
-        });
-
-        setPatients(mappedPatients);
-      } catch (error) {
-        console.error('Error fetching patients:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPatients();
-  }, []);
 
   // Stats for filters
   const stats = useMemo(() => ({
