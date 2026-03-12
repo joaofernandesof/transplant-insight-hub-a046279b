@@ -173,7 +173,7 @@ const PITCH_PILLARS = [
 const CLOSING_SECTIONS = [
   {
     id: 'bant-n',
-    step: '7',
+    step: '8',
     title: 'BANT – N (Need)',
     icon: CheckCircle2,
     color: 'text-emerald-500',
@@ -186,7 +186,7 @@ const CLOSING_SECTIONS = [
   },
   {
     id: 'monetizacao',
-    step: '8',
+    step: '9',
     title: 'Monetização',
     icon: DollarSign,
     color: 'text-emerald-500',
@@ -200,7 +200,7 @@ const CLOSING_SECTIONS = [
   },
   {
     id: 'prova-social',
-    step: '9',
+    step: '10',
     title: 'Prova Social',
     icon: Award,
     color: 'text-amber-500',
@@ -213,7 +213,7 @@ const CLOSING_SECTIONS = [
   },
   {
     id: 'validacao',
-    step: '10',
+    step: '11',
     title: 'Validação',
     icon: CheckCircle2,
     color: 'text-blue-500',
@@ -222,7 +222,7 @@ const CLOSING_SECTIONS = [
   },
   {
     id: 'convite',
-    step: '11',
+    step: '12',
     title: 'Convite para a Turma',
     icon: Calendar,
     color: 'text-violet-500',
@@ -235,7 +235,7 @@ const CLOSING_SECTIONS = [
   },
   {
     id: 'investimento',
-    step: '12',
+    step: '13',
     title: 'Investimento',
     icon: CreditCard,
     color: 'text-emerald-500',
@@ -247,7 +247,7 @@ const CLOSING_SECTIONS = [
   },
   {
     id: 'fechamento',
-    step: '13',
+    step: '14',
     title: 'Fechamento',
     icon: Target,
     color: 'text-red-500',
