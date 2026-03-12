@@ -714,6 +714,36 @@ export default function ClinicDashboard() {
                   </Button>
                 ))}
               </div>
+
+              {/* Checklist Pendency Filter */}
+              <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto pb-1">
+                <span className="text-[11px] text-muted-foreground font-medium mr-1 shrink-0">Pendências:</span>
+                {CHECKLIST_FILTERS.map((cf) => (
+                  <Button
+                    key={cf.key}
+                    variant={activeChecklistFilters.has(cf.key) ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => toggleChecklistFilter(cf.key)}
+                    className={cn(
+                      'h-6 px-2 text-[11px] rounded-full whitespace-nowrap',
+                      activeChecklistFilters.has(cf.key) && 'bg-amber-600 text-white hover:bg-amber-700'
+                    )}
+                  >
+                    {cf.label}
+                  </Button>
+                ))}
+                {activeChecklistFilters.size > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearChecklistFilters}
+                    className="h-6 px-2 text-[11px] gap-1 text-muted-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                    Limpar
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Branch Filter */}
