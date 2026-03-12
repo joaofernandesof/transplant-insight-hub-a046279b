@@ -198,6 +198,7 @@ export function useCallIntelligence(accountId?: string) {
           status_call: call.status_call,
           call_id: callId,
           account_id: accountId,
+          fireflies_url: call.fireflies_url || null,
         },
       });
       if (error) throw error;

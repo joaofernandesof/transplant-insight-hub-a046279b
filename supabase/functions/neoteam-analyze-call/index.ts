@@ -13,7 +13,7 @@ serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    const { transcript, closer_name, lead_nome, produto, data_call, status_call, call_id, account_id } = await req.json();
+    const { transcript, closer_name, lead_nome, produto, data_call, status_call, call_id, account_id, fireflies_url } = await req.json();
 
     if (!transcript || transcript.trim().length < 30) {
       return new Response(
@@ -57,11 +57,16 @@ LEAD: ${lead_nome || "Não informado"}
 PRODUTO: ${produto || "Não informado"}
 DATA: ${data_call || "Não informada"}
 STATUS: ${status_call || "Não informado"}
+${fireflies_url ? `LINK FIREFLIES: ${fireflies_url}` : ""}
 
 TRANSCRIÇÃO/RESUMO:
 ${transcript}
 
-Gere a análise completa usando a função fornecida. Inclua também o campo whatsapp_report com uma versão formatada para WhatsApp usando *negrito* com asteriscos e emojis.`;
+Gere a análise completa usando a função fornecida. Inclua também o campo whatsapp_report com uma versão formatada para WhatsApp usando *negrito* com asteriscos e emojis. O relatório DEVE incluir:
+1. Os dados básicos (closer, lead, produto, data, status)
+2. ${fireflies_url ? `O link da call no Fireflies: ${fireflies_url}` : "Link da call (se disponível)"}
+3. Uma seção "📋 *CONDUTA / TAREFAS A FAZER*" com as ações concretas identificadas na call (follow-up, enviar material, agendar retorno, etc.)
+4. Resumo, BANT, classificação e próximos passos`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -109,7 +114,7 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
                   closer_gatilhos_mentais: { type: "integer", description: "Score 1-10: uso de escassez, urgência, prova social, autoridade" },
                   closer_gestao_fala: { type: "integer", description: "Score 1-10: controle do tempo, pausas, assertividade" },
                   closer_fechamento: { type: "integer", description: "Score 1-10: técnica de fechamento e condução ao próximo passo" },
-                  whatsapp_report: { type: "string", description: "Relatório completo formatado para WhatsApp com *negrito*, emojis e leitura rápida no celular. Deve seguir o formato: 📊 *ANÁLISE DA CALL DE VENDAS*\\n\\n👤 *Closer:* ...\\n🎯 *Lead:* ...\\netc." },
+                  whatsapp_report: { type: "string", description: "Relatório completo formatado para WhatsApp com *negrito*, emojis e leitura rápida no celular. DEVE seguir o formato:\\n\\n📊 *ANÁLISE DA CALL DE VENDAS*\\n\\n👤 *Closer:* ...\\n🎯 *Lead:* ...\\n📦 *Produto:* ...\\n📅 *Data:* ...\\n📊 *Resultado:* ...\\n🔗 *Link Fireflies:* (link se disponível)\\n\\n📝 *RESUMO*\\n...\\n\\n📋 *CONDUTA / TAREFAS A FAZER*\\n• Tarefa 1\\n• Tarefa 2\\n...\\n\\n🎯 *BANT* B: X/10 | A: X/10 | N: X/10 | T: X/10 | Total: XX/40\\n🌡️ *Classificação:* Quente/Morno/Frio\\n⚡ *Prob. Fechamento:* XX%\\n\\n➡️ *PRÓXIMOS PASSOS*\\n..." },
                 },
                 required: [
                   "resumo_call", "perfil_lead", "objecoes", "pontos_fracos_closer", "pontos_fortes_closer",
@@ -235,6 +240,51 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
       } else {
         // Update sales_call to mark as analyzed
         await supabase.from("sales_calls").update({ has_analysis: true }).eq("id", call_id);
+
+        // Auto-send WhatsApp report to group if configured
+        if (analysis.whatsapp_report) {
+          try {
+            const { data: groupSetting } = await supabase
+              .from("avivar_account_settings")
+              .select("setting_value")
+              .eq("account_id", account_id)
+              .eq("setting_key", "call_intelligence_whatsapp_group")
+              .maybeSingle();
+
+            const groupId = typeof groupSetting?.setting_value === "string"
+              ? groupSetting.setting_value
+              : (groupSetting?.setting_value as any)?.group_id;
+
+            if (groupId) {
+              // Get UazAPI credentials
+              const uazapiUrl = Deno.env.get("UAZAPI_URL");
+              let uazapiToken: string | undefined;
+
+              const { data: uazapiInstance } = await supabase
+                .from("avivar_uazapi_instances")
+                .select("instance_token")
+                .eq("account_id", account_id)
+                .eq("status", "connected")
+                .limit(1)
+                .maybeSingle();
+
+              uazapiToken = uazapiInstance?.instance_token || Deno.env.get("UAZAPI_TOKEN") || undefined;
+
+              if (uazapiUrl && uazapiToken) {
+                const sendResp = await fetch(`${uazapiUrl}/send/text`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "token": uazapiToken },
+                  body: JSON.stringify({ number: groupId, text: analysis.whatsapp_report }),
+                });
+                console.log(`[Analyze Call] WhatsApp group send status: ${sendResp.status}`);
+              } else {
+                console.log("[Analyze Call] WhatsApp not configured, skipping group send");
+              }
+            }
+          } catch (whatsappErr) {
+            console.error("[Analyze Call] Error sending to WhatsApp group:", whatsappErr);
+          }
+        }
       }
     }
 

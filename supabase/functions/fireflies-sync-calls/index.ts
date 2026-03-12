@@ -253,6 +253,7 @@ serve(async (req) => {
               status_call: call.status_call,
               call_id: callId,
               account_id,
+              fireflies_url: call.fireflies_url || null,
             }),
           });
 
