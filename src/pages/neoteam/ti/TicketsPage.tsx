@@ -490,7 +490,7 @@ export default function TicketsPage() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         <Popover>
                           <PopoverTrigger asChild>
