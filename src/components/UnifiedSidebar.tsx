@@ -539,6 +539,37 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                       </Button>
                     ))}
                   </>
+                ) : category.items.length === 0 ? (
+                  /* Empty collapsible category — render as direct link to sector home */
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 h-9 px-3 mt-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    onClick={() => {
+                      // Derive sector route from category id: setor_rh → /neoteam/rh
+                      const sectorSlug = category.id.replace('setor_', '').replace(/_/g, '-');
+                      const SECTOR_ROUTES: Record<string, string> = {
+                        clinico: '/neoteam/tecnico',
+                        'sucesso-paciente': '/neoteam/sucesso-paciente',
+                        operacional: '/neoteam/operacional',
+                        processos: '/neoteam/processos',
+                        financeiro: '/neoteam/financeiro',
+                        juridico: '/neoteam/juridico',
+                        comercial: '/neoteam/comercial',
+                        marketing: '/neoteam/marketing',
+                        ti: '/neoteam/ti',
+                        rh: '/neoteam/rh',
+                        compras: '/neoteam/compras',
+                        manutencao: '/neoteam/manutencao',
+                        admin: '/neoteam/admin',
+                      };
+                      navigate(SECTOR_ROUTES[sectorSlug] || `/neoteam/${sectorSlug}`);
+                    }}
+                  >
+                    {category.icon && <category.icon className="h-4 w-4" />}
+                    <span className="text-xs font-semibold uppercase tracking-wider">
+                      {category.title}
+                    </span>
+                  </Button>
                 ) : (
                   /* Collapsible category */
                   <Collapsible
