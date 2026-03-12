@@ -116,6 +116,7 @@ export default function CallIntelligencePage() {
                   analysis={hook.getAnalysisForCall(selectedCallId)}
                   isAnalyzing={hook.isAnalyzing}
                   onAnalyze={() => hook.analyzeCall(selectedCallId)}
+                  accountId={accountId}
                 />
               </div>
             ) : (
