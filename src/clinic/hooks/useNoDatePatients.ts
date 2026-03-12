@@ -50,15 +50,24 @@ export function useNoDatePatients() {
   const effectiveGestao = isGestao;
   const [filters, setFilters] = useState<NoDateFilters>(defaultFilters);
 
-  // Fetch sales with active contracts
+  // Shared patients cache for name lookups
+  const { data: rawPatients = [] } = useClinicPatientsRaw();
+  const patientNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of rawPatients) {
+      map.set(p.id, p.full_name);
+    }
+    return map;
+  }, [rawPatients]);
+
+  // Fetch sales with active contracts (WITHOUT patient JOIN)
   const { data: salesData = [], isLoading: loadingSales } = useQuery({
     queryKey: ['no-date-patients-sales', currentBranch, effectiveAdmin, effectiveGestao],
     queryFn: async () => {
       let query = supabase
         .from('clinic_sales')
         .select(`
-          id, sale_date, patient_id, branch, service_type, seller, category, vgv, contract_status, notes,
-          clinic_patients(full_name)
+          id, sale_date, patient_id, branch, service_type, seller, category, vgv, contract_status, notes
         `)
         .neq('contract_status', 'cancelado');
 
