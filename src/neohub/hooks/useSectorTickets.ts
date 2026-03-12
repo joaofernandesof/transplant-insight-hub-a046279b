@@ -81,6 +81,7 @@ export const SECTOR_LABELS: Record<string, string> = {
   comercial: 'Comercial',
   compras: 'Compras',
   manutencao: 'Manutenção',
+  gestao: 'Gestão',
 };
 
 export const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
