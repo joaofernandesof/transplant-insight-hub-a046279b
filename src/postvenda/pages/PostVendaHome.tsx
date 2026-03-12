@@ -258,7 +258,7 @@ export default function PostVendaHome() {
                       <div 
                         key={chamado.id}
                         className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
-                        onClick={() => navigate(`/neoteam/postvenda/chamados/${chamado.id}`)}
+                        onClick={() => navigate(`/neoteam/sucesso-paciente/postvenda/chamados/${chamado.id}`)}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <span className="text-xs font-mono text-muted-foreground">

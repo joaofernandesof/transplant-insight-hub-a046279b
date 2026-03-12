@@ -404,7 +404,7 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
                     <TableRow
                       key={c.id}
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => navigate(`/neoteam/postvenda/chamados/${c.id}`)}
+                      onClick={() => navigate(`/neoteam/sucesso-paciente/postvenda/chamados/${c.id}`)}
                     >
                       {/* Criado */}
                       <TableCell className="whitespace-nowrap">

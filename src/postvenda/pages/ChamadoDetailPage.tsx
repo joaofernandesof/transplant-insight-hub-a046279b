@@ -116,7 +116,7 @@ export default function ChamadoDetailPage() {
 
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/neoteam/postvenda/chamados')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/neoteam/sucesso-paciente/postvenda/chamados')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">

@@ -55,7 +55,7 @@ export function ChamadoCard({ chamado }: ChamadoCardProps) {
         chamado.prioridade === 'normal' ? 'border-l-blue-500' :
         'border-l-muted-foreground/30'
       }`}
-      onClick={() => navigate(`/postvenda/chamados/${chamado.id}`)}
+      onClick={() => navigate(`/neoteam/sucesso-paciente/postvenda/chamados/${chamado.id}`)}
     >
       <CardContent className="p-4">
         {/* Header */}
