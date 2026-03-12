@@ -71,7 +71,7 @@ Avalie a performance do closer/vendedor em 7 dimensões com notas de 0 a 10 (zer
 Se o conteúdo for um resumo curto (não transcrição completa), dê notas baseadas no que pode ser inferido.
 Se não há informação suficiente para uma dimensão específica, dê nota 5 (neutro).`;
 
-        const userPrompt = `Analise esta call e dê notas de 1-10 para cada dimensão do closer:
+        const userPrompt = `Analise esta call e dê notas de 0-10 para cada dimensão do closer:
 
 CLOSER: ${call.closer_name || "Não informado"}
 LEAD: ${call.lead_nome}
