@@ -64,6 +64,11 @@ export function FirefliesSettingsTab({ accountId }: Props) {
     analyzed: number;
   } | null>(null);
 
+  // WhatsApp group config
+  const [whatsappGroupId, setWhatsappGroupId] = useState('');
+  const [isSavingGroup, setIsSavingGroup] = useState(false);
+  const [isGroupSaved, setIsGroupSaved] = useState(false);
+
   // Load saved key and filter settings
   useEffect(() => {
     if (!accountId) return;
