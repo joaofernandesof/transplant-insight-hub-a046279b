@@ -407,6 +407,9 @@ export default function NeoTeamPatientDetail() {
         throw new Error('Nenhuma linha atualizada. Verifique suas permissões.');
       }
       toast.success('Observações salvas!');
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
       setPatient(prev => prev ? { ...prev, notes: newNotes, observations: observationsText } : null);
     } catch (err) {
       console.error('Error saving observations:', err);
