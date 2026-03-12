@@ -284,6 +284,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/sucesso-paciente/postvenda' },
       { id: 'neoteam_retention', code: 'neoteam_retention', title: 'Retenção & Churn', icon: Heart, route: '/neoteam/sucesso-paciente/retencao' },
+      { id: 'neoteam_sp_chamados', code: 'neoteam_sp_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/sucesso-paciente/chamados' },
     ],
   },
   {
