@@ -232,7 +232,7 @@ export function useSectorTickets(sectorCode: string) {
         action: 'comentario',
         description: comment,
         user_id: user?.id,
-        user_name: profile?.display_name || user?.email || 'Usuário',
+        user_name: userName,
       });
     },
     onSuccess: () => {
