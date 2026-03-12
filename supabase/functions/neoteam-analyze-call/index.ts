@@ -114,7 +114,7 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
                   closer_gatilhos_mentais: { type: "integer", description: "Score 1-10: uso de escassez, urgência, prova social, autoridade" },
                   closer_gestao_fala: { type: "integer", description: "Score 1-10: controle do tempo, pausas, assertividade" },
                   closer_fechamento: { type: "integer", description: "Score 1-10: técnica de fechamento e condução ao próximo passo" },
-                  whatsapp_report: { type: "string", description: "Relatório completo formatado para WhatsApp com *negrito*, emojis e leitura rápida no celular. Deve seguir o formato: 📊 *ANÁLISE DA CALL DE VENDAS*\\n\\n👤 *Closer:* ...\\n🎯 *Lead:* ...\\netc." },
+                  whatsapp_report: { type: "string", description: "Relatório completo formatado para WhatsApp com *negrito*, emojis e leitura rápida no celular. DEVE seguir o formato:\\n\\n📊 *ANÁLISE DA CALL DE VENDAS*\\n\\n👤 *Closer:* ...\\n🎯 *Lead:* ...\\n📦 *Produto:* ...\\n📅 *Data:* ...\\n📊 *Resultado:* ...\\n🔗 *Link Fireflies:* (link se disponível)\\n\\n📝 *RESUMO*\\n...\\n\\n📋 *CONDUTA / TAREFAS A FAZER*\\n• Tarefa 1\\n• Tarefa 2\\n...\\n\\n🎯 *BANT* B: X/10 | A: X/10 | N: X/10 | T: X/10 | Total: XX/40\\n🌡️ *Classificação:* Quente/Morno/Frio\\n⚡ *Prob. Fechamento:* XX%\\n\\n➡️ *PRÓXIMOS PASSOS*\\n..." },
                 },
                 required: [
                   "resumo_call", "perfil_lead", "objecoes", "pontos_fracos_closer", "pontos_fortes_closer",
