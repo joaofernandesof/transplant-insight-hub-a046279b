@@ -144,6 +144,32 @@ function saveDocuments(vagaId: string, docs: DocEntry[]) {
   localStorage.setItem(`vaga-docs-${vagaId}`, JSON.stringify(docs));
 }
 
+// ── Job Posting Links helpers ──
+
+interface JobPostingLinks {
+  indeed: string;
+  linkedin: string;
+  catho: string;
+  infojobs: string;
+  glassdoor: string;
+  outros: { label: string; url: string }[];
+}
+
+const EMPTY_LINKS: JobPostingLinks = {
+  indeed: '', linkedin: '', catho: '', infojobs: '', glassdoor: '', outros: [],
+};
+
+function getJobLinks(vagaId: string): JobPostingLinks {
+  try {
+    const raw = localStorage.getItem(`vaga-links-${vagaId}`);
+    return raw ? { ...EMPTY_LINKS, ...JSON.parse(raw) } : { ...EMPTY_LINKS };
+  } catch { return { ...EMPTY_LINKS }; }
+}
+
+function saveJobLinks(vagaId: string, links: JobPostingLinks) {
+  localStorage.setItem(`vaga-links-${vagaId}`, JSON.stringify(links));
+}
+
 // ── Component ──
 
 export function VagaDetailSheet({
