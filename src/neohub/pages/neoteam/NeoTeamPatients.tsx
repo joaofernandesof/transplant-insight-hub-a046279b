@@ -724,7 +724,7 @@ export default function NeoTeamPatients() {
                   </TableCell>
                 </TableRow>
               ) : paginatedPatients.map((patient) => (
-                <TableRow key={patient.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/neoteam/patients/${patient.id}`)}>
+                <TableRow key={patient.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/neoteam/tecnico/pacientes/${patient.id}`)}>
                   {/* ID */}
                   <TableCell className="text-center">
                     <span className="font-mono text-sm text-muted-foreground">
@@ -863,11 +863,11 @@ export default function NeoTeamPatients() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-popover">
-                        <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/neoteam/patients/${patient.id}`); }}>
+                        <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/neoteam/tecnico/pacientes/${patient.id}`); }}>
                           <Eye className="h-4 w-4" />
                           Ver detalhes
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/neoteam/patients/${patient.id}?edit=true`); }}>
+                        <DropdownMenuItem className="gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/neoteam/tecnico/pacientes/${patient.id}?edit=true`); }}>
                           <Edit className="h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
