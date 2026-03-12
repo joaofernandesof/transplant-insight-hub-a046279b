@@ -174,6 +174,15 @@ export default function ClinicDashboard() {
 
   const clearDFilters = useCallback(() => setActiveDFilters(new Set()), []);
 
+  const toggleChecklistFilter = useCallback((key: ChecklistFilterKey) => {
+    setActiveChecklistFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
+  const clearChecklistFilters = useCallback(() => setActiveChecklistFilters(new Set()), []);
+
   const periodRange = useMemo(() => {
     const now = new Date();
     switch (selectedPeriod) {
