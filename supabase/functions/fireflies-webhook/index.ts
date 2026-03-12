@@ -243,6 +243,7 @@ Deno.serve(async (req) => {
         break
       }
     }
+    leadName = cleanLeadName(leadName)
 
     // Content dedup check
     const contentKey = `${leadName.toLowerCase()}::${fullTranscript.trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ')}`
