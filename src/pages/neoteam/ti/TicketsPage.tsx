@@ -570,6 +570,19 @@ function TicketDetailDialog({
   updateTicketField: any;
   isAdmin: boolean;
 }) {
+  const [editStatus, setEditStatus] = useState(ticket.status);
+  const [editPriority, setEditPriority] = useState(ticket.priority);
+  const [editDueDate, setEditDueDate] = useState<Date | undefined>(
+    ticket.due_date ? parseISO(ticket.due_date) : undefined
+  );
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setEditStatus(ticket.status);
+    setEditPriority(ticket.priority);
+    setEditDueDate(ticket.due_date ? parseISO(ticket.due_date) : undefined);
+  }, [ticket.id, ticket.status, ticket.priority, ticket.due_date]);
+
   const { data: attachments = [], isLoading: loadingAttachments } = useQuery({
     queryKey: ["ticket_attachments", ticket.id],
     queryFn: async () => {
@@ -586,14 +599,85 @@ function TicketDetailDialog({
 
   const isImage = (type: string) => type?.startsWith("image/");
 
+  const hasChanges =
+    editStatus !== ticket.status ||
+    editPriority !== ticket.priority ||
+    (editDueDate ? format(editDueDate, "yyyy-MM-dd") : null) !== (ticket.due_date || null);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const mutations: Promise<any>[] = [];
+      if (editStatus !== ticket.status) {
+        mutations.push(new Promise((resolve, reject) => {
+          updateTicketField.mutate(
+            { id: ticket.id, field: "status", value: editStatus },
+            { onSuccess: resolve, onError: reject }
+          );
+        }));
+      }
+      if (editPriority !== ticket.priority) {
+        mutations.push(new Promise((resolve, reject) => {
+          updateTicketField.mutate(
+            { id: ticket.id, field: "priority", value: editPriority },
+            { onSuccess: resolve, onError: reject }
+          );
+        }));
+      }
+      const newDue = editDueDate ? format(editDueDate, "yyyy-MM-dd") : null;
+      if (newDue !== (ticket.due_date || null)) {
+        mutations.push(new Promise((resolve, reject) => {
+          updateTicketField.mutate(
+            { id: ticket.id, field: "due_date", value: newDue },
+            { onSuccess: resolve, onError: reject }
+          );
+        }));
+      }
+      await Promise.all(mutations);
+      toast.success("Chamado atualizado");
+      onOpenChange(false);
+    } catch {
+      toast.error("Erro ao salvar alterações");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono text-xs text-muted-foreground">{ticket.ticket_number}</span>
-            <Badge className={STATUS_COLORS[ticket.status] || ""}>{STATUS_LABELS[ticket.status] || ticket.status}</Badge>
-            <Badge className={PRIORITY_COLORS[ticket.priority]}>{PRIORITY_LABELS[ticket.priority] || ticket.priority}</Badge>
+            {isAdmin ? (
+              <>
+                <Select value={editStatus} onValueChange={setEditStatus}>
+                  <SelectTrigger className="h-7 w-auto min-w-[120px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={editPriority} onValueChange={setEditPriority}>
+                  <SelectTrigger className="h-7 w-auto min-w-[100px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            ) : (
+              <>
+                <Badge className={STATUS_COLORS[ticket.status] || ""}>{STATUS_LABELS[ticket.status] || ticket.status}</Badge>
+                <Badge className={PRIORITY_COLORS[ticket.priority]}>{PRIORITY_LABELS[ticket.priority] || ticket.priority}</Badge>
+              </>
+            )}
           </div>
           <DialogTitle className="text-lg">{ticket.title}</DialogTitle>
           <DialogDescription className="sr-only">Detalhes do chamado {ticket.ticket_number}</DialogDescription>
@@ -633,20 +717,16 @@ function TicketDetailDialog({
                 <span className="text-sm text-muted-foreground block mb-1">Prazo</span>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !ticket.due_date && "text-muted-foreground")}>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !editDueDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {ticket.due_date ? format(parseISO(ticket.due_date), "dd/MM/yyyy") : "Definir prazo"}
+                      {editDueDate ? format(editDueDate, "dd/MM/yyyy") : "Definir prazo"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={ticket.due_date ? parseISO(ticket.due_date) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          updateTicketField.mutate({ id: ticket.id, field: "due_date", value: format(date, "yyyy-MM-dd") });
-                        }
-                      }}
+                      selected={editDueDate}
+                      onSelect={setEditDueDate}
                       initialFocus
                       className={cn("p-3 pointer-events-auto")}
                     />
@@ -716,10 +796,21 @@ function TicketDetailDialog({
             </div>
           </div>
         </ScrollArea>
+
+        {/* Save button for admins */}
+        {isAdmin && (
+          <div className="flex-shrink-0 flex justify-end pt-3 border-t">
+            <Button onClick={handleSave} disabled={!hasChanges || saving}>
+              {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Salvando...</> : "Salvar alterações"}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
 }
+
+
 
 const TITLE_OPTIONS = [
   "Kommo", "Feegow", "Clickup", "ClickSing", "Planilha", "Neohub", "Wordpress",
