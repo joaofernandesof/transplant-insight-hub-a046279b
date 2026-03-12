@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { ImageUploadField } from '@/neoacademy/components/ImageUploadField';
 import {
   ArrowLeft, BookOpen, Plus, Edit, Trash2, Eye, EyeOff, Users, GripVertical,
   ChevronDown, ChevronRight, Save, X, FileText, Download, Image, Video,
