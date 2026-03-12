@@ -6,6 +6,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// Detect product from call title patterns
+function detectProductFromTitle(title: string): string | null {
+  if (!title) return null;
+  const t = title.toLowerCase();
+  if (t.includes('brows') || t.includes('sobrancelha')) return 'BROWS TRANSPLANT';
+  if (t.includes('instrumentador') || t.includes('instrumen')) return 'INSTRUMENTADOR DE ELITE';
+  if (t.includes('formação 360') || t.includes('formacao 360') || t.includes('transplante capilar')) return 'Formação 360';
+  return null;
+}
+
+// Strip product suffix from lead name (e.g. "Dr. João - Curso Formação 360" → "Dr. João")
+function cleanLeadName(name: string): string {
+  const productPatterns = [
+    /\s*[-–—]\s*(Curso\s+)?Brows\s+Transplant\s*\d*/i,
+    /\s*[-–—]\s*(Curso\s+)?Formação\s+360\s*(em\s+Transplante\s+Capilar)?\.?/i,
+    /\s*[-–—]\s*(Curso\s+)?Instrumentador\s+de\s+Elite\.?/i,
+    /\s*[-–—]\s*Curso\s+BROWS\s+\d*/i,
+  ];
+  let cleaned = name;
+  for (const pattern of productPatterns) {
+    cleaned = cleaned.replace(pattern, '').trim();
+  }
+  return cleaned || name;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -169,6 +194,7 @@ serve(async (req) => {
           break;
         }
       }
+      leadName = cleanLeadName(leadName);
       const contentKey = `${leadName.toLowerCase()}::${fullTranscript.trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ')}`;
       if (existingContentKeys.has(contentKey)) {
         skipped++;
@@ -193,12 +219,14 @@ serve(async (req) => {
       // The first non-lead speaker is likely the closer
       const closerName = speakerNames.find((name: string) => !leadName.toLowerCase().includes(name.toLowerCase().split(' ')[0])) || speakerNames[0] || 'Closer';
 
+      const detectedProduct = detectProductFromTitle(transcript.title);
+
       const { data: insertedCall, error: insertError } = await supabase.from('sales_calls').insert({
         account_id,
         closer_id: user_id,
         closer_name: closerName,
         lead_nome: leadName,
-        produto: null,
+        produto: detectedProduct,
         data_call: callDate,
         status_call: 'followup',
         transcricao: fullTranscript || null,

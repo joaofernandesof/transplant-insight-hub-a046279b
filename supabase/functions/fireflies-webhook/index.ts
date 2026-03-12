@@ -17,6 +17,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Detect product from call title patterns
+function detectProductFromTitle(title: string): string | null {
+  if (!title) return null;
+  const t = title.toLowerCase();
+  if (t.includes('brows') || t.includes('sobrancelha')) return 'BROWS TRANSPLANT';
+  if (t.includes('instrumentador') || t.includes('instrumen')) return 'INSTRUMENTADOR DE ELITE';
+  if (t.includes('formação 360') || t.includes('formacao 360') || t.includes('transplante capilar')) return 'Formação 360';
+  return null;
+}
+
+// Strip product suffix from lead name
+function cleanLeadName(name: string): string {
+  const productPatterns = [
+    /\s*[-–—]\s*(Curso\s+)?Brows\s+Transplant\s*\d*/i,
+    /\s*[-–—]\s*(Curso\s+)?Formação\s+360\s*(em\s+Transplante\s+Capilar)?\.?/i,
+    /\s*[-–—]\s*(Curso\s+)?Instrumentador\s+de\s+Elite\.?/i,
+    /\s*[-–—]\s*Curso\s+BROWS\s+\d*/i,
+  ];
+  let cleaned = name;
+  for (const pattern of productPatterns) {
+    cleaned = cleaned.replace(pattern, '').trim();
+  }
+  return cleaned || name;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -218,6 +243,7 @@ Deno.serve(async (req) => {
         break
       }
     }
+    leadName = cleanLeadName(leadName)
 
     // Content dedup check
     const contentKey = `${leadName.toLowerCase()}::${fullTranscript.trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ')}`
@@ -265,13 +291,15 @@ Deno.serve(async (req) => {
 
     const callDate = transcript.date ? new Date(transcript.date).toISOString() : new Date().toISOString()
 
+    const detectedProduct = detectProductFromTitle(transcript.title)
+
     // 11. Insert call
     const { data: insertedCall, error: insertError } = await supabase.from('sales_calls').insert({
       account_id,
       closer_id: user_id,
       closer_name: closerName,
       lead_nome: leadName,
-      produto: null,
+      produto: detectedProduct,
       data_call: callDate,
       status_call: 'followup',
       transcricao: fullTranscript || null,
@@ -307,7 +335,7 @@ Deno.serve(async (req) => {
             transcript: content,
             closer_name: closerName,
             lead_nome: leadName,
-            produto: null,
+            produto: detectedProduct,
             data_call: callDate,
             status_call: 'followup',
             call_id: insertedCall.id,
