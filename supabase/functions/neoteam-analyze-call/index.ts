@@ -13,7 +13,7 @@ serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    const { transcript, closer_name, lead_nome, produto, data_call, status_call, call_id, account_id } = await req.json();
+    const { transcript, closer_name, lead_nome, produto, data_call, status_call, call_id, account_id, fireflies_url } = await req.json();
 
     if (!transcript || transcript.trim().length < 30) {
       return new Response(
