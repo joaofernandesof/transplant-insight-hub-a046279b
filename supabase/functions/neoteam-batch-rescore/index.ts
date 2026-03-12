@@ -67,11 +67,11 @@ serve(async (req) => {
 
       try {
         const systemPrompt = `Você é um especialista em análise de calls de vendas consultivas de alto ticket.
-Avalie a performance do closer/vendedor em 7 dimensões com notas de 1 a 10.
+Avalie a performance do closer/vendedor em 7 dimensões com notas de 0 a 10 (zero = não demonstrou nenhum aspecto).
 Se o conteúdo for um resumo curto (não transcrição completa), dê notas baseadas no que pode ser inferido.
 Se não há informação suficiente para uma dimensão específica, dê nota 5 (neutro).`;
 
-        const userPrompt = `Analise esta call e dê notas de 1-10 para cada dimensão do closer:
+        const userPrompt = `Analise esta call e dê notas de 0-10 para cada dimensão do closer:
 
 CLOSER: ${call.closer_name || "Não informado"}
 LEAD: ${call.lead_nome}
@@ -103,13 +103,13 @@ Avalie usando a função fornecida.`;
                 parameters: {
                   type: "object",
                   properties: {
-                    closer_primeiro_impacto: { type: "integer", description: "Score 1-10: abertura, rapport, tom inicial" },
-                    closer_exploracao_spin: { type: "integer", description: "Score 1-10: uso de perguntas SPIN" },
-                    closer_conexao_emocional: { type: "integer", description: "Score 1-10: empatia, escuta ativa" },
-                    closer_clareza_pitch: { type: "integer", description: "Score 1-10: clareza na apresentação" },
-                    closer_gatilhos_mentais: { type: "integer", description: "Score 1-10: escassez, urgência, prova social" },
-                    closer_gestao_fala: { type: "integer", description: "Score 1-10: controle do tempo, assertividade" },
-                    closer_fechamento: { type: "integer", description: "Score 1-10: técnica de fechamento" },
+                    closer_primeiro_impacto: { type: "integer", description: "Score 0-10: abertura, rapport, tom inicial (0 = não demonstrou)" },
+                    closer_exploracao_spin: { type: "integer", description: "Score 0-10: uso de perguntas SPIN (0 = não utilizou)" },
+                    closer_conexao_emocional: { type: "integer", description: "Score 0-10: empatia, escuta ativa (0 = ausente)" },
+                    closer_clareza_pitch: { type: "integer", description: "Score 0-10: clareza na apresentação (0 = não apresentou)" },
+                    closer_gatilhos_mentais: { type: "integer", description: "Score 0-10: escassez, urgência, prova social (0 = não utilizou)" },
+                    closer_gestao_fala: { type: "integer", description: "Score 0-10: controle do tempo, assertividade (0 = sem controle)" },
+                    closer_fechamento: { type: "integer", description: "Score 0-10: técnica de fechamento (0 = não tentou)" },
                   },
                   required: ["closer_primeiro_impacto", "closer_exploracao_spin", "closer_conexao_emocional", "closer_clareza_pitch", "closer_gatilhos_mentais", "closer_gestao_fala", "closer_fechamento"],
                   additionalProperties: false,

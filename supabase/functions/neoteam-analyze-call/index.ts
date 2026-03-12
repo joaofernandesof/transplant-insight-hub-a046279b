@@ -39,9 +39,9 @@ Regras:
 - Ser crítico com a atuação da closer
 - Priorizar melhoria de performance
 - Não inventar informações - se não há dados suficientes, indicar "Não identificado na call"
-- Scores BANT de 1 a 10 cada
+- Scores BANT de 0 a 10 cada (zero significa ausência total)
 - Probabilidade de fechamento de 0 a 100
-- Avalie a performance do closer em 7 dimensões (nota 1-10 cada):
+- Avalie a performance do closer em 7 dimensões (nota 0-10 cada, zero = não demonstrou nenhum aspecto):
   1. Primeiro Impacto: como abriu a call, rapport, tom inicial
   2. Exploração SPIN: uso de perguntas Situação/Problema/Implicação/Necessidade
   3. Conexão Emocional: empatia, escuta ativa, vínculo com o lead
@@ -94,10 +94,10 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
                   objecoes: { type: "string", description: "Principais objeções levantadas pelo lead, separadas por ponto e vírgula" },
                   pontos_fracos_closer: { type: "string", description: "Pontos fracos identificados na atuação da closer" },
                   pontos_fortes_closer: { type: "string", description: "Pontos fortes identificados na atuação da closer" },
-                  bant_budget: { type: "integer", description: "Score Budget 1-10: capacidade financeira do lead" },
-                  bant_authority: { type: "integer", description: "Score Authority 1-10: poder de decisão do lead" },
-                  bant_need: { type: "integer", description: "Score Need 1-10: nível de necessidade do lead" },
-                  bant_timeline: { type: "integer", description: "Score Timeline 1-10: urgência temporal do lead" },
+                  bant_budget: { type: "integer", description: "Score Budget 0-10: capacidade financeira do lead (0 = nenhuma evidência)" },
+                  bant_authority: { type: "integer", description: "Score Authority 0-10: poder de decisão do lead (0 = nenhuma evidência)" },
+                  bant_need: { type: "integer", description: "Score Need 0-10: nível de necessidade do lead (0 = nenhuma evidência)" },
+                  bant_timeline: { type: "integer", description: "Score Timeline 0-10: urgência temporal do lead (0 = nenhuma evidência)" },
                   classificacao_lead: { type: "string", enum: ["frio", "morno", "quente"], description: "Classificação de temperatura do lead" },
                   urgencia: { type: "string", enum: ["baixa", "media", "alta"], description: "Nível de urgência" },
                   dor_principal: { type: "string", description: "Principal dor/necessidade identificada" },
@@ -107,13 +107,13 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
                   proximos_passos: { type: "string", description: "Próximos passos recomendados" },
                   conclusao: { type: "string", description: "Conclusão geral da análise" },
                   probabilidade_fechamento: { type: "integer", description: "Probabilidade de fechamento de 0 a 100%" },
-                  closer_primeiro_impacto: { type: "integer", description: "Score 1-10: primeiro impacto, rapport, tom inicial" },
-                  closer_exploracao_spin: { type: "integer", description: "Score 1-10: uso de perguntas SPIN (Situação/Problema/Implicação/Necessidade)" },
-                  closer_conexao_emocional: { type: "integer", description: "Score 1-10: empatia, escuta ativa, vínculo" },
-                  closer_clareza_pitch: { type: "integer", description: "Score 1-10: clareza na apresentação do produto e proposta de valor" },
-                  closer_gatilhos_mentais: { type: "integer", description: "Score 1-10: uso de escassez, urgência, prova social, autoridade" },
-                  closer_gestao_fala: { type: "integer", description: "Score 1-10: controle do tempo, pausas, assertividade" },
-                  closer_fechamento: { type: "integer", description: "Score 1-10: técnica de fechamento e condução ao próximo passo" },
+                  closer_primeiro_impacto: { type: "integer", description: "Score 0-10: primeiro impacto, rapport, tom inicial (0 = não demonstrou)" },
+                  closer_exploracao_spin: { type: "integer", description: "Score 0-10: uso de perguntas SPIN (0 = não utilizou)" },
+                  closer_conexao_emocional: { type: "integer", description: "Score 0-10: empatia, escuta ativa, vínculo (0 = ausente)" },
+                  closer_clareza_pitch: { type: "integer", description: "Score 0-10: clareza na apresentação do produto (0 = não apresentou)" },
+                  closer_gatilhos_mentais: { type: "integer", description: "Score 0-10: uso de escassez, urgência, prova social (0 = não utilizou)" },
+                  closer_gestao_fala: { type: "integer", description: "Score 0-10: controle do tempo, pausas, assertividade (0 = sem controle)" },
+                  closer_fechamento: { type: "integer", description: "Score 0-10: técnica de fechamento e condução ao próximo passo (0 = não tentou)" },
                   whatsapp_report: { type: "string", description: "Relatório completo formatado para WhatsApp com *negrito*, emojis e leitura rápida no celular. DEVE seguir o formato:\\n\\n📊 *ANÁLISE DA CALL DE VENDAS*\\n\\n👤 *Closer:* ...\\n🎯 *Lead:* ...\\n📦 *Produto:* ...\\n📅 *Data:* ...\\n📊 *Resultado:* ...\\n🔗 *Link Fireflies:* (link se disponível)\\n\\n📝 *RESUMO*\\n...\\n\\n📋 *CONDUTA / TAREFAS A FAZER*\\n• Tarefa 1\\n• Tarefa 2\\n...\\n\\n🎯 *BANT* B: X/10 | A: X/10 | N: X/10 | T: X/10 | Total: XX/40\\n🌡️ *Classificação:* Quente/Morno/Frio\\n⚡ *Prob. Fechamento:* XX%\\n\\n➡️ *PRÓXIMOS PASSOS*\\n..." },
                 },
                 required: [
