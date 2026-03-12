@@ -396,7 +396,11 @@ export default function TicketsPage() {
                 return (
                   <TableRow
                     key={t.id}
-                    className={isUnassigned && t.status === "open" ? "border-l-4 border-l-orange-400" : ""}
+                    className={cn(
+                      isUnassigned && t.status === "open" ? "border-l-4 border-l-orange-400" : "",
+                      isTicketAdmin ? "cursor-pointer hover:bg-muted/50" : ""
+                    )}
+                    onClick={() => isTicketAdmin && setSelectedTicket(t)}
                   >
                     <TableCell className="font-mono text-xs">{t.ticket_number}</TableCell>
                     <TableCell>
