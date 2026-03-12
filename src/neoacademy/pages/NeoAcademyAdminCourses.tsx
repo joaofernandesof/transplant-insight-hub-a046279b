@@ -92,7 +92,17 @@ export default function NeoAcademyAdminCourses() {
         .select('account_id')
         .eq('user_id', user.id)
         .single();
-      return d2;
+      if (d2) return d2;
+      // Fallback for admin users: use first account
+      if (user.isAdmin) {
+        const { data: fallback } = await supabase
+          .from('neoacademy_accounts')
+          .select('id')
+          .limit(1)
+          .single();
+        if (fallback) return { account_id: fallback.id };
+      }
+      return null;
     },
     enabled: !!user?.id,
   });
