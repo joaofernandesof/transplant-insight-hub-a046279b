@@ -275,13 +275,15 @@ Deno.serve(async (req) => {
 
     const callDate = transcript.date ? new Date(transcript.date).toISOString() : new Date().toISOString()
 
+    const detectedProduct = detectProductFromTitle(transcript.title)
+
     // 11. Insert call
     const { data: insertedCall, error: insertError } = await supabase.from('sales_calls').insert({
       account_id,
       closer_id: user_id,
       closer_name: closerName,
       lead_nome: leadName,
-      produto: null,
+      produto: detectedProduct,
       data_call: callDate,
       status_call: 'followup',
       transcricao: fullTranscript || null,
