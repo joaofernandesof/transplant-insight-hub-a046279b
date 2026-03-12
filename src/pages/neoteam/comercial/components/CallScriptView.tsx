@@ -389,7 +389,10 @@ export function CallScriptView({ eventSummary, eventStart, onBack }: CallScriptV
                   <div className="p-1.5 rounded-md bg-primary/10">
                     <Target className="h-4 w-4 text-primary" />
                   </div>
-                  <CardTitle className="text-sm font-bold">PITCH DO CURSO – Os 4 Pilares</CardTitle>
+                  <CardTitle className="text-sm font-bold">
+                    <Badge variant="outline" className="mr-2 text-xs">7</Badge>
+                    PITCH DO CURSO – Os 4 Pilares
+                  </CardTitle>
                 </div>
                 {expandedSections.has('pitch') ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
               </div>
