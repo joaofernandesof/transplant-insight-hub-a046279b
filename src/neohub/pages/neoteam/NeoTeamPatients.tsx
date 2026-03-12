@@ -206,6 +206,27 @@ export default function NeoTeamPatients() {
     },
   });
 
+  // Dialog states
+  const [showNewPatient, setShowNewPatient] = useState(false);
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+
+  // Derived filter options
+  const branches = useMemo(() => {
+    const set = new Set(patients.map(p => p.branch).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [patients]);
+
+  const categories = useMemo(() => {
+    const set = new Set(patients.map(p => p.category).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [patients]);
+
+  const grades = useMemo(() => {
+    const set = new Set(patients.map(p => p.baldnessGrade).filter(Boolean) as string[]);
+    return Array.from(set).sort((a, b) => Number(a) - Number(b));
+  }, [patients]);
+
   // Stats for filters
   const stats = useMemo(() => ({
     total: patients.length,
