@@ -607,6 +607,9 @@ export default function NeoTeamPatientDetail() {
       }
 
       toast.success('Paciente atualizado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
       setIsEditing(false);
       setEditData({});
       fetchPatient(); // Reload data
