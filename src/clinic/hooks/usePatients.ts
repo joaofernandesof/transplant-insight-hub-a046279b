@@ -1,7 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { toast } from 'sonner';
+import { useClinicPatientsRaw } from './useClinicPatientsRaw';
 
 export interface Patient {
   id: string;
@@ -28,18 +30,12 @@ export interface PatientInput {
 export function usePatients() {
   const { user } = useClinicAuth();
   const queryClient = useQueryClient();
+  const { data: rawPatients = [], isLoading, error } = useClinicPatientsRaw();
 
-  const { data: patients = [], isLoading, error } = useQuery({
-    queryKey: ['clinic-patients'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clinic_patients')
-        .select('*')
-        .order('full_name', { ascending: true });
-
-      if (error) throw error;
-
-      return (data || []).map((p: any): Patient => ({
+  const patients = useMemo(() => {
+    return [...rawPatients]
+      .sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''))
+      .map((p): Patient => ({
         id: p.id,
         fullName: p.full_name,
         email: p.email,
@@ -50,9 +46,7 @@ export function usePatients() {
         grade: p.grade,
         createdAt: p.created_at,
       }));
-    },
-    enabled: !!user,
-  });
+  }, [rawPatients]);
 
   const createPatient = useMutation({
     mutationFn: async (input: PatientInput) => {

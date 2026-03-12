@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useClinicPatientsRaw } from '@/clinic/hooks/useClinicPatientsRaw';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -164,47 +164,38 @@ export default function NeoTeamPatients() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(100);
   
-  const { data: patients = [], isLoading } = useQuery({
-    queryKey: ['clinic-patients'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clinic_patients')
-        .select('*')
-        .order('created_at', { ascending: true })
-        .limit(1000);
+  const { data: rawPatients = [], isLoading } = useClinicPatientsRaw();
 
-      if (error) throw error;
-
-      return (data || []).map((p: any, index: number): Patient => {
-        const parsed = parseNotes(p.notes);
-        return {
-          id: p.id,
-          sequenceId: index + 1,
-          name: p.full_name,
-          email: p.email || '',
-          phone: p.phone || '',
-          cpf: p.cpf || '',
-          birthDate: parsed['nascimento'] || parsed['data nascimento'] || '',
-          maritalStatus: parsed['estado civil'] || '',
-          nationality: parsed['nacionalidade'] || '',
-          address: parsed['endereço'] || parsed['endereco'] || '',
-          city: parsed['cidade'] || '',
-          state: parsed['estado'] || parsed['uf'] || '',
-          gender: 'O' as const,
-          totalVisits: 0,
-          status: 'active' as const,
-          tags: [],
-          branch: parsed['filial'] || '',
-          category: parsed['categoria'] || '',
-          baldnessGrade: parsed['grau'] || '',
-          createdAt: p.created_at,
-          surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || '',
-          consultant: parsed['consultor'] || '',
-          seller: parsed['vendedor'] || '',
-        };
-      });
-    },
-  });
+  const patients = useMemo(() => {
+    return rawPatients.map((p, index): Patient => {
+      const parsed = parseNotes(p.notes);
+      return {
+        id: p.id,
+        sequenceId: index + 1,
+        name: p.full_name,
+        email: p.email || '',
+        phone: p.phone || '',
+        cpf: p.cpf || '',
+        birthDate: parsed['nascimento'] || parsed['data nascimento'] || '',
+        maritalStatus: parsed['estado civil'] || '',
+        nationality: parsed['nacionalidade'] || '',
+        address: parsed['endereço'] || parsed['endereco'] || '',
+        city: parsed['cidade'] || '',
+        state: parsed['estado'] || parsed['uf'] || '',
+        gender: 'O' as const,
+        totalVisits: 0,
+        status: 'active' as const,
+        tags: [],
+        branch: parsed['filial'] || '',
+        category: parsed['categoria'] || '',
+        baldnessGrade: parsed['grau'] || '',
+        createdAt: p.created_at,
+        surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || '',
+        consultant: parsed['consultor'] || '',
+        seller: parsed['vendedor'] || '',
+      };
+    });
+  }, [rawPatients]);
 
   // Dialog states
   const [showNewPatient, setShowNewPatient] = useState(false);
