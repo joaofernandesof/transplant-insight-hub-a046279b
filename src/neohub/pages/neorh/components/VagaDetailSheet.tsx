@@ -193,6 +193,9 @@ export function VagaDetailSheet({
   const [newDocUrl, setNewDocUrl] = useState('');
   const [newItemLabel, setNewItemLabel] = useState('');
   const [editingEtapaChecklist, setEditingEtapaChecklist] = useState<string | null>(null);
+  const [jobLinks, setJobLinks] = useState<JobPostingLinks>({ ...EMPTY_LINKS });
+  const [newLinkLabel, setNewLinkLabel] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
 
   // Load state when vaga changes
   useEffect(() => {
