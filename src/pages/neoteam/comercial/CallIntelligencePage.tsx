@@ -14,9 +14,9 @@ import { CallAnalysisView } from './components/CallAnalysisView';
 import { FirefliesSettingsTab } from './components/FirefliesSettingsTab';
 import { AgendaTab } from './components/AgendaTab';
 
-// We need an account_id - for NeoTeam we'll use the user's first avivar account or fallback
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+
+const CALLS_LAST_SEEN_KEY = 'call-intelligence-calls-last-seen';
 
 export default function CallIntelligencePage() {
   const { user } = useAuth();
