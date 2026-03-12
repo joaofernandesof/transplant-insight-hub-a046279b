@@ -110,6 +110,7 @@ export default function ClinicDashboard() {
   const [addDialogDate, setAddDialogDate] = useState<string | undefined>(undefined);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOnlyViolations, setShowOnlyViolations] = useState(false);
+  const [activeChecklistFilters, setActiveChecklistFilters] = useState<Set<ChecklistFilterKey>>(new Set());
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [isSyncingNotes, setIsSyncingNotes] = useState(false);
   const [notesSynced, setNotesSynced] = useState(() => localStorage.getItem('surgery-notes-synced') === 'true');
