@@ -194,6 +194,7 @@ serve(async (req) => {
           break;
         }
       }
+      leadName = cleanLeadName(leadName);
       const contentKey = `${leadName.toLowerCase()}::${fullTranscript.trim().slice(0, 500).toLowerCase().replace(/\s+/g, ' ')}`;
       if (existingContentKeys.has(contentKey)) {
         skipped++;

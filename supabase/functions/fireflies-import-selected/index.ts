@@ -160,7 +160,7 @@ serve(async (req) => {
         if (summary.action_items) resumo += `## Action Items\n${summary.action_items}\n\n`;
         if (summary.keywords?.length) resumo += `## Keywords\n${summary.keywords.join(', ')}\n`;
 
-        const leadName = (transcript.title || 'Sem título').replace('Reunião com ', '').trim();
+        const leadName = cleanLeadName((transcript.title || 'Sem título').replace('Reunião com ', '').trim());
         const callDate = transcript.date ? new Date(transcript.date).toISOString() : new Date().toISOString();
 
         // Determine closer
