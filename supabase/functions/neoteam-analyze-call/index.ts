@@ -57,11 +57,16 @@ LEAD: ${lead_nome || "Não informado"}
 PRODUTO: ${produto || "Não informado"}
 DATA: ${data_call || "Não informada"}
 STATUS: ${status_call || "Não informado"}
+${fireflies_url ? `LINK FIREFLIES: ${fireflies_url}` : ""}
 
 TRANSCRIÇÃO/RESUMO:
 ${transcript}
 
-Gere a análise completa usando a função fornecida. Inclua também o campo whatsapp_report com uma versão formatada para WhatsApp usando *negrito* com asteriscos e emojis.`;
+Gere a análise completa usando a função fornecida. Inclua também o campo whatsapp_report com uma versão formatada para WhatsApp usando *negrito* com asteriscos e emojis. O relatório DEVE incluir:
+1. Os dados básicos (closer, lead, produto, data, status)
+2. ${fireflies_url ? `O link da call no Fireflies: ${fireflies_url}` : "Link da call (se disponível)"}
+3. Uma seção "📋 *CONDUTA / TAREFAS A FAZER*" com as ações concretas identificadas na call (follow-up, enviar material, agendar retorno, etc.)
+4. Resumo, BANT, classificação e próximos passos`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
