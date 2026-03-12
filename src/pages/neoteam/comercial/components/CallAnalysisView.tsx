@@ -39,8 +39,49 @@ function BantBar({ label, score, icon }: { label: string; score: number; icon: s
   );
 }
 
-export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze }: Props) {
+export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze, accountId }: Props) {
   const [copiedWa, setCopiedWa] = useState(false);
+  const [isSendingToGroup, setIsSendingToGroup] = useState(false);
+
+  const sendToWhatsAppGroup = async () => {
+    if (!analysis?.whatsapp_report || !accountId) return;
+    setIsSendingToGroup(true);
+    try {
+      // Get group config
+      const { data: groupSetting } = await supabase
+        .from('avivar_account_settings')
+        .select('setting_value')
+        .eq('account_id', accountId)
+        .eq('setting_key', 'call_intelligence_whatsapp_group')
+        .maybeSingle();
+
+      const groupId = typeof groupSetting?.setting_value === 'string'
+        ? groupSetting.setting_value
+        : (groupSetting?.setting_value as any)?.group_id;
+
+      if (!groupId) {
+        toast.error('Grupo do WhatsApp não configurado. Vá em Configurações para definir.');
+        return;
+      }
+
+      // Get UazAPI credentials via edge function
+      const { data, error } = await supabase.functions.invoke('avivar-send-group-report', {
+        body: {
+          account_id: accountId,
+          group_id: groupId,
+          message: analysis.whatsapp_report,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Relatório enviado para o grupo! ✅');
+    } catch (err: any) {
+      toast.error('Erro ao enviar: ' + (err.message || ''));
+    } finally {
+      setIsSendingToGroup(false);
+    }
+  };
 
   if (!call) {
     return (
