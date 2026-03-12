@@ -419,6 +419,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_assets', code: 'neoteam_assets', title: 'Controle Patrimonial', icon: Landmark, route: '/neoteam/manutencao/patrimonio' },
       { id: 'neoteam_manutencao_dashboard', code: 'neoteam_manutencao_dashboard', title: 'Ordens de Manutenção', icon: Wrench, route: '/neoteam/manutencao/ordens' },
+      { id: 'neoteam_manut_chamados', code: 'neoteam_manut_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/manutencao/chamados' },
     ],
   },
   {
