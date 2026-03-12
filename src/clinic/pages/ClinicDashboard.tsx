@@ -330,7 +330,7 @@ export default function ClinicDashboard() {
     });
 
     return items;
-  }, [scheduledSurgeries, selectedBranch, periodRange, searchTerm, activeDFilters, availabilityFilter, effectiveBranchForAvail, getDayAvailability]);
+  }, [scheduledSurgeries, selectedBranch, periodRange, searchTerm, activeDFilters, activeChecklistFilters, availabilityFilter, effectiveBranchForAvail, getDayAvailability]);
 
   // KPIs computed from filteredSurgeries (driven by active filters)
   const kpiStats = useMemo(() => {
