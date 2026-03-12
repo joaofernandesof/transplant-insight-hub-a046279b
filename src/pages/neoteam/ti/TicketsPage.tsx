@@ -425,16 +425,23 @@ export default function TicketsPage() {
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         <Select value={t.priority} onValueChange={v => updateTicketField.mutate({ id: t.id, field: "priority", value: v })}>
-                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className={cn("w-[120px] h-8 border-0 font-medium", PRIORITY_COLORS[t.priority])}><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="low">Baixa</SelectItem>
-                            <SelectItem value="medium">Média</SelectItem>
-                            <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="critical">Urgente</SelectItem>
+                            {Object.entries(PRIORITY_LABELS).map(([k, label]) => (
+                              <SelectItem key={k} value={k}>
+                                <span className="flex items-center gap-2">
+                                  <span className={cn("h-2 w-2 rounded-full", PRIORITY_DOT_COLORS[k])} />
+                                  {label}
+                                </span>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={PRIORITY_COLORS[t.priority]}>{PRIORITY_LABELS[t.priority] || t.priority}</Badge>
+                        <Badge className={cn("gap-1.5", PRIORITY_COLORS[t.priority])}>
+                          <span className={cn("h-2 w-2 rounded-full", PRIORITY_DOT_COLORS[t.priority])} />
+                          {PRIORITY_LABELS[t.priority] || t.priority}
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
