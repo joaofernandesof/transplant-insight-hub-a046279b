@@ -396,6 +396,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_perf_pdi', code: 'neoteam_perf_pdi', title: 'PDIs', icon: ClipboardList, route: '/neoteam/rh/performance/pdi', adminOnly: true },
       { id: 'neoteam_perf_talent', code: 'neoteam_perf_talent', title: 'Talent Score', icon: Crown, route: '/neoteam/rh/performance/talent-score', adminOnly: true },
       { id: 'neoteam_rh_offboarding', code: 'neoteam_rh_offboarding', title: 'Offboarding', icon: UserCog, route: '/neoteam/rh/offboarding', adminOnly: true },
+      { id: 'neoteam_rh_chamados', code: 'neoteam_rh_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/rh/chamados' },
     ],
   },
   {
