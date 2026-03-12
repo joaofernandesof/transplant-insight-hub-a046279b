@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Brain, Eye, Loader2, Search, Flame, Snowflake, Sun, ArrowUp, ArrowDown, ArrowUpDown, Trash2 } from 'lucide-react';
+import { Brain, Eye, Loader2, Search, Flame, Snowflake, Sun, ArrowUp, ArrowDown, ArrowUpDown, Trash2, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -312,6 +312,9 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                       checked={filtered.length > 0 && selectedIds.size === filtered.length}
                       onCheckedChange={toggleSelectAll}
                     />
+                   </TableHead>
+                  <TableHead className="w-[40px]" title="Relatório">
+                    <FileText className="h-3.5 w-3.5 text-muted-foreground mx-auto" />
                   </TableHead>
                   <TableHead className="w-[110px]"><SortableHeader col="data_call" label="Data" /></TableHead>
                   <TableHead className="w-[130px]">
@@ -399,7 +402,7 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={23} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={24} className="text-center py-8 text-muted-foreground">
                       {calls.length === 0 ? 'Nenhuma call registrada ainda' : 'Nenhuma call encontrada com os filtros'}
                     </TableCell>
                   </TableRow>
@@ -416,6 +419,15 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                             checked={selectedIds.has(call.id)}
                             onCheckedChange={() => toggleSelect(call.id)}
                           />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {call.has_analysis ? (
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-primary hover:text-primary/80" onClick={() => onViewAnalysis(call.id)} title="Ver relatório">
+                              <FileText className="h-3.5 w-3.5" />
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground/30"><FileText className="h-3.5 w-3.5 mx-auto" /></span>
+                          )}
                         </TableCell>
                         <TableCell className="text-xs whitespace-nowrap">
                           {format(new Date(call.data_call), 'dd/MM/yy HH:mm', { locale: ptBR })}
