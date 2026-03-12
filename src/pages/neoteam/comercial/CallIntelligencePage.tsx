@@ -44,13 +44,28 @@ export default function CallIntelligencePage() {
 
   const hook = useCallIntelligence(accountId || undefined);
 
+  // Count new calls since last time user opened the Calls tab
+  const newCallsCount = useMemo(() => {
+    if (!lastSeenTimestamp || hook.calls.length === 0) return hook.calls.length > 0 && !lastSeenTimestamp ? hook.calls.length : 0;
+    return hook.calls.filter(c => c.created_at && c.created_at > lastSeenTimestamp).length;
+  }, [hook.calls, lastSeenTimestamp]);
+
+  const handleTabChange = useCallback((tab: string) => {
+    if (tab === 'lista') {
+      const now = new Date().toISOString();
+      localStorage.setItem(CALLS_LAST_SEEN_KEY, now);
+      setLastSeenTimestamp(now);
+    }
+    setActiveTab(tab);
+  }, []);
+
   const handleViewAnalysis = (callId: string) => {
     setSelectedCallId(callId);
-    setActiveTab('lista');
+    handleTabChange('lista');
   };
 
   const handleCallCreated = () => {
-    setActiveTab('lista');
+    handleTabChange('lista');
   };
 
   if (!user) {
