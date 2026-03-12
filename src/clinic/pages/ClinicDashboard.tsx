@@ -822,7 +822,7 @@ export default function ClinicDashboard() {
               onUpdate={(id, updates) => updateSurgery.mutate({ id, ...updates })}
               onReschedule={(id, newDate, newTime) => rescheduleSurgery.mutate({ id, newDate, newTime })}
               onDelete={(id) => deleteSurgery.mutate(id)}
-              canDelete={isAdmin}
+              canDelete={canDeleteSurgery}
               title={`Cirurgias — ${filteredSurgeries.length} agendadas`}
               violatedIds={violatedIds}
               selectedBranch={selectedBranch}
