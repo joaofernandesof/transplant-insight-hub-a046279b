@@ -213,7 +213,7 @@ export function useSectorTickets(sectorCode: string) {
         to_stage_name: toStage?.name || null,
         description: comment || `Etapa avançada para ${toStage?.name}`,
         user_id: user?.id,
-        user_name: profile?.display_name || user?.email || 'Usuário',
+        user_name: userName,
       });
     },
     onSuccess: () => {
