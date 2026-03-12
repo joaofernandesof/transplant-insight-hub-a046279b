@@ -20,10 +20,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: "bg-emerald-100 text-emerald-800",
-  medium: "bg-amber-100 text-amber-800",
-  high: "bg-orange-100 text-orange-800",
-  critical: "bg-red-100 text-red-800",
+  low: "bg-[rgb(234,243,222)] text-[rgb(59,109,17)]",
+  medium: "bg-[rgb(230,241,251)] text-[rgb(24,95,165)]",
+  high: "bg-[rgb(250,238,218)] text-[rgb(133,79,11)]",
+  critical: "bg-[rgb(252,235,235)] text-[rgb(163,45,45)]",
+};
+
+const PRIORITY_DOT_COLORS: Record<string, string> = {
+  low: "bg-[rgb(99,153,34)]",
+  medium: "bg-[rgb(55,138,221)]",
+  high: "bg-[rgb(239,159,39)]",
+  critical: "bg-[rgb(226,75,74)]",
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -34,11 +41,19 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  open: "bg-red-100 text-red-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  waiting: "bg-amber-100 text-amber-800",
-  resolved: "bg-emerald-100 text-emerald-800",
-  closed: "bg-muted text-muted-foreground",
+  open: "bg-[rgb(234,243,222)] text-[rgb(59,109,17)]",
+  in_progress: "bg-[rgb(230,241,251)] text-[rgb(24,95,165)]",
+  waiting: "bg-[rgb(250,238,218)] text-[rgb(133,79,11)]",
+  resolved: "bg-[rgb(238,237,254)] text-[rgb(83,74,183)]",
+  closed: "bg-[rgb(241,239,232)] text-[rgb(95,94,90)]",
+};
+
+const STATUS_DOT_COLORS: Record<string, string> = {
+  open: "bg-[rgb(99,153,34)]",
+  in_progress: "bg-[rgb(55,138,221)]",
+  waiting: "bg-[rgb(239,159,39)]",
+  resolved: "bg-[rgb(127,119,221)]",
+  closed: "bg-[rgb(136,135,128)]",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -410,16 +425,23 @@ export default function TicketsPage() {
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         <Select value={t.priority} onValueChange={v => updateTicketField.mutate({ id: t.id, field: "priority", value: v })}>
-                          <SelectTrigger className="w-[120px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className={cn("w-[120px] h-8 border-0 font-medium", PRIORITY_COLORS[t.priority])}><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="low">Baixa</SelectItem>
-                            <SelectItem value="medium">Média</SelectItem>
-                            <SelectItem value="high">Alta</SelectItem>
-                            <SelectItem value="critical">Urgente</SelectItem>
+                            {Object.entries(PRIORITY_LABELS).map(([k, label]) => (
+                              <SelectItem key={k} value={k}>
+                                <span className="flex items-center gap-2">
+                                  <span className={cn("h-2 w-2 rounded-full", PRIORITY_DOT_COLORS[k])} />
+                                  {label}
+                                </span>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={PRIORITY_COLORS[t.priority]}>{PRIORITY_LABELS[t.priority] || t.priority}</Badge>
+                        <Badge className={cn("gap-1.5", PRIORITY_COLORS[t.priority])}>
+                          <span className={cn("h-2 w-2 rounded-full", PRIORITY_DOT_COLORS[t.priority])} />
+                          {PRIORITY_LABELS[t.priority] || t.priority}
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
@@ -522,17 +544,23 @@ export default function TicketsPage() {
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
-                          <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className={cn("w-[140px] h-8 border-0 font-medium", STATUS_COLORS[t.status])}><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="open">Aberto</SelectItem>
-                            <SelectItem value="in_progress">Em Andamento</SelectItem>
-                            <SelectItem value="waiting">Aguardando</SelectItem>
-                            <SelectItem value="resolved">Resolvido</SelectItem>
-                            <SelectItem value="closed">Fechado</SelectItem>
+                            {Object.entries(STATUS_LABELS).map(([k, label]) => (
+                              <SelectItem key={k} value={k}>
+                                <span className="flex items-center gap-2">
+                                  <span className={cn("h-2 w-2 rounded-full", STATUS_DOT_COLORS[k])} />
+                                  {label}
+                                </span>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={STATUS_COLORS[t.status] || ""}>{STATUS_LABELS[t.status] || t.status}</Badge>
+                        <Badge className={cn("gap-1.5", STATUS_COLORS[t.status] || "")}>
+                          <span className={cn("h-2 w-2 rounded-full", STATUS_DOT_COLORS[t.status])} />
+                          {STATUS_LABELS[t.status] || t.status}
+                        </Badge>
                       )}
                     </TableCell>
                   </TableRow>
