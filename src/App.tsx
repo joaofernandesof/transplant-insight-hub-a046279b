@@ -585,6 +585,7 @@ function NeoTeamRoutes() {
           {[
             { slug: 'tecnico', code: 'tecnico' },
             { slug: 'sucesso-paciente', code: 'sucesso_paciente' },
+            { slug: 'sucesso-aluno', code: 'sucesso_aluno' },
             { slug: 'operacional', code: 'operacional' },
             { slug: 'processos', code: 'processos' },
             { slug: 'financeiro', code: 'financeiro' },
