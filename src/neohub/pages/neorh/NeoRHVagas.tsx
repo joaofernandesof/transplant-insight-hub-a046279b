@@ -12,9 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { VagaDetailSheet } from './components/VagaDetailSheet';
 import {
   Plus, Pencil, Trash2, Eye, KanbanSquare, List, Briefcase, DollarSign, MapPin,
   GraduationCap, Target, Users2, Crown, BarChart3, Clock, TrendingUp,
@@ -657,97 +657,22 @@ export default function NeoRHVagas() {
       </Tabs>
 
       {/* ═══════ DETAIL SHEET ═══════ */}
-      <Sheet open={!!detailVaga} onOpenChange={() => setDetailVaga(null)}>
-        <SheetContent className="overflow-y-auto sm:max-w-lg">
-          <SheetHeader>
-            <SheetTitle className="text-lg">
-              {detailVaga?.descricao_curta || 'Detalhes'}
-            </SheetTitle>
-          </SheetHeader>
-          {detailVaga && (
-            <div className="mt-4 space-y-4">
-              {/* Etapa + Days */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge className="text-xs">{etapaLabel(detailVaga)}</Badge>
-                <Badge variant="outline" className={cn('text-xs', getDaysInEtapa(detailVaga) > 7 ? 'border-red-300 text-red-700' : '')}>
-                  {getDaysInEtapa(detailVaga)}d nesta etapa
-                </Badge>
-              </div>
-
-              {/* Quick actions */}
-              {isAdmin && (
-                <div className="flex gap-2 flex-wrap">
-                  <Button size="sm" variant="outline" onClick={() => { setDetailVaga(null); openEdit(detailVaga); }}>
-                    <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => { setDetailVaga(null); duplicateVaga(detailVaga); }}>
-                    <Copy className="h-3.5 w-3.5 mr-1" /> Duplicar
-                  </Button>
-                  <Select
-                    value={detailVaga.etapa_kanban || 'solicitacao'}
-                    onValueChange={val => {
-                      moveToEtapa(detailVaga, val);
-                      setDetailVaga({ ...detailVaga, etapa_kanban: val, etapa_updated_at: new Date().toISOString() });
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue placeholder="Mover para..." /></SelectTrigger>
-                    <SelectContent>
-                      {ALL_ETAPAS.map(e => (
-                        <SelectItem key={e.id} value={e.id}>{e.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {detailVaga.etapa_kanban !== 'cancelada' && (
-                    <Button size="sm" variant="destructive" onClick={() => setEliminateDialog(detailVaga)}>
-                      <XCircle className="h-3.5 w-3.5 mr-1" /> Cancelar Vaga
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {/* Progress bar */}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">Progresso no Pipeline</p>
-                {(() => {
-                  const etapas = ETAPAS;
-                  const currentIdx = etapas.findIndex(e => e.id === detailVaga.etapa_kanban);
-                  const pct = detailVaga.etapa_kanban === 'cancelada' ? 0 : currentIdx >= 0 ? Math.round(((currentIdx + 1) / etapas.length) * 100) : 0;
-                  return <Progress value={pct} className="h-2" />;
-                })()}
-              </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-2 gap-3">
-                <InfoBlock icon={<Briefcase className="h-4 w-4" />} label="Empresa" value={detailVaga.empresa || '—'} />
-                <InfoBlock icon={<MapPin className="h-4 w-4" />} label="Modalidade" value={detailVaga.modalidade?.replace('_', ' ') || '—'} />
-                <InfoBlock icon={<DollarSign className="h-4 w-4" />} label="Salário" value={`${formatCurrency(detailVaga.salario_fixo || 0)}${detailVaga.tem_comissao ? ' + Comissão' : ''}`} />
-                <InfoBlock icon={<Briefcase className="h-4 w-4" />} label="Modelo" value={detailVaga.modelo_contratacao?.toUpperCase().replace('_', ' / ') || '—'} />
-              </div>
-
-              {detailVaga.objetivo && (<><Separator /><div><div className="flex items-center gap-2 mb-1"><Target className="h-4 w-4 text-muted-foreground" /><p className="text-sm font-semibold">Objetivo</p></div><p className="text-sm text-muted-foreground">{detailVaga.objetivo}</p></div></>)}
-              {detailVaga.responsabilidades && (<div><p className="text-sm font-semibold mb-1">Responsabilidades</p><ul className="list-disc pl-4 space-y-1 text-sm text-muted-foreground">{detailVaga.responsabilidades.split(';').map((r, i) => r.trim() && <li key={i}>{r.trim()}</li>)}</ul></div>)}
-              {detailVaga.competencias && (<div><div className="flex items-center gap-2 mb-1"><Users2 className="h-4 w-4 text-muted-foreground" /><p className="text-sm font-semibold">Competências</p></div><p className="text-sm text-muted-foreground">{detailVaga.competencias}</p></div>)}
-              {detailVaga.formacao && (<div><div className="flex items-center gap-2 mb-1"><GraduationCap className="h-4 w-4 text-muted-foreground" /><p className="text-sm font-semibold">Formação</p></div><p className="text-sm text-muted-foreground">{detailVaga.formacao}</p></div>)}
-
-              {/* Perguntas Eliminatórias */}
-              {Array.isArray(detailVaga.perguntas_eliminatorias) && detailVaga.perguntas_eliminatorias.length > 0 && (
-                <><Separator /><div><p className="text-sm font-semibold mb-2">Perguntas Eliminatórias (Triagem)</p><ul className="space-y-1">{detailVaga.perguntas_eliminatorias.map((p: any, i: number) => (<li key={i} className="text-sm text-muted-foreground flex items-start gap-2"><span className="font-bold text-xs mt-0.5">{i+1}.</span>{p.pergunta}</li>))}</ul></div></>
-              )}
-
-              {/* Checklist Onboarding */}
-              {detailVaga.etapa_kanban === 'onboarding' && Array.isArray(detailVaga.checklist_onboarding) && detailVaga.checklist_onboarding.length > 0 && (
-                <><Separator /><div><p className="text-sm font-semibold mb-2 flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" />Checklist de Onboarding</p><ul className="space-y-2">{detailVaga.checklist_onboarding.map((item: any, i: number) => (<li key={i} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.done} className="rounded" readOnly /><span className={item.done ? 'line-through text-muted-foreground' : ''}>{item.label}</span></li>))}</ul></div></>
-              )}
-
-              {/* Histórico */}
-              {Array.isArray(detailVaga.etapa_history) && detailVaga.etapa_history.length > 0 && (
-                <><Separator /><div><p className="text-sm font-semibold mb-2">Histórico de Etapas</p><div className="space-y-1">{detailVaga.etapa_history.map((h: any, i: number) => (<div key={i} className="flex items-center justify-between text-xs text-muted-foreground"><span>{h.etapa}</span><span>{new Date(h.at).toLocaleDateString('pt-BR')}</span></div>))}</div></div></>
-              )}
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+      <VagaDetailSheet
+        vaga={detailVaga}
+        onClose={() => setDetailVaga(null)}
+        allEtapas={ALL_ETAPAS}
+        etapas={ETAPAS}
+        isAdmin={isAdmin}
+        onEdit={(v) => { setDetailVaga(null); openEdit(v); }}
+        onDuplicate={(v) => { setDetailVaga(null); duplicateVaga(v); }}
+        onMoveToEtapa={(v, newEtapa) => {
+          moveToEtapa(v, newEtapa);
+          setDetailVaga({ ...v, etapa_kanban: newEtapa, etapa_updated_at: new Date().toISOString() });
+        }}
+        onEliminate={(v) => setEliminateDialog(v)}
+        formatCurrency={formatCurrency}
+        getDaysInEtapa={getDaysInEtapa}
+      />
 
 
       {/* ═══════ ELIMINATE DIALOG ═══════ */}
