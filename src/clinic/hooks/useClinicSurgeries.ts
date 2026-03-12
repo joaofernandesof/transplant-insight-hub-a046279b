@@ -267,6 +267,43 @@ export function useClinicSurgeries() {
       // Log changes asynchronously (don't block the update)
       logSurgeryChanges(id, updates, previousValues);
 
+      // Sync category back to clinic_patients.notes if category changed
+      if (updates.category !== undefined && currentSurgery?.patientId) {
+        try {
+          const { data: patientData } = await supabase
+            .from('clinic_patients')
+            .select('notes')
+            .eq('id', currentSurgery.patientId)
+            .single();
+
+          if (patientData) {
+            const parsed: Record<string, string> = {};
+            if (patientData.notes) {
+              for (const pair of patientData.notes.split('|')) {
+                const m = pair.match(/([^:]+):\s*(.+)/);
+                if (m) parsed[m[1].trim().toLowerCase()] = m[2].trim();
+              }
+            }
+            if (updates.category) {
+              parsed['categoria'] = updates.category;
+            } else {
+              delete parsed['categoria'];
+            }
+            const newNotes = Object.entries(parsed)
+              .filter(([, v]) => v && v.trim())
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(' | ');
+
+            await supabase
+              .from('clinic_patients')
+              .update({ notes: newNotes })
+              .eq('id', currentSurgery.patientId);
+          }
+        } catch (syncErr) {
+          console.error('Failed to sync category to patient notes:', syncErr);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
