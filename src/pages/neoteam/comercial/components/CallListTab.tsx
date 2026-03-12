@@ -435,6 +435,16 @@ export function CallListTab({ calls, analyses, isLoading, isAnalyzing, onAnalyze
                         <TableCell className="text-xs whitespace-nowrap">
                           {format(new Date(call.data_call), 'dd/MM/yy HH:mm', { locale: ptBR })}
                         </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                          {call.duration_minutes ? (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {call.duration_minutes >= 60 
+                                ? `${Math.floor(call.duration_minutes / 60)}h${String(call.duration_minutes % 60).padStart(2, '0')}` 
+                                : `${call.duration_minutes}min`}
+                            </span>
+                          ) : '—'}
+                        </TableCell>
                         <TableCell className="text-xs font-medium">{call.closer_name || '—'}</TableCell>
                         <TableCell className="text-xs font-medium text-primary">{extractedLead}</TableCell>
                         <TableCell className="text-xs text-muted-foreground min-w-[300px] whitespace-normal">
