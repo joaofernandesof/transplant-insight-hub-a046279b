@@ -326,8 +326,139 @@ export function CallDashboardTab({ stats: rawStats, analyses: allAnalyses, calls
     return Math.round(taxaScore * weights.taxa + bantScore * weights.bant + probScore * weights.prob + quenteScore * weights.quentes);
   }, [stats, analyses]);
 
+  const dateLabel = useMemo(() => {
+    switch (datePreset) {
+      case 'today': return 'Hoje';
+      case 'week': return 'Últimos 7 dias';
+      case '30days': return 'Últimos 30 dias';
+      case 'month': return selectedMonth ? format(new Date(parseInt(selectedMonth.split('-')[0]), parseInt(selectedMonth.split('-')[1]) - 1), 'MMMM yyyy', { locale: ptBR }) : '';
+      case 'custom': {
+        const parts: string[] = [];
+        if (customFrom) parts.push(format(customFrom, 'dd/MM/yy'));
+        if (customTo) parts.push(format(customTo, 'dd/MM/yy'));
+        return parts.join(' → ') || 'Período personalizado';
+      }
+      default: return 'Todas as datas';
+    }
+  }, [datePreset, selectedMonth, customFrom, customTo]);
+
   return (
     <div className="space-y-5">
+      {/* ── Date Filter Bar ── */}
+      <Card className="border-dashed">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+            
+            {/* Preset buttons */}
+            {([
+              { key: 'all', label: 'Tudo' },
+              { key: 'today', label: 'Hoje' },
+              { key: 'week', label: '7 dias' },
+              { key: '30days', label: '30 dias' },
+            ] as { key: DatePreset; label: string }[]).map(p => (
+              <button
+                key={p.key}
+                onClick={() => { setDatePreset(p.key); setSelectedMonth(''); setCustomFrom(undefined); setCustomTo(undefined); }}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border',
+                  datePreset === p.key
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-background text-muted-foreground border-border hover:bg-accent'
+                )}
+              >
+                {p.label}
+              </button>
+            ))}
+
+            {/* Month selector */}
+            <Select
+              value={datePreset === 'month' ? selectedMonth : ''}
+              onValueChange={(v) => { setDatePreset('month'); setSelectedMonth(v); setCustomFrom(undefined); setCustomTo(undefined); }}
+            >
+              <SelectTrigger className={cn(
+                'w-[140px] h-8 text-xs',
+                datePreset === 'month' ? 'border-primary ring-1 ring-primary/20' : ''
+              )}>
+                <SelectValue placeholder="Mês..." />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map(m => (
+                  <SelectItem key={m.value} value={m.value} className="text-xs capitalize">
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Custom date range */}
+            <div className="flex items-center gap-1">
+              <Popover open={showCalendarFrom} onOpenChange={setShowCalendarFrom}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      'h-8 text-xs gap-1.5 font-normal',
+                      datePreset === 'custom' && customFrom ? 'border-primary ring-1 ring-primary/20' : ''
+                    )}
+                  >
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {customFrom ? format(customFrom, 'dd/MM/yy') : 'De'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={customFrom}
+                    onSelect={(d) => { setCustomFrom(d || undefined); setDatePreset('custom'); setSelectedMonth(''); setShowCalendarFrom(false); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">→</span>
+              <Popover open={showCalendarTo} onOpenChange={setShowCalendarTo}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      'h-8 text-xs gap-1.5 font-normal',
+                      datePreset === 'custom' && customTo ? 'border-primary ring-1 ring-primary/20' : ''
+                    )}
+                  >
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {customTo ? format(customTo, 'dd/MM/yy') : 'Até'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={customTo}
+                    onSelect={(d) => { setCustomTo(d || undefined); setDatePreset('custom'); setSelectedMonth(''); setShowCalendarTo(false); }}
+                    initialFocus
+                    disabled={(date) => customFrom ? isBefore(date, customFrom) : false}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Active filter badge */}
+            {datePreset !== 'all' && (
+              <button
+                onClick={clearFilter}
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+              >
+                {dateLabel}
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* ── Row 1: KPI Cards ── */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         <KpiCard icon={<Phone className="h-5 w-5 text-primary" />} iconBg="bg-primary/10" value={stats.totalCalls} label="Calls Registradas" />
