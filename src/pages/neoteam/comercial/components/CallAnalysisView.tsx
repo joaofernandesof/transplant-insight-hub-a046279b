@@ -287,9 +287,25 @@ export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze, accou
           <div className="bg-background rounded-lg p-4 border text-sm whitespace-pre-wrap mb-3 max-h-[400px] overflow-y-auto">
             {analysis.whatsapp_report}
           </div>
-          <Button onClick={copyWhatsApp} variant="outline" className="gap-2 border-green-300 text-green-700 hover:bg-green-100">
-            {copiedWa ? <><CheckCircle2 className="h-4 w-4" /> Copiado!</> : <><Copy className="h-4 w-4" /> Copiar para WhatsApp</>}
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={copyWhatsApp} variant="outline" className="gap-2 border-green-300 text-green-700 hover:bg-green-100">
+              {copiedWa ? <><CheckCircle2 className="h-4 w-4" /> Copiado!</> : <><Copy className="h-4 w-4" /> Copiar para WhatsApp</>}
+            </Button>
+            {accountId && (
+              <Button
+                onClick={sendToWhatsAppGroup}
+                variant="outline"
+                disabled={isSendingToGroup}
+                className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+              >
+                {isSendingToGroup ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Enviando...</>
+                ) : (
+                  <><MessageSquare className="h-4 w-4" /> Enviar para Grupo</>
+                )}
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
