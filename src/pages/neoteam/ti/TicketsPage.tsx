@@ -570,7 +570,245 @@ function TicketDetailDialog({
   updateTicketField: any;
   isAdmin: boolean;
 }) {
+  const [editStatus, setEditStatus] = useState(ticket.status);
+  const [editPriority, setEditPriority] = useState(ticket.priority);
+  const [editDueDate, setEditDueDate] = useState<Date | undefined>(
+    ticket.due_date ? parseISO(ticket.due_date) : undefined
+  );
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setEditStatus(ticket.status);
+    setEditPriority(ticket.priority);
+    setEditDueDate(ticket.due_date ? parseISO(ticket.due_date) : undefined);
+  }, [ticket.id, ticket.status, ticket.priority, ticket.due_date]);
+
   const { data: attachments = [], isLoading: loadingAttachments } = useQuery({
+    queryKey: ["ticket_attachments", ticket.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("neoteam_ticket_attachments")
+        .select("*")
+        .eq("ticket_id", ticket.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  const isImage = (type: string) => type?.startsWith("image/");
+
+  const hasChanges =
+    editStatus !== ticket.status ||
+    editPriority !== ticket.priority ||
+    (editDueDate ? format(editDueDate, "yyyy-MM-dd") : null) !== (ticket.due_date || null);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const mutations: Promise<any>[] = [];
+      if (editStatus !== ticket.status) {
+        mutations.push(new Promise((resolve, reject) => {
+          updateTicketField.mutate(
+            { id: ticket.id, field: "status", value: editStatus },
+            { onSuccess: resolve, onError: reject }
+          );
+        }));
+      }
+      if (editPriority !== ticket.priority) {
+        mutations.push(new Promise((resolve, reject) => {
+          updateTicketField.mutate(
+            { id: ticket.id, field: "priority", value: editPriority },
+            { onSuccess: resolve, onError: reject }
+          );
+        }));
+      }
+      const newDue = editDueDate ? format(editDueDate, "yyyy-MM-dd") : null;
+      if (newDue !== (ticket.due_date || null)) {
+        mutations.push(new Promise((resolve, reject) => {
+          updateTicketField.mutate(
+            { id: ticket.id, field: "due_date", value: newDue },
+            { onSuccess: resolve, onError: reject }
+          );
+        }));
+      }
+      await Promise.all(mutations);
+      toast.success("Chamado atualizado");
+      onOpenChange(false);
+    } catch {
+      toast.error("Erro ao salvar alterações");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-xs text-muted-foreground">{ticket.ticket_number}</span>
+            {isAdmin ? (
+              <>
+                <Select value={editStatus} onValueChange={setEditStatus}>
+                  <SelectTrigger className="h-7 w-auto min-w-[120px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={editPriority} onValueChange={setEditPriority}>
+                  <SelectTrigger className="h-7 w-auto min-w-[100px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            ) : (
+              <>
+                <Badge className={STATUS_COLORS[ticket.status] || ""}>{STATUS_LABELS[ticket.status] || ticket.status}</Badge>
+                <Badge className={PRIORITY_COLORS[ticket.priority]}>{PRIORITY_LABELS[ticket.priority] || ticket.priority}</Badge>
+              </>
+            )}
+          </div>
+          <DialogTitle className="text-lg">{ticket.title}</DialogTitle>
+          <DialogDescription className="sr-only">Detalhes do chamado {ticket.ticket_number}</DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-5 pb-4">
+            {/* Info grid */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">Solicitante</span>
+                <p className="font-medium">{ticket.requester_name}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Responsável</span>
+                <p className="font-medium">{ticket.assigned_name || "Sem responsável"}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Criado em</span>
+                <p className="font-medium">{format(parseISO(ticket.created_at), "dd/MM/yyyy HH:mm")}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Categoria</span>
+                <p className="font-medium capitalize">{ticket.category || "—"}</p>
+              </div>
+              {ticket.resolved_at && (
+                <div>
+                  <span className="text-muted-foreground">Resolvido em</span>
+                  <p className="font-medium">{format(parseISO(ticket.resolved_at), "dd/MM/yyyy HH:mm")}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Due date editor */}
+            {isAdmin && (
+              <div>
+                <span className="text-sm text-muted-foreground block mb-1">Prazo</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !editDueDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editDueDate ? format(editDueDate, "dd/MM/yyyy") : "Definir prazo"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={editDueDate}
+                      onSelect={setEditDueDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+
+            {/* Description */}
+            {ticket.description && (
+              <div>
+                <span className="text-sm text-muted-foreground block mb-1">Descrição</span>
+                <div className="bg-muted/50 rounded-lg p-3 text-sm whitespace-pre-wrap">{ticket.description}</div>
+              </div>
+            )}
+
+            {/* Link URL */}
+            {ticket.link_url && (
+              <div>
+                <span className="text-sm text-muted-foreground block mb-1">Link</span>
+                <a
+                  href={ticket.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary underline flex items-center gap-1 hover:opacity-80"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {ticket.link_url}
+                </a>
+              </div>
+            )}
+
+            {/* Attachments */}
+            <div>
+              <span className="text-sm text-muted-foreground block mb-2">Anexos</span>
+              {loadingAttachments ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
+                </div>
+              ) : attachments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum anexo</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {attachments.map((att: any) => (
+                    <a
+                      key={att.id}
+                      href={att.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group border rounded-lg overflow-hidden hover:border-primary transition-colors"
+                    >
+                      {isImage(att.file_type) ? (
+                        <img src={att.file_url} alt={att.file_name} className="w-full h-24 object-cover" />
+                      ) : (
+                        <div className="w-full h-24 flex flex-col items-center justify-center bg-muted/50">
+                          <FileText className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="p-1.5 flex items-center gap-1">
+                        <Download className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        <span className="text-[10px] text-muted-foreground truncate">{att.file_name}</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </ScrollArea>
+
+        {/* Save button for admins */}
+        {isAdmin && (
+          <div className="flex-shrink-0 flex justify-end pt-3 border-t">
+            <Button onClick={handleSave} disabled={!hasChanges || saving}>
+              {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Salvando...</> : "Salvar alterações"}
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
     queryKey: ["ticket_attachments", ticket.id],
     queryFn: async () => {
       const { data, error } = await supabase
