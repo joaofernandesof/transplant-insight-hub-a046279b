@@ -15,6 +15,7 @@ import {
   Pencil, Copy, XCircle, CheckCircle2, Briefcase, DollarSign, MapPin,
   Target, Users2, GraduationCap, Clock, FileText, Plus, Trash2, Link2,
   History, ClipboardList, FolderOpen, AlertTriangle, ArrowRight, Settings2,
+  ExternalLink,
 } from 'lucide-react';
 
 // ── Types ──
