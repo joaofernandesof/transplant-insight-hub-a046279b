@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { ImageUploadField } from '@/neoacademy/components/ImageUploadField';
 
 interface CourseFormData {
   title: string;
@@ -414,24 +415,18 @@ export default function NeoAcademyAdminCourses() {
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs text-zinc-400">URL da Thumbnail</Label>
-                <Input
-                  value={form.thumbnail_url}
-                  onChange={e => setForm(f => ({ ...f, thumbnail_url: e.target.value }))}
-                  placeholder="https://..."
-                  className="bg-[#0a0a0f] border-white/10 text-white mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-xs text-zinc-400">URL do Banner</Label>
-                <Input
-                  value={form.banner_url}
-                  onChange={e => setForm(f => ({ ...f, banner_url: e.target.value }))}
-                  placeholder="https://..."
-                  className="bg-[#0a0a0f] border-white/10 text-white mt-1"
-                />
-              </div>
+              <ImageUploadField
+                label="Thumbnail"
+                value={form.thumbnail_url}
+                onChange={url => setForm(f => ({ ...f, thumbnail_url: url }))}
+                folder="courses/thumbnails"
+              />
+              <ImageUploadField
+                label="Banner"
+                value={form.banner_url}
+                onChange={url => setForm(f => ({ ...f, banner_url: url }))}
+                folder="courses/banners"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
