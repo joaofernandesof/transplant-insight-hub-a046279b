@@ -370,7 +370,7 @@ export default function ChamadoListPage() {
                     <TableRow
                       key={c.id}
                       className="cursor-pointer"
-                      onClick={() => navigate(`/neoteam/postvenda/chamados/${c.id}`)}
+                      onClick={() => navigate(`/neoteam/sucesso-paciente/postvenda/chamados/${c.id}`)}
                     >
                       <TableCell className="whitespace-nowrap">
                         <div className="text-sm">
