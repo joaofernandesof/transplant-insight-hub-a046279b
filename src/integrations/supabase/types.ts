@@ -3618,6 +3618,84 @@ export type Database = {
           },
         ]
       }
+      bot_controls: {
+        Row: {
+          bot_name: string
+          bot_updated: string | null
+          chip: string
+          code: string
+          concatenated: string | null
+          confirmed_joao: string | null
+          correct_chip_bot: string | null
+          correct_chip_template: string | null
+          correct_variable: string | null
+          correct_variables: string | null
+          created_at: string
+          created_by: string | null
+          funnel: string | null
+          id: string
+          media_url: string | null
+          message: string | null
+          notes: string | null
+          optin_initial: string | null
+          script: string | null
+          seq: string
+          template_approved: string | null
+          tested_our_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          bot_name: string
+          bot_updated?: string | null
+          chip?: string
+          code: string
+          concatenated?: string | null
+          confirmed_joao?: string | null
+          correct_chip_bot?: string | null
+          correct_chip_template?: string | null
+          correct_variable?: string | null
+          correct_variables?: string | null
+          created_at?: string
+          created_by?: string | null
+          funnel?: string | null
+          id?: string
+          media_url?: string | null
+          message?: string | null
+          notes?: string | null
+          optin_initial?: string | null
+          script?: string | null
+          seq: string
+          template_approved?: string | null
+          tested_our_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bot_name?: string
+          bot_updated?: string | null
+          chip?: string
+          code?: string
+          concatenated?: string | null
+          confirmed_joao?: string | null
+          correct_chip_bot?: string | null
+          correct_chip_template?: string | null
+          correct_variable?: string | null
+          correct_variables?: string | null
+          created_at?: string
+          created_by?: string | null
+          funnel?: string | null
+          id?: string
+          media_url?: string | null
+          message?: string | null
+          notes?: string | null
+          optin_initial?: string | null
+          script?: string | null
+          seq?: string
+          template_approved?: string | null
+          tested_our_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       call_analysis: {
         Row: {
           account_id: string | null
