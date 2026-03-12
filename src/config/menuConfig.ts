@@ -298,6 +298,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_cleaning', code: 'neoteam_cleaning', title: 'Limpeza', icon: Sparkles, route: '/neoteam/operacional/limpeza' },
       { id: 'neoteam_inventory', code: 'neoteam_inventory', title: 'Inventário', icon: Package, route: '/neoteam/operacional/inventario' },
       { id: 'neoteam_diary', code: 'neoteam_diary', title: 'Diário de Bordo', icon: NotebookPen, route: '/neoteam/operacional/diario' },
+      { id: 'neoteam_op_chamados', code: 'neoteam_op_chamados', title: 'Chamados', icon: ClipboardList, route: '/neoteam/operacional/chamados' },
     ],
   },
   {
