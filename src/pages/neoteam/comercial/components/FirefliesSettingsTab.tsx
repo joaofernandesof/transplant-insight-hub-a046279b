@@ -847,6 +847,91 @@ export function FirefliesSettingsTab({ accountId }: Props) {
         </DialogContent>
       </Dialog>
 
+      {/* WhatsApp Group Auto-Send Config */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-500/10">
+              <MessageSquare className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Envio Automático para Grupo WhatsApp</CardTitle>
+              <CardDescription>
+                Envie o Relatório WhatsApp automaticamente para um grupo após cada análise de call
+              </CardDescription>
+            </div>
+            {isGroupSaved && (
+              <Badge variant="outline" className="ml-auto text-emerald-600 border-emerald-300">
+                <CheckCircle2 className="h-3 w-3 mr-1" /> Ativo
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-2 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Como encontrar o ID do grupo:</p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>Abra o WhatsApp Web e acesse o grupo desejado</li>
+              <li>O ID do grupo geralmente tem o formato: <code className="text-xs bg-muted px-1 py-0.5 rounded">5511999999999-1234567890@g.us</code></li>
+              <li>Ou peça à API do UazAPI para listar seus grupos</li>
+            </ol>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp-group">ID do Grupo WhatsApp</Label>
+            <div className="flex gap-2">
+              <Input
+                id="whatsapp-group"
+                placeholder="Ex: 5511999999999-1234567890@g.us"
+                value={whatsappGroupId}
+                onChange={(e) => setWhatsappGroupId(e.target.value)}
+                className="font-mono text-xs"
+              />
+              <Button
+                onClick={async () => {
+                  if (!accountId) return;
+                  setIsSavingGroup(true);
+                  try {
+                    if (!whatsappGroupId.trim()) {
+                      // Remove config
+                      await supabase
+                        .from('avivar_account_settings')
+                        .delete()
+                        .eq('account_id', accountId)
+                        .eq('setting_key', 'call_intelligence_whatsapp_group');
+                      setIsGroupSaved(false);
+                      toast.success('Envio automático desativado');
+                    } else {
+                      const { error } = await supabase
+                        .from('avivar_account_settings')
+                        .upsert({
+                          account_id: accountId,
+                          setting_key: 'call_intelligence_whatsapp_group',
+                          setting_value: { group_id: whatsappGroupId.trim() } as any,
+                        }, { onConflict: 'account_id,setting_key' });
+                      if (error) throw error;
+                      setIsGroupSaved(true);
+                      toast.success('Grupo do WhatsApp salvo! Relatórios serão enviados automaticamente.');
+                    }
+                  } catch (err: any) {
+                    toast.error('Erro: ' + (err.message || ''));
+                  } finally {
+                    setIsSavingGroup(false);
+                  }
+                }}
+                disabled={isSavingGroup}
+              >
+                <Save className="h-4 w-4 mr-1.5" />
+                {isSavingGroup ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              O relatório inclui: resumo da call, link do Fireflies, BANT, classificação, conduta de tarefas e próximos passos. Deixe vazio para desativar.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Import Historical Calls */}
       <ImportHistoricalCalls accountId={accountId} />
     </div>
