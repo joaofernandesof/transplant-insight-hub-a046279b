@@ -76,6 +76,8 @@ export function usePatients() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
       toast.success('Paciente cadastrado com sucesso!');
     },
     onError: (error: any) => {
@@ -109,6 +111,8 @@ export function usePatients() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
+      queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
       toast.success('Paciente atualizado!');
     },
     onError: () => {
