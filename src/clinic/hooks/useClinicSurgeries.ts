@@ -83,13 +83,23 @@ export interface SurgeryInput {
 export function useClinicSurgeries() {
   const { user, session, currentBranch, isAdmin, isGestao } = useClinicAuth();
   const queryClient = useQueryClient();
+  const { data: rawPatients = [] } = useClinicPatientsRaw();
+
+  // Build a lookup map from the shared patients cache
+  const patientNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of rawPatients) {
+      map.set(p.id, p.full_name);
+    }
+    return map;
+  }, [rawPatients]);
 
   const { data: surgeries = [], isLoading, error } = useQuery({
     queryKey: ['clinic-surgeries', currentBranch, isAdmin, isGestao],
     queryFn: async () => {
       let query = supabase
         .from('clinic_surgeries')
-        .select('*, clinic_patients!clinic_surgeries_patient_id_fkey(full_name)')
+        .select('*')
         .order('surgery_date', { ascending: true, nullsFirst: false })
         .limit(5000);
 
@@ -107,7 +117,7 @@ export function useClinicSurgeries() {
         return {
           id: s.id,
           patientId: s.patient_id || null,
-          patientName: s.patient_name || s.clinic_patients?.full_name || 'Paciente não vinculado',
+          patientName: (s.patient_id ? patientNameMap.get(s.patient_id) : null) || s.patient_name || 'Paciente não vinculado',
           patientPhone: null,
           saleId: s.sale_id || null,
           branch: s.branch,
