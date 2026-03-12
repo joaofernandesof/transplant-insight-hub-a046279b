@@ -105,7 +105,7 @@ export function useNoDatePatients() {
     queryFn: async () => {
       let query = supabase
         .from('clinic_surgeries')
-        .select('id, patient_id, patient_name, branch, procedure, category, created_at, sale_id, clinic_patients!clinic_surgeries_patient_id_fkey(full_name)')
+        .select('id, patient_id, patient_name, branch, procedure, category, created_at, sale_id')
         .eq('schedule_status', 'sem_data')
         .is('surgery_date', null);
 
