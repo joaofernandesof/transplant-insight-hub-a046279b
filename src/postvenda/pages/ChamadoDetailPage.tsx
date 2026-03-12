@@ -61,7 +61,7 @@ export default function ChamadoDetailPage() {
         <div className="flex flex-col items-center justify-center py-12">
           <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
           <p className="text-lg text-muted-foreground">Chamado não encontrado</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate('/neoteam/postvenda/chamados')}>
+          <Button variant="outline" className="mt-4" onClick={() => navigate('/neoteam/sucesso-paciente/postvenda/chamados')}>
             Voltar para lista
           </Button>
         </div>
