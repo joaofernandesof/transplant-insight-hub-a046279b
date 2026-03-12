@@ -579,6 +579,28 @@ function NeoTeamRoutes() {
           <Route path="manutencao/patrimonio" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><AssetManagementPage /></Suspense>} />
           <Route path="manutencao/ordens" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
 
+          {/* ===== CHAMADOS GENÉRICOS POR SETOR ===== */}
+          {[
+            { slug: 'tecnico', code: 'tecnico' },
+            { slug: 'sucesso-paciente', code: 'sucesso_paciente' },
+            { slug: 'operacional', code: 'operacional' },
+            { slug: 'processos', code: 'processos' },
+            { slug: 'financeiro', code: 'financeiro' },
+            { slug: 'juridico', code: 'juridico' },
+            { slug: 'marketing', code: 'marketing' },
+            { slug: 'ti', code: 'ti' },
+            { slug: 'rh', code: 'rh' },
+            { slug: 'comercial', code: 'comercial' },
+            { slug: 'compras', code: 'compras' },
+            { slug: 'manutencao', code: 'manutencao' },
+          ].map(({ slug, code }) => (
+            <React.Fragment key={slug}>
+              <Route path={`${slug}/chamados`} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorChamadosPage sectorCode={code} sectorSlug={slug} /></Suspense>} />
+              <Route path={`${slug}/chamados/:id`} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorTicketDetailPage sectorCode={code} sectorSlug={slug} /></Suspense>} />
+              <Route path={`${slug}/chamados/config`} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorTicketConfigPage sectorCode={code} sectorSlug={slug} /></Suspense>} />
+            </React.Fragment>
+          ))}
+
           {/* ===== ADMINISTRAÇÃO ===== */}
           <Route path="admin/portal-links" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamPortalLinks /></Suspense>} />
           <Route path="admin/configuracoes" element={<NeoTeamSettings />} />
