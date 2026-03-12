@@ -125,3 +125,6 @@ verify_jwt = false
 
 [functions.notify-ticket-status]
 verify_jwt = false
+
+[functions.admin-reset-user-password]
+verify_jwt = false
