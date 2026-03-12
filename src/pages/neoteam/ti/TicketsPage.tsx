@@ -20,10 +20,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: "bg-emerald-100 text-emerald-800",
-  medium: "bg-amber-100 text-amber-800",
-  high: "bg-orange-100 text-orange-800",
-  critical: "bg-red-100 text-red-800",
+  low: "bg-[rgb(234,243,222)] text-[rgb(59,109,17)]",
+  medium: "bg-[rgb(230,241,251)] text-[rgb(24,95,165)]",
+  high: "bg-[rgb(250,238,218)] text-[rgb(133,79,11)]",
+  critical: "bg-[rgb(252,235,235)] text-[rgb(163,45,45)]",
+};
+
+const PRIORITY_DOT_COLORS: Record<string, string> = {
+  low: "bg-[rgb(99,153,34)]",
+  medium: "bg-[rgb(55,138,221)]",
+  high: "bg-[rgb(239,159,39)]",
+  critical: "bg-[rgb(226,75,74)]",
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -34,11 +41,19 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  open: "bg-red-100 text-red-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  waiting: "bg-amber-100 text-amber-800",
-  resolved: "bg-emerald-100 text-emerald-800",
-  closed: "bg-muted text-muted-foreground",
+  open: "bg-[rgb(234,243,222)] text-[rgb(59,109,17)]",
+  in_progress: "bg-[rgb(230,241,251)] text-[rgb(24,95,165)]",
+  waiting: "bg-[rgb(250,238,218)] text-[rgb(133,79,11)]",
+  resolved: "bg-[rgb(238,237,254)] text-[rgb(83,74,183)]",
+  closed: "bg-[rgb(241,239,232)] text-[rgb(95,94,90)]",
+};
+
+const STATUS_DOT_COLORS: Record<string, string> = {
+  open: "bg-[rgb(99,153,34)]",
+  in_progress: "bg-[rgb(55,138,221)]",
+  waiting: "bg-[rgb(239,159,39)]",
+  resolved: "bg-[rgb(127,119,221)]",
+  closed: "bg-[rgb(136,135,128)]",
 };
 
 const STATUS_LABELS: Record<string, string> = {
