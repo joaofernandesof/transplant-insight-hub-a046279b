@@ -370,6 +370,7 @@ export function useClinicSurgeries() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['clinic-surgeries'] });
       queryClient.invalidateQueries({ queryKey: ['no-date-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['clinic-patients'] });
       queryClient.invalidateQueries({ queryKey: ['surgery-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['surgery-tasks-all'] });
       toast.success(data.newDate ? 'Cirurgia reagendada! Tarefas recalculadas.' : 'Cirurgia movida para "A definir". Tarefas removidas.');
