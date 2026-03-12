@@ -240,6 +240,51 @@ Gere a análise completa usando a função fornecida. Inclua também o campo wha
       } else {
         // Update sales_call to mark as analyzed
         await supabase.from("sales_calls").update({ has_analysis: true }).eq("id", call_id);
+
+        // Auto-send WhatsApp report to group if configured
+        if (analysis.whatsapp_report) {
+          try {
+            const { data: groupSetting } = await supabase
+              .from("avivar_account_settings")
+              .select("setting_value")
+              .eq("account_id", account_id)
+              .eq("setting_key", "call_intelligence_whatsapp_group")
+              .maybeSingle();
+
+            const groupId = typeof groupSetting?.setting_value === "string"
+              ? groupSetting.setting_value
+              : (groupSetting?.setting_value as any)?.group_id;
+
+            if (groupId) {
+              // Get UazAPI credentials
+              const uazapiUrl = Deno.env.get("UAZAPI_URL");
+              let uazapiToken: string | undefined;
+
+              const { data: uazapiInstance } = await supabase
+                .from("avivar_uazapi_instances")
+                .select("instance_token")
+                .eq("account_id", account_id)
+                .eq("status", "connected")
+                .limit(1)
+                .maybeSingle();
+
+              uazapiToken = uazapiInstance?.instance_token || Deno.env.get("UAZAPI_TOKEN") || undefined;
+
+              if (uazapiUrl && uazapiToken) {
+                const sendResp = await fetch(`${uazapiUrl}/send/text`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "token": uazapiToken },
+                  body: JSON.stringify({ number: groupId, text: analysis.whatsapp_report }),
+                });
+                console.log(`[Analyze Call] WhatsApp group send status: ${sendResp.status}`);
+              } else {
+                console.log("[Analyze Call] WhatsApp not configured, skipping group send");
+              }
+            }
+          } catch (whatsappErr) {
+            console.error("[Analyze Call] Error sending to WhatsApp group:", whatsappErr);
+          }
+        }
       }
     }
 
