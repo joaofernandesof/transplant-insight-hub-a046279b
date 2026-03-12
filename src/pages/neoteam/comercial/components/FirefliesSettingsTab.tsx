@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, subDays, subMonths, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Flame, Save, Eye, EyeOff, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Search, CheckSquare } from 'lucide-react';
+import { Flame, Save, Eye, EyeOff, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Search, CheckSquare, Webhook, Copy, ExternalLink } from 'lucide-react';
 
 interface Props {
   accountId: string | null;
@@ -496,7 +496,74 @@ export function FirefliesSettingsTab({ accountId }: Props) {
         </CardContent>
       </Card>
 
-      {/* Sync Card - now opens browse dialog */}
+      {/* Webhook URL Card - for automatic real-time sync */}
+      {isSaved && accountId && (
+        <Card className="border-primary/20">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Webhook className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Sincronização Automática (Webhook)</CardTitle>
+                <CardDescription>
+                  Receba calls automaticamente assim que o Fireflies finalizar a transcrição
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="ml-auto text-emerald-600 border-emerald-300 bg-emerald-50">
+                Tempo Real
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-2 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">Como configurar:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Copie a URL do webhook abaixo</li>
+                <li>Acesse <a href="https://app.fireflies.ai/integrations/custom/webhooks" target="_blank" rel="noopener noreferrer" className="text-primary underline">Fireflies → Integrations → Webhooks</a></li>
+                <li>Cole a URL e ative o evento <strong>"Transcription completed"</strong></li>
+                <li>Pronto! As calls serão importadas e analisadas automaticamente</li>
+              </ol>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">URL do Webhook</Label>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fireflies-webhook?account_id=${accountId}`}
+                  className="font-mono text-xs bg-muted/50"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fireflies-webhook?account_id=${accountId}`
+                    );
+                    toast.success('URL copiada!');
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                O webhook respeita os filtros de palavras-chave configurados acima. Calls duplicadas são ignoradas automaticamente.
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open('https://app.fireflies.ai/integrations/custom/webhooks', '_blank')}
+            >
+              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+              Abrir Configuração de Webhooks no Fireflies
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {isSaved && (
         <Card>
           <CardHeader>
