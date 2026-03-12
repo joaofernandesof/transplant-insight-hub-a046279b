@@ -1,0 +1,1 @@
+UPDATE public.clinic_surgeries SET patient_id = 'bf201c11-8f60-456a-a1bf-0ddf7493804e' WHERE id = 'bf6e0bee-c020-4c34-86c6-57bdc45ab30a' AND patient_id IS NULL;
