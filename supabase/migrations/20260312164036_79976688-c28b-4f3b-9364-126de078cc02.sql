@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Members can view branches" ON public.neoteam_branches;
+CREATE POLICY "Members can view branches" ON public.neoteam_branches FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
