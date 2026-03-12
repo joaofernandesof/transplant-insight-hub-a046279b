@@ -496,7 +496,7 @@ function NeoTeamRoutes() {
         <Routes>
           <Route index element={<NeoTeamHome />} />
           {/* Sector Dashboards - direct routes */}
-          {['tecnico', 'sucesso-paciente', 'operacional', 'processos', 'financeiro', 'juridico', 'comercial', 'marketing', 'ti', 'rh', 'compras', 'manutencao'].map(slug => (
+          {['tecnico', 'sucesso-paciente', 'sucesso-aluno', 'operacional', 'processos', 'financeiro', 'juridico', 'comercial', 'marketing', 'ti', 'rh', 'compras', 'manutencao'].map(slug => (
             <Route key={slug} path={slug} element={<Suspense fallback={<div className="p-6">Carregando...</div>}><SectorDashboardPage /></Suspense>} />
           ))}
           {/* Legacy redirect from /neoteam/setor/:code */}
@@ -585,6 +585,7 @@ function NeoTeamRoutes() {
           {[
             { slug: 'tecnico', code: 'tecnico' },
             { slug: 'sucesso-paciente', code: 'sucesso_paciente' },
+            { slug: 'sucesso-aluno', code: 'sucesso_aluno' },
             { slug: 'operacional', code: 'operacional' },
             { slug: 'processos', code: 'processos' },
             { slug: 'financeiro', code: 'financeiro' },

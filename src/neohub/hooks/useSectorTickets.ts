@@ -70,7 +70,8 @@ export interface SectorTicketHistory {
 
 export const SECTOR_LABELS: Record<string, string> = {
   tecnico: 'Técnico',
-  sucesso_paciente: 'Pós-vendas',
+  sucesso_paciente: 'Sucesso do Paciente',
+  sucesso_aluno: 'Sucesso do Aluno',
   operacional: 'Operacional',
   processos: 'Processos',
   financeiro: 'Financeiro',

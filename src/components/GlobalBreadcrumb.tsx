@@ -32,6 +32,9 @@ const routeLabels: Record<string, string> = {
   '/neoteam/sucesso-paciente/postvenda/sla': 'Configuração SLA',
   '/neoteam/sucesso-paciente/postvenda/nps': 'Relatórios NPS',
   '/neoteam/sucesso-paciente/retencao': 'Retenção & Churn',
+  // Setor de Sucesso do Aluno
+  '/neoteam/sucesso-aluno': 'Sucesso do Aluno',
+  '/neoteam/sucesso-aluno/chamados': 'Chamados',
   // Setor Operacional
   '/neoteam/operacional': 'Operacional',
   '/neoteam/operacional/tarefas': 'Tarefas',

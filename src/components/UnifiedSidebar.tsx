@@ -271,6 +271,8 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     compras: 'setor_compras',
     manutencao: 'setor_manutencao',
     gestao: 'setor_gestao',
+    'sucesso-aluno': 'setor_sucesso_aluno',
+    sucesso_aluno: 'setor_sucesso_aluno',
   };
 
   // Detect active sector from route: /neoteam/{sector-slug} or /neoteam/{sector-slug}/{module}
