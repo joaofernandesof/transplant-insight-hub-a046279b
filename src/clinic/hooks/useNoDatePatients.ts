@@ -168,7 +168,7 @@ export function useNoDatePatients() {
       }));
 
     return [...fromSales, ...fromSurgeries];
-  }, [salesData, surgeriesData, semDataSurgeries]);
+  }, [salesData, surgeriesData, semDataSurgeries, patientNameMap]);
 
   // Apply filters
   const filteredPatients = useMemo(() => {
