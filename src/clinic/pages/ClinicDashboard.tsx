@@ -299,6 +299,13 @@ export default function ClinicDashboard() {
       });
     }
 
+    // Checklist pendency filter (AND logic: all selected must be false/pending)
+    if (activeChecklistFilters.size > 0) {
+      items = items.filter(s => {
+        return Array.from(activeChecklistFilters).every(key => (s as any)[key] === false);
+      });
+    }
+
     items.sort((a, b) => {
       const aDate = a.surgeryDate ? parseISO(a.surgeryDate) : new Date(9999, 0);
       const bDate = b.surgeryDate ? parseISO(b.surgeryDate) : new Date(9999, 0);
