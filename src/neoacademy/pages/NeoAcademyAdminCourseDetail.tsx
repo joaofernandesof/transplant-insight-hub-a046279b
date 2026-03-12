@@ -680,8 +680,8 @@ export default function NeoAcademyAdminCourseDetail() {
                 <div><Label className="text-xs text-zinc-400">Preço (R$)</Label><Input type="number" value={courseForm.price} onChange={e => setCourseForm(f => f ? { ...f, price: e.target.value } : f)} className="bg-[#0a0a0f] border-white/10 text-white mt-1" /></div>
               )}
               <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-xs text-zinc-400">URL da Capa</Label><Input value={courseForm.thumbnail_url} onChange={e => setCourseForm(f => f ? { ...f, thumbnail_url: e.target.value } : f)} className="bg-[#0a0a0f] border-white/10 text-white mt-1" /></div>
-                <div><Label className="text-xs text-zinc-400">URL do Banner</Label><Input value={courseForm.banner_url} onChange={e => setCourseForm(f => f ? { ...f, banner_url: e.target.value } : f)} className="bg-[#0a0a0f] border-white/10 text-white mt-1" /></div>
+                <ImageUploadField label="Capa" value={courseForm.thumbnail_url} onChange={url => setCourseForm(f => f ? { ...f, thumbnail_url: url } : f)} folder="courses/thumbnails" />
+                <ImageUploadField label="Banner" value={courseForm.banner_url} onChange={url => setCourseForm(f => f ? { ...f, banner_url: url } : f)} folder="courses/banners" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><Label className="text-xs text-zinc-400">Total de Aulas</Label><Input type="number" value={courseForm.total_lessons} onChange={e => setCourseForm(f => f ? { ...f, total_lessons: e.target.value } : f)} className="bg-[#0a0a0f] border-white/10 text-white mt-1" /></div>
