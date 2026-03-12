@@ -557,10 +557,10 @@ function NeoTeamRoutes() {
 
           {/* ===== SETOR RH ===== */}
           
-          <Route path="rh/cargos" element={<NeoTeamStaffRoles />} />
+          <Route path="rh/cargos" element={<NeoTeamCargos />} />
+          <Route path="rh/cargos-rh" element={<Navigate to="/neoteam/rh/cargos" replace />} />
           <Route path="rh/dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHDashboard')))}</Suspense>} />
           <Route path="rh/colaboradores" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHColaboradores')))}</Suspense>} />
-          <Route path="rh/cargos-rh" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHCargos')))}</Suspense>} />
           <Route path="rh/vagas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHVagas')))}</Suspense>} />
           <Route path="rh/job-description" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/NeoRHJobDescription')))}</Suspense>} />
           <Route path="rh/performance" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/neohub/pages/neorh/performance/PerformanceDashboard')))}</Suspense>} />
