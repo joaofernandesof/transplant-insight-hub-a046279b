@@ -423,7 +423,7 @@ export default function TicketsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-sm">{t.requester_name}</TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       {isTicketAdmin ? (
                         isUnassigned ? (
                           <Button
