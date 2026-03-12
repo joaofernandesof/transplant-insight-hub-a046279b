@@ -21,6 +21,7 @@ export interface SalesCall {
   has_analysis: boolean;
   external_id: string | null;
   fireflies_url: string | null;
+  duration_minutes: number | null;
   created_at: string;
 }
 
