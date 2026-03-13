@@ -44,6 +44,12 @@ const LEVEL_COLORS: Record<string, string> = {
   'Externos': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
 };
 
+const UNIT_COLORS: Record<string, string> = {
+  'Fortaleza': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  'IBRAMEC': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
+  'Juazeiro': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+};
+
 const DEPT_COLORS: Record<string, string> = {
   'Marketing': 'border-l-pink-500',
   'Operacional': 'border-l-orange-500',
@@ -353,7 +359,11 @@ export default function NeoTeamCargos() {
               <TableBody>
                 {sorted.map(pos => (
                   <TableRow key={pos.id} className={pos.is_vacant ? 'bg-destructive/5' : ''}>
-                    <TableCell>{pos.unit}</TableCell>
+                    <TableCell>
+                      <Badge className={`text-[11px] ${UNIT_COLORS[pos.unit] || ''}`}>
+                        {pos.unit}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{pos.department}</TableCell>
                     <TableCell>
                       <Badge className={`text-[11px] ${LEVEL_COLORS[pos.level] || ''}`}>
