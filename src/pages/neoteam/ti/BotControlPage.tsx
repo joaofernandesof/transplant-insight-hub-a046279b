@@ -545,6 +545,16 @@ export default function BotControlPage() {
               <label className="text-xs text-muted-foreground">Mensagem</label>
               <Textarea value={newBot.message || ''} onChange={e => setNewBot(p => ({ ...p, message: e.target.value }))} rows={4} className="mt-1" />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Botão 1</label>
+                <Input value={newBot.button1 || ''} onChange={e => setNewBot(p => ({ ...p, button1: e.target.value }))} className="mt-1" placeholder="Ex: AGENDAR" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Botão 2</label>
+                <Input value={newBot.button2 || ''} onChange={e => setNewBot(p => ({ ...p, button2: e.target.value }))} className="mt-1" placeholder="Ex: HORÁRIOS" />
+              </div>
+            </div>
             <div>
               <label className="text-xs text-muted-foreground">URL de Mídia</label>
               <Input value={newBot.media_url || ''} onChange={e => setNewBot(p => ({ ...p, media_url: e.target.value }))} className="mt-1" />
