@@ -243,7 +243,7 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
 
                     {items.length === 0 && emptySlots === 0 ? (
                       <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm text-muted-foreground italic">
-                        Nenhum paciente agendado
+                        Nenhuma cirurgia agendada
                       </div>
                     ) : (
                     <div className="rounded-lg border overflow-x-auto">
