@@ -250,6 +250,8 @@ export default function BotControlPage() {
                 <TableHead className="w-24 sticky top-0 bg-background">Funil</TableHead>
                 <TableHead className="sticky top-0 bg-background">Nome do Robô</TableHead>
                 <TableHead className="w-20 sticky top-0 bg-background text-center">Mensagem</TableHead>
+                <TableHead className="w-24 sticky top-0 bg-background text-center">Botão 1</TableHead>
+                <TableHead className="w-24 sticky top-0 bg-background text-center">Botão 2</TableHead>
                 <TableHead className="w-28 sticky top-0 bg-background text-center">Checklist</TableHead>
                 {CHECKLIST_FIELDS.map(f => (
                   <TableHead key={f.key} className="w-8 sticky top-0 bg-background text-center px-1" title={f.label}>
