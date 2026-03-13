@@ -26,6 +26,8 @@ interface BotControl {
   message: string | null;
   media_url: string | null;
   script: string | null;
+  button1: string | null;
+  button2: string | null;
   template_approved: string | null;
   bot_updated: string | null;
   confirmed_joao: string | null;
