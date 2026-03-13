@@ -1,85 +1,40 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+## Plan: Create User for ricardo.chahini@veltimobiliaria.com.br as Clone of Karine Mendes
 
-### Resumo
+### Overview
+Create a new user account with identical CRM configuration (agent, knowledge base, kanbans, automations) as the existing user Karine Mendes (karinnemendessg@gmail.com).
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+### Data Gathered from Karine's Account
+- **Profile**: operador, allowed_portals: [avivar]
+- **Account**: "Karine Mendes" (starter plan, nicho: imobiliario)
+- **Agent**: "Karinne" for company "Vivart" — full fluxo with 8 steps + extras, knowledge base, media files, schedule, tone cordial, attendance humanized
+- **Kanbans**: Comercial + Pós-Venda (with default stages via RPC)
+- **Automations**: 2 automations (webhook on human transfer + create task on column move)
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+### Steps
 
----
+1. **Create auth user** via Edge Function `admin-create-user` (email: ricardo.chahini@veltimobiliaria.com.br, password to be generated, full_name: Ricardo Chahini, allowed_portals: [avivar], profiles: [operador])
 
-### 1. Nova tabela: `surgery_agenda_availability`
+2. **Create avivar_account** for the new user (name: "Ricardo Chahini", plan: starter, allowed_nichos: [imobiliario])
 
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+3. **Create avivar_account_members** record linking new auth user to account as owner
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+4. **Create avivar_kanbans** via RPC `create_default_avivar_kanbans` for the new user
 
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
+5. **Clone avivar_agent** — insert a new agent row with all identical fields from Karine's agent (ai_identity, ai_objective, ai_instructions, ai_restrictions, fluxo_atendimento, knowledge_files, tone_of_voice, schedule, payment_methods, consultation_type, etc.) but with the new user_id and new account_id
 
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
-```
+6. **Clone avivar_knowledge_documents** — copy knowledge document records pointing to the new user/account/agent
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+7. **Clone avivar_automations + actions** — recreate the 2 automations with their actions, mapped to the new account and kanban column IDs
 
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+All operations will be done via SQL insert statements using the database insert tool, after the auth user is created via the existing edge function.
 
-### 3. Visualização de Disponibilidade (todos os usuários)
+### Password
+Will generate: `Velt@2026!Ri`
 
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
-
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+### Technical Notes
+- The media URLs in the fluxo (videos, audio, PDFs) reference public storage buckets and will work as-is for the new user
+- Kanban column IDs will differ, so automations referencing specific columns will need to be mapped to the new kanban's columns after creation
+- The agent's `target_kanbans` is empty in Karine's config, so no mapping needed there
 
