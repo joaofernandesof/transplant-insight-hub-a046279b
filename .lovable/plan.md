@@ -1,32 +1,85 @@
 
 
-# Diagnóstico e Plano de Correção — Acesso ao Portal Avivar
+## Disponibilidade da Agenda Cirúrgica
 
-## Problema Identificado
+### Resumo
 
-O usuário `mrobister@gmail.com` (e outros) tem `avivar` na coluna `allowed_portals` da tabela `neohub_users`, mas **não possui registro correspondente** na tabela `user_portal_roles`. 
+Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
+1. **Bloqueio de datas específicas** por filial
+2. **Limite de agendamentos por dia** por filial
 
-O fluxo de autenticação (`get_user_context()` → `UnifiedAuthContext`) deriva `allowedPortals` **exclusivamente** de `user_portal_roles`. Como o registro está ausente, o portal Avivar não aparece na lista de portais permitidos, impedindo o acesso tanto pela rota direta quanto pelo sidebar.
+A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
 
-## Usuários Afetados (9 registros faltantes)
+---
 
-| Email | Portal(s) faltante(s) |
-|---|---|
-| dracintia@outlook.com | avivar |
-| fabiobranaro@hotmail.com | academy |
-| joselio0611@gmail.com | avivar |
-| mrobister@gmail.com | avivar |
-| nicholas.barreto@gmail.com | avivar |
-| ti@neofolic.com.br | avivar, ipromed, neopay, vision |
+### 1. Nova tabela: `surgery_agenda_availability`
 
-## Plano de Correção
+```sql
+CREATE TABLE surgery_agenda_availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  branch TEXT NOT NULL,
+  date DATE NOT NULL,
+  max_slots INTEGER NOT NULL DEFAULT 5,
+  is_blocked BOOLEAN NOT NULL DEFAULT false,
+  blocked_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(branch, date)
+);
 
-### 1. Correção de Dados (imediata)
-Inserir os 9 registros faltantes em `user_portal_roles` com `role_id = operador` (090ee82e), garantindo que todos os portais listados em `allowed_portals` tenham vínculo correspondente no RBAC.
+-- RLS: leitura para autenticados, escrita para admins
+ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
 
-### 2. Correção de Código (preventiva)
-No `UnifiedAuthContext.tsx`, ao construir `allowedPortals`, fazer merge entre os portais derivados de `user_portal_roles` (via `get_user_context()`) e os portais da coluna `allowed_portals` de `neohub_users` (que já é buscada no mesmo fluxo). Isso garante que mesmo se houver inconsistência no RBAC, o usuário mantém acesso.
+CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
+  FOR SELECT TO authenticated USING (true);
 
-### 3. Correção no Fluxo de Criação
-No `admin-create-user` edge function e no `AvivarTeamPage`, quando `allowed_portals` é definido, garantir que `user_portal_roles` também é preenchido automaticamente.
+CREATE POLICY "Admins can manage" ON surgery_agenda_availability
+  FOR ALL TO authenticated USING (
+    public.has_role(auth.uid(), 'admin')
+  );
+```
+
+### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+
+Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
+- **Aba "Configuração da Agenda"** com:
+  - Seletor de filial
+  - Calendário mensal interativo onde o admin pode:
+    - Clicar em um dia para bloquear/desbloquear
+    - Definir o número máximo de agendamentos para cada dia
+  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+
+### 3. Visualização de Disponibilidade (todos os usuários)
+
+Na aba "Agenda" existente, adicionar um componente visual mostrando:
+- Um mini calendário ou barra de disponibilidade por filial
+- Dias bloqueados marcados em vermelho
+- Dias com vagas esgotadas marcados em amarelo/laranja
+- Dias disponíveis em verde
+- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
+
+### 4. Novo hook: `useSurgeryAgendaAvailability`
+
+```typescript
+// src/clinic/hooks/useSurgeryAgendaAvailability.ts
+// - Busca configurações de disponibilidade por filial e período
+// - Cruza com contagem de cirurgias agendadas por dia
+// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
+// - Mutations para admin: criar/atualizar configuração
+```
+
+### 5. Validação no agendamento
+
+Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
+- Se a data está bloqueada para a filial selecionada → impedir agendamento
+- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
+
+### Estrutura de arquivos
+
+- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
+- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
+- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
+- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
+- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
+- Migração SQL para criar a tabela
 
