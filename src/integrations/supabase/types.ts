@@ -17491,6 +17491,45 @@ export type Database = {
         }
         Relationships: []
       }
+      org_positions: {
+        Row: {
+          created_at: string
+          department: string
+          id: string
+          is_vacant: boolean
+          level: string
+          person_name: string | null
+          role_title: string
+          sort_order: number | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department: string
+          id?: string
+          is_vacant?: boolean
+          level: string
+          person_name?: string | null
+          role_title: string
+          sort_order?: number | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          id?: string
+          is_vacant?: boolean
+          level?: string
+          person_name?: string | null
+          role_title?: string
+          sort_order?: number | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       password_reset_tokens: {
         Row: {
           created_at: string
