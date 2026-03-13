@@ -18,6 +18,7 @@ import {
 
 const OrgAccessMatrix = lazy(() => import('./components/OrgAccessMatrix'));
 const OrgDashboard = lazy(() => import('./components/OrgDashboard'));
+const OrgChart = lazy(() => import('./components/OrgChart'));
 
 interface OrgPosition {
   id: string;
@@ -318,78 +319,9 @@ export default function NeoTeamCargos() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : mainTab === 'matriz' ? (
-        <div className="space-y-4">
-          {Object.entries(groupedByDept).map(([dept, items]) => {
-            const byLevel: Record<string, OrgPosition[]> = {};
-            for (const lvl of LEVELS) {
-              const lvlItems = items.filter(p => p.level === lvl);
-              if (lvlItems.length > 0) byLevel[lvl] = lvlItems;
-            }
-            return (
-              <Card key={dept} className={`border-l-4 ${DEPT_COLORS[dept] || 'border-l-primary'}`}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    {dept}
-                    <Badge variant="outline" className="text-xs font-normal">
-                      {items.length} posições • {items.filter(p => p.is_vacant).length} vagas
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    {Object.entries(byLevel).map(([level, lvlItems]) => (
-                      <div key={level}>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <Badge className={`text-[11px] ${LEVEL_COLORS[level] || ''}`}>
-                            {level}
-                          </Badge>
-                        </div>
-                        <div className="flex flex-wrap gap-2 ml-2">
-                          {lvlItems.map(pos => (
-                            <div
-                              key={pos.id}
-                              className={`group relative flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors hover:bg-accent/50 ${
-                                pos.is_vacant
-                                  ? 'border-dashed border-destructive/40 bg-destructive/5'
-                                  : 'border-border bg-background'
-                              }`}
-                              onClick={() => openEdit(pos)}
-                            >
-                              {pos.is_vacant ? (
-                                <CircleDot className="h-4 w-4 text-destructive shrink-0" />
-                              ) : (
-                                <UserCircle className="h-4 w-4 text-muted-foreground shrink-0" />
-                              )}
-                              <div className="min-w-0">
-                                <p className={`font-medium text-sm leading-tight ${pos.is_vacant ? 'text-destructive' : ''}`}>
-                                  {pos.is_vacant ? 'VAGA' : pos.person_name}
-                                </p>
-                                <p className="text-[11px] text-muted-foreground truncate">{pos.role_title}</p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-2 -right-2 bg-background border shadow-sm"
-                                onClick={(e) => { e.stopPropagation(); remove(pos.id); }}
-                              >
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-          {Object.keys(groupedByDept).length === 0 && (
-            <div className="text-center py-16 text-muted-foreground">
-              Nenhuma posição encontrada com os filtros atuais.
-            </div>
-          )}
-        </div>
+        <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+          <OrgChart positions={filtered} onEdit={openEdit} />
+        </Suspense>
       ) : (
         <Card>
           <CardContent className="p-0">
