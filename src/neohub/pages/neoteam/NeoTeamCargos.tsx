@@ -321,45 +321,6 @@ export default function NeoTeamCargos() {
         </div>
       ) : (
       <>
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <Users className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">Posições totais</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <UserCircle className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-2xl font-bold">{stats.occupied}</p>
-              <p className="text-xs text-muted-foreground">Ocupadas</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <div>
-              <p className="text-2xl font-bold text-destructive">{stats.vacant}</p>
-              <p className="text-xs text-muted-foreground">Vagas abertas</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <Briefcase className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-2xl font-bold">{stats.departments}</p>
-              <p className="text-xs text-muted-foreground">Departamentos</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Filters */}
       <Card>
