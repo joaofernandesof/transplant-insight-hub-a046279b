@@ -486,6 +486,7 @@ function NeoTeamRoutes() {
   const LegalContractsPage = lazy(() => import('@/pages/neoteam/juridico/LegalContractsPage'));
   const TicketsPage = lazy(() => import('@/pages/neoteam/ti/TicketsPage'));
   const BotControlPage = lazy(() => import('@/pages/neoteam/ti/BotControlPage'));
+  const MessageTemplatesPage = lazy(() => import('@/pages/neoteam/ti/MessageTemplatesPage'));
   const CampaignsPage = lazy(() => import('@/pages/neoteam/marketing/CampaignsPage'));
   const NeoTeamPortalLinks = lazy(() => import('@/neohub/pages/neoteam/NeoTeamPortalLinks'));
   const AssetManagementPage = lazy(() => import('@/pages/neoteam/patrimonio/AssetManagementPage'));
