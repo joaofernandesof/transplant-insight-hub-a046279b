@@ -219,11 +219,11 @@ export default function NeoTeamCargos() {
           <LayoutGrid className="h-4 w-4" /> Organograma
         </Button>
         <Button
-          variant={mainTab === 'dashboard' as string ? 'default' : 'outline'}
-          onClick={() => setMainTab('dashboard' as any)}
+          variant={mainTab === 'dashboard' ? 'default' : 'outline'}
+          onClick={() => setMainTab('dashboard')}
           className="gap-2 px-5 h-10"
         >
-          <Briefcase className="h-4 w-4" /> Dashboard
+          <BarChart3 className="h-4 w-4" /> Dashboard
         </Button>
         {mainTab === 'estrutura' && (
           <Button onClick={openNew} className="gap-2 px-5 h-10 ml-2">
