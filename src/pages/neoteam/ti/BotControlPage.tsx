@@ -368,12 +368,14 @@ export default function BotControlPage() {
                          </div>
                       </>
                     ) : (
-                      <>
-                        <div><p className="text-xs text-muted-foreground">Código</p><p className="text-sm font-mono font-semibold">{selectedBot.code}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Seq</p><p className="text-sm">{selectedBot.seq}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Chip</p><p className="text-sm">{selectedBot.chip}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Funil</p><FunnelBadge funnel={selectedBot.funnel} /></div>
-                      </>
+                       <>
+                         <div><p className="text-xs text-muted-foreground">Código</p><p className="text-sm font-mono font-semibold">{selectedBot.code}</p></div>
+                         <div><p className="text-xs text-muted-foreground">Seq</p><p className="text-sm">{selectedBot.seq}</p></div>
+                         <div><p className="text-xs text-muted-foreground">Chip</p><p className="text-sm">{selectedBot.chip}</p></div>
+                         <div><p className="text-xs text-muted-foreground">Funil</p><FunnelBadge funnel={selectedBot.funnel} /></div>
+                         <div><p className="text-xs text-muted-foreground">Botão 1</p><p className="text-sm">{selectedBot.button1 || '—'}</p></div>
+                         <div><p className="text-xs text-muted-foreground">Botão 2</p><p className="text-sm">{selectedBot.button2 || '—'}</p></div>
+                       </>
                     )}
                   </div>
 
