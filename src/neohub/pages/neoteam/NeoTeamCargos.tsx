@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import {
   Building2, Users, LayoutGrid, List, Plus, Pencil, Trash2, Search,
-  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2, Shield
+  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2, Shield, BarChart3
 } from 'lucide-react';
 
 const OrgAccessMatrix = lazy(() => import('./components/OrgAccessMatrix'));
@@ -64,7 +64,7 @@ const emptyForm = {
 };
 
 export default function NeoTeamCargos() {
-  const [mainTab, setMainTab] = useState<'estrutura' | 'acessos'>('estrutura');
+  const [mainTab, setMainTab] = useState<'estrutura' | 'acessos' | 'dashboard'>('estrutura');
   const [positions, setPositions] = useState<OrgPosition[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterUnit, setFilterUnit] = useState<string>('all');
@@ -178,78 +178,149 @@ export default function NeoTeamCargos() {
     <div className="space-y-5 p-4 lg:p-6 pt-14 lg:pt-6">
       <NeoTeamBreadcrumb />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-primary" />
-            Estrutura Organizacional
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Matriz de cargos, funções e vagas por unidade e departamento
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex border border-border rounded-lg overflow-hidden">
-            <Button variant={mainTab === 'estrutura' ? 'default' : 'ghost'} size="sm" onClick={() => setMainTab('estrutura')} className="rounded-none px-4 gap-2">
-              <Users className="h-4 w-4" /> Cargos
-            </Button>
-            <Button variant={mainTab === 'acessos' ? 'default' : 'ghost'} size="sm" onClick={() => setMainTab('acessos')} className="rounded-none px-4 gap-2">
-              <Shield className="h-4 w-4" /> Matriz de Acessos
-            </Button>
-          </div>
-          {mainTab === 'estrutura' && (
-            <Button onClick={openNew} className="gap-2">
-              <Plus className="h-4 w-4" /> Nova Posição
-            </Button>
-          )}
-        </div>
+      <div className="text-center space-y-1">
+        <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
+          <Building2 className="h-6 w-6 text-primary" />
+          Estrutura Organizacional
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Matriz de cargos, funções e vagas por unidade e departamento
+        </p>
+      </div>
+
+      {/* Navigation Bar */}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <Button
+          variant={mainTab === 'estrutura' && view === 'list' ? 'default' : 'outline'}
+          onClick={() => { setMainTab('estrutura'); setView('list'); }}
+          className="gap-2 px-5 h-10"
+        >
+          <Users className="h-4 w-4" /> Cargos
+        </Button>
+        <Button
+          variant={mainTab === 'acessos' ? 'default' : 'outline'}
+          onClick={() => setMainTab('acessos')}
+          className="gap-2 px-5 h-10"
+        >
+          <Shield className="h-4 w-4" /> Matriz de Acessos
+        </Button>
+        <Button
+          variant={mainTab === 'estrutura' && view === 'list' ? 'outline' : mainTab === 'estrutura' && view === 'matrix' ? 'outline' : 'outline'}
+          onClick={() => { setMainTab('estrutura'); setView('list'); }}
+          className={`gap-2 px-5 h-10 ${mainTab === 'estrutura' && view === 'list' ? 'border-primary text-primary' : ''}`}
+        >
+          <List className="h-4 w-4" /> Lista
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => { setMainTab('estrutura'); setView('matrix'); }}
+          className={`gap-2 px-5 h-10 ${mainTab === 'estrutura' && view === 'matrix' ? 'border-primary text-primary' : ''}`}
+        >
+          <LayoutGrid className="h-4 w-4" /> Organograma
+        </Button>
+        <Button
+          variant={mainTab === 'dashboard' ? 'default' : 'outline'}
+          onClick={() => setMainTab('dashboard')}
+          className="gap-2 px-5 h-10"
+        >
+          <BarChart3 className="h-4 w-4" /> Dashboard
+        </Button>
+        {mainTab === 'estrutura' && (
+          <Button onClick={openNew} className="gap-2 px-5 h-10 ml-2">
+            <Plus className="h-4 w-4" /> Nova Posição
+          </Button>
+        )}
       </div>
 
       {mainTab === 'acessos' ? (
         <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
           <OrgAccessMatrix />
         </Suspense>
+      ) : mainTab === 'dashboard' ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <Users className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                  <p className="text-xs text-muted-foreground">Posições totais</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <UserCircle className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold">{stats.occupied}</p>
+                  <p className="text-xs text-muted-foreground">Ocupadas</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                <div>
+                  <p className="text-2xl font-bold text-destructive">{stats.vacant}</p>
+                  <p className="text-xs text-muted-foreground">Vagas abertas</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <Briefcase className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold">{stats.departments}</p>
+                  <p className="text-xs text-muted-foreground">Departamentos</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Vagas em Aberto</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {positions.filter(p => p.is_vacant).length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma vaga em aberto.</p>
+              ) : (
+                <div className="space-y-2">
+                  {positions.filter(p => p.is_vacant).map(p => (
+                    <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div>
+                        <p className="font-medium">{p.role_title}</p>
+                        <p className="text-xs text-muted-foreground">{p.department} • {p.level} • {p.unit}</p>
+                      </div>
+                      <Badge variant="destructive">Vaga</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Distribuição por Departamento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {DEPARTMENTS.map(dept => {
+                  const deptPositions = positions.filter(p => p.department === dept);
+                  if (deptPositions.length === 0) return null;
+                  const vacant = deptPositions.filter(p => p.is_vacant).length;
+                  return (
+                    <div key={dept} className={`p-3 rounded-lg border border-l-4 ${DEPT_COLORS[dept] || 'border-l-primary'}`}>
+                      <p className="font-medium text-sm">{dept}</p>
+                      <p className="text-xs text-muted-foreground">{deptPositions.length} posições • {vacant} vagas</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
       <>
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <Users className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">Posições totais</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <UserCircle className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-2xl font-bold">{stats.occupied}</p>
-              <p className="text-xs text-muted-foreground">Ocupadas</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <div>
-              <p className="text-2xl font-bold text-destructive">{stats.vacant}</p>
-              <p className="text-xs text-muted-foreground">Vagas abertas</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <Briefcase className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-2xl font-bold">{stats.departments}</p>
-              <p className="text-xs text-muted-foreground">Departamentos</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Filters */}
       <Card>
@@ -294,24 +365,6 @@ export default function NeoTeamCargos() {
               <CircleDot className="h-3.5 w-3.5" />
               Vagas
             </Button>
-            <div className="flex border border-border rounded-lg overflow-hidden">
-              <Button
-                variant={view === 'matrix' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setView('matrix')}
-                className="rounded-none px-3"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={view === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setView('list')}
-                className="rounded-none px-3"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
