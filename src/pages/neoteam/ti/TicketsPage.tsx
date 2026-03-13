@@ -110,6 +110,7 @@ export default function TicketsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [requesterFilter, setRequesterFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
+  const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
   const playSound = useNewTicketSound();
 
   const { data: tickets = [], isLoading } = useQuery({
