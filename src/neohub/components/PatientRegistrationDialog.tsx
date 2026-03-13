@@ -211,6 +211,17 @@ export function PatientRegistrationDialog({
 
       if (data.clinic_patient_id) {
         insertData.patient_id = data.clinic_patient_id;
+      } else {
+        // Fallback: search clinic_patients by name to link patient_id
+        const { data: matchedPatient } = await supabase
+          .from('clinic_patients')
+          .select('id')
+          .eq('full_name', formData.full_name)
+          .maybeSingle();
+        if (matchedPatient?.id) {
+          insertData.patient_id = matchedPatient.id;
+        }
+        console.warn('[PatientRegistration] Edge function did not return clinic_patient_id, fallback:', matchedPatient?.id || 'NOT FOUND');
       }
 
       if (withDate && surgeryDate) {
