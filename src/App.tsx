@@ -486,6 +486,7 @@ function NeoTeamRoutes() {
   const LegalContractsPage = lazy(() => import('@/pages/neoteam/juridico/LegalContractsPage'));
   const TicketsPage = lazy(() => import('@/pages/neoteam/ti/TicketsPage'));
   const BotControlPage = lazy(() => import('@/pages/neoteam/ti/BotControlPage'));
+  const MessageTemplatesPage = lazy(() => import('@/pages/neoteam/ti/MessageTemplatesPage'));
   const CampaignsPage = lazy(() => import('@/pages/neoteam/marketing/CampaignsPage'));
   const NeoTeamPortalLinks = lazy(() => import('@/neohub/pages/neoteam/NeoTeamPortalLinks'));
   const AssetManagementPage = lazy(() => import('@/pages/neoteam/patrimonio/AssetManagementPage'));
@@ -556,6 +557,7 @@ function NeoTeamRoutes() {
           {/* ===== SETOR TI ===== */}
           <Route path="ti/chamados" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><TicketsPage /></Suspense>} />
           <Route path="ti/controle-de-bots" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><BotControlPage /></Suspense>} />
+          <Route path="ti/modelos-mensagens" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><MessageTemplatesPage /></Suspense>} />
           <Route path="ti/relatorios" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamReports /></Suspense>} />
 
           {/* ===== SETOR RH ===== */}
