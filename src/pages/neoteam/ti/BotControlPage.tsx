@@ -277,6 +277,12 @@ export default function BotControlPage() {
                       {bot.message ? <MessageSquare className="h-4 w-4 text-emerald-500 mx-auto" /> : <MinusCircle className="h-4 w-4 text-muted-foreground mx-auto" />}
                     </TableCell>
                     <TableCell className="text-center">
+                      {bot.button1 ? <Badge variant="outline" className="text-[10px]">{bot.button1}</Badge> : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {bot.button2 ? <Badge variant="outline" className="text-[10px]">{bot.button2}</Badge> : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell className="text-center">
                       <div className="flex items-center gap-1 justify-center">
                         <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
                           <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${comp.pct}%` }} />
