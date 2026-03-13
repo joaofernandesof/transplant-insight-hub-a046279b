@@ -497,9 +497,24 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   
+                  {/* Como Obter - Fixed on desktop (lg+) */}
+                  <td className={cn(
+                    "hidden lg:table-cell px-2 py-1.5 sticky left-[660px] z-20 border-r border-border/50 align-middle",
+                    "w-[130px] min-w-[130px] max-w-[130px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
+                    <textarea
+                      value={comoObterNotes[metric.sigla] || ''}
+                      onChange={(e) => handleComoObterChange(metric.sigla, e.target.value)}
+                      placeholder="Anotar..."
+                      className="w-full text-[10px] text-foreground bg-transparent border border-border/50 rounded px-1.5 py-1 resize-none leading-tight focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/40 min-h-[32px] max-h-[48px]"
+                      rows={2}
+                    />
+                  </td>
+                  
                   {/* Faixas - Fixed on desktop (lg+) */}
                   <td className={cn(
-                    "hidden lg:table-cell px-1 py-2 sticky left-[660px] z-20 border-r border-border/50 text-center align-middle",
+                    "hidden lg:table-cell px-1 py-2 sticky left-[790px] z-20 border-r border-border/50 text-center align-middle",
                     "w-[52px] min-w-[52px] max-w-[52px]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
@@ -508,7 +523,7 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   <td className={cn(
-                    "hidden lg:table-cell px-1 py-2 sticky left-[712px] z-20 border-r border-border/50 text-center align-middle",
+                    "hidden lg:table-cell px-1 py-2 sticky left-[842px] z-20 border-r border-border/50 text-center align-middle",
                     "w-[52px] min-w-[52px] max-w-[52px]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
@@ -517,7 +532,7 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   <td className={cn(
-                    "hidden lg:table-cell px-1 py-2 sticky left-[764px] z-20 border-r border-border/50 text-center align-middle",
+                    "hidden lg:table-cell px-1 py-2 sticky left-[894px] z-20 border-r border-border/50 text-center align-middle",
                     "w-[52px] min-w-[52px] max-w-[52px]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
@@ -526,7 +541,7 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   <td className={cn(
-                    "hidden lg:table-cell px-1 py-2 sticky left-[816px] z-20 border-r border-border/50 text-center align-middle",
+                    "hidden lg:table-cell px-1 py-2 sticky left-[946px] z-20 border-r border-border/50 text-center align-middle",
                     "w-[52px] min-w-[52px] max-w-[52px]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
@@ -537,7 +552,7 @@ export function HorizontalMetricsTable({
                   
                   {/* Sparkline - Fixed on desktop (lg+) */}
                   <td className={cn(
-                    "hidden lg:table-cell px-1.5 py-2 sticky left-[868px] z-20 border-r border-border text-center align-middle",
+                    "hidden lg:table-cell px-1.5 py-2 sticky left-[998px] z-20 border-r border-border text-center align-middle",
                     "w-[82px] min-w-[82px] max-w-[82px] shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
