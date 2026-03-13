@@ -80,6 +80,10 @@ const FunnelBadge = ({ funnel }: { funnel: string | null }) => {
     'SÃO PAULO': 'bg-rose-500/10 text-rose-600 border-rose-200',
     'PÓS-VENDAS': 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
     'GERAL': 'bg-slate-500/10 text-slate-600 border-slate-200',
+    'COBRANÇA AGENDAMENTO': 'bg-blue-500/10 text-blue-600 border-blue-200',
+    'COBRANÇA FOTOS': 'bg-orange-500/10 text-orange-600 border-orange-200',
+    'REAGENDAMENTO': 'bg-purple-500/10 text-purple-600 border-purple-200',
+    'LISTA TRANSMISSÃO': 'bg-teal-500/10 text-teal-600 border-teal-200',
   };
   return <Badge className={`text-xs ${colors[funnel] || 'bg-muted text-muted-foreground'}`}>{funnel}</Badge>;
 };
