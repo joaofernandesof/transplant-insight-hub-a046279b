@@ -32,17 +32,17 @@ import {
 
 // Lista de portais disponíveis
 const portals = [
-  { id: 'admin', label: 'Administrador', icon: Shield, href: '/admin-portal', gradient: 'from-slate-800 to-slate-900' },
-  { id: 'academy', label: 'Conecta Capilar', icon: GraduationCap, href: '/neoacademy', gradient: 'from-blue-500 to-blue-600' },
-  { id: 'license', label: 'Licenciado', icon: Award, href: '/neolicense', gradient: 'from-amber-400 to-yellow-500' },
-  { id: 'patient', label: 'Paciente', icon: Heart, href: '/neocare', gradient: 'from-rose-500 to-pink-600' },
-  { id: 'staff', label: 'Colaborador', icon: Users, href: '/neoteam', gradient: 'from-blue-500 to-cyan-600' },
-  { id: 'doctor', label: 'Médico', icon: Stethoscope, href: '/neoteam/tecnico/visao-medico', gradient: 'from-teal-500 to-cyan-600' },
-  { id: 'avivar', label: 'Avivar', icon: Zap, href: '/avivar', gradient: 'from-purple-500 to-violet-600' },
-  { id: 'ipromed', label: 'CPG Advocacia', icon: Scale, href: '/cpg', gradient: 'from-blue-600 to-indigo-700' },
-  { id: 'vision', label: 'Vision', icon: Eye, href: '/vision', gradient: 'from-pink-500 to-rose-500' },
-  { id: 'neopay', label: 'NeoPay', icon: CreditCard, href: '/neopay', gradient: 'from-green-500 to-emerald-600' },
-  { id: 'hotleads', label: 'HotLeads', icon: Flame, href: '/hotleads', gradient: 'from-orange-500 to-red-600' },
+  { id: 'admin', label: 'Administrador', icon: Shield, href: '/admin-portal', gradient: 'from-slate-800 to-slate-900', portalSlug: 'admin' },
+  { id: 'academy', label: 'Conecta Capilar', icon: GraduationCap, href: '/neoacademy', gradient: 'from-blue-500 to-blue-600', portalSlug: 'academy' },
+  { id: 'license', label: 'Licenciado', icon: Award, href: '/neolicense', gradient: 'from-amber-400 to-yellow-500', portalSlug: 'neolicense' },
+  { id: 'patient', label: 'Paciente', icon: Heart, href: '/neocare', gradient: 'from-rose-500 to-pink-600', portalSlug: 'neocare' },
+  { id: 'staff', label: 'Colaborador', icon: Users, href: '/neoteam', gradient: 'from-blue-500 to-cyan-600', portalSlug: 'neoteam' },
+  { id: 'doctor', label: 'Médico', icon: Stethoscope, href: '/neoteam/tecnico/visao-medico', gradient: 'from-teal-500 to-cyan-600', portalSlug: 'neoteam' },
+  { id: 'avivar', label: 'Avivar', icon: Zap, href: '/avivar', gradient: 'from-purple-500 to-violet-600', portalSlug: 'avivar' },
+  { id: 'ipromed', label: 'CPG Advocacia', icon: Scale, href: '/cpg', gradient: 'from-blue-600 to-indigo-700', portalSlug: 'ipromed' },
+  { id: 'vision', label: 'Vision', icon: Eye, href: '/vision', gradient: 'from-pink-500 to-rose-500', portalSlug: 'vision' },
+  { id: 'neopay', label: 'NeoPay', icon: CreditCard, href: '/neopay', gradient: 'from-green-500 to-emerald-600', portalSlug: 'neopay' },
+  { id: 'hotleads', label: 'HotLeads', icon: Flame, href: '/hotleads', gradient: 'from-orange-500 to-red-600', portalSlug: 'hotleads' },
 ];
 
 interface PortalSwitcherButtonProps {
@@ -66,11 +66,16 @@ export function PortalSwitcherButton({
   onNavigate
 }: PortalSwitcherButtonProps) {
   const navigate = useNavigate();
-  const { isAdmin } = useUnifiedAuth();
+  const { isAdmin, user } = useUnifiedAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const allowedPortals = user?.allowedPortals || [];
 
-  // Filtrar portais: admin só aparece para isAdmin
-  const filteredPortals = portals.filter(p => p.id !== 'admin' || isAdmin);
+  // Filtrar portais: admin vê todos, demais só os permitidos
+  const filteredPortals = portals.filter(p => {
+    if (p.id === 'admin') return isAdmin;
+    if (isAdmin) return true;
+    return allowedPortals.includes(p.portalSlug);
+  });
 
   const handleNavigate = (href: string) => {
     navigate(href);
