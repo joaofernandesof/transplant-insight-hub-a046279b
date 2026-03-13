@@ -263,9 +263,9 @@ export default function BotControlPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={16} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">Nenhum bot encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={16} className="text-center py-8 text-muted-foreground">Nenhum bot encontrado</TableCell></TableRow>
               ) : filtered.map(bot => {
                 const comp = checklistCompletion(bot);
                 return (
