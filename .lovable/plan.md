@@ -1,85 +1,35 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+# Correção: Tempo das Calls (duration_minutes)
 
-### Resumo
+## Problema
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+O campo `duration` é buscado da API do Fireflies nos 3 pontos de ingestão, mas **nunca é salvo** no campo `duration_minutes` da tabela `sales_calls`. Por isso todas as calls mostram "—" na coluna Tempo.
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+## Correção
 
----
-
-### 1. Nova tabela: `surgery_agenda_availability`
-
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
-
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
+### 1. `fireflies-import-selected/index.ts` (importação manual)
+Na linha 174, adicionar `duration_minutes` ao insert, convertendo o valor do Fireflies (que vem em **segundos**) para minutos:
+```ts
+duration_minutes: transcript.duration ? Math.round(transcript.duration / 60) : null,
 ```
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
-
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
-
-### 3. Visualização de Disponibilidade (todos os usuários)
-
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
+### 2. `fireflies-webhook/index.ts` (sincronização automática)
+Na linha 297, mesmo ajuste no insert:
+```ts
+duration_minutes: transcript.duration ? Math.round(transcript.duration / 60) : null,
 ```
 
-### 5. Validação no agendamento
+### 3. Backfill dos registros existentes
+Executar uma query para atualizar as calls já importadas que têm `duration_minutes IS NULL` e `fonte_call = 'fireflies'`. Duas opções:
+- **Opção A**: Script SQL que recalcula a duração com base no volume de texto da transcrição (estimativa grosseira).
+- **Opção B** (recomendada): Criar uma Edge Function de backfill que re-busca o `duration` de cada transcript no Fireflies pelo `external_id` e atualiza o campo.
 
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
+Como o backfill via Fireflies API requer chamadas individuais, vou implementar a **Opção B** como uma Edge Function `fireflies-backfill-duration` que pode ser chamada uma vez pelo admin.
 
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+### Arquivos modificados
+- `supabase/functions/fireflies-import-selected/index.ts` — adicionar `duration_minutes`
+- `supabase/functions/fireflies-webhook/index.ts` — adicionar `duration_minutes`
+- **Novo**: `supabase/functions/fireflies-backfill-duration/index.ts` — backfill para calls existentes
+- `src/pages/neoteam/comercial/components/FirefliesSettingsTab.tsx` — botão para disparar o backfill
 
