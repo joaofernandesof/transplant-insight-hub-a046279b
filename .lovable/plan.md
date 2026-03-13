@@ -1,29 +1,85 @@
 
 
-## Plan: Reorder Dates & Add Month/All Filters
+## Disponibilidade da Agenda Cirúrgica
 
-### What Changes
+### Resumo
 
-**1. Date Ordering (lines 313-334 in ClinicDashboard.tsx)**
-Replace current sort logic with: today first, then future dates ascending, then past dates ascending. This ensures the agenda always starts at "today" and wraps around.
+Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
+1. **Bloqueio de datas específicas** por filial
+2. **Limite de agendamentos por dia** por filial
 
+A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+
+---
+
+### 1. Nova tabela: `surgery_agenda_availability`
+
+```sql
+CREATE TABLE surgery_agenda_availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  branch TEXT NOT NULL,
+  date DATE NOT NULL,
+  max_slots INTEGER NOT NULL DEFAULT 5,
+  is_blocked BOOLEAN NOT NULL DEFAULT false,
+  blocked_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(branch, date)
+);
+
+-- RLS: leitura para autenticados, escrita para admins
+ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Admins can manage" ON surgery_agenda_availability
+  FOR ALL TO authenticated USING (
+    public.has_role(auth.uid(), 'admin')
+  );
 ```
-Sort key: 
-  - If date >= today → priority 0, sort by date ascending
-  - If date < today → priority 1, sort by date ascending
-  - Within same date, sort by surgeryTime
+
+### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
+
+Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
+- **Aba "Configuração da Agenda"** com:
+  - Seletor de filial
+  - Calendário mensal interativo onde o admin pode:
+    - Clicar em um dia para bloquear/desbloquear
+    - Definir o número máximo de agendamentos para cada dia
+  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
+
+### 3. Visualização de Disponibilidade (todos os usuários)
+
+Na aba "Agenda" existente, adicionar um componente visual mostrando:
+- Um mini calendário ou barra de disponibilidade por filial
+- Dias bloqueados marcados em vermelho
+- Dias com vagas esgotadas marcados em amarelo/laranja
+- Dias disponíveis em verde
+- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
+
+### 4. Novo hook: `useSurgeryAgendaAvailability`
+
+```typescript
+// src/clinic/hooks/useSurgeryAgendaAvailability.ts
+// - Busca configurações de disponibilidade por filial e período
+// - Cruza com contagem de cirurgias agendadas por dia
+// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
+// - Mutations para admin: criar/atualizar configuração
 ```
 
-**2. New Period Filter Buttons**
-Change the default `selectedPeriod` from `'this-week'` to `'this-month'` (line 103). The existing period selector already has `'this-month'` and `'all'` options — no new filter values needed, just changing the default.
+### 5. Validação no agendamento
 
-**3. Add Prominent Toggle Buttons**
-Add two quick-access buttons ("Mês Atual" / "Todo o Período") in the header area near the existing period selector, making it easy to switch between the two most common views without opening the dropdown.
+Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
+- Se a data está bloqueada para a filial selecionada → impedir agendamento
+- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
 
-### Files Modified
-- `src/clinic/pages/ClinicDashboard.tsx` — sort logic, default period, add toggle buttons
+### Estrutura de arquivos
 
-### What Does NOT Change
-- No layout changes beyond the two new buttons
-- All existing filters, KPIs, tabs, dialogs remain untouched
+- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
+- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
+- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
+- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
+- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
+- Migração SQL para criar a tabela
 

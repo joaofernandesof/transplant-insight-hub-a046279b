@@ -100,7 +100,7 @@ export default function ClinicDashboard() {
     setSelectedBranchState(branch);
     localStorage.setItem('clinic-selected-branch', branch);
   };
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('this-week');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('this-month');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -465,6 +465,34 @@ export default function ClinicDashboard() {
                 <Plus className="h-3.5 w-3.5" />
                 Adicionar
               </Button>
+              <div className="flex bg-muted rounded-lg p-0.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setSelectedPeriod('this-month'); setDateRange(undefined); }}
+                  className={cn(
+                    "h-7 px-3 text-xs font-medium rounded-md transition-all",
+                    selectedPeriod === 'this-month'
+                      ? "bg-background shadow-sm text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Mês Atual
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setSelectedPeriod('all'); setDateRange(undefined); }}
+                  className={cn(
+                    "h-7 px-3 text-xs font-medium rounded-md transition-all",
+                    selectedPeriod === 'all'
+                      ? "bg-background shadow-sm text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Todo o Período
+                </Button>
+              </div>
               <Select value={selectedPeriod} onValueChange={(v) => { setSelectedPeriod(v); if (v !== 'custom') setDateRange(undefined); }}>
                 <SelectTrigger className="w-[150px] h-8 text-xs">
                   <Clock className="h-3.5 w-3.5 mr-1.5" />
