@@ -236,6 +236,89 @@ export default function NeoTeamCargos() {
         <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
           <OrgAccessMatrix />
         </Suspense>
+      ) : mainTab === 'dashboard' ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <Users className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                  <p className="text-xs text-muted-foreground">Posições totais</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <UserCircle className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold">{stats.occupied}</p>
+                  <p className="text-xs text-muted-foreground">Ocupadas</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                <div>
+                  <p className="text-2xl font-bold text-destructive">{stats.vacant}</p>
+                  <p className="text-xs text-muted-foreground">Vagas abertas</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-3">
+                <Briefcase className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold">{stats.departments}</p>
+                  <p className="text-xs text-muted-foreground">Departamentos</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Vagas em Aberto</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {positions.filter(p => p.is_vacant).length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma vaga em aberto.</p>
+              ) : (
+                <div className="space-y-2">
+                  {positions.filter(p => p.is_vacant).map(p => (
+                    <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div>
+                        <p className="font-medium">{p.role_title}</p>
+                        <p className="text-xs text-muted-foreground">{p.department} • {p.level} • {p.unit}</p>
+                      </div>
+                      <Badge variant="destructive">Vaga</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Distribuição por Departamento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {DEPARTMENTS.map(dept => {
+                  const deptPositions = positions.filter(p => p.department === dept);
+                  if (deptPositions.length === 0) return null;
+                  const vacant = deptPositions.filter(p => p.is_vacant).length;
+                  return (
+                    <div key={dept} className={`p-3 rounded-lg border border-l-4 ${DEPT_COLORS[dept] || 'border-l-primary'}`}>
+                      <p className="font-medium text-sm">{dept}</p>
+                      <p className="text-xs text-muted-foreground">{deptPositions.length} posições • {vacant} vagas</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
       <>
       {/* Stats */}
