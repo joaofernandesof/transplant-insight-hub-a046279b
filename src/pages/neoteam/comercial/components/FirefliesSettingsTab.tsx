@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, subDays, subMonths, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Flame, Save, Eye, EyeOff, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Search, CheckSquare, Webhook, Copy, ExternalLink, MessageSquare } from 'lucide-react';
+import { Flame, Save, Eye, EyeOff, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Search, CheckSquare, Webhook, Copy, ExternalLink, MessageSquare, Clock } from 'lucide-react';
 
 interface Props {
   accountId: string | null;
@@ -517,6 +517,47 @@ export function FirefliesSettingsTab({ accountId }: Props) {
           )}
         </CardContent>
       </Card>
+
+      {/* Backfill Duration Card */}
+      {isSaved && accountId && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Clock className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Corrigir duração das calls</p>
+                  <p className="text-xs text-muted-foreground">
+                    Atualiza o tempo das calls já importadas que estão sem duração
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  toast.loading('Buscando durações no Fireflies...', { id: 'backfill-dur' });
+                  try {
+                    const { data, error } = await supabase.functions.invoke('fireflies-backfill-duration', {
+                      body: { account_id: accountId },
+                    });
+                    if (error) throw error;
+                    if (data?.error) throw new Error(data.error);
+                    toast.success(`✅ ${data.updated || 0} calls atualizadas de ${data.total || 0} pendentes`, { id: 'backfill-dur' });
+                  } catch (err: any) {
+                    toast.error('Erro: ' + (err.message || ''), { id: 'backfill-dur' });
+                  }
+                }}
+              >
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Atualizar Durações
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Webhook URL Card - for automatic real-time sync */}
       {isSaved && accountId && (

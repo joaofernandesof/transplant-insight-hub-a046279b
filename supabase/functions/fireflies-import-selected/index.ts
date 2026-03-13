@@ -182,6 +182,7 @@ serve(async (req) => {
           transcricao: fullTranscript || null,
           resumo_manual: resumo || null,
           fonte_call: 'fireflies',
+          duration_minutes: transcript.duration ? Math.round(transcript.duration / 60) : null,
           has_analysis: false,
           external_id: externalId,
           fireflies_url: `https://app.fireflies.ai/view/${transcript.id}`,

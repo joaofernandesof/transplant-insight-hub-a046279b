@@ -128,3 +128,6 @@ verify_jwt = false
 
 [functions.admin-reset-user-password]
 verify_jwt = false
+
+[functions.fireflies-backfill-duration]
+verify_jwt = false
