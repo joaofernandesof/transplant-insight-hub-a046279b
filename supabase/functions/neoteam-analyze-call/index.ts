@@ -51,7 +51,17 @@ Regras:
   6. Gestão da Fala: controle do tempo, pausas, assertividade, evitar monólogos
   7. Fechamento: técnica de fechamento, pedido de decisão, condução ao próximo passo`;
 
-    const whatsappFormatTemplate = `O campo whatsapp_report DEVE seguir EXATAMENTE este formato completo, seção por seção:
+    const whatsappFormatTemplate = `O campo whatsapp_report DEVE seguir EXATAMENTE este formato completo, seção por seção.
+
+REGRA CRÍTICA DE FORMATAÇÃO:
+- Cada seção principal (marcada com emoji + título em *negrito*) DEVE ser separada por UMA LINHA EM BRANCO antes e depois
+- Cada campo ➡️ do CADASTRO DO MÉDICO deve estar em sua PRÓPRIA LINHA (um por linha)
+- Use *asteriscos* para negrito em títulos e labels importantes
+- Cada item com bullet (•) deve estar em sua própria linha
+- NUNCA junte seções sem linha em branco entre elas
+- Dentro de cada seção, use quebras de linha para separar parágrafos
+
+Formato obrigatório:
 
 📊 *ANÁLISE DA CALL DE VENDAS*
 
@@ -64,40 +74,48 @@ Regras:
 ⚡ *Prob. Fechamento:* [0 a 100%]
 🔗 *Link Fireflies:* [link]
 
+━━━━━━━━━━━━━━━━━━━━
+
 🧾 *CADASTRO DO MÉDICO*
-(Preencher apenas se os dados forem coletados durante a call)
-➡️ NOME COMPLETO: [Nome]
-➡️ TELEFONE: [Telefone]
-➡️ CPF: [CPF]
-➡️ E-MAIL: [Email]
-➡️ CRM OU DOCUMENTO: [CRM]
-➡️ DATA DE NASCIMENTO: [Data]
-➡️ RUA/AVENIDA: [Endereço]
-➡️ NÚMERO: [Número]
-➡️ COMPLEMENTO: [Complemento]
-➡️ BAIRRO: [Bairro]
-➡️ CIDADE: [Cidade]
-➡️ ESTADO: [Estado]
-➡️ CEP: [CEP]
-➡️ CURSO: [Formação 360 / Brows / Fellow]
-➡️ CIDADE DA TURMA: [Cidade]
-➡️ DATA DA TURMA: [Mês ou data]
-➡️ VALOR DO CONTRATO: [Valor]
-➡️ SINAL PAGO: [Valor]
-➡️ FORMA DE PGTO SINAL: [PIX / Cartão / Boleto]
-➡️ OBSERVAÇÕES ADICIONAIS: [Observações]
+
+➡️ *NOME COMPLETO:* [Nome]
+➡️ *TELEFONE:* [Telefone]
+➡️ *CPF:* [CPF]
+➡️ *E-MAIL:* [Email]
+➡️ *CRM OU DOCUMENTO:* [CRM]
+➡️ *DATA DE NASCIMENTO:* [Data]
+➡️ *RUA/AVENIDA:* [Endereço]
+➡️ *NÚMERO:* [Número]
+➡️ *COMPLEMENTO:* [Complemento]
+➡️ *BAIRRO:* [Bairro]
+➡️ *CIDADE:* [Cidade]
+➡️ *ESTADO:* [Estado]
+➡️ *CEP:* [CEP]
+➡️ *CURSO:* [Formação 360 / Brows / Fellow]
+➡️ *CIDADE DA TURMA:* [Cidade]
+➡️ *DATA DA TURMA:* [Mês ou data]
+➡️ *VALOR DO CONTRATO:* [Valor]
+➡️ *SINAL PAGO:* [Valor]
+➡️ *FORMA DE PGTO SINAL:* [PIX / Cartão / Boleto]
+➡️ *OBSERVAÇÕES ADICIONAIS:* [Observações]
+
+━━━━━━━━━━━━━━━━━━━━
 
 📝 *RESUMO*
+
 Resumo claro da call em 5 a 8 linhas descrevendo: perfil do médico, motivação principal, momento profissional, objeções levantadas, resultado da call.
 
-🎯 *BANT*
-B: X/10
-A: X/10
-N: X/10
-T: X/10
-Total: XX/40
+━━━━━━━━━━━━━━━━━━━━
 
-Interpretação:
+🎯 *BANT*
+
+*B:* X/10
+*A:* X/10
+*N:* X/10
+*T:* X/10
+*Total:* XX/40
+
+_Interpretação:_
 0–15 → Lead fraco | 16–25 → Lead médio | 26–35 → Lead qualificado | 36–40 → Lead muito qualificado
 
 *Budget:* Análise da capacidade financeira
@@ -105,57 +123,97 @@ Interpretação:
 *Need:* Análise do nível de interesse/necessidade
 *Timing:* Análise da urgência para iniciar
 
+━━━━━━━━━━━━━━━━━━━━
+
 📊 *ANÁLISE DO FLUXO SPIN*
-S: X/10
-P: X/10
-I: X/10
-N: X/10
-Total: XX/40
+
+*S:* X/10
+*P:* X/10
+*I:* X/10
+*N:* X/10
+*Total:* XX/40
 
 *Situation:* Análise se o closer investigou cenário do médico
 *Problem:* Análise se identificou dores reais
 *Implication:* Análise se ampliou o problema
 *Need Payoff:* Análise se apresentou a solução
 
+━━━━━━━━━━━━━━━━━━━━
+
 🧠 *ANÁLISE DO PITCH DO CURSO*
+
 *Conhecimento técnico:* X/10 - Análise
 *Local de cirurgia:* X/10 - Análise
 *Equipe:* X/10 - Análise
 *Paciente:* X/10 - Análise
 
+━━━━━━━━━━━━━━━━━━━━
+
 💰 *ANÁLISE DA MONETIZAÇÃO*
-Nota: X/10
+
+*Nota:* X/10
 Análise se o closer explicou valor médio, custo e margem de lucro do transplante.
 
+━━━━━━━━━━━━━━━━━━━━
+
 ⭐ *ANÁLISE DE PROVA SOCIAL*
-Nota: X/10
+
+*Nota:* X/10
 Verificar se foram citados: transplantes mensais, avaliações Google, resultados reais, alunos formados.
 
+━━━━━━━━━━━━━━━━━━━━
+
 ⚠️ *OBJEÇÕES IDENTIFICADAS*
-Listar cada objeção: como foi apresentada, como o closer respondeu, se foi resolvida.
+
+Listar cada objeção em sua própria linha:
+• Objeção 1: como foi apresentada → como o closer respondeu → se foi resolvida
+• Objeção 2: ...
+
+━━━━━━━━━━━━━━━━━━━━
 
 📉 *MOMENTOS DE PERDA DE OPORTUNIDADE*
-Pontos onde a venda poderia avançar mais.
+
+Pontos onde a venda poderia avançar mais (cada ponto em sua própria linha com •).
+
+━━━━━━━━━━━━━━━━━━━━
 
 📈 *PONTOS FORTES DA CALL*
-Principais acertos do closer.
+
+• Ponto forte 1
+• Ponto forte 2
+
+━━━━━━━━━━━━━━━━━━━━
 
 📉 *PONTOS DE MELHORIA*
-Melhorias necessárias.
+
+• Melhoria 1
+• Melhoria 2
+
+━━━━━━━━━━━━━━━━━━━━
 
 🔥 *CLASSIFICAÇÃO DO LEAD*
+
 [Frio/Morno/Quente] + Justificativa breve.
 
+━━━━━━━━━━━━━━━━━━━━
+
 ⚡ *PROBABILIDADE DE FECHAMENTO*
+
 XX% + Justificativa baseada em: interesse, perfil financeiro, timing, objeções.
 
+━━━━━━━━━━━━━━━━━━━━
+
 ➡️ *PRÓXIMOS PASSOS*
-Plano de ação detalhado.
+
+Plano de ação detalhado (cada passo em sua própria linha com •).
+
+━━━━━━━━━━━━━━━━━━━━
 
 📋 *CONDUTA / TAREFAS A FAZER*
+
 • Tarefa 1
 • Tarefa 2
-...`;
+• Tarefa 3`;
 
     const userPrompt = `Analise a seguinte call comercial:
 

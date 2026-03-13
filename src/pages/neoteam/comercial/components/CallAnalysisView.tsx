@@ -276,16 +276,16 @@ export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze, accou
       </Card>
 
       {/* WhatsApp Report */}
-      <Card className="border-green-200 bg-green-50/30">
+      <Card className="border-green-200 bg-green-50/30 dark:border-green-900/50 dark:bg-green-950/20">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2 text-green-700">
+          <CardTitle className="text-base flex items-center gap-2 text-green-700 dark:text-green-400">
             <MessageSquare className="h-4 w-4" /> Relatório WhatsApp
           </CardTitle>
           <CardDescription>Versão formatada pronta para copiar e enviar</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-background rounded-lg p-4 border text-sm whitespace-pre-wrap mb-3 max-h-[400px] overflow-y-auto">
-            {analysis.whatsapp_report}
+          <div className="bg-[#0b141a] rounded-lg p-5 border border-green-900/30 text-sm mb-3 max-h-[500px] overflow-y-auto">
+            <WhatsAppFormattedReport text={analysis.whatsapp_report || ''} />
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button onClick={copyWhatsApp} variant="outline" className="gap-2 border-green-300 text-green-700 hover:bg-green-100">
