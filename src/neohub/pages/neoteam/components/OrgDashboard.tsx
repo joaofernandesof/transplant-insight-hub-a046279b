@@ -447,25 +447,15 @@ export default function OrgDashboard({ positions }: Props) {
         <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Mapa de Proporção por Departamento</CardTitle></CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
-            <Treemap
-              data={treemapData}
-              dataKey="size"
-              aspectRatio={4 / 1}
-              stroke="hsl(var(--background))"
-              content={({ x, y, width, height, name, fill }: any) => {
-                if (width < 30 || height < 20) return null;
-                return (
-                  <g>
-                    <rect x={x} y={y} width={width} height={height} fill={fill} rx={4} opacity={0.85} />
-                    {width > 50 && height > 30 && (
-                      <text x={x + width / 2} y={y + height / 2} textAnchor="middle" dominantBaseline="central" fontSize={11} fill="#fff" fontWeight={600}>
-                        {name}
-                      </text>
-                    )}
-                  </g>
-                );
-              }}
-            />
+            <BarChart data={treemapData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={80} />
+              <Tooltip />
+              <Bar dataKey="size" name="Posições" radius={[0, 4, 4, 0]}>
+                {treemapData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
