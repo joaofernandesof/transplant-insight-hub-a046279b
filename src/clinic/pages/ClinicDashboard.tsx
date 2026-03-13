@@ -100,7 +100,7 @@ export default function ClinicDashboard() {
     setSelectedBranchState(branch);
     localStorage.setItem('clinic-selected-branch', branch);
   };
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('this-week');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('this-month');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedPendingSurgery, setSelectedPendingSurgery] = useState<ClinicSurgery | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
