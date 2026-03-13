@@ -576,33 +576,27 @@ export default function NeoTeamPatientDetail() {
       // Log changes to audit table
       await logPatientChanges(changes);
 
-      // Sync category to clinic_surgeries if it changed
+      // Sync category and branch to clinic_surgeries if changed
       const categoryChanged = changes.find(c => c.field === 'category');
-      if (categoryChanged && id) {
-        const newCategory = editData.category || null;
-        try {
-          await supabase
-            .from('clinic_surgeries')
-            .update({ category: newCategory })
-            .eq('patient_id', id);
-          console.log('[PatientDetail] Synced category to clinic_surgeries:', newCategory);
-        } catch (syncErr) {
-          console.error('[PatientDetail] Failed to sync category to surgeries:', syncErr);
-        }
-      }
-
-      // Sync branch to clinic_surgeries if it changed
       const branchChanged = changes.find(c => c.field === 'branch');
-      if (branchChanged && id) {
-        const newBranch = editData.branch || null;
-        try {
-          await supabase
-            .from('clinic_surgeries')
-            .update({ branch: newBranch })
-            .eq('patient_id', id);
-          console.log('[PatientDetail] Synced branch to clinic_surgeries:', newBranch);
-        } catch (syncErr) {
-          console.error('[PatientDetail] Failed to sync branch to surgeries:', syncErr);
+      
+      if ((categoryChanged || branchChanged) && id) {
+        const syncPayload: Record<string, string | null> = {};
+        if (categoryChanged) syncPayload.category = editData.category || null;
+        if (branchChanged) syncPayload.branch = editData.branch || null;
+
+        console.log('[PatientDetail] Syncing to clinic_surgeries:', { patient_id: id, ...syncPayload });
+        
+        const { error: syncError, count: syncCount } = await supabase
+          .from('clinic_surgeries')
+          .update(syncPayload)
+          .eq('patient_id', id);
+
+        if (syncError) {
+          console.error('[PatientDetail] Failed to sync to clinic_surgeries:', JSON.stringify(syncError));
+          toast.error('Categoria/Filial salvos no prontuário, mas falhou ao sincronizar com a agenda.');
+        } else {
+          console.log('[PatientDetail] Synced to clinic_surgeries successfully. Rows affected:', syncCount);
         }
       }
 
