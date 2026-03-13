@@ -21,6 +21,8 @@ import { cn } from '@/lib/utils';
 import { useNoDatePatients, NoDatePatient } from '../hooks/useNoDatePatients';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
 import { useBranches } from '../hooks/useBranches';
+import { checkDuplicateSurgery } from '../hooks/useDuplicateCheck';
+import { toast } from 'sonner';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
