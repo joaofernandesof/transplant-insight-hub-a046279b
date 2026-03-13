@@ -1,85 +1,40 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+# Plano: Liberar Portal Avivar e Duplicar Configurações da Karine para Humberto
 
-### Resumo
+## Situação Atual
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+**Humberto** (`ac421565-5144-461c-ae80-38482ba6f89a`) já tem:
+- Portal Avivar no `allowed_portals` ✅
+- Perfil `cliente_avivar` ✅
+- Conta Avivar com kanbans e colunas ✅
+- 1 agente de IA ("Iza") ✅
+- 5 regras de follow-up ✅
+- 5 checklists de coluna ✅
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+**Falta em relação à Karine** (`b0317d67-fda3-46dd-8dbc-c69bf3821938`):
+- ❌ Coluna "Atendimento Humano" no kanban Comercial (Karine tem na posição 1, Humberto não)
+- ❌ Entrada em `user_portal_roles` (Karine tem portal_id + role_id)
+- ❌ Automações (Karine tem 2: "Notifica Humano" com webhook e "Criar tarefa")
 
----
+## O que será feito
 
-### 1. Nova tabela: `surgery_agenda_availability`
+### 1. Adicionar coluna "Atendimento Humano" ao Kanban Comercial
+- Inserir coluna na posição 1 do kanban `05736918-acf2-46f2-ba8f-c463880fae42`
+- Reindexar as colunas existentes (Triagem → 2, Tentando Agendar → 3, etc.)
+- Usar mesma cor da Karine: `from-gray-500 to-gray-600`
+- Copiar o `ai_instruction` da Karine
 
-```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+### 2. Adicionar `user_portal_roles`
+- Inserir registro com o mesmo `portal_id` e `role_id` da Karine:
+  - portal_id: `f6d9742b-84b1-4cad-8c76-2024c269aed8`
+  - role_id: `cc8396d4-7e3f-468b-b38a-9e7cc8657e43`
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+### 3. Criar automações idênticas às da Karine
+- **"Notifica Humano"**: trigger `lead.moved_to` na coluna "Atendimento Humano" → ação `dispatch_webhook` (mesmo webhook)
+- **"Criar tarefa"**: trigger `lead.moved_to` na coluna "Atendimento Humano" → ação `create_task`
+- Os `column_id` serão mapeados para os IDs da conta do Humberto
 
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
-  );
-```
-
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
-
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
-
-### 3. Visualização de Disponibilidade (todos os usuários)
-
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
-
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+### Nota
+As configurações do agente de IA, follow-up rules e checklists já existem na conta do Humberto — esses itens não serão duplicados.
 
