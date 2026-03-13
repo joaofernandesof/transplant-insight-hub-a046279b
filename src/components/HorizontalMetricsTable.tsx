@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useMemo, useRef, useEffect, useCallback, useState } from 'react';
 import { metrics, MetricDefinition, WeekData, formatDate, generateWeeks2026 } from '@/data/metricsData';
 import { getMetricStatus, formatMetricValue } from '@/utils/metricCalculations';
 import { cn } from '@/lib/utils';
@@ -95,6 +95,24 @@ export function HorizontalMetricsTable({
   isAdmin
 }: HorizontalMetricsTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
+  
+  // Estado para notas "Como Obter" com persistência em localStorage
+  const [comoObterNotes, setComoObterNotes] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem('como-obter-notes');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleComoObterChange = useCallback((sigla: string, value: string) => {
+    setComoObterNotes(prev => {
+      const updated = { ...prev, [sigla]: value };
+      localStorage.setItem('como-obter-notes', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
   
   // Ordenar métricas conforme a ordem especificada
   const orderedMetrics = useMemo(() => {
@@ -332,22 +350,29 @@ export function HorizontalMetricsTable({
                   <span className="text-sm">Fórmula</span>
                 </div>
               </th>
+              {/* Como Obter - Fixed on desktop only (lg+) */}
+              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[660px] bg-muted z-50 w-[130px] min-w-[130px] max-w-[130px] border-r border-border/50">
+                <div className="flex items-center gap-1.5">
+                  <Edit3 className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-sm">Como Obter</span>
+                </div>
+              </th>
               {/* Status columns - Fixed on desktop (lg+) */}
-              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[660px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[790px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
                 <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">Ruim</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[712px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[842px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
                 <span className="px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-medium">Médio</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[764px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[894px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
                 <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-medium">Bom</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[816px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[946px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
                 <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium">Ótimo</span>
               </th>
               
               {/* Trend/Evolution Column - Fixed on desktop (lg+) */}
-              <th className="hidden lg:table-cell text-center px-2 py-2.5 font-semibold whitespace-nowrap sticky left-[868px] bg-muted z-50 w-[82px] min-w-[82px] max-w-[82px] border-r border-border shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
+              <th className="hidden lg:table-cell text-center px-2 py-2.5 font-semibold whitespace-nowrap sticky left-[998px] bg-muted z-50 w-[82px] min-w-[82px] max-w-[82px] border-r border-border shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
                 <div className="flex items-center justify-center gap-1">
                   <TrendingUp className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs">Tendência</span>
@@ -472,9 +497,24 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   
+                  {/* Como Obter - Fixed on desktop (lg+) */}
+                  <td className={cn(
+                    "hidden lg:table-cell px-2 py-1.5 sticky left-[660px] z-20 border-r border-border/50 align-middle",
+                    "w-[130px] min-w-[130px] max-w-[130px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
+                    <textarea
+                      value={comoObterNotes[metric.sigla] || ''}
+                      onChange={(e) => handleComoObterChange(metric.sigla, e.target.value)}
+                      placeholder="Anotar..."
+                      className="w-full text-[10px] text-foreground bg-transparent border border-border/50 rounded px-1.5 py-1 resize-none leading-tight focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/40 min-h-[32px] max-h-[48px]"
+                      rows={2}
+                    />
+                  </td>
+                  
                   {/* Faixas - Fixed on desktop (lg+) */}
                   <td className={cn(
-                    "hidden lg:table-cell px-1 py-2 sticky left-[660px] z-20 border-r border-border/50 text-center align-middle",
+                    "hidden lg:table-cell px-1 py-2 sticky left-[790px] z-20 border-r border-border/50 text-center align-middle",
                     "w-[52px] min-w-[52px] max-w-[52px]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
@@ -483,7 +523,7 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   <td className={cn(
-                    "hidden lg:table-cell px-1 py-2 sticky left-[712px] z-20 border-r border-border/50 text-center align-middle",
+                    "hidden lg:table-cell px-1 py-2 sticky left-[842px] z-20 border-r border-border/50 text-center align-middle",
                     "w-[52px] min-w-[52px] max-w-[52px]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
@@ -492,7 +532,7 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   <td className={cn(
-                    "hidden lg:table-cell px-1 py-2 sticky left-[764px] z-20 border-r border-border/50 text-center align-middle",
+                    "hidden lg:table-cell px-1 py-2 sticky left-[894px] z-20 border-r border-border/50 text-center align-middle",
                     "w-[52px] min-w-[52px] max-w-[52px]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
@@ -501,7 +541,7 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   <td className={cn(
-                    "hidden lg:table-cell px-1 py-2 sticky left-[816px] z-20 border-r border-border/50 text-center align-middle",
+                    "hidden lg:table-cell px-1 py-2 sticky left-[946px] z-20 border-r border-border/50 text-center align-middle",
                     "w-[52px] min-w-[52px] max-w-[52px]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
@@ -512,7 +552,7 @@ export function HorizontalMetricsTable({
                   
                   {/* Sparkline - Fixed on desktop (lg+) */}
                   <td className={cn(
-                    "hidden lg:table-cell px-1.5 py-2 sticky left-[868px] z-20 border-r border-border text-center align-middle",
+                    "hidden lg:table-cell px-1.5 py-2 sticky left-[998px] z-20 border-r border-border text-center align-middle",
                     "w-[82px] min-w-[82px] max-w-[82px] shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]",
                     idx % 2 === 0 ? "bg-muted/10" : "bg-card"
                   )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
