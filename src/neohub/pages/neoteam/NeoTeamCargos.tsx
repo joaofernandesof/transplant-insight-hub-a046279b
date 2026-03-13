@@ -178,31 +178,58 @@ export default function NeoTeamCargos() {
     <div className="space-y-5 p-4 lg:p-6 pt-14 lg:pt-6">
       <NeoTeamBreadcrumb />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-primary" />
-            Estrutura Organizacional
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Matriz de cargos, funções e vagas por unidade e departamento
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex border border-border rounded-lg overflow-hidden">
-            <Button variant={mainTab === 'estrutura' ? 'default' : 'ghost'} size="sm" onClick={() => setMainTab('estrutura')} className="rounded-none px-4 gap-2">
-              <Users className="h-4 w-4" /> Cargos
-            </Button>
-            <Button variant={mainTab === 'acessos' ? 'default' : 'ghost'} size="sm" onClick={() => setMainTab('acessos')} className="rounded-none px-4 gap-2">
-              <Shield className="h-4 w-4" /> Matriz de Acessos
-            </Button>
-          </div>
-          {mainTab === 'estrutura' && (
-            <Button onClick={openNew} className="gap-2">
-              <Plus className="h-4 w-4" /> Nova Posição
-            </Button>
-          )}
-        </div>
+      <div className="text-center space-y-1">
+        <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
+          <Building2 className="h-6 w-6 text-primary" />
+          Estrutura Organizacional
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Matriz de cargos, funções e vagas por unidade e departamento
+        </p>
+      </div>
+
+      {/* Navigation Bar */}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <Button
+          variant={mainTab === 'estrutura' && view === 'list' ? 'default' : 'outline'}
+          onClick={() => { setMainTab('estrutura'); setView('list'); }}
+          className="gap-2 px-5 h-10"
+        >
+          <Users className="h-4 w-4" /> Cargos
+        </Button>
+        <Button
+          variant={mainTab === 'acessos' ? 'default' : 'outline'}
+          onClick={() => setMainTab('acessos')}
+          className="gap-2 px-5 h-10"
+        >
+          <Shield className="h-4 w-4" /> Matriz de Acessos
+        </Button>
+        <Button
+          variant={mainTab === 'estrutura' && view === 'list' ? 'outline' : mainTab === 'estrutura' && view === 'matrix' ? 'outline' : 'outline'}
+          onClick={() => { setMainTab('estrutura'); setView('list'); }}
+          className={`gap-2 px-5 h-10 ${mainTab === 'estrutura' && view === 'list' ? 'border-primary text-primary' : ''}`}
+        >
+          <List className="h-4 w-4" /> Lista
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => { setMainTab('estrutura'); setView('matrix'); }}
+          className={`gap-2 px-5 h-10 ${mainTab === 'estrutura' && view === 'matrix' ? 'border-primary text-primary' : ''}`}
+        >
+          <LayoutGrid className="h-4 w-4" /> Organograma
+        </Button>
+        <Button
+          variant={mainTab === 'dashboard' as string ? 'default' : 'outline'}
+          onClick={() => setMainTab('dashboard' as any)}
+          className="gap-2 px-5 h-10"
+        >
+          <Briefcase className="h-4 w-4" /> Dashboard
+        </Button>
+        {mainTab === 'estrutura' && (
+          <Button onClick={openNew} className="gap-2 px-5 h-10 ml-2">
+            <Plus className="h-4 w-4" /> Nova Posição
+          </Button>
+        )}
       </div>
 
       {mainTab === 'acessos' ? (
