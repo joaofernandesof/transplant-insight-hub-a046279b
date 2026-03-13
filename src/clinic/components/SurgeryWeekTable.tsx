@@ -43,50 +43,79 @@ export function SurgeryWeekTable({ surgeries, onUpdate, onReschedule, onDelete, 
   // Group by date
   const grouped = useMemo(() => {
     const map = new Map<string, ClinicSurgery[]>();
-    const sorted = [...surgeries].sort((a, b) => {
+
+    // 1) Generate all dates from selected period independently of surgeries
+    if (periodRange) {
+      try {
+        const allDates = eachDayOfInterval({ start: periodRange.start, end: periodRange.end });
+        for (const d of allDates) {
+          map.set(format(d, 'yyyy-MM-dd'), []);
+        }
+      } catch {
+        // invalid interval
+      }
+    } else {
+      // For "Todo o período", fill all dates between first and last surgery date
+      const datedValues = surgeries
+        .map((s) => s.surgeryDate)
+        .filter((date): date is string => Boolean(date));
+
+      if (datedValues.length > 0) {
+        const ordered = [...datedValues].sort((a, b) => a.localeCompare(b));
+        const firstDate = parseISO(ordered[0]);
+        const lastDate = parseISO(ordered[ordered.length - 1]);
+
+        if (!Number.isNaN(firstDate.getTime()) && !Number.isNaN(lastDate.getTime())) {
+          try {
+            const allDates = eachDayOfInterval({ start: firstDate, end: lastDate });
+            for (const d of allDates) {
+              map.set(format(d, 'yyyy-MM-dd'), []);
+            }
+          } catch {
+            // invalid interval
+          }
+        }
+      }
+    }
+
+    // 2) Associate surgeries with each generated day
+    const sortedSurgeries = [...surgeries].sort((a, b) => {
       if (a.surgeryDate === b.surgeryDate) {
         return (a.surgeryTime || '').localeCompare(b.surgeryTime || '');
       }
       return (a.surgeryDate || '').localeCompare(b.surgeryDate || '');
     });
-    for (const s of sorted) {
-      const key = s.surgeryDate || 'sem-data';
+
+    for (const surgery of sortedSurgeries) {
+      const key = surgery.surgeryDate || 'sem-data';
       if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(s);
+      map.get(key)!.push(surgery);
     }
 
-    // Inject all dates from periodRange even if they have no surgeries
-    if (periodRange) {
-      try {
-        const allDates = eachDayOfInterval({ start: periodRange.start, end: periodRange.end });
-        for (const d of allDates) {
-          const key = format(d, 'yyyy-MM-dd');
-          if (!map.has(key)) map.set(key, []);
-        }
-      } catch { /* invalid interval */ }
-    }
-
+    // 3) Keep ordering: today/future ascending, then past ascending, then sem-data
     const today = startOfDay(new Date());
-    const entries = Array.from(map.entries());
-    const todayEntries: typeof entries = [];
-    const futureEntries: typeof entries = [];
-    const pastEntries: typeof entries = [];
-    const noDateEntries: typeof entries = [];
-    for (const entry of entries) {
-      if (entry[0] === 'sem-data') {
-        noDateEntries.push(entry);
-      } else {
-        try {
-          const d = startOfDay(parseISO(entry[0]));
-          if (isToday(d)) todayEntries.push(entry);
-          else if (isBefore(d, today)) pastEntries.push(entry);
-          else futureEntries.push(entry);
-        } catch {
-          noDateEntries.push(entry);
-        }
+    const datedEntries = Array.from(map.entries()).filter(([date]) => date !== 'sem-data');
+    const noDateEntries = Array.from(map.entries()).filter(([date]) => date === 'sem-data');
+
+    datedEntries.sort(([dateA], [dateB]) => {
+      const parsedA = parseISO(dateA);
+      const parsedB = parseISO(dateB);
+
+      if (Number.isNaN(parsedA.getTime()) || Number.isNaN(parsedB.getTime())) {
+        return dateA.localeCompare(dateB);
       }
-    }
-    return new Map([...todayEntries, ...futureEntries, ...pastEntries, ...noDateEntries]);
+
+      const dayA = startOfDay(parsedA);
+      const dayB = startOfDay(parsedB);
+
+      const priorityA = isBefore(dayA, today) ? 1 : 0;
+      const priorityB = isBefore(dayB, today) ? 1 : 0;
+      if (priorityA !== priorityB) return priorityA - priorityB;
+
+      return dayA.getTime() - dayB.getTime();
+    });
+
+    return new Map([...datedEntries, ...noDateEntries]);
   }, [surgeries, periodRange]);
 
   // Filter grouped dates by availability status
