@@ -359,7 +359,11 @@ export default function NeoTeamCargos() {
               <TableBody>
                 {sorted.map(pos => (
                   <TableRow key={pos.id} className={pos.is_vacant ? 'bg-destructive/5' : ''}>
-                    <TableCell>{pos.unit}</TableCell>
+                    <TableCell>
+                      <Badge className={`text-[11px] ${UNIT_COLORS[pos.unit] || ''}`}>
+                        {pos.unit}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{pos.department}</TableCell>
                     <TableCell>
                       <Badge className={`text-[11px] ${LEVEL_COLORS[pos.level] || ''}`}>
