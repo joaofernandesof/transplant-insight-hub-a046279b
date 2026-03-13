@@ -26,6 +26,8 @@ interface BotControl {
   message: string | null;
   media_url: string | null;
   script: string | null;
+  button1: string | null;
+  button2: string | null;
   template_approved: string | null;
   bot_updated: string | null;
   confirmed_joao: string | null;
@@ -78,6 +80,10 @@ const FunnelBadge = ({ funnel }: { funnel: string | null }) => {
     'SÃO PAULO': 'bg-rose-500/10 text-rose-600 border-rose-200',
     'PÓS-VENDAS': 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
     'GERAL': 'bg-slate-500/10 text-slate-600 border-slate-200',
+    'COBRANÇA AGENDAMENTO': 'bg-blue-500/10 text-blue-600 border-blue-200',
+    'COBRANÇA FOTOS': 'bg-orange-500/10 text-orange-600 border-orange-200',
+    'REAGENDAMENTO': 'bg-purple-500/10 text-purple-600 border-purple-200',
+    'LISTA TRANSMISSÃO': 'bg-teal-500/10 text-teal-600 border-teal-200',
   };
   return <Badge className={`text-xs ${colors[funnel] || 'bg-muted text-muted-foreground'}`}>{funnel}</Badge>;
 };
@@ -248,6 +254,8 @@ export default function BotControlPage() {
                 <TableHead className="w-24 sticky top-0 bg-background">Funil</TableHead>
                 <TableHead className="sticky top-0 bg-background">Nome do Robô</TableHead>
                 <TableHead className="w-20 sticky top-0 bg-background text-center">Mensagem</TableHead>
+                <TableHead className="w-24 sticky top-0 bg-background text-center">Botão 1</TableHead>
+                <TableHead className="w-24 sticky top-0 bg-background text-center">Botão 2</TableHead>
                 <TableHead className="w-28 sticky top-0 bg-background text-center">Checklist</TableHead>
                 {CHECKLIST_FIELDS.map(f => (
                   <TableHead key={f.key} className="w-8 sticky top-0 bg-background text-center px-1" title={f.label}>
@@ -259,9 +267,9 @@ export default function BotControlPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={16} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">Nenhum bot encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={16} className="text-center py-8 text-muted-foreground">Nenhum bot encontrado</TableCell></TableRow>
               ) : filtered.map(bot => {
                 const comp = checklistCompletion(bot);
                 return (
@@ -271,6 +279,12 @@ export default function BotControlPage() {
                     <TableCell className="text-sm font-medium max-w-[300px] truncate">{bot.bot_name}</TableCell>
                     <TableCell className="text-center">
                       {bot.message ? <MessageSquare className="h-4 w-4 text-emerald-500 mx-auto" /> : <MinusCircle className="h-4 w-4 text-muted-foreground mx-auto" />}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {bot.button1 ? <Badge variant="outline" className="text-[10px]">{bot.button1}</Badge> : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {bot.button2 ? <Badge variant="outline" className="text-[10px]">{bot.button2}</Badge> : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex items-center gap-1 justify-center">
@@ -344,18 +358,28 @@ export default function BotControlPage() {
                           <label className="text-xs text-muted-foreground">Nome do Robô</label>
                           <Input value={editData.bot_name || ''} onChange={e => setEditData(p => ({ ...p, bot_name: e.target.value }))} className="mt-1 h-8 text-sm" />
                         </div>
-                        <div className="col-span-2">
-                          <label className="text-xs text-muted-foreground">URL de Mídia</label>
-                          <Input value={editData.media_url || ''} onChange={e => setEditData(p => ({ ...p, media_url: e.target.value }))} className="mt-1 h-8 text-sm" />
-                        </div>
+                         <div>
+                           <label className="text-xs text-muted-foreground">URL de Mídia</label>
+                           <Input value={editData.media_url || ''} onChange={e => setEditData(p => ({ ...p, media_url: e.target.value }))} className="mt-1 h-8 text-sm" />
+                         </div>
+                         <div>
+                           <label className="text-xs text-muted-foreground">Botão 1</label>
+                           <Input value={editData.button1 || ''} onChange={e => setEditData(p => ({ ...p, button1: e.target.value }))} className="mt-1 h-8 text-sm" />
+                         </div>
+                         <div>
+                           <label className="text-xs text-muted-foreground">Botão 2</label>
+                           <Input value={editData.button2 || ''} onChange={e => setEditData(p => ({ ...p, button2: e.target.value }))} className="mt-1 h-8 text-sm" />
+                         </div>
                       </>
                     ) : (
-                      <>
-                        <div><p className="text-xs text-muted-foreground">Código</p><p className="text-sm font-mono font-semibold">{selectedBot.code}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Seq</p><p className="text-sm">{selectedBot.seq}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Chip</p><p className="text-sm">{selectedBot.chip}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Funil</p><FunnelBadge funnel={selectedBot.funnel} /></div>
-                      </>
+                       <>
+                         <div><p className="text-xs text-muted-foreground">Código</p><p className="text-sm font-mono font-semibold">{selectedBot.code}</p></div>
+                         <div><p className="text-xs text-muted-foreground">Seq</p><p className="text-sm">{selectedBot.seq}</p></div>
+                         <div><p className="text-xs text-muted-foreground">Chip</p><p className="text-sm">{selectedBot.chip}</p></div>
+                         <div><p className="text-xs text-muted-foreground">Funil</p><FunnelBadge funnel={selectedBot.funnel} /></div>
+                         <div><p className="text-xs text-muted-foreground">Botão 1</p><p className="text-sm">{selectedBot.button1 || '—'}</p></div>
+                         <div><p className="text-xs text-muted-foreground">Botão 2</p><p className="text-sm">{selectedBot.button2 || '—'}</p></div>
+                       </>
                     )}
                   </div>
 
@@ -520,6 +544,16 @@ export default function BotControlPage() {
             <div>
               <label className="text-xs text-muted-foreground">Mensagem</label>
               <Textarea value={newBot.message || ''} onChange={e => setNewBot(p => ({ ...p, message: e.target.value }))} rows={4} className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Botão 1</label>
+                <Input value={newBot.button1 || ''} onChange={e => setNewBot(p => ({ ...p, button1: e.target.value }))} className="mt-1" placeholder="Ex: AGENDAR" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Botão 2</label>
+                <Input value={newBot.button2 || ''} onChange={e => setNewBot(p => ({ ...p, button2: e.target.value }))} className="mt-1" placeholder="Ex: HORÁRIOS" />
+              </div>
             </div>
             <div>
               <label className="text-xs text-muted-foreground">URL de Mídia</label>
