@@ -14,6 +14,70 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
+/** Renders WhatsApp-style formatted text with *bold*, line breaks, and separators */
+function WhatsAppFormattedReport({ text }: { text: string }) {
+  if (!text) return <span className="text-gray-500 italic">Sem relatório disponível</span>;
+
+  const lines = text.split('\n');
+
+  return (
+    <div className="space-y-0.5 font-sans text-[13px] leading-[1.6] text-[#e9edef]">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+
+        // Empty line = spacer
+        if (!trimmed) return <div key={i} className="h-2" />;
+
+        // Separator line
+        if (/^[━─═]{4,}/.test(trimmed)) {
+          return <div key={i} className="border-t border-green-900/40 my-2" />;
+        }
+
+        // Process *bold* markers
+        const parts = trimmed.split(/(\*[^*]+\*)/g);
+        const rendered = parts.map((part, j) => {
+          if (part.startsWith('*') && part.endsWith('*')) {
+            return <strong key={j} className="font-semibold text-[#fff]">{part.slice(1, -1)}</strong>;
+          }
+          return <span key={j}>{part}</span>;
+        });
+
+        // Section headers (emoji + bold title lines)
+        const isHeader = /^[📊🧾📝🎯📊🧠💰⭐⚠️📉📈🔥⚡➡️📋]/.test(trimmed) && trimmed.includes('*');
+        if (isHeader) {
+          return (
+            <div key={i} className="text-[14px] mt-3 mb-1">
+              {rendered}
+            </div>
+          );
+        }
+
+        // Bullet items
+        if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+          return (
+            <div key={i} className="pl-3 flex gap-1.5">
+              <span className="text-green-500 shrink-0">•</span>
+              <span>{rendered}</span>
+            </div>
+          );
+        }
+
+        // Arrow fields (cadastro)
+        if (trimmed.startsWith('➡️')) {
+          return (
+            <div key={i} className="pl-1">
+              {rendered}
+            </div>
+          );
+        }
+
+        // Regular line
+        return <div key={i}>{rendered}</div>;
+      })}
+    </div>
+  );
+}
+
 interface Props {
   call: SalesCall | null;
   analysis: CallAnalysisRecord | null;
