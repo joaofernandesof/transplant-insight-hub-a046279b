@@ -66,11 +66,16 @@ export function PortalSwitcherButton({
   onNavigate
 }: PortalSwitcherButtonProps) {
   const navigate = useNavigate();
-  const { isAdmin } = useUnifiedAuth();
+  const { isAdmin, user } = useUnifiedAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const allowedPortals = user?.allowedPortals || [];
 
-  // Filtrar portais: admin só aparece para isAdmin
-  const filteredPortals = portals.filter(p => p.id !== 'admin' || isAdmin);
+  // Filtrar portais: admin vê todos, demais só os permitidos
+  const filteredPortals = portals.filter(p => {
+    if (p.id === 'admin') return isAdmin;
+    if (isAdmin) return true;
+    return allowedPortals.includes(p.portalSlug);
+  });
 
   const handleNavigate = (href: string) => {
     navigate(href);
