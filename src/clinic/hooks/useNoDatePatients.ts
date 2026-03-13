@@ -151,10 +151,15 @@ export function useNoDatePatients() {
     // From clinic_surgeries with sem_data (not already covered by sales)
     const salePatientIds = new Set(fromSales.map(p => p.patientId));
     const fromSurgeries = semDataSurgeries
-      .filter((s: any) => s.patient_id && !salePatientIds.has(s.patient_id))
+      .filter((s: any) => {
+        // Include records with patient_id not already in sales, OR records without patient_id (fallback to name)
+        if (s.patient_id) return !salePatientIds.has(s.patient_id);
+        // No patient_id — still include if there's a patient_name
+        return !!s.patient_name;
+      })
       .map((s: any): NoDatePatient => ({
         saleId: s.id, // use surgery id as key
-        patientId: s.patient_id,
+        patientId: s.patient_id || s.id, // fallback to surgery id as key when patient_id is null
         patientName: (s.patient_id ? patientNameMap.get(s.patient_id) : null) || s.patient_name || 'Paciente não vinculado',
         branch: s.branch || '-',
         procedure: s.procedure || '-',
