@@ -96,6 +96,24 @@ export function HorizontalMetricsTable({
 }: HorizontalMetricsTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   
+  // Estado para notas "Como Obter" com persistência em localStorage
+  const [comoObterNotes, setComoObterNotes] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem('como-obter-notes');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleComoObterChange = useCallback((sigla: string, value: string) => {
+    setComoObterNotes(prev => {
+      const updated = { ...prev, [sigla]: value };
+      localStorage.setItem('como-obter-notes', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+  
   // Ordenar métricas conforme a ordem especificada
   const orderedMetrics = useMemo(() => {
     return metricOrder
