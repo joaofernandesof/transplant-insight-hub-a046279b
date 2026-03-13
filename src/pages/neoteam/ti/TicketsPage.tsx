@@ -13,7 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX, CalendarIcon, Link, ExternalLink, Download, FileText, FileImage } from "lucide-react";
+import { Plus, Ticket, HelpCircle, ImagePlus, X, Paperclip, Loader2, UserCheck, UserX, CalendarIcon, Link, ExternalLink, Download, FileText, FileImage, LayoutList, Kanban } from "lucide-react";
+import TicketKanbanView from "./TicketKanbanView";
 import { format, parseISO } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
