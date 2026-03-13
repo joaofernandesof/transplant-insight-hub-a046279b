@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import {
   Building2, Users, LayoutGrid, List, Plus, Pencil, Trash2, Search,
-  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2, Shield
+  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2, Shield, BarChart3
 } from 'lucide-react';
 
 const OrgAccessMatrix = lazy(() => import('./components/OrgAccessMatrix'));
