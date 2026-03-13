@@ -350,22 +350,29 @@ export function HorizontalMetricsTable({
                   <span className="text-sm">Fórmula</span>
                 </div>
               </th>
+              {/* Como Obter - Fixed on desktop only (lg+) */}
+              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[660px] bg-muted z-50 w-[130px] min-w-[130px] max-w-[130px] border-r border-border/50">
+                <div className="flex items-center gap-1.5">
+                  <Edit3 className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-sm">Como Obter</span>
+                </div>
+              </th>
               {/* Status columns - Fixed on desktop (lg+) */}
-              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[660px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[790px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
                 <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">Ruim</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[712px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[842px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
                 <span className="px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-medium">Médio</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[764px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[894px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
                 <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-medium">Bom</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[816px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[946px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
                 <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium">Ótimo</span>
               </th>
               
               {/* Trend/Evolution Column - Fixed on desktop (lg+) */}
-              <th className="hidden lg:table-cell text-center px-2 py-2.5 font-semibold whitespace-nowrap sticky left-[868px] bg-muted z-50 w-[82px] min-w-[82px] max-w-[82px] border-r border-border shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
+              <th className="hidden lg:table-cell text-center px-2 py-2.5 font-semibold whitespace-nowrap sticky left-[998px] bg-muted z-50 w-[82px] min-w-[82px] max-w-[82px] border-r border-border shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
                 <div className="flex items-center justify-center gap-1">
                   <TrendingUp className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs">Tendência</span>
