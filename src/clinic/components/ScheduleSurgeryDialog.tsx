@@ -85,6 +85,17 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
 
     setWeekLockMessage(null);
 
+    // Duplicate check
+    const duplicateMsg = await checkDuplicateSurgery({
+      patientId: patient.patientId,
+      procedure: patient.procedure,
+      category: patient.category || undefined,
+    });
+    if (duplicateMsg) {
+      toast.error(duplicateMsg);
+      return;
+    }
+
     createSurgery.mutate({
       patientId: patient.patientId,
       patientName: patient.patientName,

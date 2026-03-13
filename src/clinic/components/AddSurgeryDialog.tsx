@@ -205,6 +205,18 @@ export function AddSurgeryDialog({
         }
       }
 
+      // Duplicate check
+      const duplicateMsg = await checkDuplicateSurgery({
+        patientId: patientId!,
+        procedure: procedure.trim(),
+        category: category || undefined,
+      });
+      if (duplicateMsg) {
+        toast.error(duplicateMsg);
+        setIsSubmitting(false);
+        return;
+      }
+
       // Create the surgery
       createSurgery.mutate({
         patientId: patientId!,
