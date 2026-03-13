@@ -14,6 +14,70 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
+/** Renders WhatsApp-style formatted text with *bold*, line breaks, and separators */
+function WhatsAppFormattedReport({ text }: { text: string }) {
+  if (!text) return <span className="text-gray-500 italic">Sem relatório disponível</span>;
+
+  const lines = text.split('\n');
+
+  return (
+    <div className="space-y-0.5 font-sans text-[13px] leading-[1.6] text-[#e9edef]">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+
+        // Empty line = spacer
+        if (!trimmed) return <div key={i} className="h-2" />;
+
+        // Separator line
+        if (/^[━─═]{4,}/.test(trimmed)) {
+          return <div key={i} className="border-t border-green-900/40 my-2" />;
+        }
+
+        // Process *bold* markers
+        const parts = trimmed.split(/(\*[^*]+\*)/g);
+        const rendered = parts.map((part, j) => {
+          if (part.startsWith('*') && part.endsWith('*')) {
+            return <strong key={j} className="font-semibold text-[#fff]">{part.slice(1, -1)}</strong>;
+          }
+          return <span key={j}>{part}</span>;
+        });
+
+        // Section headers (emoji + bold title lines)
+        const isHeader = /^[📊🧾📝🎯📊🧠💰⭐⚠️📉📈🔥⚡➡️📋]/.test(trimmed) && trimmed.includes('*');
+        if (isHeader) {
+          return (
+            <div key={i} className="text-[14px] mt-3 mb-1">
+              {rendered}
+            </div>
+          );
+        }
+
+        // Bullet items
+        if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+          return (
+            <div key={i} className="pl-3 flex gap-1.5">
+              <span className="text-green-500 shrink-0">•</span>
+              <span>{rendered}</span>
+            </div>
+          );
+        }
+
+        // Arrow fields (cadastro)
+        if (trimmed.startsWith('➡️')) {
+          return (
+            <div key={i} className="pl-1">
+              {rendered}
+            </div>
+          );
+        }
+
+        // Regular line
+        return <div key={i}>{rendered}</div>;
+      })}
+    </div>
+  );
+}
+
 interface Props {
   call: SalesCall | null;
   analysis: CallAnalysisRecord | null;
@@ -276,16 +340,16 @@ export function CallAnalysisView({ call, analysis, isAnalyzing, onAnalyze, accou
       </Card>
 
       {/* WhatsApp Report */}
-      <Card className="border-green-200 bg-green-50/30">
+      <Card className="border-green-200 bg-green-50/30 dark:border-green-900/50 dark:bg-green-950/20">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2 text-green-700">
+          <CardTitle className="text-base flex items-center gap-2 text-green-700 dark:text-green-400">
             <MessageSquare className="h-4 w-4" /> Relatório WhatsApp
           </CardTitle>
           <CardDescription>Versão formatada pronta para copiar e enviar</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-background rounded-lg p-4 border text-sm whitespace-pre-wrap mb-3 max-h-[400px] overflow-y-auto">
-            {analysis.whatsapp_report}
+          <div className="bg-[#0b141a] rounded-lg p-5 border border-green-900/30 text-sm mb-3 max-h-[500px] overflow-y-auto">
+            <WhatsAppFormattedReport text={analysis.whatsapp_report || ''} />
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button onClick={copyWhatsApp} variant="outline" className="gap-2 border-green-300 text-green-700 hover:bg-green-100">
