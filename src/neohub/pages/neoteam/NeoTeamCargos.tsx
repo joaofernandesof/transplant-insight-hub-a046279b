@@ -64,6 +64,7 @@ const emptyForm = {
 };
 
 export default function NeoTeamCargos() {
+  const [mainTab, setMainTab] = useState<'estrutura' | 'acessos'>('estrutura');
   const [positions, setPositions] = useState<OrgPosition[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterUnit, setFilterUnit] = useState<string>('all');
