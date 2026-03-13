@@ -321,24 +321,6 @@ export default function NeoTeamCargos() {
               <CircleDot className="h-3.5 w-3.5" />
               Vagas
             </Button>
-            <div className="flex border border-border rounded-lg overflow-hidden">
-              <Button
-                variant={view === 'matrix' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setView('matrix')}
-                className="rounded-none px-3"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={view === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setView('list')}
-                className="rounded-none px-3"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
