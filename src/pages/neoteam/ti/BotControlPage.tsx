@@ -354,10 +354,18 @@ export default function BotControlPage() {
                           <label className="text-xs text-muted-foreground">Nome do Robô</label>
                           <Input value={editData.bot_name || ''} onChange={e => setEditData(p => ({ ...p, bot_name: e.target.value }))} className="mt-1 h-8 text-sm" />
                         </div>
-                        <div className="col-span-2">
-                          <label className="text-xs text-muted-foreground">URL de Mídia</label>
-                          <Input value={editData.media_url || ''} onChange={e => setEditData(p => ({ ...p, media_url: e.target.value }))} className="mt-1 h-8 text-sm" />
-                        </div>
+                         <div>
+                           <label className="text-xs text-muted-foreground">URL de Mídia</label>
+                           <Input value={editData.media_url || ''} onChange={e => setEditData(p => ({ ...p, media_url: e.target.value }))} className="mt-1 h-8 text-sm" />
+                         </div>
+                         <div>
+                           <label className="text-xs text-muted-foreground">Botão 1</label>
+                           <Input value={editData.button1 || ''} onChange={e => setEditData(p => ({ ...p, button1: e.target.value }))} className="mt-1 h-8 text-sm" />
+                         </div>
+                         <div>
+                           <label className="text-xs text-muted-foreground">Botão 2</label>
+                           <Input value={editData.button2 || ''} onChange={e => setEditData(p => ({ ...p, button2: e.target.value }))} className="mt-1 h-8 text-sm" />
+                         </div>
                       </>
                     ) : (
                       <>
