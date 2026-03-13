@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import {
   Building2, Users, LayoutGrid, List, Plus, Pencil, Trash2, Search,
-  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2, Shield, BarChart3
+  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2, Shield, BarChart3,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 
 const OrgAccessMatrix = lazy(() => import('./components/OrgAccessMatrix'));
+const OrgDashboard = lazy(() => import('./components/OrgDashboard'));
 
 interface OrgPosition {
   id: string;
@@ -63,8 +64,12 @@ const emptyForm = {
   is_vacant: false,
 };
 
+type SortKey = 'unit' | 'department' | 'level' | 'role_title' | 'person_name' | 'is_vacant';
+type SortDir = 'asc' | 'desc';
+type MainTab = 'tabela' | 'matriz' | 'acessos' | 'dashboard';
+
 export default function NeoTeamCargos() {
-  const [mainTab, setMainTab] = useState<'estrutura' | 'acessos' | 'dashboard'>('estrutura');
+  const [mainTab, setMainTab] = useState<MainTab>('tabela');
   const [positions, setPositions] = useState<OrgPosition[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterUnit, setFilterUnit] = useState<string>('all');
@@ -75,7 +80,8 @@ export default function NeoTeamCargos() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OrgPosition | null>(null);
   const [form, setForm] = useState(emptyForm);
-  const [view, setView] = useState<'matrix' | 'list'>('list');
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   const load = async () => {
     setLoading(true);
@@ -100,13 +106,53 @@ export default function NeoTeamCargos() {
       result = result.filter(p =>
         p.role_title.toLowerCase().includes(q) ||
         p.person_name?.toLowerCase().includes(q) ||
-        p.department.toLowerCase().includes(q)
+        p.department.toLowerCase().includes(q) ||
+        p.unit.toLowerCase().includes(q)
       );
     }
     return result;
   }, [positions, filterUnit, filterDept, filterLevel, showVacantOnly, search]);
 
-  // Group by department for matrix view
+  // Sorting
+  const sorted = useMemo(() => {
+    if (!sortKey) return filtered;
+    const levelOrder = Object.fromEntries(LEVELS.map((l, i) => [l, i]));
+    return [...filtered].sort((a, b) => {
+      let aVal: string | number;
+      let bVal: string | number;
+      if (sortKey === 'is_vacant') {
+        aVal = a.is_vacant ? 1 : 0;
+        bVal = b.is_vacant ? 1 : 0;
+      } else if (sortKey === 'level') {
+        aVal = levelOrder[a.level] ?? 99;
+        bVal = levelOrder[b.level] ?? 99;
+      } else {
+        aVal = (a[sortKey] ?? '').toString().toLowerCase();
+        bVal = (b[sortKey] ?? '').toString().toLowerCase();
+      }
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filtered, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      if (sortDir === 'asc') setSortDir('desc');
+      else { setSortKey(null); setSortDir('asc'); }
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />;
+    return sortDir === 'asc'
+      ? <ArrowUp className="h-3 w-3 text-primary" />
+      : <ArrowDown className="h-3 w-3 text-primary" />;
+  };
+
   const groupedByDept = useMemo(() => {
     const map: Record<string, OrgPosition[]> = {};
     for (const dept of DEPARTMENTS) {
@@ -115,13 +161,6 @@ export default function NeoTeamCargos() {
     }
     return map;
   }, [filtered]);
-
-  const stats = useMemo(() => ({
-    total: positions.length,
-    occupied: positions.filter(p => !p.is_vacant).length,
-    vacant: positions.filter(p => p.is_vacant).length,
-    departments: new Set(positions.map(p => p.department)).size,
-  }), [positions]);
 
   const openNew = () => {
     setEditing(null);
@@ -174,10 +213,18 @@ export default function NeoTeamCargos() {
     load();
   };
 
+  const NAV_ITEMS: { key: MainTab; icon: typeof Users; label: string }[] = [
+    { key: 'tabela', icon: List, label: 'Tabela' },
+    { key: 'matriz', icon: LayoutGrid, label: 'Organograma' },
+    { key: 'acessos', icon: Shield, label: 'Matriz de Acessos' },
+    { key: 'dashboard', icon: BarChart3, label: 'Dashboard' },
+  ];
+
   return (
     <div className="space-y-5 p-4 lg:p-6 pt-14 lg:pt-6">
       <NeoTeamBreadcrumb />
 
+      {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
           <Building2 className="h-6 w-6 text-primary" />
@@ -188,140 +235,37 @@ export default function NeoTeamCargos() {
         </p>
       </div>
 
-      {/* Navigation Bar */}
+      {/* Centered Navigation */}
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <Button
-          variant={mainTab === 'estrutura' && view === 'list' ? 'default' : 'outline'}
-          onClick={() => { setMainTab('estrutura'); setView('list'); }}
-          className="gap-2 px-5 h-10"
-        >
-          <Users className="h-4 w-4" /> Cargos
-        </Button>
-        <Button
-          variant={mainTab === 'acessos' ? 'default' : 'outline'}
-          onClick={() => setMainTab('acessos')}
-          className="gap-2 px-5 h-10"
-        >
-          <Shield className="h-4 w-4" /> Matriz de Acessos
-        </Button>
-        <Button
-          variant={mainTab === 'estrutura' && view === 'list' ? 'outline' : mainTab === 'estrutura' && view === 'matrix' ? 'outline' : 'outline'}
-          onClick={() => { setMainTab('estrutura'); setView('list'); }}
-          className={`gap-2 px-5 h-10 ${mainTab === 'estrutura' && view === 'list' ? 'border-primary text-primary' : ''}`}
-        >
-          <List className="h-4 w-4" /> Lista
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => { setMainTab('estrutura'); setView('matrix'); }}
-          className={`gap-2 px-5 h-10 ${mainTab === 'estrutura' && view === 'matrix' ? 'border-primary text-primary' : ''}`}
-        >
-          <LayoutGrid className="h-4 w-4" /> Organograma
-        </Button>
-        <Button
-          variant={mainTab === 'dashboard' ? 'default' : 'outline'}
-          onClick={() => setMainTab('dashboard')}
-          className="gap-2 px-5 h-10"
-        >
-          <BarChart3 className="h-4 w-4" /> Dashboard
-        </Button>
-        {mainTab === 'estrutura' && (
+        {NAV_ITEMS.map(item => (
+          <Button
+            key={item.key}
+            variant={mainTab === item.key ? 'default' : 'outline'}
+            onClick={() => setMainTab(item.key)}
+            className="gap-2 px-5 h-10 min-w-[120px]"
+          >
+            <item.icon className="h-4 w-4" />
+            {item.label}
+          </Button>
+        ))}
+        {(mainTab === 'tabela' || mainTab === 'matriz') && (
           <Button onClick={openNew} className="gap-2 px-5 h-10 ml-2">
             <Plus className="h-4 w-4" /> Nova Posição
           </Button>
         )}
       </div>
 
+      {/* Tab Content */}
       {mainTab === 'acessos' ? (
         <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
           <OrgAccessMatrix />
         </Suspense>
       ) : mainTab === 'dashboard' ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <Users className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Posições totais</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <UserCircle className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold">{stats.occupied}</p>
-                  <p className="text-xs text-muted-foreground">Ocupadas</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 text-destructive" />
-                <div>
-                  <p className="text-2xl font-bold text-destructive">{stats.vacant}</p>
-                  <p className="text-xs text-muted-foreground">Vagas abertas</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <Briefcase className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold">{stats.departments}</p>
-                  <p className="text-xs text-muted-foreground">Departamentos</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Vagas em Aberto</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {positions.filter(p => p.is_vacant).length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma vaga em aberto.</p>
-              ) : (
-                <div className="space-y-2">
-                  {positions.filter(p => p.is_vacant).map(p => (
-                    <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div>
-                        <p className="font-medium">{p.role_title}</p>
-                        <p className="text-xs text-muted-foreground">{p.department} • {p.level} • {p.unit}</p>
-                      </div>
-                      <Badge variant="destructive">Vaga</Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Distribuição por Departamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {DEPARTMENTS.map(dept => {
-                  const deptPositions = positions.filter(p => p.department === dept);
-                  if (deptPositions.length === 0) return null;
-                  const vacant = deptPositions.filter(p => p.is_vacant).length;
-                  return (
-                    <div key={dept} className={`p-3 rounded-lg border border-l-4 ${DEPT_COLORS[dept] || 'border-l-primary'}`}>
-                      <p className="font-medium text-sm">{dept}</p>
-                      <p className="text-xs text-muted-foreground">{deptPositions.length} posições • {vacant} vagas</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+          <OrgDashboard positions={positions} />
+        </Suspense>
       ) : (
       <>
-
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
@@ -373,7 +317,7 @@ export default function NeoTeamCargos() {
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      ) : view === 'matrix' ? (
+      ) : mainTab === 'matriz' ? (
         <div className="space-y-4">
           {Object.entries(groupedByDept).map(([dept, items]) => {
             const byLevel: Record<string, OrgPosition[]> = {};
@@ -452,17 +396,30 @@ export default function NeoTeamCargos() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Unidade</TableHead>
-                  <TableHead>Departamento</TableHead>
-                  <TableHead>Nível</TableHead>
-                  <TableHead>Cargo</TableHead>
-                  <TableHead>Colaborador</TableHead>
-                  <TableHead>Status</TableHead>
+                  {([
+                    ['unit', 'Unidade'],
+                    ['department', 'Departamento'],
+                    ['level', 'Nível'],
+                    ['role_title', 'Cargo'],
+                    ['person_name', 'Colaborador'],
+                    ['is_vacant', 'Status'],
+                  ] as [SortKey, string][]).map(([key, label]) => (
+                    <TableHead
+                      key={key}
+                      className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                      onClick={() => toggleSort(key)}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {label}
+                        <SortIcon col={key} />
+                      </div>
+                    </TableHead>
+                  ))}
                   <TableHead className="w-[90px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map(pos => (
+                {sorted.map(pos => (
                   <TableRow key={pos.id} className={pos.is_vacant ? 'bg-destructive/5' : ''}>
                     <TableCell>{pos.unit}</TableCell>
                     <TableCell>{pos.department}</TableCell>
@@ -496,7 +453,7 @@ export default function NeoTeamCargos() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filtered.length === 0 && (
+                {sorted.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                       Nenhuma posição encontrada
