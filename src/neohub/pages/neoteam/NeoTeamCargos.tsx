@@ -18,6 +18,7 @@ import {
 
 const OrgAccessMatrix = lazy(() => import('./components/OrgAccessMatrix'));
 const OrgDashboard = lazy(() => import('./components/OrgDashboard'));
+const OrgChart = lazy(() => import('./components/OrgChart'));
 
 interface OrgPosition {
   id: string;
