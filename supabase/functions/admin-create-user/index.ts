@@ -106,6 +106,42 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 4. Sync user_portal_roles for each allowed portal
+    if (allowed_portals && allowed_portals.length > 0) {
+      // Get the default 'operador' role id
+      const { data: operadorRole } = await supabaseAdmin
+        .from('roles')
+        .select('id')
+        .eq('name', 'operador')
+        .single()
+
+      if (operadorRole) {
+        // Get portal IDs for the allowed slugs
+        const { data: portalRows } = await supabaseAdmin
+          .from('portals')
+          .select('id, slug')
+          .in('slug', allowed_portals)
+
+        if (portalRows && portalRows.length > 0) {
+          const portalRoleRecords = portalRows.map((p: any) => ({
+            user_id: neohubUser.id,
+            portal_id: p.id,
+            role_id: operadorRole.id,
+          }))
+
+          const { error: portalRoleError } = await supabaseAdmin
+            .from('user_portal_roles')
+            .upsert(portalRoleRecords, { onConflict: 'user_id,portal_id' })
+
+          if (portalRoleError) {
+            console.error('Portal role sync error:', portalRoleError)
+          } else {
+            console.log(`Portal roles synced: ${allowed_portals.join(', ')}`)
+          }
+        }
+      }
+    }
+
     return new Response(JSON.stringify({
       success: true,
       user_id: newUserId,
