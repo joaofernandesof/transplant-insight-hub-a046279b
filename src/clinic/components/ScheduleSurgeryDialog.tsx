@@ -21,6 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
 import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
+import { checkDuplicateSurgery } from '../hooks/useDuplicateCheck';
+import { toast } from 'sonner';
 import type { NoDatePatient } from '../hooks/useNoDatePatients';
 
 interface ScheduleSurgeryDialogProps {
