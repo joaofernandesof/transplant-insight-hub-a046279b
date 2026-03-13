@@ -150,11 +150,11 @@ export default function NeoTeamPatientDetail() {
 
         // Enrich with clinic_surgeries data (has branch, category, procedure, grade, etc.)
         let surgeryData: any = null;
-        if (data.full_name) {
+        if (id) {
           const { data: surgeries } = await supabase
             .from('clinic_surgeries')
             .select('branch, category, procedure, grade, surgery_date, companion_name, companion_phone, medical_record')
-            .eq('patient_name', data.full_name)
+            .eq('patient_id', id)
             .order('created_at', { ascending: false })
             .limit(1);
           if (surgeries && surgeries.length > 0) {
