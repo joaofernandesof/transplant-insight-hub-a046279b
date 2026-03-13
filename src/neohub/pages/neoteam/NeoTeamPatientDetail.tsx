@@ -225,7 +225,7 @@ export default function NeoTeamPatientDetail() {
     try {
       const { data: patientData } = await supabase
         .from('clinic_patients')
-        .select('full_name, created_at')
+        .select('id, full_name, created_at')
         .eq('id', id)
         .maybeSingle();
 
