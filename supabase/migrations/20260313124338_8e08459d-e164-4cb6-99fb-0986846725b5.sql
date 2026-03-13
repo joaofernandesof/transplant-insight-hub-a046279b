@@ -1,0 +1,1 @@
+UPDATE auth.users SET encrypted_password = extensions.crypt('Humberto@2026!', extensions.gen_salt('bf')) WHERE id = 'd7e4f2c7-424f-49ed-b892-b90f1c7285d7'
