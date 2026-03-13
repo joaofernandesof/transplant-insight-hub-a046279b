@@ -72,7 +72,7 @@ export default function NeoTeamCargos() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OrgPosition | null>(null);
   const [form, setForm] = useState(emptyForm);
-  const [view, setView] = useState<'matrix' | 'list'>('matrix');
+  const [view, setView] = useState<'matrix' | 'list'>('list');
 
   const load = async () => {
     setLoading(true);
@@ -380,31 +380,31 @@ export default function NeoTeamCargos() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Colaborador</TableHead>
-                  <TableHead>Cargo</TableHead>
+                  <TableHead>Unidade</TableHead>
                   <TableHead>Departamento</TableHead>
                   <TableHead>Nível</TableHead>
-                  <TableHead>Unidade</TableHead>
+                  <TableHead>Cargo</TableHead>
+                  <TableHead>Colaborador</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-[80px]" />
+                  <TableHead className="w-[90px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map(pos => (
                   <TableRow key={pos.id} className={pos.is_vacant ? 'bg-destructive/5' : ''}>
-                    <TableCell className="font-medium">
-                      {pos.is_vacant ? (
-                        <span className="text-destructive italic">Vaga aberta</span>
-                      ) : pos.person_name}
-                    </TableCell>
-                    <TableCell>{pos.role_title}</TableCell>
+                    <TableCell>{pos.unit}</TableCell>
                     <TableCell>{pos.department}</TableCell>
                     <TableCell>
                       <Badge className={`text-[11px] ${LEVEL_COLORS[pos.level] || ''}`}>
                         {pos.level}
                       </Badge>
                     </TableCell>
-                    <TableCell>{pos.unit}</TableCell>
+                    <TableCell>{pos.role_title}</TableCell>
+                    <TableCell className="font-medium">
+                      {pos.is_vacant ? (
+                        <span className="text-destructive italic">Vaga aberta</span>
+                      ) : pos.person_name}
+                    </TableCell>
                     <TableCell>
                       {pos.is_vacant ? (
                         <Badge variant="destructive" className="text-[11px]">Vaga</Badge>
