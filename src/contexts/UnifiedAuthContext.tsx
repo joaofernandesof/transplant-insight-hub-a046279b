@@ -378,12 +378,16 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           // Derivar allowedPortals dos portal roles (fonte de verdade)
           const allowedPortalsFromRoles = [...new Set(portalRoles.map(pr => pr.portal_slug))];
 
-          // Buscar dados extras do neohub_users
+          // Buscar dados extras do neohub_users (incluindo allowed_portals para merge)
           const { data: portalData } = await supabase
             .from('neohub_users')
-            .select('address_city, address_state, clinic_name, clinic_logo_url, tier')
+            .select('address_city, address_state, clinic_name, clinic_logo_url, tier, allowed_portals')
             .eq('user_id', ctx.user.auth_id)
             .single();
+
+          // Merge: RBAC portal roles + legacy allowed_portals (fallback)
+          const legacyPortals: string[] = Array.isArray(portalData?.allowed_portals) ? portalData.allowed_portals : [];
+          const mergedPortals = [...new Set([...allowedPortalsFromRoles, ...legacyPortals])];
 
           return {
             id: ctx.user.id,
@@ -401,7 +405,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             portalRoles,
             activeProfileData: ctx.profiles?.[0],
             isAdmin,
-            allowedPortals: allowedPortalsFromRoles,
+            allowedPortals: mergedPortals,
             legacyRole: isAdmin ? 'admin' : profiles.includes('gerente') ? 'licensee' : undefined,
             addressCity: portalData?.address_city || undefined,
             addressState: portalData?.address_state || undefined,
