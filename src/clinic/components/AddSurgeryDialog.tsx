@@ -32,6 +32,7 @@ import { useBranches } from '../hooks/useBranches';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { checkDuplicateSurgery } from '../hooks/useDuplicateCheck';
 import { Badge } from '@/components/ui/badge';
 import { ShieldAlert } from 'lucide-react';
 import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
