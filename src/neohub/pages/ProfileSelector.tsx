@@ -81,7 +81,7 @@ const SYSTEM_MODULES: SystemModule[] = [
     name: 'NeoLicense',
     description: 'Portal do licenciado ByNeoFolic',
     icon: Users,
-    route: '/home',
+    route: '/neolicense',
     color: 'bg-amber-500',
     portalKey: 'neolicense',
     requiredProfiles: ['licenciado', 'administrador'],
