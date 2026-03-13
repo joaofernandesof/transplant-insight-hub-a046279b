@@ -410,193 +410,203 @@ export default function TicketsPage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nº</TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Prioridade</TableHead>
-                <TableHead>Solicitante</TableHead>
-                <TableHead>Responsável</TableHead>
-                <TableHead>Anexos</TableHead>
-                <TableHead>Prazo</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8">Carregando...</TableCell></TableRow>
-              ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum chamado</TableCell></TableRow>
-              ) : filtered.map((t: any) => {
-                const count = (attachmentCounts as Record<string, number>)[t.id] || 0;
-                const isAssignedToMe = t.assigned_to === user?.id;
-                const isUnassigned = !t.assigned_to;
+      {viewMode === "kanban" ? (
+        <TicketKanbanView
+          tickets={filtered}
+          attachmentCounts={attachmentCounts as Record<string, number>}
+          onTicketClick={(t) => isTicketAdmin && setSelectedTicket(t)}
+          isAdmin={isTicketAdmin}
+          updateStatus={updateStatus}
+        />
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nº</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Prioridade</TableHead>
+                  <TableHead>Solicitante</TableHead>
+                  <TableHead>Responsável</TableHead>
+                  <TableHead>Anexos</TableHead>
+                  <TableHead>Prazo</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow><TableCell colSpan={8} className="text-center py-8">Carregando...</TableCell></TableRow>
+                ) : filtered.length === 0 ? (
+                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum chamado</TableCell></TableRow>
+                ) : filtered.map((t: any) => {
+                  const count = (attachmentCounts as Record<string, number>)[t.id] || 0;
+                  const isAssignedToMe = t.assigned_to === user?.id;
+                  const isUnassigned = !t.assigned_to;
 
-                return (
-                  <TableRow
-                    key={t.id}
-                    className={cn(
-                      isUnassigned && t.status === "open" ? "border-l-4 border-l-orange-400" : "",
-                      isTicketAdmin ? "cursor-pointer hover:bg-muted/50" : ""
-                    )}
-                    onClick={() => isTicketAdmin && setSelectedTicket(t)}
-                  >
-                    <TableCell className="font-mono text-xs">{t.ticket_number}</TableCell>
-                    <TableCell>
-                      <p className="font-medium">{t.title}</p>
-                      {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{t.description}</p>}
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      {isTicketAdmin ? (
-                        <Select value={t.priority} onValueChange={v => updateTicketField.mutate({ id: t.id, field: "priority", value: v })}>
-                          <SelectTrigger className={cn("w-[120px] h-8 border-0 font-medium", PRIORITY_COLORS[t.priority])}><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(PRIORITY_LABELS).map(([k, label]) => (
-                              <SelectItem key={k} value={k}>
-                                <span className="flex items-center gap-2">
-                                  <span className={cn("h-2 w-2 rounded-full", PRIORITY_DOT_COLORS[k])} />
-                                  {label}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Badge className={cn("gap-1.5", PRIORITY_COLORS[t.priority])}>
-                          <span className={cn("h-2 w-2 rounded-full", PRIORITY_DOT_COLORS[t.priority])} />
-                          {PRIORITY_LABELS[t.priority] || t.priority}
-                        </Badge>
+                  return (
+                    <TableRow
+                      key={t.id}
+                      className={cn(
+                        isUnassigned && t.status === "open" ? "border-l-4 border-l-orange-400" : "",
+                        isTicketAdmin ? "cursor-pointer hover:bg-muted/50" : ""
                       )}
-                    </TableCell>
-                    <TableCell className="text-sm">{t.requester_name}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      {isTicketAdmin ? (
-                        isUnassigned ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-xs gap-1"
-                            onClick={() => assignTicket.mutate({ id: t.id, assign: true })}
-                            disabled={assignTicket.isPending}
-                          >
-                            <UserCheck className="h-3 w-3" />
-                            Assumir
-                          </Button>
-                        ) : isAssignedToMe ? (
-                          <div className="flex items-center gap-1.5">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
-                                {getInitials(t.assigned_name || "?")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs font-medium">{t.assigned_name}</span>
+                      onClick={() => isTicketAdmin && setSelectedTicket(t)}
+                    >
+                      <TableCell className="font-mono text-xs">{t.ticket_number}</TableCell>
+                      <TableCell>
+                        <p className="font-medium">{t.title}</p>
+                        {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{t.description}</p>}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {isTicketAdmin ? (
+                          <Select value={t.priority} onValueChange={v => updateTicketField.mutate({ id: t.id, field: "priority", value: v })}>
+                            <SelectTrigger className={cn("w-[120px] h-8 border-0 font-medium", PRIORITY_COLORS[t.priority])}><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(PRIORITY_LABELS).map(([k, label]) => (
+                                <SelectItem key={k} value={k}>
+                                  <span className="flex items-center gap-2">
+                                    <span className={cn("h-2 w-2 rounded-full", PRIORITY_DOT_COLORS[k])} />
+                                    {label}
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge className={cn("gap-1.5", PRIORITY_COLORS[t.priority])}>
+                            <span className={cn("h-2 w-2 rounded-full", PRIORITY_DOT_COLORS[t.priority])} />
+                            {PRIORITY_LABELS[t.priority] || t.priority}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm">{t.requester_name}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {isTicketAdmin ? (
+                          isUnassigned ? (
                             <Button
                               size="sm"
-                              variant="ghost"
-                              className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
-                              onClick={() => assignTicket.mutate({ id: t.id, assign: false })}
+                              variant="outline"
+                              className="h-7 text-xs gap-1"
+                              onClick={() => assignTicket.mutate({ id: t.id, assign: true })}
                               disabled={assignTicket.isPending}
-                              title="Liberar chamado"
                             >
-                              <UserX className="h-3 w-3" />
+                              <UserCheck className="h-3 w-3" />
+                              Assumir
                             </Button>
-                          </div>
+                          ) : isAssignedToMe ? (
+                            <div className="flex items-center gap-1.5">
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
+                                  {getInitials(t.assigned_name || "?")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs font-medium">{t.assigned_name}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
+                                onClick={() => assignTicket.mutate({ id: t.id, assign: false })}
+                                disabled={assignTicket.isPending}
+                                title="Liberar chamado"
+                              >
+                                <UserX className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
+                                  {getInitials(t.assigned_name || "?")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs">{t.assigned_name}</span>
+                            </div>
+                          )
                         ) : (
-                          <div className="flex items-center gap-1.5">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
-                                {getInitials(t.assigned_name || "?")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs">{t.assigned_name}</span>
-                          </div>
-                        )
-                      ) : (
-                        t.assigned_name ? (
-                          <div className="flex items-center gap-1.5">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
-                                {getInitials(t.assigned_name || "?")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs">{t.assigned_name}</span>
+                          t.assigned_name ? (
+                            <div className="flex items-center gap-1.5">
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
+                                  {getInitials(t.assigned_name || "?")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs">{t.assigned_name}</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {count > 0 ? (
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Paperclip className="h-3 w-3" />
+                            <span className="text-xs">{count}</span>
                           </div>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
-                        )
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {count > 0 ? (
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Paperclip className="h-3 w-3" />
-                          <span className="text-xs">{count}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      {isTicketAdmin ? (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
-                              <CalendarIcon className="h-3 w-3 mr-1" />
-                              {t.due_date ? format(parseISO(t.due_date), "dd/MM/yyyy") : format(parseISO(t.created_at), "dd/MM HH:mm")}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={t.due_date ? parseISO(t.due_date) : undefined}
-                              onSelect={(date) => {
-                                if (date) {
-                                  updateTicketField.mutate({ id: t.id, field: "due_date", value: format(date, "yyyy-MM-dd") });
-                                }
-                              }}
-                              initialFocus
-                              className={cn("p-3 pointer-events-auto")}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">
-                          {t.due_date ? format(parseISO(t.due_date), "dd/MM/yyyy") : format(parseISO(t.created_at), "dd/MM HH:mm")}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      {isTicketAdmin ? (
-                        <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
-                          <SelectTrigger className={cn("w-[140px] h-8 border-0 font-medium", STATUS_COLORS[t.status])}><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(STATUS_LABELS).map(([k, label]) => (
-                              <SelectItem key={k} value={k}>
-                                <span className="flex items-center gap-2">
-                                  <span className={cn("h-2 w-2 rounded-full", STATUS_DOT_COLORS[k])} />
-                                  {label}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Badge className={cn("gap-1.5 whitespace-nowrap", STATUS_COLORS[t.status] || "")}>
-                          <span className={cn("h-2 w-2 shrink-0 rounded-full", STATUS_DOT_COLORS[t.status])} />
-                          {STATUS_LABELS[t.status] || t.status}
-                        </Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                        )}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {isTicketAdmin ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
+                                <CalendarIcon className="h-3 w-3 mr-1" />
+                                {t.due_date ? format(parseISO(t.due_date), "dd/MM/yyyy") : format(parseISO(t.created_at), "dd/MM HH:mm")}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={t.due_date ? parseISO(t.due_date) : undefined}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    updateTicketField.mutate({ id: t.id, field: "due_date", value: format(date, "yyyy-MM-dd") });
+                                  }
+                                }}
+                                initialFocus
+                                className={cn("p-3 pointer-events-auto")}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            {t.due_date ? format(parseISO(t.due_date), "dd/MM/yyyy") : format(parseISO(t.created_at), "dd/MM HH:mm")}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {isTicketAdmin ? (
+                          <Select value={t.status} onValueChange={v => updateStatus.mutate({ id: t.id, status: v })}>
+                            <SelectTrigger className={cn("w-[140px] h-8 border-0 font-medium", STATUS_COLORS[t.status])}><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(STATUS_LABELS).map(([k, label]) => (
+                                <SelectItem key={k} value={k}>
+                                  <span className="flex items-center gap-2">
+                                    <span className={cn("h-2 w-2 rounded-full", STATUS_DOT_COLORS[k])} />
+                                    {label}
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge className={cn("gap-1.5 whitespace-nowrap", STATUS_COLORS[t.status] || "")}>
+                            <span className={cn("h-2 w-2 shrink-0 rounded-full", STATUS_DOT_COLORS[t.status])} />
+                            {STATUS_LABELS[t.status] || t.status}
+                          </Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Ticket Detail Dialog for admins */}
       {selectedTicket && (
