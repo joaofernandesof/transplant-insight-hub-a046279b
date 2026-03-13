@@ -21,6 +21,8 @@ import { cn } from '@/lib/utils';
 import { useNoDatePatients, NoDatePatient } from '../hooks/useNoDatePatients';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
 import { useBranches } from '../hooks/useBranches';
+import { checkDuplicateSurgery } from '../hooks/useDuplicateCheck';
+import { toast } from 'sonner';
 import { useClinicAuth } from '../contexts/ClinicAuthContext';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
@@ -140,11 +142,19 @@ export function NoDateTab() {
     }));
   }, [filtered]);
 
-  const handleConfirmDate = () => {
+  const handleConfirmDate = async () => {
     if (settingDateFor && selectedDate) {
-      // We need to find the surgery ID or create one
-      // The NoDatePatient has saleId and patientId - we use updateSurgery via the hook
-      // But since NoDatePatients come from sales without surgeries, we need to create a surgery
+      // Duplicate check before creating
+      const duplicateMsg = await checkDuplicateSurgery({
+        patientId: settingDateFor.patientId,
+        procedure: settingDateFor.procedure,
+        category: settingDateFor.category || undefined,
+      });
+      if (duplicateMsg) {
+        toast.error(duplicateMsg);
+        return;
+      }
+
       createSurgery.mutate({
         patientId: settingDateFor.patientId,
         patientName: settingDateFor.patientName,

@@ -21,6 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useClinicSurgeries } from '../hooks/useClinicSurgeries';
 import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
+import { checkDuplicateSurgery } from '../hooks/useDuplicateCheck';
+import { toast } from 'sonner';
 import type { NoDatePatient } from '../hooks/useNoDatePatients';
 
 interface ScheduleSurgeryDialogProps {
@@ -82,6 +84,17 @@ export function ScheduleSurgeryDialog({ patient, open, onOpenChange }: ScheduleS
     }
 
     setWeekLockMessage(null);
+
+    // Duplicate check
+    const duplicateMsg = await checkDuplicateSurgery({
+      patientId: patient.patientId,
+      procedure: patient.procedure,
+      category: patient.category || undefined,
+    });
+    if (duplicateMsg) {
+      toast.error(duplicateMsg);
+      return;
+    }
 
     createSurgery.mutate({
       patientId: patient.patientId,

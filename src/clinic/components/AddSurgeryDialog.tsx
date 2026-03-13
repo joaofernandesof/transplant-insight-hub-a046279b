@@ -32,6 +32,7 @@ import { useBranches } from '../hooks/useBranches';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { checkDuplicateSurgery } from '../hooks/useDuplicateCheck';
 import { Badge } from '@/components/ui/badge';
 import { ShieldAlert } from 'lucide-react';
 import { useWeekLockAvailability } from '../hooks/useWeekLockAvailability';
@@ -202,6 +203,18 @@ export function AddSurgeryDialog({
           if (patientError) throw patientError;
           patientId = newPatient.id;
         }
+      }
+
+      // Duplicate check
+      const duplicateMsg = await checkDuplicateSurgery({
+        patientId: patientId!,
+        procedure: procedure.trim(),
+        category: category || undefined,
+      });
+      if (duplicateMsg) {
+        toast.error(duplicateMsg);
+        setIsSubmitting(false);
+        return;
       }
 
       // Create the surgery

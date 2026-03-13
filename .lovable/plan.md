@@ -1,39 +1,85 @@
 
 
-# Plano: Limpeza de Duplicatas + Validação Anti-Duplicata
+## Disponibilidade da Agenda Cirúrgica
 
-## 1. Limpeza de Dados (4 registros)
+### Resumo
 
-Deletar os seguintes registros da tabela `clinic_surgeries` usando o insert tool (DELETE):
+Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
+1. **Bloqueio de datas específicas** por filial
+2. **Limite de agendamentos por dia** por filial
 
-| Paciente | ID a remover | Motivo |
-|---|---|---|
-| CAIO CAVALCANTI LACERDA DE SOUSA | `81ce6061...` | Duplicata sem data (manter agenda 11/07) |
-| CAIO CAVALCANTI LACERDA DE SOUSA | `a5f24ddc...` | Duplicata sem data (manter agenda 11/07) |
-| DOUGLAS DE OLIVEIRA COSMO | `410f6199...` | Duplicata sem data (manter agenda 03/08) |
-| RAUL CEZAR DE ABREU JUNIOR | `cd0ccd9c...` | Duplicata sem data (manter agenda 28/03) |
+A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
 
-Cada deleção será confirmada individualmente antes de executar.
+---
 
-## 2. Validação Anti-Duplicata
+### 1. Nova tabela: `surgery_agenda_availability`
 
-Criar um hook utilitário `useDuplicateCheck` que consulta `clinic_surgeries` por `patient_id` com `schedule_status` em (`agendado`, `confirmado`, `sem_data`) e retorna se já existe registro ativo para o mesmo procedimento (exceto Retouching).
+```sql
+CREATE TABLE surgery_agenda_availability (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  branch TEXT NOT NULL,
+  date DATE NOT NULL,
+  max_slots INTEGER NOT NULL DEFAULT 5,
+  is_blocked BOOLEAN NOT NULL DEFAULT false,
+  blocked_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(branch, date)
+);
 
-**Lógica de bloqueio:**
-- Bloqueia se: mesmo `patient_id` + mesmo `procedure` + categoria diferente de `RETOUCHING`
-- Permite se: procedimento diferente OU categoria = `RETOUCHING`
+-- RLS: leitura para autenticados, escrita para admins
+ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
 
-**Mensagem de bloqueio:** *"Este paciente já possui uma cirurgia agendada ou aguardando data para este procedimento."*
+CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
+  FOR SELECT TO authenticated USING (true);
 
-### Pontos de integração:
+CREATE POLICY "Admins can manage" ON surgery_agenda_availability
+  FOR ALL TO authenticated USING (
+    public.has_role(auth.uid(), 'admin')
+  );
+```
 
-1. **`AddSurgeryDialog.tsx`** — No `handleSubmit`, após resolver o `patientId`, consultar duplicatas antes de chamar `createSurgery.mutate`. Se bloqueado, exibir `toast.error` e retornar.
+### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
 
-2. **`ScheduleSurgeryDialog.tsx`** — No `handleSubmit`, antes de chamar `createSurgery.mutate`, mesma verificação usando `patient.patientId` e `patient.procedure`.
+Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
+- **Aba "Configuração da Agenda"** com:
+  - Seletor de filial
+  - Calendário mensal interativo onde o admin pode:
+    - Clicar em um dia para bloquear/desbloquear
+    - Definir o número máximo de agendamentos para cada dia
+  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
 
-3. **`NoDateTab.tsx`** — No `handleConfirmDate`, antes de criar a cirurgia, verificar se o paciente já tem registro agendado para o mesmo procedimento (evitar mover de "sem data" para "agendado" quando já existe agendamento).
+### 3. Visualização de Disponibilidade (todos os usuários)
 
-### Arquivos modificados:
-- **Novo:** `src/clinic/hooks/useDuplicateCheck.ts`
-- **Editados:** `AddSurgeryDialog.tsx`, `ScheduleSurgeryDialog.tsx`, `NoDateTab.tsx`
+Na aba "Agenda" existente, adicionar um componente visual mostrando:
+- Um mini calendário ou barra de disponibilidade por filial
+- Dias bloqueados marcados em vermelho
+- Dias com vagas esgotadas marcados em amarelo/laranja
+- Dias disponíveis em verde
+- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
+
+### 4. Novo hook: `useSurgeryAgendaAvailability`
+
+```typescript
+// src/clinic/hooks/useSurgeryAgendaAvailability.ts
+// - Busca configurações de disponibilidade por filial e período
+// - Cruza com contagem de cirurgias agendadas por dia
+// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
+// - Mutations para admin: criar/atualizar configuração
+```
+
+### 5. Validação no agendamento
+
+Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
+- Se a data está bloqueada para a filial selecionada → impedir agendamento
+- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
+
+### Estrutura de arquivos
+
+- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
+- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
+- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
+- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
+- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
+- Migração SQL para criar a tabela
 
