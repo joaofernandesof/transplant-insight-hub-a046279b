@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import {
   Building2, Users, LayoutGrid, List, Plus, Pencil, Trash2, Search,
-  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2
+  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2, Shield
 } from 'lucide-react';
+
+const OrgAccessMatrix = lazy(() => import('./components/OrgAccessMatrix'));
 
 interface OrgPosition {
   id: string;
