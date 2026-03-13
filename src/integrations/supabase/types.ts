@@ -3622,6 +3622,8 @@ export type Database = {
         Row: {
           bot_name: string
           bot_updated: string | null
+          button1: string | null
+          button2: string | null
           chip: string
           code: string
           concatenated: string | null
@@ -3647,6 +3649,8 @@ export type Database = {
         Insert: {
           bot_name: string
           bot_updated?: string | null
+          button1?: string | null
+          button2?: string | null
           chip?: string
           code: string
           concatenated?: string | null
@@ -3672,6 +3676,8 @@ export type Database = {
         Update: {
           bot_name?: string
           bot_updated?: string | null
+          button1?: string | null
+          button2?: string | null
           chip?: string
           code?: string
           concatenated?: string | null

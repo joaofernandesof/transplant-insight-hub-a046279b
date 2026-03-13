@@ -1,0 +1,3 @@
+
+ALTER TABLE public.bot_controls ADD COLUMN IF NOT EXISTS button1 TEXT DEFAULT '';
+ALTER TABLE public.bot_controls ADD COLUMN IF NOT EXISTS button2 TEXT DEFAULT '';
