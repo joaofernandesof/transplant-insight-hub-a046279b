@@ -358,31 +358,56 @@ export default function TicketsPage() {
         </CardContent></Card>
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap">
-        <Select value={requesterFilter} onValueChange={setRequesterFilter}>
-          <SelectTrigger className="w-[180px] h-9 text-sm">
-            <SelectValue placeholder="Solicitante" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os chamados</SelectItem>
-            <SelectItem value="mine">Meus chamados</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {isTicketAdmin && (
-          <Select value={assignedFilter} onValueChange={setAssignedFilter}>
+      {/* View Toggle + Filters */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Select value={requesterFilter} onValueChange={setRequesterFilter}>
             <SelectTrigger className="w-[180px] h-9 text-sm">
-              <SelectValue placeholder="Responsável" />
+              <SelectValue placeholder="Solicitante" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos responsáveis</SelectItem>
-              <SelectItem value="unassigned">Sem responsável</SelectItem>
-              {assignedUsers.map(([id, name]) => (
-                <SelectItem key={id as string} value={id as string}>{name as string}</SelectItem>
-              ))}
+              <SelectItem value="all">Todos os chamados</SelectItem>
+              <SelectItem value="mine">Meus chamados</SelectItem>
             </SelectContent>
           </Select>
-        )}
+
+          {isTicketAdmin && (
+            <Select value={assignedFilter} onValueChange={setAssignedFilter}>
+              <SelectTrigger className="w-[180px] h-9 text-sm">
+                <SelectValue placeholder="Responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos responsáveis</SelectItem>
+                <SelectItem value="unassigned">Sem responsável</SelectItem>
+                {assignedUsers.map(([id, name]) => (
+                  <SelectItem key={id as string} value={id as string}>{name as string}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
+        {/* View Mode Toggle - Central and prominent */}
+        <div className="flex items-center bg-muted rounded-lg p-1 gap-1">
+          <Button
+            variant={viewMode === "table" ? "default" : "ghost"}
+            size="sm"
+            className="gap-2 h-8 px-4"
+            onClick={() => setViewMode("table")}
+          >
+            <LayoutList className="h-4 w-4" />
+            Tabela
+          </Button>
+          <Button
+            variant={viewMode === "kanban" ? "default" : "ghost"}
+            size="sm"
+            className="gap-2 h-8 px-4"
+            onClick={() => setViewMode("kanban")}
+          >
+            <Kanban className="h-4 w-4" />
+            Kanban
+          </Button>
+        </div>
       </div>
 
       <Card>
