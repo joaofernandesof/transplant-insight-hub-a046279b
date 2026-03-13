@@ -72,7 +72,7 @@ export default function NeoTeamCargos() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OrgPosition | null>(null);
   const [form, setForm] = useState(emptyForm);
-  const [view, setView] = useState<'matrix' | 'list'>('matrix');
+  const [view, setView] = useState<'matrix' | 'list'>('list');
 
   const load = async () => {
     setLoading(true);
