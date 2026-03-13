@@ -12473,6 +12473,69 @@ export type Database = {
         }
         Relationships: []
       }
+      message_templates: {
+        Row: {
+          approved_compliance: string | null
+          category: string | null
+          code: string
+          content_reviewed: string | null
+          created_at: string
+          id: string
+          media_attached: string | null
+          media_url: string | null
+          message_content: string | null
+          notes: string | null
+          published: string | null
+          seq: string
+          template_approved: string | null
+          template_name: string
+          tested: string | null
+          updated_at: string
+          variables_correct: string | null
+          variables_used: string | null
+        }
+        Insert: {
+          approved_compliance?: string | null
+          category?: string | null
+          code: string
+          content_reviewed?: string | null
+          created_at?: string
+          id?: string
+          media_attached?: string | null
+          media_url?: string | null
+          message_content?: string | null
+          notes?: string | null
+          published?: string | null
+          seq: string
+          template_approved?: string | null
+          template_name: string
+          tested?: string | null
+          updated_at?: string
+          variables_correct?: string | null
+          variables_used?: string | null
+        }
+        Update: {
+          approved_compliance?: string | null
+          category?: string | null
+          code?: string
+          content_reviewed?: string | null
+          created_at?: string
+          id?: string
+          media_attached?: string | null
+          media_url?: string | null
+          message_content?: string | null
+          notes?: string | null
+          published?: string | null
+          seq?: string
+          template_approved?: string | null
+          template_name?: string
+          tested?: string | null
+          updated_at?: string
+          variables_correct?: string | null
+          variables_used?: string | null
+        }
+        Relationships: []
+      }
       metric_alerts: {
         Row: {
           comparison_operator: string
