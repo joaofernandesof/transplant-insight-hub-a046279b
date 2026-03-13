@@ -1,85 +1,54 @@
 
 
-## Disponibilidade da Agenda Cirúrgica
+# Correção: Brenna não consegue bloquear dias na Agenda Cirúrgica
 
-### Resumo
+## Problema Identificado
 
-Criar um sistema de configuração de disponibilidade da agenda cirúrgica com duas funcionalidades:
-1. **Bloqueio de datas específicas** por filial
-2. **Limite de agendamentos por dia** por filial
+A Brenna (`brenna.miranda@neofolic.com.br`) tem role `colaborador` no banco de dados. O **frontend** permite que ela gerencie a agenda (via `canManageAgenda = isAdmin || canWrite('neoteam_surgical_dashboard')`), mas as **políticas RLS** na tabela `surgery_agenda_availability` só permitem INSERT/UPDATE/DELETE para usuários com role `admin`:
 
-A configuração será visível apenas para administradores. A visualização da disponibilidade será visível para todos os usuários.
+```
+has_role(auth.uid(), 'admin'::app_role)
+```
 
----
+Resultado: a UI mostra os controles de bloqueio, mas o banco rejeita a operação silenciosamente.
 
-### 1. Nova tabela: `surgery_agenda_availability`
+## Solução
 
+Atualizar as 3 políticas RLS de escrita na tabela `surgery_agenda_availability` para aceitar tanto `admin` quanto `colaborador`:
+
+**Migração SQL:**
 ```sql
-CREATE TABLE surgery_agenda_availability (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  branch TEXT NOT NULL,
-  date DATE NOT NULL,
-  max_slots INTEGER NOT NULL DEFAULT 5,
-  is_blocked BOOLEAN NOT NULL DEFAULT false,
-  blocked_reason TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(branch, date)
-);
+-- Drop existing restrictive policies
+DROP POLICY "Admins can insert availability" ON surgery_agenda_availability;
+DROP POLICY "Admins can update availability" ON surgery_agenda_availability;
+DROP POLICY "Admins can delete availability" ON surgery_agenda_availability;
 
--- RLS: leitura para autenticados, escrita para admins
-ALTER TABLE surgery_agenda_availability ENABLE ROW LEVEL SECURITY;
+-- Recreate with broader access
+CREATE POLICY "Staff can insert availability" ON surgery_agenda_availability
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    has_role(auth.uid(), 'admin'::app_role) OR 
+    has_role(auth.uid(), 'colaborador'::app_role)
+  );
 
-CREATE POLICY "Authenticated can read" ON surgery_agenda_availability
-  FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Staff can update availability" ON surgery_agenda_availability
+  FOR UPDATE TO authenticated
+  USING (
+    has_role(auth.uid(), 'admin'::app_role) OR 
+    has_role(auth.uid(), 'colaborador'::app_role)
+  )
+  WITH CHECK (
+    has_role(auth.uid(), 'admin'::app_role) OR 
+    has_role(auth.uid(), 'colaborador'::app_role)
+  );
 
-CREATE POLICY "Admins can manage" ON surgery_agenda_availability
-  FOR ALL TO authenticated USING (
-    public.has_role(auth.uid(), 'admin')
+CREATE POLICY "Staff can delete availability" ON surgery_agenda_availability
+  FOR DELETE TO authenticated
+  USING (
+    has_role(auth.uid(), 'admin'::app_role) OR 
+    has_role(auth.uid(), 'colaborador'::app_role)
   );
 ```
 
-### 2. Aba "Configuração" na Agenda Cirúrgica (admin only)
-
-Adicionar uma terceira aba no `ClinicDashboard.tsx`, visível apenas para `isAdmin`:
-- **Aba "Configuração da Agenda"** com:
-  - Seletor de filial
-  - Calendário mensal interativo onde o admin pode:
-    - Clicar em um dia para bloquear/desbloquear
-    - Definir o número máximo de agendamentos para cada dia
-  - Visualização em tabela/grid do mês mostrando: data, slots máximos, status (bloqueado/aberto), agendamentos já existentes
-
-### 3. Visualização de Disponibilidade (todos os usuários)
-
-Na aba "Agenda" existente, adicionar um componente visual mostrando:
-- Um mini calendário ou barra de disponibilidade por filial
-- Dias bloqueados marcados em vermelho
-- Dias com vagas esgotadas marcados em amarelo/laranja
-- Dias disponíveis em verde
-- Contagem de vagas restantes (`max_slots - agendamentos existentes`)
-
-### 4. Novo hook: `useSurgeryAgendaAvailability`
-
-```typescript
-// src/clinic/hooks/useSurgeryAgendaAvailability.ts
-// - Busca configurações de disponibilidade por filial e período
-// - Cruza com contagem de cirurgias agendadas por dia
-// - Retorna: disponibilidade por data, se está bloqueado, vagas restantes
-// - Mutations para admin: criar/atualizar configuração
-```
-
-### 5. Validação no agendamento
-
-Ao adicionar cirurgia (`AddSurgeryDialog`), validar:
-- Se a data está bloqueada para a filial selecionada → impedir agendamento
-- Se o número de agendamentos no dia atingiu o limite → alertar/impedir
-
-### Estrutura de arquivos
-
-- `src/clinic/hooks/useSurgeryAgendaAvailability.ts` — hook de dados
-- `src/clinic/components/AgendaAvailabilityConfig.tsx` — painel admin (configuração)
-- `src/clinic/components/AgendaAvailabilityView.tsx` — visualização para todos
-- Editar `src/clinic/pages/ClinicDashboard.tsx` — adicionar aba config + visualização
-- Editar `src/clinic/components/AddSurgeryDialog.tsx` — validação no agendamento
-- Migração SQL para criar a tabela
+Nenhuma alteração de código frontend necessária — a lógica `canManageAgenda` já está correta.
 
