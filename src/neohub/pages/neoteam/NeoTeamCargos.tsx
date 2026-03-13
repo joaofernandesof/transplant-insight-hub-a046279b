@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import {
   Building2, Users, LayoutGrid, List, Plus, Pencil, Trash2, Search,
-  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2
+  UserCircle, CircleDot, Briefcase, AlertTriangle, Loader2, Shield
 } from 'lucide-react';
+
+const OrgAccessMatrix = lazy(() => import('./components/OrgAccessMatrix'));
 
 interface OrgPosition {
   id: string;
@@ -62,6 +64,7 @@ const emptyForm = {
 };
 
 export default function NeoTeamCargos() {
+  const [mainTab, setMainTab] = useState<'estrutura' | 'acessos'>('estrutura');
   const [positions, setPositions] = useState<OrgPosition[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterUnit, setFilterUnit] = useState<string>('all');
@@ -185,11 +188,29 @@ export default function NeoTeamCargos() {
             Matriz de cargos, funções e vagas por unidade e departamento
           </p>
         </div>
-        <Button onClick={openNew} className="gap-2">
-          <Plus className="h-4 w-4" /> Nova Posição
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex border border-border rounded-lg overflow-hidden">
+            <Button variant={mainTab === 'estrutura' ? 'default' : 'ghost'} size="sm" onClick={() => setMainTab('estrutura')} className="rounded-none px-4 gap-2">
+              <Users className="h-4 w-4" /> Cargos
+            </Button>
+            <Button variant={mainTab === 'acessos' ? 'default' : 'ghost'} size="sm" onClick={() => setMainTab('acessos')} className="rounded-none px-4 gap-2">
+              <Shield className="h-4 w-4" /> Matriz de Acessos
+            </Button>
+          </div>
+          {mainTab === 'estrutura' && (
+            <Button onClick={openNew} className="gap-2">
+              <Plus className="h-4 w-4" /> Nova Posição
+            </Button>
+          )}
+        </div>
       </div>
 
+      {mainTab === 'acessos' ? (
+        <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+          <OrgAccessMatrix />
+        </Suspense>
+      ) : (
+      <>
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card>
@@ -300,7 +321,6 @@ export default function NeoTeamCargos() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : view === 'matrix' ? (
-        /* MATRIX VIEW */
         <div className="space-y-4">
           {Object.entries(groupedByDept).map(([dept, items]) => {
             const byLevel: Record<string, OrgPosition[]> = {};
@@ -374,7 +394,6 @@ export default function NeoTeamCargos() {
           )}
         </div>
       ) : (
-        /* LIST VIEW */
         <Card>
           <CardContent className="p-0">
             <Table>
@@ -511,6 +530,8 @@ export default function NeoTeamCargos() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </>
+      )}
     </div>
   );
 }

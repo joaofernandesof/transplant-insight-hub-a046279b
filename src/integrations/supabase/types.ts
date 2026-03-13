@@ -17491,6 +17491,45 @@ export type Database = {
         }
         Relationships: []
       }
+      org_access_matrix: {
+        Row: {
+          created_at: string
+          has_access: boolean
+          id: string
+          position_id: string
+          system_id: string
+        }
+        Insert: {
+          created_at?: string
+          has_access?: boolean
+          id?: string
+          position_id: string
+          system_id: string
+        }
+        Update: {
+          created_at?: string
+          has_access?: boolean
+          id?: string
+          position_id?: string
+          system_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_access_matrix_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "org_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_access_matrix_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "org_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_positions: {
         Row: {
           created_at: string
@@ -17527,6 +17566,30 @@ export type Database = {
           sort_order?: number | null
           unit?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      org_systems: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number | null
         }
         Relationships: []
       }
