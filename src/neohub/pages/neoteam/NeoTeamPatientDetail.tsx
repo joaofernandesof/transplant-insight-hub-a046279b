@@ -265,7 +265,7 @@ export default function NeoTeamPatientDetail() {
       const { data: clinicSurgeries } = await supabase
         .from('clinic_surgeries')
         .select('id, surgery_date, surgery_time, procedure, category, branch, schedule_status')
-        .eq('patient_name', patientData.full_name)
+        .eq('patient_id', patientData.id)
         .order('surgery_date', { ascending: false });
 
       if (clinicSurgeries) {
