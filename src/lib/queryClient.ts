@@ -80,7 +80,7 @@ export const queryClient = new QueryClient({
       // Smart refetching
       refetchOnWindowFocus: false,      // Don't refetch on every tab switch
       refetchOnReconnect: true,         // Refetch when internet comes back
-      refetchOnMount: 'always',         // Always check if data is stale on mount
+      refetchOnMount: false,              // Only refetch manually
       
       // Retry configuration
       retry: 2,                         // Retry failed requests twice
