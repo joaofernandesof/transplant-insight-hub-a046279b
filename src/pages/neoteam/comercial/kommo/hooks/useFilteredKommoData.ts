@@ -23,13 +23,15 @@ export function useFilteredLeads() {
       if (!isInDateRange(lead.created_at_kommo, filters.dateFrom, filters.dateTo)) return false;
 
       // Pipeline filter
-      if (filters.pipelineKommoIds.length > 0 && lead.pipeline_kommo_id) {
-        if (!filters.pipelineKommoIds.includes(lead.pipeline_kommo_id)) return false;
+      if (filters.pipelineKommoIds.length > 0) {
+        const leadPipelineId = lead.pipeline_kommo_id != null ? Number(lead.pipeline_kommo_id) : null;
+        if (leadPipelineId == null || !filters.pipelineKommoIds.some(id => Number(id) === leadPipelineId)) return false;
       }
 
       // Responsible filter
-      if (filters.responsibleUserKommoIds.length > 0 && lead.responsible_user_kommo_id) {
-        if (!filters.responsibleUserKommoIds.includes(lead.responsible_user_kommo_id)) return false;
+      if (filters.responsibleUserKommoIds.length > 0) {
+        const leadResponsibleId = lead.responsible_user_kommo_id != null ? Number(lead.responsible_user_kommo_id) : null;
+        if (leadResponsibleId == null || !filters.responsibleUserKommoIds.some(id => Number(id) === leadResponsibleId)) return false;
       }
 
       // Source filter
