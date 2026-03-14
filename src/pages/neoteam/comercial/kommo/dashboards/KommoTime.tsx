@@ -39,9 +39,18 @@ export default function KommoTime() {
     return totalDays / lostLeads.length;
   }, [leads]);
 
-  // Stage time (leads per stage across pipelines)
+  // Stage time (top pipelines by volume)
   const stageData = useMemo(() => {
-    return pipelines.slice(0, 3).map(p => {
+    const topPipelines = pipelines
+      .map((pipeline) => ({
+        ...pipeline,
+        leadCount: leads.filter((lead) => lead.pipeline_kommo_id === pipeline.kommo_id).length,
+      }))
+      .filter((pipeline) => pipeline.leadCount > 0)
+      .sort((a, b) => b.leadCount - a.leadCount)
+      .slice(0, 3);
+
+    return topPipelines.map(p => {
       const stages = allStages
         .filter(s => s.pipeline_kommo_id === p.kommo_id && !s.is_closed)
         .sort((a, b) => a.sort - b.sort);

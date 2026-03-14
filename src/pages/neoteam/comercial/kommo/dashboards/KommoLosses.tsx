@@ -30,18 +30,21 @@ export default function KommoLosses() {
       .sort((a, b) => b.count - a.count);
   }, [lostLeads]);
 
-  // Losses per pipeline
+  // Losses per pipeline (only pipelines with leads)
   const pipelineLosses = useMemo(() => {
-    return pipelines.map(p => {
-      const pLeads = leads.filter(l => l.pipeline_kommo_id === p.kommo_id);
-      const pLost = pLeads.filter(l => l.is_lost);
-      return {
-        name: p.name,
-        total: pLeads.length,
-        lost: pLost.length,
-        rate: pLeads.length > 0 ? ((pLost.length / pLeads.length) * 100).toFixed(1) : '0',
-      };
-    });
+    return pipelines
+      .map(p => {
+        const pLeads = leads.filter(l => l.pipeline_kommo_id === p.kommo_id);
+        const pLost = pLeads.filter(l => l.is_lost);
+        return {
+          name: p.name,
+          total: pLeads.length,
+          lost: pLost.length,
+          rate: pLeads.length > 0 ? ((pLost.length / pLeads.length) * 100).toFixed(1) : '0',
+        };
+      })
+      .filter(p => p.total > 0)
+      .sort((a, b) => b.lost - a.lost);
   }, [leads, pipelines]);
 
   // Losses per user

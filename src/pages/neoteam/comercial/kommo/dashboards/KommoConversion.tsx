@@ -19,23 +19,26 @@ export default function KommoConversion() {
     ? ((leads.filter(l => l.is_won).length / leads.length) * 100).toFixed(1)
     : '0';
 
-  // Conversion by pipeline
+  // Conversion by pipeline (only pipelines with leads)
   const pipelineConversion = useMemo(() => {
-    return pipelines.map(p => {
-      const pLeads = leads.filter(l => l.pipeline_kommo_id === p.kommo_id);
-      const won = pLeads.filter(l => l.is_won).length;
-      const rate = pLeads.length > 0 ? ((won / pLeads.length) * 100).toFixed(1) : '0';
-      
-      const stages = allStages
-        .filter(s => s.pipeline_kommo_id === p.kommo_id && !s.is_closed)
-        .sort((a, b) => a.sort - b.sort)
-        .map(s => ({
-          name: s.name,
-          count: pLeads.filter(l => l.stage_kommo_id === s.kommo_id).length,
-        }));
+    return pipelines
+      .map(p => {
+        const pLeads = leads.filter(l => l.pipeline_kommo_id === p.kommo_id);
+        const won = pLeads.filter(l => l.is_won).length;
+        const rate = pLeads.length > 0 ? ((won / pLeads.length) * 100).toFixed(1) : '0';
 
-      return { name: p.name, rate, stages, total: pLeads.length };
-    });
+        const stages = allStages
+          .filter(s => s.pipeline_kommo_id === p.kommo_id && !s.is_closed)
+          .sort((a, b) => a.sort - b.sort)
+          .map(s => ({
+            name: s.name,
+            count: pLeads.filter(l => l.stage_kommo_id === s.kommo_id).length,
+          }));
+
+        return { name: p.name, rate, stages, total: pLeads.length };
+      })
+      .filter(p => p.total > 0)
+      .sort((a, b) => b.total - a.total);
   }, [pipelines, leads, allStages]);
 
   // Conversion by source
@@ -82,7 +85,7 @@ export default function KommoConversion() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KPICard label="Conversão Geral" value={`${overallConversion}%`} />
-        <KPICard label="Melhor Funil" value={pipelineConversion.sort((a, b) => Number(b.rate) - Number(a.rate))[0]?.name || '-'} />
+        <KPICard label="Melhor Funil" value={pipelineConversion[0]?.name || '-'} />
         <KPICard label="Melhor Origem" value={sourceConversion[0]?.name || '-'} />
         <KPICard label="Melhor Responsável" value={userConversion[0]?.name || '-'} />
       </div>

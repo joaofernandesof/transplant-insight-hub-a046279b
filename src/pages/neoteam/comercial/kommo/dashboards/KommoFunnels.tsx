@@ -16,11 +16,23 @@ export default function KommoFunnels() {
 
   const hasData = pipelines.length > 0;
 
+  const pipelinesWithLeads = useMemo(() => {
+    const counts = new Map<number, number>();
+    leads.forEach((lead) => {
+      if (lead.pipeline_kommo_id == null) return;
+      counts.set(lead.pipeline_kommo_id, (counts.get(lead.pipeline_kommo_id) || 0) + 1);
+    });
+
+    return pipelines
+      .filter((pipeline) => (counts.get(pipeline.kommo_id) || 0) > 0)
+      .sort((a, b) => (counts.get(b.kommo_id) || 0) - (counts.get(a.kommo_id) || 0));
+  }, [pipelines, leads]);
+
   // Build funnel data from real data
   const funnelData = useMemo(() => {
     if (!hasData) return [];
 
-    return pipelines
+    return pipelinesWithLeads
       .filter(p => selectedPipeline === 'all' || String(p.kommo_id) === selectedPipeline)
       .map(pipeline => {
         const pipelineStages = allStages
@@ -52,7 +64,7 @@ export default function KommoFunnels() {
           conversionRate: Number(convRate.toFixed(1)),
         };
       });
-  }, [pipelines, allStages, leads, selectedPipeline, hasData]);
+  }, [pipelinesWithLeads, allStages, leads, selectedPipeline, hasData]);
 
   if (loadingPipelines) {
     return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -70,8 +82,8 @@ export default function KommoFunnels() {
             <SelectValue placeholder="Todos os funis" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os Funis</SelectItem>
-            {pipelines.map(p => (
+            <SelectItem value="all">Funis com dados</SelectItem>
+            {pipelinesWithLeads.map(p => (
               <SelectItem key={p.kommo_id} value={String(p.kommo_id)}>{p.name}</SelectItem>
             ))}
           </SelectContent>
@@ -79,13 +91,20 @@ export default function KommoFunnels() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KPICard label="Funis Ativos" value={pipelines.length} />
+        <KPICard label="Funis com Leads" value={pipelinesWithLeads.length} />
         <KPICard label="Total de Leads" value={funnelData.reduce((a, p) => a + p.totalLeads, 0).toLocaleString()} />
         <KPICard label="Valor Total" value={`R$ ${(funnelData.reduce((a, p) => a + p.totalValue, 0) / 1000).toFixed(0)}k`} />
         <KPICard label="Conversão Média" value={`${funnelData.length > 0 ? (funnelData.reduce((a, p) => a + p.conversionRate, 0) / funnelData.length).toFixed(1) : 0}%`} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
+        {funnelData.length === 0 && (
+          <Card className="lg:col-span-2">
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              Nenhum funil com leads para os filtros atuais.
+            </CardContent>
+          </Card>
+        )}
         {funnelData.map(p => {
           const maxLeads = Math.max(...p.stages.map(s => s.leads), 1);
           return (
