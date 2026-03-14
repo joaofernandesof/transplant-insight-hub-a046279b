@@ -128,7 +128,7 @@ function processSummarySheet(rows: Record<string, string>[], businessUnit: strin
         campaign_name: campaignName,
         campaign_id: `${businessUnit}_${filial}_${year}${month}`,
         adset_name: filial,
-        ad_name: null,
+        ad_name: '',
         date,
         impressions: 0,
         clicks: 0,
