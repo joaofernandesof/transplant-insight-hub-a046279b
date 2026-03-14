@@ -127,6 +127,20 @@ export const ALL_MODULE_CODES = {
   NEOTEAM_WAITING_ROOM: 'neoteam_waiting_room',
   NEOTEAM_DOCUMENTS: 'neoteam_documents',
   
+  // NeoTeam Kommo (granular por dashboard)
+  KOMMO_OVERVIEW: 'kommo_overview',
+  KOMMO_FUNNELS: 'kommo_funnels',
+  KOMMO_LEADS: 'kommo_leads',
+  KOMMO_CONVERSION: 'kommo_conversion',
+  KOMMO_PERFORMANCE: 'kommo_performance',
+  KOMMO_SOURCES: 'kommo_sources',
+  KOMMO_TIME: 'kommo_time',
+  KOMMO_LOSSES: 'kommo_losses',
+  KOMMO_TASKS: 'kommo_tasks',
+  KOMMO_POST_SALES: 'kommo_post_sales',
+  KOMMO_REPORTS: 'kommo_reports',
+  KOMMO_SETTINGS: 'kommo_settings',
+  
   // NeoLicense
   NEOLICENSE_DASHBOARD: 'neolicense_dashboard',
   NEOLICENSE_HOTLEADS: 'neolicense_hotleads',

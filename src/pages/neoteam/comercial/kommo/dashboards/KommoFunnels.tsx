@@ -1,8 +1,9 @@
-// KommoFunnels - Dashboard de Funis com dados reais
+// KommoFunnels - Dashboard de Funis com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { KPICard } from '../components/KPICard';
-import { useKommoPipelines, useKommoStages, useKommoLeads } from '../hooks/useKommoData';
+import { useKommoPipelines, useKommoStages } from '../hooks/useKommoData';
+import { useFilteredLeads } from '../hooks/useFilteredKommoData';
 import { useState, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
@@ -11,7 +12,7 @@ export default function KommoFunnels() {
   const [selectedPipeline, setSelectedPipeline] = useState<string>('all');
   const { data: pipelines = [], isLoading: loadingPipelines } = useKommoPipelines();
   const { data: allStages = [] } = useKommoStages();
-  const { data: leads = [] } = useKommoLeads();
+  const { data: leads = [] } = useFilteredLeads();
 
   const hasData = pipelines.length > 0;
 

@@ -1,13 +1,13 @@
-// KommoSources - Dashboard de Origens com dados reais
+// KommoSources - Dashboard de Origens com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { useKommoLeads } from '../hooks/useKommoData';
+import { useFilteredLeads } from '../hooks/useFilteredKommoData';
 import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 export default function KommoSources() {
-  const { data: leads = [], isLoading } = useKommoLeads();
+  const { data: leads = [], isLoading } = useFilteredLeads();
   const hasData = leads.length > 0;
 
   const sourceData = useMemo(() => {

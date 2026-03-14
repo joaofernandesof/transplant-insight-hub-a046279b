@@ -1,24 +1,22 @@
-// KommoOverview - Dashboard Executivo com dados reais
+// KommoOverview - Dashboard Executivo com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { AlertCard } from '../components/AlertCard';
-import { Badge } from '@/components/ui/badge';
-import { useKommoLeads, useKommoPipelines, useKommoStages, useKommoUsers, useKommoTasks, useKommoStats } from '../hooks/useKommoData';
-import { Users, DollarSign, TrendingUp, Star, Clock, XCircle, Loader2 } from 'lucide-react';
+import { useFilteredLeads, useFilteredStats, useFilteredTasks } from '../hooks/useFilteredKommoData';
+import { useKommoUsers, useKommoPipelines } from '../hooks/useKommoData';
+import { Users, DollarSign, TrendingUp, Star, Loader2 } from 'lucide-react';
 import { MOCK_ALERTS } from '../types';
 import { useMemo } from 'react';
 
 export default function KommoOverview() {
-  const { data: leads = [], isLoading: loadingLeads } = useKommoLeads();
-  const { data: pipelines = [], isLoading: loadingPipelines } = useKommoPipelines();
-  const { data: users = [], isLoading: loadingUsers } = useKommoUsers();
-  const { data: tasks = [] } = useKommoTasks();
-  const stats = useKommoStats();
+  const { data: leads, isLoading } = useFilteredLeads();
+  const { data: tasks } = useFilteredTasks();
+  const { data: users = [] } = useKommoUsers();
+  const stats = useFilteredStats();
 
-  const isLoading = loadingLeads || loadingPipelines;
   const hasData = leads.length > 0;
 
-  // Compute source-based stats from leads
+  // Source stats from filtered leads
   const sourceStats = useMemo(() => {
     const map = new Map<string, { leads: number; won: number; revenue: number }>();
     leads.forEach(l => {
@@ -33,7 +31,7 @@ export default function KommoOverview() {
       .sort((a, b) => b.conversionRate - a.conversionRate);
   }, [leads]);
 
-  // User performance from leads
+  // User performance from filtered leads
   const userPerformance = useMemo(() => {
     const map = new Map<number, { name: string; won: number; revenue: number; total: number }>();
     users.forEach(u => map.set(u.kommo_id, { name: u.name, won: 0, revenue: 0, total: 0 }));
@@ -50,12 +48,12 @@ export default function KommoOverview() {
       .slice(0, 5);
   }, [leads, users]);
 
-  // Alerts from real data
+  // Alerts from filtered data
   const realAlerts = useMemo(() => {
     const alerts: typeof MOCK_ALERTS = [];
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    
+
     const staleLeads = leads.filter(l => !l.is_won && !l.is_lost && l.updated_at_kommo && new Date(l.updated_at_kommo) < sevenDaysAgo);
     if (staleLeads.length > 0) {
       alerts.push({ id: 'a1', type: 'danger', title: `${staleLeads.length} leads sem atividade há mais de 7 dias`, description: 'Leads parados precisam de atenção imediata.' });
