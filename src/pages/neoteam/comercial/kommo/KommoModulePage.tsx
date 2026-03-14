@@ -15,6 +15,8 @@ import { KommoFiltersProvider } from './contexts/KommoFiltersContext';
 import KommoFiltersBar from './components/KommoFiltersBar';
 import KommoNotificationsPanel from './components/KommoNotificationsPanel';
 import { useAutoSync } from './hooks/useAutoSync';
+import { useSyncProgress } from './hooks/useSyncProgress';
+import KommoSyncProgressBar from './components/KommoSyncProgressBar';
 
 // Lazy-loaded dashboards
 const KommoOverview = React.lazy(() => import('./dashboards/KommoOverview'));
