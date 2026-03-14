@@ -1,8 +1,9 @@
-// KommoTime - Dashboard de Atendimento e Tempo com dados reais
+// KommoTime - Dashboard de Atendimento e Tempo com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { useKommoLeads, useKommoPipelines, useKommoStages, useKommoUsers } from '../hooks/useKommoData';
+import { useKommoPipelines, useKommoStages, useKommoUsers } from '../hooks/useKommoData';
+import { useFilteredLeads } from '../hooks/useFilteredKommoData';
 import { Clock, Zap, AlertTriangle, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
