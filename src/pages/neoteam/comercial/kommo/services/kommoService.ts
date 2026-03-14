@@ -141,12 +141,23 @@ export async function fetchPipelineStages(pipelineKommoId?: number): Promise<Kom
 }
 
 export async function fetchLeads(): Promise<KommoLead[]> {
-  const { data, error } = await supabase
-    .from('kommo_leads')
-    .select('*')
-    .order('created_at_kommo', { ascending: false });
-  if (error) throw error;
-  return (data || []) as unknown as KommoLead[];
+  // Fetch all leads in batches to bypass the 1000 row default limit
+  const allLeads: KommoLead[] = [];
+  const batchSize = 1000;
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('kommo_leads')
+      .select('*')
+      .order('created_at_kommo', { ascending: false })
+      .range(offset, offset + batchSize - 1);
+    if (error) throw error;
+    const batch = (data || []) as unknown as KommoLead[];
+    allLeads.push(...batch);
+    if (batch.length < batchSize) break;
+    offset += batchSize;
+  }
+  return allLeads;
 }
 
 export async function fetchUsers(): Promise<KommoUser[]> {
