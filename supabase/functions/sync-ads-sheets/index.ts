@@ -1,7 +1,7 @@
 // ============================================
 // Edge Function: sync-ads-sheets
 // Fetches campaign cost data from Google Sheets
-// and upserts into campaign_costs table
+// and upserts into the campaign_costs table
 // ============================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
