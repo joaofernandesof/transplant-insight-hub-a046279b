@@ -1,8 +1,9 @@
-// KommoPostSales - Dashboard de Pós-Vendas com dados reais
+// KommoPostSales - Dashboard de Pós-Vendas com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { useKommoLeads, useKommoPipelines, useKommoStages } from '../hooks/useKommoData';
+import { useKommoPipelines, useKommoStages } from '../hooks/useKommoData';
+import { useFilteredLeads } from '../hooks/useFilteredKommoData';
 import { HeartPulse, UserCheck, RefreshCw, AlertTriangle, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
