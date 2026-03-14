@@ -5,7 +5,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfDay, endOfDay } from 'date-fns';
 
-export type DatePreset = 'today' | '7d' | '30d' | '90d' | 'this_month' | 'last_month' | 'custom';
+export type DatePreset = 'today' | '7d' | '30d' | '90d' | 'this_month' | 'last_month' | 'all' | 'custom';
 
 export interface KommoFilters {
   datePreset: DatePreset;
