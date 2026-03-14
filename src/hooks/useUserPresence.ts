@@ -85,8 +85,7 @@ export const useUserPresence = () => {
     // Start session when hook mounts
     startSession();
 
-    // Set up heartbeat every 30 seconds
-    heartbeatIntervalRef.current = setInterval(updateHeartbeat, 30000);
+    // Heartbeat disabled — user prefers manual refresh
 
     // Handle visibility change (tab switching)
     const handleVisibilityChange = () => {
