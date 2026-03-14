@@ -1,8 +1,9 @@
-// KommoLeads - Dashboard de Leads com dados reais
+// KommoLeads - Dashboard de Leads com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { useKommoLeads, useKommoPipelines, useKommoStages } from '../hooks/useKommoData';
+import { useKommoPipelines } from '../hooks/useKommoData';
+import { useFilteredLeads } from '../hooks/useFilteredKommoData';
 import { Users, UserX, UserCheck, Clock, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
