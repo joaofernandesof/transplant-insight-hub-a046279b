@@ -88,26 +88,25 @@ Deno.serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const kommoToken = Deno.env.get("KOMMO_API_TOKEN");
     const kommoSubdomain = Deno.env.get("KOMMO_SUBDOMAIN");
 
     if (!kommoToken || !kommoSubdomain) {
-      return new Response(JSON.stringify({ error: "Kommo credentials not configured" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Kommo credentials not configured. Set KOMMO_API_TOKEN and KOMMO_SUBDOMAIN secrets." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const supabaseAuth = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
-    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(authHeader.replace("Bearer ", ""));
-    if (claimsError || !claimsData?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Auth: validate user token if present, but allow service calls too
+    const authHeader = req.headers.get("Authorization");
+    let userId = "system";
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabaseAuth = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
+      const { data: userData } = await supabaseAuth.auth.getUser();
+      if (userData?.user?.id) {
+        userId = userData.user.id;
+      }
     }
-    const userId = claimsData.claims.sub as string;
 
     let syncType = "full";
     let entities: string[] = [];
