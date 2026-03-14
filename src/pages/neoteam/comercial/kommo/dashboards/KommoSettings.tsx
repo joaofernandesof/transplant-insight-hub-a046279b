@@ -11,7 +11,7 @@ import { useKommoSync, useKommoSyncConfig, useKommoSyncLogs, useKommoPipelines, 
 import { useKommoAlertRules, useCreateAlertRule, useToggleAlertRule, useDeleteAlertRule } from '../hooks/useKommoAlerts';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -44,7 +44,13 @@ export default function KommoSettings() {
   const toggleAlert = useToggleAlertRule();
   const deleteAlert = useDeleteAlertRule();
 
-  const [autoSync, setAutoSync] = useState(config?.auto_sync_enabled ?? false);
+  const [autoSync, setAutoSync] = useState(false);
+
+  useEffect(() => {
+    if (config?.auto_sync_enabled !== undefined) {
+      setAutoSync(config.auto_sync_enabled);
+    }
+  }, [config?.auto_sync_enabled]);
   const [showNewAlert, setShowNewAlert] = useState(false);
   const [newAlert, setNewAlert] = useState({ name: '', metric_key: 'stale_leads', condition: 'gt', threshold_value: 10, severity: 'warning' });
 
