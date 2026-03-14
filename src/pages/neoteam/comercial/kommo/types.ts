@@ -79,5 +79,6 @@ export type KommoTab =
   | 'tasks' 
   | 'post-sales' 
   | 'time'
+  | 'roi'
   | 'reports' 
   | 'settings';

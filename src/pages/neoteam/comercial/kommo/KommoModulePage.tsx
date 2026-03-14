@@ -7,7 +7,7 @@ import { ModuleLayout } from '@/components/ModuleLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
   LayoutDashboard, GitCompare, Users, TrendingUp, Target, 
-  Clock, BarChart3, XCircle, ListTodo, HeartPulse, FileBarChart, Settings
+  Clock, BarChart3, XCircle, ListTodo, HeartPulse, FileBarChart, Settings, DollarSign
 } from 'lucide-react';
 import type { KommoTab } from './types';
 import { KommoFiltersProvider } from './contexts/KommoFiltersContext';
@@ -28,6 +28,7 @@ const KommoLosses = React.lazy(() => import('./dashboards/KommoLosses'));
 const KommoTasks = React.lazy(() => import('./dashboards/KommoTasks'));
 const KommoPostSales = React.lazy(() => import('./dashboards/KommoPostSales'));
 const KommoTime = React.lazy(() => import('./dashboards/KommoTime'));
+const KommoROI = React.lazy(() => import('./dashboards/KommoROI'));
 const KommoReports = React.lazy(() => import('./dashboards/KommoReports'));
 const KommoSettings = React.lazy(() => import('./dashboards/KommoSettings'));
 
@@ -40,6 +41,7 @@ const TABS: { value: KommoTab; label: string; icon: React.ElementType }[] = [
   { value: 'sources', label: 'Origens', icon: BarChart3 },
   { value: 'time', label: 'Tempo', icon: Clock },
   { value: 'losses', label: 'Perdas', icon: XCircle },
+  { value: 'roi', label: 'ROI', icon: DollarSign },
   { value: 'tasks', label: 'Tarefas', icon: ListTodo },
   { value: 'post-sales', label: 'Pós-Vendas', icon: HeartPulse },
   { value: 'reports', label: 'Relatórios', icon: FileBarChart },
@@ -116,6 +118,7 @@ export default function KommoModulePage() {
               <TabsContent value="losses" className="mt-4"><KommoLosses /></TabsContent>
               <TabsContent value="tasks" className="mt-4"><KommoTasks /></TabsContent>
               <TabsContent value="post-sales" className="mt-4"><KommoPostSales /></TabsContent>
+              <TabsContent value="roi" className="mt-4"><KommoROI /></TabsContent>
               <TabsContent value="reports" className="mt-4"><KommoReports /></TabsContent>
               <TabsContent value="settings" className="mt-4"><KommoSettings /></TabsContent>
             </React.Suspense>

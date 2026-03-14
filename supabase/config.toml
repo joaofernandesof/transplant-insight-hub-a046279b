@@ -137,3 +137,6 @@ verify_jwt = false
 
 [functions.kommo-webhook]
 verify_jwt = false
+
+[functions.sync-ads-sheets]
+verify_jwt = false
