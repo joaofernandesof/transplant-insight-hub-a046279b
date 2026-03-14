@@ -51,6 +51,7 @@ const Fallback = () => <div className="p-6 text-muted-foreground">Carregando...<
 
 export default function KommoModulePage() {
   const [activeTab, setActiveTab] = useState<KommoTab>('overview');
+  const { isSyncing, hasConfig, hasData } = useAutoSync();
 
   const showFilters = !NO_FILTER_TABS.includes(activeTab);
 
@@ -58,6 +59,14 @@ export default function KommoModulePage() {
     <ModuleLayout>
       <KommoFiltersProvider>
         <div className="p-4 lg:p-6 space-y-4">
+          {/* Syncing banner */}
+          {isSyncing && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm text-primary animate-pulse">
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              Sincronizando dados do Kommo pela primeira vez...
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
