@@ -205,8 +205,23 @@ export async function fetchSyncLogs(limit = 20): Promise<KommoSyncLog[]> {
   return (data || []) as unknown as KommoSyncLog[];
 }
 
-// Trigger sync via Edge Function
+// Trigger sync via Edge Function (split into phases to avoid timeout)
 export async function triggerSync(syncType: 'full' | 'incremental' = 'full', entities?: string[]) {
+  if (syncType === 'full' && (!entities || entities.length === 0)) {
+    // Phase 1: pipelines + users (fast)
+    const { error: err1 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['pipelines', 'users'] },
+    });
+    if (err1) throw err1;
+
+    // Phase 2: leads + contacts + tasks + custom_fields + loss_reasons
+    const { data, error: err2 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['leads', 'contacts', 'tasks', 'custom_fields', 'loss_reasons'] },
+    });
+    if (err2) throw err2;
+    return data;
+  }
+
   const { data, error } = await supabase.functions.invoke('kommo-sync', {
     body: { syncType, entities },
   });
