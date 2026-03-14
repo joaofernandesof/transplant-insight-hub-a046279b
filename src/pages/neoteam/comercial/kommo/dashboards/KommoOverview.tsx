@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MOCK_ALERTS } from '../types';
+import type { KommoAlert } from '../types';
 import { useMemo, useEffect } from 'react';
 import { exportLeadsCSV } from '../utils/csvExport';
 
@@ -132,9 +132,9 @@ export default function KommoOverview() {
     ? `${bestPerformer.name} lidera com ${bestPerformer.won} vendas e R$ ${(bestPerformer.revenue / 1000).toFixed(0)}k gerados.`
     : 'Sem dados de performance ainda.';
 
-  // Alerts
+  // Alerts - only real alerts
   const realAlerts = useMemo(() => {
-    const alerts: typeof MOCK_ALERTS = [];
+    const alerts: KommoAlert[] = [];
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
     const staleLeads = leads.filter(l => !l.is_won && !l.is_lost && l.updated_at_kommo && new Date(l.updated_at_kommo) < sevenDaysAgo);
@@ -143,36 +143,31 @@ export default function KommoOverview() {
     if (noResp.length > 0) alerts.push({ id: 'a2', type: 'warning', title: `${noResp.length} leads sem responsável`, description: 'Leads sem atribuição nas etapas iniciais.' });
     const overdue = tasks.filter(t => !t.is_completed && t.complete_till && new Date(t.complete_till) < now);
     if (overdue.length > 0) alerts.push({ id: 'a3', type: 'warning', title: `${overdue.length} tarefas vencidas`, description: 'Tarefas atrasadas impactam a produtividade.' });
-    return alerts.length > 0 ? alerts : MOCK_ALERTS.slice(0, 4);
+    return alerts;
   }, [leads, tasks]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
-  // Use real or demo values
-  const v = {
-    totalLeads: hasData ? stats.totalLeads : 1195,
-    wonLeads: hasData ? stats.wonLeads : 43,
-    lostLeads: hasData ? stats.lostLeads : 160,
-    openLeads: hasData ? stats.openLeads : 892,
-    totalRevenue: hasData ? stats.totalRevenue : 847000,
-    avgTicket: hasData ? stats.avgTicket : 15700,
-    conversionRate: hasData ? stats.conversionRate : 8.4,
-    lossRate: hasData ? stats.lossRate : 13.4,
-    totalTasks: hasData ? stats.totalTasks : 312,
-    overdueTasks: hasData ? stats.overdueTasks : 60,
-    completedTasks: hasData ? stats.completedTasks : 240,
-  };
+  if (!hasData) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 space-y-4 text-center">
+        <BarChart3 className="h-12 w-12 text-muted-foreground/40" />
+        <div>
+          <h3 className="text-lg font-semibold">Nenhum dado sincronizado</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Vá na aba <strong>Configurações</strong> e conecte sua conta Kommo para ver seus dados reais aqui.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const v = stats;
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {!hasData && (
-        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm text-amber-700">
-          📊 Exibindo dados de demonstração. Sincronize com o Kommo na aba Configurações para ver dados reais.
-        </div>
-      )}
-
       {/* Row 1: 4 KPIs Principais */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KPICard
@@ -238,81 +233,60 @@ export default function KommoOverview() {
       </div>
 
       {/* Charts Row */}
-      {(hasData || true) && (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {/* Pipeline Chart */}
-          <Card className="border-blue-200/40 dark:border-blue-800/30 overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-blue-500 via-violet-500 to-cyan-500" />
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-blue-500" /> Leads por Funil
-                </CardTitle>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  💡 {hasData
-                    ? pipelines.length > 0
-                      ? `${pipelines.length} funis ativos — distribua esforços nos mais rentáveis.`
-                      : 'Configure seus funis no Kommo.'
-                    : '4 funis ativos — Indicações tem a melhor conversão (35.6%).'}
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => exportLeadsCSV(leads)}>
-                <Download className="h-3 w-3" /> CSV
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {hasData ? (
-                <KommoBarChart data={pipelineChartData} xKey="name" yKey="Leads" height={220} />
-              ) : (
-                <KommoBarChart
-                  data={[
-                    { name: 'Comercial', Leads: 374, Ganhos: 12 },
-                    { name: 'Indicações', Leads: 149, Ganhos: 53 },
-                    { name: 'Tráfego Pago', Leads: 672, Ganhos: 15 },
-                    { name: 'Pós-Venda', Leads: 93, Ganhos: 73 },
-                  ]}
-                  xKey="name" yKey="Leads" height={220}
-                />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Status Distribution */}
-          <Card className="border-emerald-200/40 dark:border-emerald-800/30 overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500" />
-            <CardHeader className="pb-2">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Pipeline Chart */}
+        <Card className="border-blue-200/40 dark:border-blue-800/30 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-blue-500 via-violet-500 to-cyan-500" />
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Target className="h-4 w-4 text-emerald-500" /> Distribuição por Status
+                <BarChart3 className="h-4 w-4 text-blue-500" /> Leads por Funil
               </CardTitle>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                💡 {v.openLeads > v.wonLeads + v.lostLeads
-                  ? `${((v.openLeads / v.totalLeads) * 100).toFixed(0)}% em aberto — boa base de oportunidades.`
-                  : 'Maioria dos leads já finalizada — abasteça o funil.'}
+                💡 {pipelines.length > 0
+                  ? `${pipelines.length} funis ativos — distribua esforços nos mais rentáveis.`
+                  : 'Configure seus funis no Kommo.'}
               </p>
-            </CardHeader>
-            <CardContent>
-              <KommoPieChart
-                data={hasData ? statusChartData : [
-                  { name: 'Em Aberto', value: 892 },
-                  { name: 'Ganhos', value: 43 },
-                  { name: 'Perdidos', value: 160 },
-                ]}
-                height={220}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => exportLeadsCSV(leads)}>
+              <Download className="h-3 w-3" /> CSV
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <KommoBarChart data={pipelineChartData} xKey="name" yKey="Leads" height={220} />
+          </CardContent>
+        </Card>
+
+        {/* Status Distribution */}
+        <Card className="border-emerald-200/40 dark:border-emerald-800/30 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Target className="h-4 w-4 text-emerald-500" /> Distribuição por Status
+            </CardTitle>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              💡 {v.openLeads > v.wonLeads + v.lostLeads
+                ? `${((v.openLeads / v.totalLeads) * 100).toFixed(0)}% em aberto — boa base de oportunidades.`
+                : 'Maioria dos leads já finalizada — abasteça o funil.'}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <KommoPieChart data={statusChartData} height={220} />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Alerts section */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-          <AlertTriangle className="h-3.5 w-3.5" /> Alertas Inteligentes
-        </h3>
-        <div className="grid gap-2 md:grid-cols-2">
-          {realAlerts.slice(0, 4).map(a => <AlertCard key={a.id} alert={a} />)}
+      {realAlerts.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <AlertTriangle className="h-3.5 w-3.5" /> Alertas Inteligentes
+          </h3>
+          <div className="grid gap-2 md:grid-cols-2">
+            {realAlerts.slice(0, 4).map(a => <AlertCard key={a.id} alert={a} />)}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Performance + Sources Row */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -324,45 +298,43 @@ export default function KommoOverview() {
               <Trophy className="h-4 w-4 text-violet-500" /> Ranking de Performance
             </CardTitle>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              💡 {hasData ? performerInsight : 'Beatriz Rocha lidera com 22 vendas e R$ 385k gerados.'}
+              💡 {performerInsight}
             </p>
           </CardHeader>
           <CardContent className="space-y-2">
-            {(hasData ? userPerformance : [
-              { name: 'Beatriz Rocha', won: 22, revenue: 385000, total: 72 },
-              { name: 'Ana Silva', won: 18, revenue: 270000, total: 85 },
-              { name: 'Gustavo Almeida', won: 12, revenue: 192000, total: 68 },
-            ]).map((user, idx) => {
-              const medals = ['🥇', '🥈', '🥉'];
-              const convRate = user.total > 0 ? ((user.won / user.total) * 100).toFixed(0) : '0';
-              const barWidth = userPerformance.length > 0
-                ? (user.revenue / Math.max(userPerformance[0]?.revenue || 1, 1)) * 100
-                : idx === 0 ? 100 : idx === 1 ? 70 : 50;
-              return (
-                <div key={idx} className="space-y-1 p-2 rounded-lg hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{medals[idx] || `#${idx + 1}`}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{user.name}</p>
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                        <span>{user.won} ganhos</span>
-                        <span>·</span>
-                        <span>{convRate}% conv</span>
+            {userPerformance.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma venda registrada no período.</p>
+            ) : (
+              userPerformance.map((user, idx) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const convRate = user.total > 0 ? ((user.won / user.total) * 100).toFixed(0) : '0';
+                const barWidth = (user.revenue / Math.max(userPerformance[0]?.revenue || 1, 1)) * 100;
+                return (
+                  <div key={idx} className="space-y-1 p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{medals[idx] || `#${idx + 1}`}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{user.name}</p>
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <span>{user.won} ganhos</span>
+                          <span>·</span>
+                          <span>{convRate}% conv</span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold text-violet-600 dark:text-violet-400">R$ {(user.revenue / 1000).toFixed(0)}k</p>
                       </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-violet-600 dark:text-violet-400">R$ {(user.revenue / 1000).toFixed(0)}k</p>
+                    <div className="h-1.5 bg-muted/50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-700"
+                        style={{ width: `${barWidth}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="h-1.5 bg-muted/50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-700"
-                      style={{ width: `${barWidth}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </CardContent>
         </Card>
 
@@ -374,38 +346,37 @@ export default function KommoOverview() {
               <ArrowUpRight className="h-4 w-4 text-amber-500" /> Melhores Origens
             </CardTitle>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              💡 {hasData ? bestSourceInsight : '"Indicação" converte 35.6% — invista em programas de referência!'}
+              💡 {bestSourceInsight}
             </p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-2">
-              {(hasData ? sourceStats.slice(0, 4) : [
-                { name: 'Indicação', conversionRate: 35.6, leads: 149, revenue: 477000 },
-                { name: 'Evento Presencial', conversionRate: 25, leads: 32, revenue: 80000 },
-                { name: 'WhatsApp Orgânico', conversionRate: 15.8, leads: 95, revenue: 127500 },
-                { name: 'Site / Landing Page', conversionRate: 7.5, leads: 120, revenue: 67500 },
-              ]).map((s, idx) => {
-                const colors = [
-                  'from-amber-500/20 to-amber-500/5 border-amber-300/50 dark:border-amber-700/40',
-                  'from-orange-500/20 to-orange-500/5 border-orange-300/50 dark:border-orange-700/40',
-                  'from-cyan-500/20 to-cyan-500/5 border-cyan-300/50 dark:border-cyan-700/40',
-                  'from-blue-500/20 to-blue-500/5 border-blue-300/50 dark:border-blue-700/40',
-                ];
-                const qualityLabel = s.conversionRate >= 20 ? '🔥 Top' : s.conversionRate >= 10 ? '✅ Boa' : '📊 Regular';
-                return (
-                  <div key={s.name} className={`p-3 rounded-xl border bg-gradient-to-br ${colors[idx]} space-y-1.5 transition-all hover:shadow-sm`}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold truncate flex-1">{s.name}</p>
-                      <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">{qualityLabel}</Badge>
+              {sourceStats.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center col-span-2">Sem dados de origem no período.</p>
+              ) : (
+                sourceStats.slice(0, 4).map((s, idx) => {
+                  const colors = [
+                    'from-amber-500/20 to-amber-500/5 border-amber-300/50 dark:border-amber-700/40',
+                    'from-orange-500/20 to-orange-500/5 border-orange-300/50 dark:border-orange-700/40',
+                    'from-cyan-500/20 to-cyan-500/5 border-cyan-300/50 dark:border-cyan-700/40',
+                    'from-blue-500/20 to-blue-500/5 border-blue-300/50 dark:border-blue-700/40',
+                  ];
+                  const qualityLabel = s.conversionRate >= 20 ? '🔥 Top' : s.conversionRate >= 10 ? '✅ Boa' : '📊 Regular';
+                  return (
+                    <div key={s.name} className={`p-3 rounded-xl border bg-gradient-to-br ${colors[idx]} space-y-1.5 transition-all hover:shadow-sm`}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold truncate flex-1">{s.name}</p>
+                        <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0">{qualityLabel}</Badge>
+                      </div>
+                      <p className="text-2xl font-bold tracking-tight">{s.conversionRate.toFixed(1)}%</p>
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                        <span>{s.leads} leads</span>
+                        <span className="font-semibold">R$ {(s.revenue / 1000).toFixed(0)}k</span>
+                      </div>
                     </div>
-                    <p className="text-2xl font-bold tracking-tight">{s.conversionRate.toFixed(1)}%</p>
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span>{s.leads} leads</span>
-                      <span className="font-semibold">R$ {(s.revenue / 1000).toFixed(0)}k</span>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </CardContent>
         </Card>
