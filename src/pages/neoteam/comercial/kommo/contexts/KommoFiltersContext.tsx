@@ -46,6 +46,8 @@ const getDateRange = (preset: DatePreset): { from: Date; to: Date } => {
       const lastMonth = subDays(startOfMonth(now), 1);
       return { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
     }
+    case 'all':
+      return { from: new Date('2020-01-01'), to: now };
     default:
       return { from: subDays(now, 30), to: now };
   }
