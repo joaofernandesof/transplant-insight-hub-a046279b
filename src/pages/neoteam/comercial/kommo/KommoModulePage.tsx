@@ -7,12 +7,14 @@ import { ModuleLayout } from '@/components/ModuleLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
   LayoutDashboard, GitCompare, Users, TrendingUp, Target, 
-  Clock, BarChart3, XCircle, ListTodo, HeartPulse, FileBarChart, Settings 
+  Clock, BarChart3, XCircle, ListTodo, HeartPulse, FileBarChart, Settings,
+  RefreshCw
 } from 'lucide-react';
 import type { KommoTab } from './types';
 import { KommoFiltersProvider } from './contexts/KommoFiltersContext';
 import KommoFiltersBar from './components/KommoFiltersBar';
 import KommoNotificationsPanel from './components/KommoNotificationsPanel';
+import { useAutoSync } from './hooks/useAutoSync';
 
 // Lazy-loaded dashboards
 const KommoOverview = React.lazy(() => import('./dashboards/KommoOverview'));
@@ -50,6 +52,7 @@ const Fallback = () => <div className="p-6 text-muted-foreground">Carregando...<
 
 export default function KommoModulePage() {
   const [activeTab, setActiveTab] = useState<KommoTab>('overview');
+  const { isSyncing, hasConfig, hasData } = useAutoSync();
 
   const showFilters = !NO_FILTER_TABS.includes(activeTab);
 
@@ -57,6 +60,14 @@ export default function KommoModulePage() {
     <ModuleLayout>
       <KommoFiltersProvider>
         <div className="p-4 lg:p-6 space-y-4">
+          {/* Syncing banner */}
+          {isSyncing && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm text-primary animate-pulse">
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              Sincronizando dados do Kommo pela primeira vez...
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
