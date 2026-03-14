@@ -58,7 +58,32 @@ class KommoAPI {
 
   async getPipelines() { return (await this.request("/leads/pipelines"))?._embedded?.pipelines || []; }
   async getUsers() { return this.fetchAll("/users", "users"); }
-  async getLeads() { return this.fetchAll("/leads", "leads"); }
+  async getLeads() { return this.fetchAll("/leads", "leads", { with: "loss_reason,contacts" }); }
+
+  async getLeadsByPipeline(pipelineId: number, stageIds: number[]) {
+    let allLeads: any[] = [];
+    // Fetch leads per stage to ensure we get ALL statuses including open ones
+    for (const stageId of stageIds) {
+      const params: Record<string, string> = {
+        with: "loss_reason,contacts",
+        [`filter[statuses][0][pipeline_id]`]: String(pipelineId),
+        [`filter[statuses][0][status_id]`]: String(stageId),
+      };
+      const leads = await this.fetchAll("/leads", "leads", params);
+      allLeads = allLeads.concat(leads);
+    }
+    // Also fetch won/lost for this pipeline
+    for (const closedStatus of [142, 143]) {
+      const params: Record<string, string> = {
+        with: "loss_reason,contacts",
+        [`filter[statuses][0][pipeline_id]`]: String(pipelineId),
+        [`filter[statuses][0][status_id]`]: String(closedStatus),
+      };
+      const leads = await this.fetchAll("/leads", "leads", params);
+      allLeads = allLeads.concat(leads);
+    }
+    return allLeads;
+  }
   async getContacts() { return this.fetchAll("/contacts", "contacts"); }
   async getTasks() { return this.fetchAll("/tasks", "tasks"); }
   async getCustomFields(entityType: string) { return (await this.request(`/${entityType}/custom_fields`))?._embedded?.custom_fields || []; }
