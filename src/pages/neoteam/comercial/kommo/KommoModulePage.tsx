@@ -28,6 +28,7 @@ const KommoLosses = React.lazy(() => import('./dashboards/KommoLosses'));
 const KommoTasks = React.lazy(() => import('./dashboards/KommoTasks'));
 const KommoPostSales = React.lazy(() => import('./dashboards/KommoPostSales'));
 const KommoTime = React.lazy(() => import('./dashboards/KommoTime'));
+const KommoROI = React.lazy(() => import('./dashboards/KommoROI'));
 const KommoReports = React.lazy(() => import('./dashboards/KommoReports'));
 const KommoSettings = React.lazy(() => import('./dashboards/KommoSettings'));
 
