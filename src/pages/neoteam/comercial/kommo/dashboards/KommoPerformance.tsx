@@ -1,8 +1,9 @@
-// KommoPerformance - Dashboard de Usuários com dados reais
+// KommoPerformance - Dashboard de Usuários com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { useKommoLeads, useKommoUsers, useKommoTasks } from '../hooks/useKommoData';
+import { useKommoUsers } from '../hooks/useKommoData';
+import { useFilteredLeads, useFilteredTasks } from '../hooks/useFilteredKommoData';
 import { Trophy, Users, Clock, Target, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
