@@ -119,6 +119,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ads_integration_config: {
+        Row: {
+          account_id: string
+          account_name: string | null
+          config: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          platform: string
+          sync_from_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_id: string
+          account_name?: string | null
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          platform: string
+          sync_from_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          account_name?: string | null
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          platform?: string
+          sync_from_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       ai_usage_logs: {
         Row: {
           action: string
@@ -3833,6 +3872,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      campaign_costs: {
+        Row: {
+          account_id: string | null
+          ad_name: string | null
+          adset_name: string | null
+          campaign_id: string | null
+          campaign_name: string
+          clicks: number | null
+          conversion_value: number | null
+          conversions: number | null
+          cpc: number | null
+          cpl: number | null
+          created_at: string | null
+          ctr: number | null
+          date: string
+          id: string
+          impressions: number | null
+          platform: string
+          raw_data: Json | null
+          spend: number | null
+          synced_at: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          ad_name?: string | null
+          adset_name?: string | null
+          campaign_id?: string | null
+          campaign_name: string
+          clicks?: number | null
+          conversion_value?: number | null
+          conversions?: number | null
+          cpc?: number | null
+          cpl?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date: string
+          id?: string
+          impressions?: number | null
+          platform: string
+          raw_data?: Json | null
+          spend?: number | null
+          synced_at?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          ad_name?: string | null
+          adset_name?: string | null
+          campaign_id?: string | null
+          campaign_name?: string
+          clicks?: number | null
+          conversion_value?: number | null
+          conversions?: number | null
+          cpc?: number | null
+          cpl?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date?: string
+          id?: string
+          impressions?: number | null
+          platform?: string
+          raw_data?: Json | null
+          spend?: number | null
+          synced_at?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
       }
       carousel_banners: {
         Row: {
