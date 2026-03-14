@@ -11828,6 +11828,508 @@ export type Database = {
           },
         ]
       }
+      kommo_contacts: {
+        Row: {
+          company: string | null
+          custom_fields: Json | null
+          email: string | null
+          first_name: string | null
+          id: string
+          kommo_id: number
+          last_name: string | null
+          name: string | null
+          phone: string | null
+          raw_data: Json | null
+          responsible_user_kommo_id: number | null
+          synced_at: string | null
+          tags: string[] | null
+        }
+        Insert: {
+          company?: string | null
+          custom_fields?: Json | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          kommo_id: number
+          last_name?: string | null
+          name?: string | null
+          phone?: string | null
+          raw_data?: Json | null
+          responsible_user_kommo_id?: number | null
+          synced_at?: string | null
+          tags?: string[] | null
+        }
+        Update: {
+          company?: string | null
+          custom_fields?: Json | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          kommo_id?: number
+          last_name?: string | null
+          name?: string | null
+          phone?: string | null
+          raw_data?: Json | null
+          responsible_user_kommo_id?: number | null
+          synced_at?: string | null
+          tags?: string[] | null
+        }
+        Relationships: []
+      }
+      kommo_custom_fields: {
+        Row: {
+          entity_type: string
+          enums: Json | null
+          field_type: string | null
+          id: string
+          is_active: boolean | null
+          kommo_id: number
+          name: string
+          synced_at: string | null
+        }
+        Insert: {
+          entity_type: string
+          enums?: Json | null
+          field_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          kommo_id: number
+          name: string
+          synced_at?: string | null
+        }
+        Update: {
+          entity_type?: string
+          enums?: Json | null
+          field_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          kommo_id?: number
+          name?: string
+          synced_at?: string | null
+        }
+        Relationships: []
+      }
+      kommo_lead_contacts: {
+        Row: {
+          contact_kommo_id: number
+          id: string
+          is_main: boolean | null
+          lead_kommo_id: number
+        }
+        Insert: {
+          contact_kommo_id: number
+          id?: string
+          is_main?: boolean | null
+          lead_kommo_id: number
+        }
+        Update: {
+          contact_kommo_id?: number
+          id?: string
+          is_main?: boolean | null
+          lead_kommo_id?: number
+        }
+        Relationships: []
+      }
+      kommo_leads: {
+        Row: {
+          campaign: string | null
+          closed_at: string | null
+          created_at_kommo: string | null
+          custom_fields: Json | null
+          first_contact_at: string | null
+          id: string
+          is_lost: boolean | null
+          is_won: boolean | null
+          kommo_id: number
+          loss_reason: string | null
+          name: string | null
+          pipeline_kommo_id: number | null
+          price: number | null
+          raw_data: Json | null
+          responsible_user_kommo_id: number | null
+          source: string | null
+          source_name: string | null
+          stage_kommo_id: number | null
+          status_id: number | null
+          synced_at: string | null
+          tags: string[] | null
+          updated_at_kommo: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          campaign?: string | null
+          closed_at?: string | null
+          created_at_kommo?: string | null
+          custom_fields?: Json | null
+          first_contact_at?: string | null
+          id?: string
+          is_lost?: boolean | null
+          is_won?: boolean | null
+          kommo_id: number
+          loss_reason?: string | null
+          name?: string | null
+          pipeline_kommo_id?: number | null
+          price?: number | null
+          raw_data?: Json | null
+          responsible_user_kommo_id?: number | null
+          source?: string | null
+          source_name?: string | null
+          stage_kommo_id?: number | null
+          status_id?: number | null
+          synced_at?: string | null
+          tags?: string[] | null
+          updated_at_kommo?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          campaign?: string | null
+          closed_at?: string | null
+          created_at_kommo?: string | null
+          custom_fields?: Json | null
+          first_contact_at?: string | null
+          id?: string
+          is_lost?: boolean | null
+          is_won?: boolean | null
+          kommo_id?: number
+          loss_reason?: string | null
+          name?: string | null
+          pipeline_kommo_id?: number | null
+          price?: number | null
+          raw_data?: Json | null
+          responsible_user_kommo_id?: number | null
+          source?: string | null
+          source_name?: string | null
+          stage_kommo_id?: number | null
+          status_id?: number | null
+          synced_at?: string | null
+          tags?: string[] | null
+          updated_at_kommo?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
+      kommo_loss_reasons: {
+        Row: {
+          id: string
+          kommo_id: number | null
+          name: string
+          sort: number | null
+          synced_at: string | null
+        }
+        Insert: {
+          id?: string
+          kommo_id?: number | null
+          name: string
+          sort?: number | null
+          synced_at?: string | null
+        }
+        Update: {
+          id?: string
+          kommo_id?: number | null
+          name?: string
+          sort?: number | null
+          synced_at?: string | null
+        }
+        Relationships: []
+      }
+      kommo_pipeline_stages: {
+        Row: {
+          close_type: string | null
+          color: string | null
+          id: string
+          is_closed: boolean | null
+          kommo_id: number
+          name: string
+          pipeline_kommo_id: number
+          raw_data: Json | null
+          sort: number | null
+          synced_at: string | null
+        }
+        Insert: {
+          close_type?: string | null
+          color?: string | null
+          id?: string
+          is_closed?: boolean | null
+          kommo_id: number
+          name: string
+          pipeline_kommo_id: number
+          raw_data?: Json | null
+          sort?: number | null
+          synced_at?: string | null
+        }
+        Update: {
+          close_type?: string | null
+          color?: string | null
+          id?: string
+          is_closed?: boolean | null
+          kommo_id?: number
+          name?: string
+          pipeline_kommo_id?: number
+          raw_data?: Json | null
+          sort?: number | null
+          synced_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kommo_pipeline_stages_pipeline_kommo_id_fkey"
+            columns: ["pipeline_kommo_id"]
+            isOneToOne: false
+            referencedRelation: "kommo_pipelines"
+            referencedColumns: ["kommo_id"]
+          },
+        ]
+      }
+      kommo_pipelines: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          is_main: boolean | null
+          kommo_id: number
+          name: string
+          pipeline_type: string | null
+          raw_data: Json | null
+          sort: number | null
+          synced_at: string | null
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          is_main?: boolean | null
+          kommo_id: number
+          name: string
+          pipeline_type?: string | null
+          raw_data?: Json | null
+          sort?: number | null
+          synced_at?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          is_main?: boolean | null
+          kommo_id?: number
+          name?: string
+          pipeline_type?: string | null
+          raw_data?: Json | null
+          sort?: number | null
+          synced_at?: string | null
+        }
+        Relationships: []
+      }
+      kommo_sources: {
+        Row: {
+          category: string | null
+          channel: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          source_key: string
+          source_name: string
+        }
+        Insert: {
+          category?: string | null
+          channel?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          source_key: string
+          source_name: string
+        }
+        Update: {
+          category?: string | null
+          channel?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          source_key?: string
+          source_name?: string
+        }
+        Relationships: []
+      }
+      kommo_sync_config: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          last_sync_error: string | null
+          last_sync_status: string | null
+          subdomain: string
+          sync_frequency_minutes: number | null
+          sync_pipelines: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          subdomain: string
+          sync_frequency_minutes?: number | null
+          sync_pipelines?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          subdomain?: string
+          sync_frequency_minutes?: number | null
+          sync_pipelines?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      kommo_sync_logs: {
+        Row: {
+          completed_at: string | null
+          config_id: string | null
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          records_synced: Json | null
+          started_at: string | null
+          status: string
+          sync_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          config_id?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          records_synced?: Json | null
+          started_at?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Update: {
+          completed_at?: string | null
+          config_id?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          records_synced?: Json | null
+          started_at?: string | null
+          status?: string
+          sync_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kommo_sync_logs_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "kommo_sync_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kommo_tasks: {
+        Row: {
+          complete_till: string | null
+          completed_at: string | null
+          created_at_kommo: string | null
+          duration: number | null
+          id: string
+          is_completed: boolean | null
+          kommo_id: number
+          lead_kommo_id: number | null
+          raw_data: Json | null
+          responsible_user_kommo_id: number | null
+          result_text: string | null
+          synced_at: string | null
+          task_type: string | null
+          text: string | null
+        }
+        Insert: {
+          complete_till?: string | null
+          completed_at?: string | null
+          created_at_kommo?: string | null
+          duration?: number | null
+          id?: string
+          is_completed?: boolean | null
+          kommo_id: number
+          lead_kommo_id?: number | null
+          raw_data?: Json | null
+          responsible_user_kommo_id?: number | null
+          result_text?: string | null
+          synced_at?: string | null
+          task_type?: string | null
+          text?: string | null
+        }
+        Update: {
+          complete_till?: string | null
+          completed_at?: string | null
+          created_at_kommo?: string | null
+          duration?: number | null
+          id?: string
+          is_completed?: boolean | null
+          kommo_id?: number
+          lead_kommo_id?: number | null
+          raw_data?: Json | null
+          responsible_user_kommo_id?: number | null
+          result_text?: string | null
+          synced_at?: string | null
+          task_type?: string | null
+          text?: string | null
+        }
+        Relationships: []
+      }
+      kommo_users: {
+        Row: {
+          email: string | null
+          id: string
+          is_active: boolean | null
+          kommo_id: number
+          name: string
+          neohub_user_id: string | null
+          raw_data: Json | null
+          role: string | null
+          synced_at: string | null
+        }
+        Insert: {
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          kommo_id: number
+          name: string
+          neohub_user_id?: string | null
+          raw_data?: Json | null
+          role?: string | null
+          synced_at?: string | null
+        }
+        Update: {
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          kommo_id?: number
+          name?: string
+          neohub_user_id?: string | null
+          raw_data?: Json | null
+          role?: string | null
+          synced_at?: string | null
+        }
+        Relationships: []
+      }
       lead_release_daily: {
         Row: {
           created_at: string
