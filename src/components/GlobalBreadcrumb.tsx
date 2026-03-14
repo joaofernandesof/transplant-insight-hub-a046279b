@@ -59,6 +59,7 @@ const routeLabels: Record<string, string> = {
   // Setor Comercial
   '/neoteam/comercial': 'Comercial',
   '/neoteam/comercial/call-intelligence': 'Call Intelligence',
+  '/neoteam/comercial/kommo': 'Kommo Intelligence',
   // Setor de Marketing
   '/neoteam/marketing': 'Marketing',
   '/neoteam/marketing/campanhas': 'Campanhas',
