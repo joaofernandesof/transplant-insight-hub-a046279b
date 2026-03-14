@@ -135,14 +135,26 @@ Deno.serve(async (req) => {
         const pipelineRows = pipelines.map((p: any) => ({ kommo_id: p.id, name: p.name, sort: p.sort || 0, is_main: p.is_main || false, is_active: true, raw_data: p, synced_at: now }));
         await batchUpsert(supabase, "kommo_pipelines", pipelineRows, "kommo_id");
 
-        const stageRows: any[] = [];
+        const stageMap = new Map<string, any>();
         for (const p of pipelines) {
           for (const s of (p._embedded?.statuses || [])) {
             const closeType = s.id === 142 ? "won" : s.id === 143 ? "lost" : null;
-            stageRows.push({ kommo_id: s.id, pipeline_kommo_id: p.id, name: s.name, sort: s.sort || 0, color: s.color || null, is_closed: closeType !== null, close_type: closeType, raw_data: s, synced_at: now });
+            // Use composite key to handle shared statuses (142/143) across pipelines
+            const key = `${s.id}_${p.id}`;
+            stageMap.set(key, { kommo_id: s.id, pipeline_kommo_id: p.id, name: s.name, sort: s.sort || 0, color: s.color || null, is_closed: closeType !== null, close_type: closeType, raw_data: s, synced_at: now });
           }
         }
-        await batchUpsert(supabase, "kommo_pipeline_stages", stageRows, "kommo_id");
+        const stageRows = Array.from(stageMap.values());
+        // Upsert stages one pipeline at a time to avoid ON CONFLICT issues with shared kommo_ids
+        const pipelineGroups = new Map<number, any[]>();
+        for (const row of stageRows) {
+          const group = pipelineGroups.get(row.pipeline_kommo_id) || [];
+          group.push(row);
+          pipelineGroups.set(row.pipeline_kommo_id, group);
+        }
+        for (const [, group] of pipelineGroups) {
+          await batchUpsert(supabase, "kommo_pipeline_stages", group, "kommo_id");
+        }
         recordsSynced.pipelines = pipelines.length;
         recordsSynced.stages = stageRows.length;
       }
