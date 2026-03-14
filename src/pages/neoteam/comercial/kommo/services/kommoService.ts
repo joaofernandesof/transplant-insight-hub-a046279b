@@ -208,17 +208,35 @@ export async function fetchSyncLogs(limit = 20): Promise<KommoSyncLog[]> {
 // Trigger sync via Edge Function (split into phases to avoid timeout)
 export async function triggerSync(syncType: 'full' | 'incremental' = 'full', entities?: string[]) {
   if (syncType === 'full' && (!entities || entities.length === 0)) {
-    // Phase 1: pipelines + users (fast)
+    // Phase 1: pipelines + users (fast metadata)
     const { error: err1 } = await supabase.functions.invoke('kommo-sync', {
       body: { syncType: 'incremental', entities: ['pipelines', 'users'] },
     });
     if (err1) throw err1;
 
-    // Phase 2: leads + contacts + tasks + custom_fields + loss_reasons
-    const { data, error: err2 } = await supabase.functions.invoke('kommo-sync', {
-      body: { syncType: 'incremental', entities: ['leads', 'contacts', 'tasks', 'custom_fields', 'loss_reasons'] },
+    // Phase 2: leads (can be large)
+    const { error: err2 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['leads'] },
     });
     if (err2) throw err2;
+
+    // Phase 3: contacts (can be large)
+    const { error: err3 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['contacts'] },
+    });
+    if (err3) throw err3;
+
+    // Phase 4: tasks (can be large)
+    const { error: err4 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['tasks'] },
+    });
+    if (err4) throw err4;
+
+    // Phase 5: custom_fields + loss_reasons (fast)
+    const { data, error: err5 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['custom_fields', 'loss_reasons'] },
+    });
+    if (err5) throw err5;
     return data;
   }
 
