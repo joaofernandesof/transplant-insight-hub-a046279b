@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 export default function KommoSources() {
-  const { data: leads = [], isLoading } = useKommoLeads();
+  const { data: leads = [], isLoading } = useFilteredLeads();
   const hasData = leads.length > 0;
 
   const sourceData = useMemo(() => {

@@ -8,7 +8,7 @@ import { Clock, Zap, AlertTriangle, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 export default function KommoTime() {
-  const { data: leads = [], isLoading } = useKommoLeads();
+  const { data: leads = [], isLoading } = useFilteredLeads();
   const { data: pipelines = [] } = useKommoPipelines();
   const { data: allStages = [] } = useKommoStages();
   const { data: users = [] } = useKommoUsers();

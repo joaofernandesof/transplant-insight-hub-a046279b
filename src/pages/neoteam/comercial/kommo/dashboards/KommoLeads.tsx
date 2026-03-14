@@ -8,7 +8,7 @@ import { Users, UserX, UserCheck, Clock, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 export default function KommoLeads() {
-  const { data: leads = [], isLoading } = useKommoLeads();
+  const { data: leads = [], isLoading } = useFilteredLeads();
   const { data: pipelines = [] } = useKommoPipelines();
 
   const hasData = leads.length > 0;

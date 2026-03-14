@@ -12,7 +12,7 @@ export default function KommoFunnels() {
   const [selectedPipeline, setSelectedPipeline] = useState<string>('all');
   const { data: pipelines = [], isLoading: loadingPipelines } = useKommoPipelines();
   const { data: allStages = [] } = useKommoStages();
-  const { data: leads = [] } = useKommoLeads();
+  const { data: leads = [] } = useFilteredLeads();
 
   const hasData = pipelines.length > 0;
 

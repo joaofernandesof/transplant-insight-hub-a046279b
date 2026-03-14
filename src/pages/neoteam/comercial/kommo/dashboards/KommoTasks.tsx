@@ -8,9 +8,9 @@ import { ListTodo, CheckCircle, AlertCircle, Clock, Loader2 } from 'lucide-react
 import { useMemo } from 'react';
 
 export default function KommoTasks() {
-  const { data: tasks = [], isLoading } = useKommoTasks();
+  const { data: tasks = [], isLoading } = useFilteredTasks();
   const { data: users = [] } = useKommoUsers();
-  const { data: leads = [] } = useKommoLeads();
+  const { data: leads = [] } = useFilteredLeads();
 
   const hasData = tasks.length > 0;
   const now = new Date();

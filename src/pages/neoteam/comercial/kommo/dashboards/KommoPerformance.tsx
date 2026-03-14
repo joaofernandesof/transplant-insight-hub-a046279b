@@ -8,9 +8,9 @@ import { Trophy, Users, Clock, Target, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 export default function KommoPerformance() {
-  const { data: leads = [], isLoading } = useKommoLeads();
+  const { data: leads = [], isLoading } = useFilteredLeads();
   const { data: users = [] } = useKommoUsers();
-  const { data: tasks = [] } = useKommoTasks();
+  const { data: tasks = [] } = useFilteredTasks();
 
   const hasData = leads.length > 0 && users.length > 0;
 

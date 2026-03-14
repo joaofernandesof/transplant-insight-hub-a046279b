@@ -8,7 +8,7 @@ import { HeartPulse, UserCheck, RefreshCw, AlertTriangle, Loader2 } from 'lucide
 import { useMemo } from 'react';
 
 export default function KommoPostSales() {
-  const { data: leads = [], isLoading } = useKommoLeads();
+  const { data: leads = [], isLoading } = useFilteredLeads();
   const { data: pipelines = [] } = useKommoPipelines();
   const { data: allStages = [] } = useKommoStages();
 
