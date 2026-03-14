@@ -159,41 +159,18 @@ Deno.serve(async (req) => {
       }
       await updateProgress(supabase, syncLogId, 1, "Usuários", recordsSynced);
 
-      // 3. Leads - fetch per pipeline to ensure ALL statuses (open, won, lost) are captured
+      // 3. Leads
       if (shouldSync("leads")) {
-        // Get pipelines and their stages
-        const { data: dbPipelines } = await supabase.from("kommo_pipelines").select("kommo_id");
-        const { data: dbStages } = await supabase.from("kommo_pipeline_stages").select("kommo_id, pipeline_kommo_id, is_closed");
-        
-        const pipelineStagesMap = new Map<number, number[]>();
-        for (const stage of (dbStages || [])) {
-          if (!stage.is_closed) {
-            const stages = pipelineStagesMap.get(stage.pipeline_kommo_id) || [];
-            stages.push(stage.kommo_id);
-            pipelineStagesMap.set(stage.pipeline_kommo_id, stages);
-          }
-        }
+        const leads = await kommo.getLeads();
+        const { data: closedStages = [] } = await supabase
+          .from("kommo_pipeline_stages")
+          .select("kommo_id, close_type")
+          .eq("is_closed", true);
 
-        // Deduplicate leads by kommo_id
-        const allLeadsMap = new Map<number, any>();
-        
-        // First: fetch ALL leads without filter (catches any that might not be in known pipelines)
-        console.log(`[kommo-sync] Fetching leads without filter...`);
-        const generalLeads = await kommo.getLeads();
-        console.log(`[kommo-sync] General fetch: ${generalLeads.length} leads`);
-        for (const l of generalLeads) allLeadsMap.set(l.id, l);
-        
-        // Then: fetch per pipeline per stage to ensure open leads are captured
-        for (const [pipelineId, stageIds] of pipelineStagesMap) {
-          console.log(`[kommo-sync] Fetching leads for pipeline ${pipelineId} (${stageIds.length} open stages)...`);
-          const pipelineLeads = await kommo.getLeadsByPipeline(pipelineId, stageIds);
-          console.log(`[kommo-sync] Pipeline ${pipelineId}: ${pipelineLeads.length} leads`);
-          for (const l of pipelineLeads) allLeadsMap.set(l.id, l);
-        }
-        
-        const leads = Array.from(allLeadsMap.values());
-        console.log(`[kommo-sync] Total unique leads: ${leads.length}`);
-        
+        const closeTypeByStage = new Map<number, string | null>(
+          closedStages.map((stage: any) => [Number(stage.kommo_id), stage.close_type || null]),
+        );
+
         const leadRows: any[] = [];
         const leadContactRows: any[] = [];
         for (const l of leads) {
@@ -215,8 +192,11 @@ Deno.serve(async (req) => {
               if (fname.includes("utm_term")) utmTerm = val;
             }
           }
-          const isWon = l.status_id === 142;
-          const isLost = l.status_id === 143;
+
+          const closeType = closeTypeByStage.get(Number(l.status_id));
+          const isWon = closeType === "won" || Number(l.status_id) === 142;
+          const isLost = closeType === "lost" || Number(l.status_id) === 143;
+
           leadRows.push({
             kommo_id: l.id, name: l.name || null, price: l.price || 0,
             pipeline_kommo_id: l.pipeline_id || null, stage_kommo_id: l.status_id || null,
@@ -234,8 +214,13 @@ Deno.serve(async (req) => {
             leadContactRows.push({ lead_kommo_id: l.id, contact_kommo_id: c.id, is_main: c.is_main || false });
           }
         }
-        await batchUpsert(supabase, "kommo_leads", leadRows, "kommo_id");
-        await batchUpsert(supabase, "kommo_lead_contacts", leadContactRows, "lead_kommo_id,contact_kommo_id");
+
+        await batchUpsert(supabase, "kommo_leads", leadRows, "kommo_id", 200);
+        await batchUpsert(supabase, "kommo_lead_contacts", leadContactRows, "lead_kommo_id,contact_kommo_id", 200);
+
+        // Keep table aligned with current Kommo snapshot
+        await supabase.from("kommo_leads").delete().lt("synced_at", now);
+
         recordsSynced.leads = leads.length;
       }
       await updateProgress(supabase, syncLogId, 2, "Leads", recordsSynced);
