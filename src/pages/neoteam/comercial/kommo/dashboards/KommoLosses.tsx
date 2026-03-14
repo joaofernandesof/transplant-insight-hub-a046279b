@@ -1,8 +1,9 @@
-// KommoLosses - Dashboard de Perdas com dados reais
+// KommoLosses - Dashboard de Perdas com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { useKommoLeads, useKommoPipelines, useKommoUsers } from '../hooks/useKommoData';
+import { useKommoPipelines, useKommoUsers } from '../hooks/useKommoData';
+import { useFilteredLeads } from '../hooks/useFilteredKommoData';
 import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
