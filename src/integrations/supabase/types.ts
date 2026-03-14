@@ -12310,6 +12310,7 @@ export type Database = {
           duration_ms: number | null
           error_message: string | null
           id: string
+          progress: Json | null
           records_synced: Json | null
           started_at: string | null
           status: string
@@ -12321,6 +12322,7 @@ export type Database = {
           duration_ms?: number | null
           error_message?: string | null
           id?: string
+          progress?: Json | null
           records_synced?: Json | null
           started_at?: string | null
           status?: string
@@ -12332,6 +12334,7 @@ export type Database = {
           duration_ms?: number | null
           error_message?: string | null
           id?: string
+          progress?: Json | null
           records_synced?: Json | null
           started_at?: string | null
           status?: string
