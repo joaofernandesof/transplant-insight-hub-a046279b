@@ -92,7 +92,7 @@ export function InternalChatFab() {
         )}
       </button>
 
-      <InternalChatDrawer open={isOpen} onOpenChange={setIsOpen} />
+      <InternalChatDrawer open={isOpen} onOpenChange={setIsOpen} chat={chat} />
     </>
   );
 }
