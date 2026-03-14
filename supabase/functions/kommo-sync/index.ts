@@ -42,13 +42,14 @@ class KommoAPI {
     return await res.json();
   }
 
-  private async fetchAll(endpoint: string, embeddedKey: string, params?: Record<string, string>, maxPages = 4) {
+  private async fetchAll(endpoint: string, embeddedKey: string, params?: Record<string, string>, maxPages = 100) {
     let results: any[] = [];
     let page = 1;
     while (page <= maxPages) {
       const data = await this.request(endpoint, { ...params, limit: "250", page: String(page) });
       const items = data?._embedded?.[embeddedKey] || [];
       results = results.concat(items);
+      console.log(`[kommo-sync] ${embeddedKey} page ${page}: ${items.length} items (total: ${results.length})`);
       if (!data?._links?.next || items.length < 250) break;
       page++;
     }

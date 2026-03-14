@@ -141,12 +141,23 @@ export async function fetchPipelineStages(pipelineKommoId?: number): Promise<Kom
 }
 
 export async function fetchLeads(): Promise<KommoLead[]> {
-  const { data, error } = await supabase
-    .from('kommo_leads')
-    .select('*')
-    .order('created_at_kommo', { ascending: false });
-  if (error) throw error;
-  return (data || []) as unknown as KommoLead[];
+  // Fetch all leads in batches to bypass the 1000 row default limit
+  const allLeads: KommoLead[] = [];
+  const batchSize = 1000;
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('kommo_leads')
+      .select('*')
+      .order('created_at_kommo', { ascending: false })
+      .range(offset, offset + batchSize - 1);
+    if (error) throw error;
+    const batch = (data || []) as unknown as KommoLead[];
+    allLeads.push(...batch);
+    if (batch.length < batchSize) break;
+    offset += batchSize;
+  }
+  return allLeads;
 }
 
 export async function fetchUsers(): Promise<KommoUser[]> {
@@ -159,21 +170,41 @@ export async function fetchUsers(): Promise<KommoUser[]> {
 }
 
 export async function fetchTasks(): Promise<KommoTask[]> {
-  const { data, error } = await supabase
-    .from('kommo_tasks')
-    .select('*')
-    .order('created_at_kommo', { ascending: false });
-  if (error) throw error;
-  return (data || []) as unknown as KommoTask[];
+  const allTasks: KommoTask[] = [];
+  const batchSize = 1000;
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('kommo_tasks')
+      .select('*')
+      .order('created_at_kommo', { ascending: false })
+      .range(offset, offset + batchSize - 1);
+    if (error) throw error;
+    const batch = (data || []) as unknown as KommoTask[];
+    allTasks.push(...batch);
+    if (batch.length < batchSize) break;
+    offset += batchSize;
+  }
+  return allTasks;
 }
 
 export async function fetchContacts(): Promise<KommoContact[]> {
-  const { data, error } = await supabase
-    .from('kommo_contacts')
-    .select('*')
-    .order('name');
-  if (error) throw error;
-  return (data || []) as unknown as KommoContact[];
+  const allContacts: KommoContact[] = [];
+  const batchSize = 1000;
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('kommo_contacts')
+      .select('*')
+      .order('name')
+      .range(offset, offset + batchSize - 1);
+    if (error) throw error;
+    const batch = (data || []) as unknown as KommoContact[];
+    allContacts.push(...batch);
+    if (batch.length < batchSize) break;
+    offset += batchSize;
+  }
+  return allContacts;
 }
 
 export async function fetchLossReasons(): Promise<KommoLossReason[]> {
@@ -208,17 +239,35 @@ export async function fetchSyncLogs(limit = 20): Promise<KommoSyncLog[]> {
 // Trigger sync via Edge Function (split into phases to avoid timeout)
 export async function triggerSync(syncType: 'full' | 'incremental' = 'full', entities?: string[]) {
   if (syncType === 'full' && (!entities || entities.length === 0)) {
-    // Phase 1: pipelines + users (fast)
+    // Phase 1: pipelines + users (fast metadata)
     const { error: err1 } = await supabase.functions.invoke('kommo-sync', {
       body: { syncType: 'incremental', entities: ['pipelines', 'users'] },
     });
     if (err1) throw err1;
 
-    // Phase 2: leads + contacts + tasks + custom_fields + loss_reasons
-    const { data, error: err2 } = await supabase.functions.invoke('kommo-sync', {
-      body: { syncType: 'incremental', entities: ['leads', 'contacts', 'tasks', 'custom_fields', 'loss_reasons'] },
+    // Phase 2: leads (can be large)
+    const { error: err2 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['leads'] },
     });
     if (err2) throw err2;
+
+    // Phase 3: contacts (can be large)
+    const { error: err3 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['contacts'] },
+    });
+    if (err3) throw err3;
+
+    // Phase 4: tasks (can be large)
+    const { error: err4 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['tasks'] },
+    });
+    if (err4) throw err4;
+
+    // Phase 5: custom_fields + loss_reasons (fast)
+    const { data, error: err5 } = await supabase.functions.invoke('kommo-sync', {
+      body: { syncType: 'incremental', entities: ['custom_fields', 'loss_reasons'] },
+    });
+    if (err5) throw err5;
     return data;
   }
 
