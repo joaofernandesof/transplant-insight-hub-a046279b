@@ -1,29 +1,85 @@
-// KommoLosses - Dashboard de Perdas
+// KommoLosses - Dashboard de Perdas com dados reais
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { MOCK_LOSS_REASONS, MOCK_PIPELINES, MOCK_USERS } from '../types';
+import { useKommoLeads, useKommoPipelines, useKommoUsers } from '../hooks/useKommoData';
+import { Loader2 } from 'lucide-react';
+import { useMemo } from 'react';
 
 export default function KommoLosses() {
-  const totalLosses = MOCK_LOSS_REASONS.reduce((a, l) => a + l.count, 0);
+  const { data: leads = [], isLoading } = useKommoLeads();
+  const { data: pipelines = [] } = useKommoPipelines();
+  const { data: users = [] } = useKommoUsers();
+
+  const hasData = leads.length > 0;
+  const lostLeads = leads.filter(l => l.is_lost);
+  const lostValue = lostLeads.reduce((sum, l) => sum + (l.price || 0), 0);
+  const lossRate = leads.length > 0 ? ((lostLeads.length / leads.length) * 100).toFixed(1) : '0';
+
+  // Loss reasons
+  const lossReasons = useMemo(() => {
+    const map = new Map<string, number>();
+    lostLeads.forEach(l => {
+      const reason = l.loss_reason || 'Não informado';
+      map.set(reason, (map.get(reason) || 0) + 1);
+    });
+    const total = lostLeads.length || 1;
+    return Array.from(map.entries())
+      .map(([reason, count]) => ({ reason, count, percentage: ((count / total) * 100).toFixed(1) }))
+      .sort((a, b) => b.count - a.count);
+  }, [lostLeads]);
+
+  // Losses per pipeline
+  const pipelineLosses = useMemo(() => {
+    return pipelines.map(p => {
+      const pLeads = leads.filter(l => l.pipeline_kommo_id === p.kommo_id);
+      const pLost = pLeads.filter(l => l.is_lost);
+      return {
+        name: p.name,
+        total: pLeads.length,
+        lost: pLost.length,
+        rate: pLeads.length > 0 ? ((pLost.length / pLeads.length) * 100).toFixed(1) : '0',
+      };
+    });
+  }, [leads, pipelines]);
+
+  // Losses per user
+  const userLosses = useMemo(() => {
+    return users.map(u => {
+      const uLeads = leads.filter(l => l.responsible_user_kommo_id === u.kommo_id);
+      const uLost = uLeads.filter(l => l.is_lost);
+      return {
+        name: u.name,
+        role: u.role || 'user',
+        received: uLeads.length,
+        lost: uLost.length,
+        rate: uLeads.length > 0 ? ((uLost.length / uLeads.length) * 100).toFixed(1) : '0',
+      };
+    }).filter(u => u.lost > 0).sort((a, b) => b.lost - a.lost);
+  }, [leads, users]);
+
+  if (isLoading) {
+    return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+
+  if (!hasData) {
+    return <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm">Sincronize com o Kommo para ver dados de perdas.</div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KPICard label="Total de Perdas" value={totalLosses} change={34} changeLabel="aumento" />
-        <KPICard label="Taxa de Perda" value="13.1%" change={4.2} />
-        <KPICard label="Principal Motivo" value="Preço alto" />
-        <KPICard label="Valor Perdido" value="R$ 480k" change={22} />
+        <KPICard label="Total de Perdas" value={lostLeads.length} />
+        <KPICard label="Taxa de Perda" value={`${lossRate}%`} />
+        <KPICard label="Principal Motivo" value={lossReasons[0]?.reason || '-'} />
+        <KPICard label="Valor Perdido" value={`R$ ${(lostValue / 1000).toFixed(0)}k`} />
       </div>
 
-      {/* Motivos de Perda */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Motivos de Perda</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Motivos de Perda</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {MOCK_LOSS_REASONS.map(l => (
+            {lossReasons.map(l => (
               <div key={l.reason} className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">{l.reason}</span>
@@ -38,32 +94,23 @@ export default function KommoLosses() {
         </CardContent>
       </Card>
 
-      {/* Perdas por Funil */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Perdas por Funil</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Perdas por Funil</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {MOCK_PIPELINES.map(p => {
-              const lossRate = (100 - p.conversionRate).toFixed(1);
-              return (
-                <div key={p.id} className="p-3 rounded-lg bg-muted/30 space-y-1">
-                  <p className="text-xs font-medium truncate">{p.name}</p>
-                  <p className="text-lg font-bold">{lossRate}%</p>
-                  <p className="text-[11px] text-muted-foreground">de perda acumulada</p>
-                </div>
-              );
-            })}
+            {pipelineLosses.map(p => (
+              <div key={p.name} className="p-3 rounded-lg bg-muted/30 space-y-1">
+                <p className="text-xs font-medium truncate">{p.name}</p>
+                <p className="text-lg font-bold">{p.rate}%</p>
+                <p className="text-[11px] text-muted-foreground">{p.lost} de {p.total} leads</p>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Perdas por Usuário */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Perdas por Responsável</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Perdas por Responsável</CardTitle></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -77,17 +124,13 @@ export default function KommoLosses() {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_USERS.filter(u => u.leadsLost > 0).sort((a, b) => b.leadsLost - a.leadsLost).map(u => (
-                  <tr key={u.id} className="border-b last:border-0">
+                {userLosses.map(u => (
+                  <tr key={u.name} className="border-b last:border-0">
                     <td className="py-2 font-medium">{u.name}</td>
                     <td className="py-2"><Badge variant="outline" className="text-xs">{u.role}</Badge></td>
-                    <td className="py-2 text-right">{u.leadsReceived}</td>
-                    <td className="py-2 text-right font-medium">{u.leadsLost}</td>
-                    <td className="py-2 text-right">
-                      <Badge variant="destructive" className="text-xs">
-                        {((u.leadsLost / u.leadsReceived) * 100).toFixed(1)}%
-                      </Badge>
-                    </td>
+                    <td className="py-2 text-right">{u.received}</td>
+                    <td className="py-2 text-right font-medium">{u.lost}</td>
+                    <td className="py-2 text-right"><Badge variant="destructive" className="text-xs">{u.rate}%</Badge></td>
                   </tr>
                 ))}
               </tbody>
