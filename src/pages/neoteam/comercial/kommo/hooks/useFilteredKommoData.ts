@@ -61,8 +61,9 @@ export function useFilteredTasks() {
     return tasks.filter(task => {
       if (!isInDateRange(task.created_at_kommo, filters.dateFrom, filters.dateTo)) return false;
 
-      if (filters.responsibleUserKommoIds.length > 0 && task.responsible_user_kommo_id) {
-        if (!filters.responsibleUserKommoIds.includes(task.responsible_user_kommo_id)) return false;
+      if (filters.responsibleUserKommoIds.length > 0) {
+        const taskResponsibleId = task.responsible_user_kommo_id != null ? Number(task.responsible_user_kommo_id) : null;
+        if (taskResponsibleId == null || !filters.responsibleUserKommoIds.some(id => Number(id) === taskResponsibleId)) return false;
       }
 
       return true;
