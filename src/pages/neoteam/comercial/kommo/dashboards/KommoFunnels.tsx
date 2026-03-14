@@ -16,11 +16,23 @@ export default function KommoFunnels() {
 
   const hasData = pipelines.length > 0;
 
+  const pipelinesWithLeads = useMemo(() => {
+    const counts = new Map<number, number>();
+    leads.forEach((lead) => {
+      if (lead.pipeline_kommo_id == null) return;
+      counts.set(lead.pipeline_kommo_id, (counts.get(lead.pipeline_kommo_id) || 0) + 1);
+    });
+
+    return pipelines
+      .filter((pipeline) => (counts.get(pipeline.kommo_id) || 0) > 0)
+      .sort((a, b) => (counts.get(b.kommo_id) || 0) - (counts.get(a.kommo_id) || 0));
+  }, [pipelines, leads]);
+
   // Build funnel data from real data
   const funnelData = useMemo(() => {
     if (!hasData) return [];
 
-    return pipelines
+    return pipelinesWithLeads
       .filter(p => selectedPipeline === 'all' || String(p.kommo_id) === selectedPipeline)
       .map(pipeline => {
         const pipelineStages = allStages
@@ -52,7 +64,7 @@ export default function KommoFunnels() {
           conversionRate: Number(convRate.toFixed(1)),
         };
       });
-  }, [pipelines, allStages, leads, selectedPipeline, hasData]);
+  }, [pipelinesWithLeads, allStages, leads, selectedPipeline, hasData]);
 
   if (loadingPipelines) {
     return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
