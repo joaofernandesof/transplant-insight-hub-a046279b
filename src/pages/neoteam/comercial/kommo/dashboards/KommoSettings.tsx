@@ -11,7 +11,7 @@ import { useKommoSync, useKommoSyncConfig, useKommoSyncLogs, useKommoPipelines, 
 import { useKommoAlertRules, useCreateAlertRule, useToggleAlertRule, useDeleteAlertRule } from '../hooks/useKommoAlerts';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
