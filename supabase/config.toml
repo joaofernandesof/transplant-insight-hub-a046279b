@@ -131,3 +131,9 @@ verify_jwt = false
 
 [functions.fireflies-backfill-duration]
 verify_jwt = false
+
+[functions.kommo-sync]
+verify_jwt = false
+
+[functions.kommo-webhook]
+verify_jwt = false
