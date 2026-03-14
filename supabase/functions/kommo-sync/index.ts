@@ -184,9 +184,41 @@ Deno.serve(async (req) => {
       }
       await updateProgress(supabase, syncLogId, 1, "Usuários", recordsSynced);
 
-      // 3. Leads
+      // 3. Leads - fetch per pipeline to ensure ALL statuses (open, won, lost) are captured
       if (shouldSync("leads")) {
-        const leads = await kommo.getLeads();
+        // Get pipelines and their stages
+        const { data: dbPipelines } = await supabase.from("kommo_pipelines").select("kommo_id");
+        const { data: dbStages } = await supabase.from("kommo_pipeline_stages").select("kommo_id, pipeline_kommo_id, is_closed");
+        
+        const pipelineStagesMap = new Map<number, number[]>();
+        for (const stage of (dbStages || [])) {
+          if (!stage.is_closed) {
+            const stages = pipelineStagesMap.get(stage.pipeline_kommo_id) || [];
+            stages.push(stage.kommo_id);
+            pipelineStagesMap.set(stage.pipeline_kommo_id, stages);
+          }
+        }
+
+        // Deduplicate leads by kommo_id
+        const allLeadsMap = new Map<number, any>();
+        
+        // First: fetch ALL leads without filter (catches any that might not be in known pipelines)
+        console.log(`[kommo-sync] Fetching leads without filter...`);
+        const generalLeads = await kommo.getLeads();
+        console.log(`[kommo-sync] General fetch: ${generalLeads.length} leads`);
+        for (const l of generalLeads) allLeadsMap.set(l.id, l);
+        
+        // Then: fetch per pipeline per stage to ensure open leads are captured
+        for (const [pipelineId, stageIds] of pipelineStagesMap) {
+          console.log(`[kommo-sync] Fetching leads for pipeline ${pipelineId} (${stageIds.length} open stages)...`);
+          const pipelineLeads = await kommo.getLeadsByPipeline(pipelineId, stageIds);
+          console.log(`[kommo-sync] Pipeline ${pipelineId}: ${pipelineLeads.length} leads`);
+          for (const l of pipelineLeads) allLeadsMap.set(l.id, l);
+        }
+        
+        const leads = Array.from(allLeadsMap.values());
+        console.log(`[kommo-sync] Total unique leads: ${leads.length}`);
+        
         const leadRows: any[] = [];
         const leadContactRows: any[] = [];
         for (const l of leads) {
