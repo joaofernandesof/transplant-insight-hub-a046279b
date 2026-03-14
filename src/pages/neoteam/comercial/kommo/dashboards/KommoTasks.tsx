@@ -1,8 +1,9 @@
-// KommoTasks - Dashboard de Tarefas com dados reais
+// KommoTasks - Dashboard de Tarefas com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { useKommoTasks, useKommoUsers, useKommoLeads } from '../hooks/useKommoData';
+import { useKommoUsers } from '../hooks/useKommoData';
+import { useFilteredTasks, useFilteredLeads } from '../hooks/useFilteredKommoData';
 import { ListTodo, CheckCircle, AlertCircle, Clock, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
