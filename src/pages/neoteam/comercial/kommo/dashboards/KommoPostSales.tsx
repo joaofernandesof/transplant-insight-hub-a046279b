@@ -20,8 +20,19 @@ export default function KommoPostSales() {
     return pipelines.filter(p => keywords.some(k => p.name.toLowerCase().includes(k)));
   }, [pipelines]);
 
-  // If no post-sales identified, show all pipelines after the main sales ones
-  const displayPipelines = postSalesPipelines.length > 0 ? postSalesPipelines : pipelines.slice(-2);
+  // If no post-sales identified, fallback to pipelines that actually have leads
+  const displayPipelines = useMemo(() => {
+    if (postSalesPipelines.length > 0) return postSalesPipelines;
+
+    return pipelines
+      .map((pipeline) => ({
+        ...pipeline,
+        leadCount: leads.filter((lead) => lead.pipeline_kommo_id === pipeline.kommo_id).length,
+      }))
+      .filter((pipeline) => pipeline.leadCount > 0)
+      .sort((a, b) => b.leadCount - a.leadCount)
+      .slice(0, 2);
+  }, [postSalesPipelines, pipelines, leads]);
 
   const postSalesData = useMemo(() => {
     return displayPipelines.map(p => {

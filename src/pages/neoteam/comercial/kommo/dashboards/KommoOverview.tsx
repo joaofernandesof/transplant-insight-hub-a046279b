@@ -102,16 +102,20 @@ export default function KommoOverview() {
       .slice(0, 5);
   }, [leads, users]);
 
-  // Charts data
+  // Charts data (focus on pipelines with real volume)
   const pipelineChartData = useMemo(() => {
-    return pipelines.map(p => {
-      const pLeads = leads.filter(l => l.pipeline_kommo_id === p.kommo_id);
-      return {
-        name: p.name.length > 15 ? p.name.slice(0, 15) + '...' : p.name,
-        Leads: pLeads.length,
-        Ganhos: pLeads.filter(l => l.is_won).length,
-      };
-    });
+    return pipelines
+      .map(p => {
+        const pLeads = leads.filter(l => l.pipeline_kommo_id === p.kommo_id);
+        return {
+          name: p.name.length > 15 ? p.name.slice(0, 15) + '...' : p.name,
+          Leads: pLeads.length,
+          Ganhos: pLeads.filter(l => l.is_won).length,
+        };
+      })
+      .filter(p => p.Leads > 0)
+      .sort((a, b) => b.Leads - a.Leads)
+      .slice(0, 12);
   }, [leads, pipelines]);
 
   const statusChartData = useMemo(() => [

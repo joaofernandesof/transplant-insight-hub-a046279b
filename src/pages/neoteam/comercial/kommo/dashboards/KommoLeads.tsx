@@ -33,12 +33,15 @@ export default function KommoLeads() {
     };
   }, [leads]);
 
-  // Leads per pipeline
+  // Leads per pipeline (only pipelines with data)
   const pipelineDistribution = useMemo(() => {
-    return pipelines.map(p => ({
-      name: p.name,
-      count: leads.filter(l => l.pipeline_kommo_id === p.kommo_id).length,
-    }));
+    return pipelines
+      .map(p => ({
+        name: p.name,
+        count: leads.filter(l => l.pipeline_kommo_id === p.kommo_id).length,
+      }))
+      .filter(p => p.count > 0)
+      .sort((a, b) => b.count - a.count);
   }, [leads, pipelines]);
 
   // Source stats
