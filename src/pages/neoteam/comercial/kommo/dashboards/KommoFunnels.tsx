@@ -91,13 +91,20 @@ export default function KommoFunnels() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KPICard label="Funis Ativos" value={pipelines.length} />
+        <KPICard label="Funis com Leads" value={pipelinesWithLeads.length} />
         <KPICard label="Total de Leads" value={funnelData.reduce((a, p) => a + p.totalLeads, 0).toLocaleString()} />
         <KPICard label="Valor Total" value={`R$ ${(funnelData.reduce((a, p) => a + p.totalValue, 0) / 1000).toFixed(0)}k`} />
         <KPICard label="Conversão Média" value={`${funnelData.length > 0 ? (funnelData.reduce((a, p) => a + p.conversionRate, 0) / funnelData.length).toFixed(1) : 0}%`} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
+        {funnelData.length === 0 && (
+          <Card className="lg:col-span-2">
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              Nenhum funil com leads para os filtros atuais.
+            </CardContent>
+          </Card>
+        )}
         {funnelData.map(p => {
           const maxLeads = Math.max(...p.stages.map(s => s.leads), 1);
           return (
