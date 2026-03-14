@@ -53,10 +53,10 @@ const getDateRange = (preset: DatePreset): { from: Date; to: Date } => {
   }
 };
 
-const defaultRange = getDateRange('30d');
+const defaultRange = getDateRange('all');
 
 const DEFAULT_FILTERS: KommoFilters = {
-  datePreset: '30d',
+  datePreset: 'all',
   dateFrom: defaultRange.from,
   dateTo: defaultRange.to,
   pipelineKommoIds: [],
@@ -101,7 +101,7 @@ export function KommoFiltersProvider({ children }: { children: React.ReactNode }
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (filters.datePreset !== '30d') count++;
+    if (filters.datePreset !== 'all') count++;
     if (filters.pipelineKommoIds.length > 0) count++;
     if (filters.responsibleUserKommoIds.length > 0) count++;
     if (filters.sources.length > 0) count++;
