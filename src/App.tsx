@@ -548,6 +548,7 @@ function NeoTeamRoutes() {
 
           {/* ===== SETOR COMERCIAL ===== */}
           <Route path="comercial/call-intelligence" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CallIntelligencePage /></Suspense>} />
+          <Route path="comercial/kommo" element={<Suspense fallback={<div className="p-6">Carregando...</div>}>{React.createElement(React.lazy(() => import('@/pages/neoteam/comercial/kommo/KommoModulePage')))}</Suspense>} />
 
           {/* ===== SETOR MARKETING ===== */}
           <Route path="marketing/campanhas" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><CampaignsPage /></Suspense>} />
