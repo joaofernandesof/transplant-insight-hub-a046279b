@@ -36,7 +36,7 @@ const PRECONFIGURED_SHEETS = [
     spreadsheet_id: '1SXrvIZHk3KDDcRy3NAkEWa8pQTeyJ9_E2LNx8adnDOE',
     business_unit: 'ibramec',
     gids: [
-      { gid: '734559877', type: 'detail' as const, label: 'Detalhe Campanhas' },
+      { gid: '0', type: 'summary' as const, label: 'Resumo Mensal' },
     ],
   },
 ];
