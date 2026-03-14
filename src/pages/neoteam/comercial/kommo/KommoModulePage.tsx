@@ -118,6 +118,7 @@ export default function KommoModulePage() {
               <TabsContent value="losses" className="mt-4"><KommoLosses /></TabsContent>
               <TabsContent value="tasks" className="mt-4"><KommoTasks /></TabsContent>
               <TabsContent value="post-sales" className="mt-4"><KommoPostSales /></TabsContent>
+              <TabsContent value="roi" className="mt-4"><KommoROI /></TabsContent>
               <TabsContent value="reports" className="mt-4"><KommoReports /></TabsContent>
               <TabsContent value="settings" className="mt-4"><KommoSettings /></TabsContent>
             </React.Suspense>
