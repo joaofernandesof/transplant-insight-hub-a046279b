@@ -3,18 +3,14 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageSquare } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { InternalChatDrawer } from './InternalChatDrawer';
 import { useInternalChat } from '@/hooks/useInternalChat';
-import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { supabase } from '@/integrations/supabase/client';
 
 export function InternalChatFab() {
   const [isOpen, setIsOpen] = useState(false);
-  const { totalUnread } = useInternalChat();
-  const { session } = useUnifiedAuth();
-  const authUserId = session?.user?.id;
+  const chat = useInternalChat();
+  const { totalUnread } = chat;
   const prevUnread = useRef(totalUnread);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -96,7 +92,7 @@ export function InternalChatFab() {
         )}
       </button>
 
-      <InternalChatDrawer open={isOpen} onOpenChange={setIsOpen} />
+      <InternalChatDrawer open={isOpen} onOpenChange={setIsOpen} chat={chat} />
     </>
   );
 }

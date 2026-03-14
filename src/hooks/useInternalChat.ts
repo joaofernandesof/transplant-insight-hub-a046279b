@@ -467,3 +467,5 @@ export function useInternalChat() {
     fetchChats,
   };
 }
+
+export type InternalChatHook = ReturnType<typeof useInternalChat>;

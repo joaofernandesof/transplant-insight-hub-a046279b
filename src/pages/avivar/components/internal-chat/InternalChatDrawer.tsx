@@ -6,15 +6,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { ChatList } from './ChatList';
 import { ChatThread } from './ChatThread';
 import { NewChatDialog } from './NewChatDialog';
-import { useInternalChat } from '@/hooks/useInternalChat';
+import type { InternalChatHook } from '@/hooks/useInternalChat';
 
 interface InternalChatDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  chat: InternalChatHook;
 }
 
-export function InternalChatDrawer({ open, onOpenChange }: InternalChatDrawerProps) {
-  const chat = useInternalChat();
+export function InternalChatDrawer({ open, onOpenChange, chat }: InternalChatDrawerProps) {
   const [showNewChat, setShowNewChat] = useState(false);
 
   const handleBack = () => {
