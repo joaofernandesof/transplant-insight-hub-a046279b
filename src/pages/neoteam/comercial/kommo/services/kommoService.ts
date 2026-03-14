@@ -105,6 +105,8 @@ export interface KommoSyncConfig {
   last_sync_status: string;
   last_sync_error: string | null;
   sync_frequency_minutes: number;
+  auto_sync_enabled?: boolean;
+  auto_sync_interval_minutes?: number;
 }
 
 export interface KommoSyncLog {
