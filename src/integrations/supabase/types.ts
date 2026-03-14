@@ -11828,6 +11828,57 @@ export type Database = {
           },
         ]
       }
+      kommo_alert_rules: {
+        Row: {
+          alert_type: string
+          check_interval_minutes: number
+          condition: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          last_triggered_at: string | null
+          metric_key: string
+          name: string
+          notify_in_app: boolean
+          severity: string
+          threshold_value: number
+          updated_at: string
+        }
+        Insert: {
+          alert_type?: string
+          check_interval_minutes?: number
+          condition?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          metric_key: string
+          name: string
+          notify_in_app?: boolean
+          severity?: string
+          threshold_value?: number
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          check_interval_minutes?: number
+          condition?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          metric_key?: string
+          name?: string
+          notify_in_app?: boolean
+          severity?: string
+          threshold_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kommo_contacts: {
         Row: {
           company: string | null
@@ -12044,6 +12095,53 @@ export type Database = {
         }
         Relationships: []
       }
+      kommo_notifications: {
+        Row: {
+          alert_rule_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metric_key: string | null
+          metric_value: number | null
+          read_at: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          alert_rule_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metric_key?: string | null
+          metric_value?: number | null
+          read_at?: string | null
+          severity?: string
+          title: string
+        }
+        Update: {
+          alert_rule_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metric_key?: string | null
+          metric_value?: number | null
+          read_at?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kommo_notifications_alert_rule_id_fkey"
+            columns: ["alert_rule_id"]
+            isOneToOne: false
+            referencedRelation: "kommo_alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kommo_pipeline_stages: {
         Row: {
           close_type: string | null
@@ -12159,6 +12257,8 @@ export type Database = {
       }
       kommo_sync_config: {
         Row: {
+          auto_sync_enabled: boolean
+          auto_sync_interval_minutes: number
           created_at: string | null
           created_by: string | null
           id: string
@@ -12172,6 +12272,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          auto_sync_enabled?: boolean
+          auto_sync_interval_minutes?: number
           created_at?: string | null
           created_by?: string | null
           id?: string
@@ -12185,6 +12287,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          auto_sync_enabled?: boolean
+          auto_sync_interval_minutes?: number
           created_at?: string | null
           created_by?: string | null
           id?: string

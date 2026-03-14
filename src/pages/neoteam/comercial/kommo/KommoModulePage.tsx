@@ -12,6 +12,7 @@ import {
 import type { KommoTab } from './types';
 import { KommoFiltersProvider } from './contexts/KommoFiltersContext';
 import KommoFiltersBar from './components/KommoFiltersBar';
+import KommoNotificationsPanel from './components/KommoNotificationsPanel';
 
 // Lazy-loaded dashboards
 const KommoOverview = React.lazy(() => import('./dashboards/KommoOverview'));
@@ -58,7 +59,10 @@ export default function KommoModulePage() {
         <div className="p-4 lg:p-6 space-y-4">
           {/* Header */}
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-bold tracking-tight">Kommo Intelligence</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold tracking-tight">Kommo Intelligence</h1>
+              <KommoNotificationsPanel />
+            </div>
             <p className="text-sm text-muted-foreground">
               Centro de inteligência comercial integrado ao CRM Kommo
             </p>
