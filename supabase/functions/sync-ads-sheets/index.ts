@@ -89,8 +89,8 @@ function processDetailSheet(rows: Record<string, string>[], businessUnit: string
         platform,
         campaign_name: campaignName,
         campaign_id: campaignName, // use name as ID since sheets don't have platform IDs
-        adset_name: r['Conjunto de Anúncios'] || null,
-        ad_name: r['Palavra-chave'] || null,
+        adset_name: r['Conjunto de Anúncios'] || '',
+        ad_name: r['Palavra-chave'] || '',
         date,
         impressions: parseInt(r['Impressões'] || '0') || 0,
         clicks: parseInt(r['Cliques'] || '0') || 0,
@@ -128,7 +128,7 @@ function processSummarySheet(rows: Record<string, string>[], businessUnit: strin
         campaign_name: campaignName,
         campaign_id: `${businessUnit}_${filial}_${year}${month}`,
         adset_name: filial,
-        ad_name: null,
+        ad_name: '',
         date,
         impressions: 0,
         clicks: 0,
@@ -215,17 +215,37 @@ Deno.serve(async (req) => {
       const sheetResult: any = { gids: {} };
 
       for (const gidConfig of sheet.gids) {
-        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheet.spreadsheet_id}/export?format=csv&gid=${gidConfig.gid}`;
+        // Try multiple URL formats for Google Sheets export
+        const urls = [
+          `https://docs.google.com/spreadsheets/d/${sheet.spreadsheet_id}/export?format=csv&gid=${gidConfig.gid}`,
+          `https://docs.google.com/spreadsheets/d/${sheet.spreadsheet_id}/gviz/tq?tqx=out:csv&gid=${gidConfig.gid}`,
+        ];
         
-        console.log(`Fetching ${sheet.name} / ${gidConfig.label} from ${csvUrl}`);
-        
-        const resp = await fetch(csvUrl);
-        if (!resp.ok) {
-          sheetResult.gids[gidConfig.gid] = { error: `HTTP ${resp.status}: ${resp.statusText}` };
+        let csvText = '';
+        let fetchSuccess = false;
+        for (const csvUrl of urls) {
+          console.log(`Trying ${sheet.name} / ${gidConfig.label}: ${csvUrl}`);
+          const resp = await fetch(csvUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+            redirect: 'follow',
+          });
+          if (resp.ok) {
+            csvText = await resp.text();
+            // Check it's not an HTML login page
+            if (!csvText.includes('<!DOCTYPE') && !csvText.includes('<html')) {
+              fetchSuccess = true;
+              break;
+            }
+          }
+          // Consume body to avoid resource leak
+          if (!fetchSuccess) try { await resp.text(); } catch (_) {}
+        }
+
+        if (!fetchSuccess) {
+          sheetResult.gids[gidConfig.gid] = { error: 'Could not fetch sheet - check sharing permissions' };
           continue;
         }
 
-        const csvText = await resp.text();
         const rows = parseCSV(csvText);
 
         let records: any[];
@@ -235,11 +255,27 @@ Deno.serve(async (req) => {
           records = processSummarySheet(rows, sheet.business_unit);
         }
 
+        // Aggregate duplicates by unique key before upserting
+        const aggregated = new Map<string, any>();
+        for (const r of records) {
+          const key = `${r.platform}|${r.campaign_id}|${r.adset_name}|${r.ad_name}|${r.date}`;
+          const existing = aggregated.get(key);
+          if (existing) {
+            existing.spend += r.spend || 0;
+            existing.clicks += r.clicks || 0;
+            existing.impressions += r.impressions || 0;
+            existing.conversions += r.conversions || 0;
+          } else {
+            aggregated.set(key, { ...r });
+          }
+        }
+        const dedupedRecords = Array.from(aggregated.values());
+
         // Upsert in batches of 200
         let upserted = 0;
         const batchSize = 200;
-        for (let i = 0; i < records.length; i += batchSize) {
-          const batch = records.slice(i, i + batchSize);
+        for (let i = 0; i < dedupedRecords.length; i += batchSize) {
+          const batch = dedupedRecords.slice(i, i + batchSize);
           const { error: upsertErr } = await supabase
             .from('campaign_costs')
             .upsert(batch as any, { 
@@ -249,7 +285,7 @@ Deno.serve(async (req) => {
           
           if (upsertErr) {
             console.error(`Upsert error for ${sheet.name}/${gidConfig.label}:`, upsertErr);
-            sheetResult.gids[gidConfig.gid] = { error: upsertErr.message, rows_parsed: records.length };
+            sheetResult.gids[gidConfig.gid] = { error: upsertErr.message, rows_parsed: records.length, deduped: dedupedRecords.length };
             break;
           }
           upserted += batch.length;
