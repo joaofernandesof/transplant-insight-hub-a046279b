@@ -89,8 +89,8 @@ function processDetailSheet(rows: Record<string, string>[], businessUnit: string
         platform,
         campaign_name: campaignName,
         campaign_id: campaignName, // use name as ID since sheets don't have platform IDs
-        adset_name: r['Conjunto de Anúncios'] || null,
-        ad_name: r['Palavra-chave'] || null,
+        adset_name: r['Conjunto de Anúncios'] || '',
+        ad_name: r['Palavra-chave'] || '',
         date,
         impressions: parseInt(r['Impressões'] || '0') || 0,
         clicks: parseInt(r['Cliques'] || '0') || 0,
