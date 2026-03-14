@@ -82,34 +82,21 @@ export const useUserPresence = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    // Start session when hook mounts
+    // Start session once when hook mounts
     startSession();
 
-    // Heartbeat disabled — user prefers manual refresh
-
-    // Handle visibility change (tab switching)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        endSession();
-      } else {
-        startSession();
-      }
-    };
-
-    // Handle before unload (page close)
+    // End session only on page close
     const handleBeforeUnload = () => {
       endSession();
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       endSession();
     };
-  }, [user?.id, startSession, endSession, updateHeartbeat]);
+  }, [user?.id, startSession, endSession]);
 
   return { sessionId: sessionIdRef.current };
 };
