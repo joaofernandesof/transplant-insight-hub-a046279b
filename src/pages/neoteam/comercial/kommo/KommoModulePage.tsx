@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
   LayoutDashboard, GitCompare, Users, TrendingUp, Target, 
   Clock, BarChart3, XCircle, ListTodo, HeartPulse, FileBarChart, Settings 
+  RefreshCw
 } from 'lucide-react';
 import type { KommoTab } from './types';
 import { KommoFiltersProvider } from './contexts/KommoFiltersContext';
