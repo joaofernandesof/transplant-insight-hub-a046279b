@@ -12,6 +12,7 @@ import {
 import type { KommoTab } from './types';
 import { KommoFiltersProvider } from './contexts/KommoFiltersContext';
 import KommoFiltersBar from './components/KommoFiltersBar';
+import KommoNotificationsPanel from './components/KommoNotificationsPanel';
 
 // Lazy-loaded dashboards
 const KommoOverview = React.lazy(() => import('./dashboards/KommoOverview'));
