@@ -105,9 +105,6 @@ export const useUserPresence = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      if (heartbeatIntervalRef.current) {
-        clearInterval(heartbeatIntervalRef.current);
-      }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       endSession();
