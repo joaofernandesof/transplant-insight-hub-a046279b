@@ -1,8 +1,9 @@
-// KommoReports - Dashboard de Relatórios
+// KommoReports - Dashboard de Relatórios com dados reais
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileBarChart, Download, Filter } from 'lucide-react';
+import { useKommoLeads } from '../hooks/useKommoData';
 
 const REPORTS = [
   { id: '1', name: 'Resumo Executivo', description: 'Visão geral de KPIs, funis, conversão e receita do período', category: 'Executivo' },
@@ -16,11 +17,17 @@ const REPORTS = [
 ];
 
 export default function KommoReports() {
+  const { data: leads = [] } = useKommoLeads();
+  const hasData = leads.length > 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <p className="text-sm text-muted-foreground flex-1">
-          Exporte relatórios com base nos filtros aplicados. Dados mockados — integração real na Fase 2.
+          {hasData 
+            ? `Exporte relatórios com base nos ${leads.length} leads sincronizados.`
+            : 'Sincronize com o Kommo para habilitar exportações com dados reais.'
+          }
         </p>
       </div>
 
@@ -39,10 +46,10 @@ export default function KommoReports() {
             <CardContent className="flex-1 flex flex-col justify-between gap-3">
               <p className="text-xs text-muted-foreground">{r.description}</p>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="text-xs gap-1" disabled>
+                <Button variant="outline" size="sm" className="text-xs gap-1" disabled={!hasData}>
                   <Filter className="h-3 w-3" /> Filtrar
                 </Button>
-                <Button variant="default" size="sm" className="text-xs gap-1" disabled>
+                <Button variant="default" size="sm" className="text-xs gap-1" disabled={!hasData}>
                   <Download className="h-3 w-3" /> Exportar
                 </Button>
               </div>
