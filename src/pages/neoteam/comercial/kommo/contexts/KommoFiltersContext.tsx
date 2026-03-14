@@ -53,10 +53,10 @@ const getDateRange = (preset: DatePreset): { from: Date; to: Date } => {
   }
 };
 
-const defaultRange = getDateRange('30d');
+const defaultRange = getDateRange('all');
 
 const DEFAULT_FILTERS: KommoFilters = {
-  datePreset: '30d',
+  datePreset: 'all',
   dateFrom: defaultRange.from,
   dateTo: defaultRange.to,
   pipelineKommoIds: [],
