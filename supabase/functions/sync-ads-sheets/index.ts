@@ -147,7 +147,7 @@ function processSummarySheet(rows: Record<string, string>[], businessUnit: strin
           leads_totais: parseInt(r['Leads Totais'] || '0') || 0,
           leads_anuncios: parseInt(r['Leads Anúncios'] || '0') || 0,
           agendamentos: parseInt(r['Agendamentos'] || '0') || 0,
-          consultas: parseInt(r['Consultas'] || '0') || 0,
+          consultas: parseInt(r['Consultas'] || r['Reuniões'] || '0') || 0,
           fechamentos: parseInt(r['Fechamentos'] || '0') || 0,
           faturamento: parseBRL(r['Faturamento']),
           data_inicial: r['Data Inicial'],
