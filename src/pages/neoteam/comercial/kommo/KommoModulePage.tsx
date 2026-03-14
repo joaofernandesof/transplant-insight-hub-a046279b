@@ -41,6 +41,7 @@ const TABS: { value: KommoTab; label: string; icon: React.ElementType }[] = [
   { value: 'sources', label: 'Origens', icon: BarChart3 },
   { value: 'time', label: 'Tempo', icon: Clock },
   { value: 'losses', label: 'Perdas', icon: XCircle },
+  { value: 'roi', label: 'ROI', icon: DollarSign },
   { value: 'tasks', label: 'Tarefas', icon: ListTodo },
   { value: 'post-sales', label: 'Pós-Vendas', icon: HeartPulse },
   { value: 'reports', label: 'Relatórios', icon: FileBarChart },
