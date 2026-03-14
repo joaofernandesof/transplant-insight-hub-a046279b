@@ -219,7 +219,10 @@ Deno.serve(async (req) => {
         
         console.log(`Fetching ${sheet.name} / ${gidConfig.label} from ${csvUrl}`);
         
-        const resp = await fetch(csvUrl);
+        const resp = await fetch(csvUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NeoHub/1.0)' },
+          redirect: 'follow',
+        });
         if (!resp.ok) {
           sheetResult.gids[gidConfig.gid] = { error: `HTTP ${resp.status}: ${resp.statusText}` };
           continue;
