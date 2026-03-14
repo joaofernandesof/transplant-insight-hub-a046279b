@@ -247,9 +247,9 @@ export default function KommoOverview() {
                 <BarChart3 className="h-4 w-4 text-blue-500" /> Leads por Funil
               </CardTitle>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                💡 {pipelines.length > 0
-                  ? `${pipelines.length} funis ativos — distribua esforços nos mais rentáveis.`
-                  : 'Configure seus funis no Kommo.'}
+                💡 {pipelineChartData.length > 0
+                  ? `${pipelineChartData.length} funis com leads — distribua esforços nos mais rentáveis.`
+                  : 'Sem funis com leads nos filtros atuais.'}
               </p>
             </div>
             <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => exportLeadsCSV(leads)}>

@@ -85,7 +85,7 @@ export default function KommoConversion() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KPICard label="Conversão Geral" value={`${overallConversion}%`} />
-        <KPICard label="Melhor Funil" value={pipelineConversion.sort((a, b) => Number(b.rate) - Number(a.rate))[0]?.name || '-'} />
+        <KPICard label="Melhor Funil" value={pipelineConversion[0]?.name || '-'} />
         <KPICard label="Melhor Origem" value={sourceConversion[0]?.name || '-'} />
         <KPICard label="Melhor Responsável" value={userConversion[0]?.name || '-'} />
       </div>
