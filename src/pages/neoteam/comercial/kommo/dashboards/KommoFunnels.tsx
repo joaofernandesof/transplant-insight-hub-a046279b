@@ -82,8 +82,8 @@ export default function KommoFunnels() {
             <SelectValue placeholder="Todos os funis" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os Funis</SelectItem>
-            {pipelines.map(p => (
+            <SelectItem value="all">Funis com dados</SelectItem>
+            {pipelinesWithLeads.map(p => (
               <SelectItem key={p.kommo_id} value={String(p.kommo_id)}>{p.name}</SelectItem>
             ))}
           </SelectContent>
