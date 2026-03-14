@@ -1,8 +1,9 @@
-// KommoConversion - Dashboard de Conversão com dados reais
+// KommoConversion - Dashboard de Conversão com dados filtrados
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KPICard } from '../components/KPICard';
 import { Badge } from '@/components/ui/badge';
-import { useKommoLeads, useKommoPipelines, useKommoStages, useKommoUsers } from '../hooks/useKommoData';
+import { useKommoPipelines, useKommoStages, useKommoUsers } from '../hooks/useKommoData';
+import { useFilteredLeads } from '../hooks/useFilteredKommoData';
 import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 
