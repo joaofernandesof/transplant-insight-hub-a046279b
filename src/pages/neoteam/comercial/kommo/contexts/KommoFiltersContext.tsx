@@ -101,7 +101,7 @@ export function KommoFiltersProvider({ children }: { children: React.ReactNode }
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (filters.datePreset !== '30d') count++;
+    if (filters.datePreset !== 'all') count++;
     if (filters.pipelineKommoIds.length > 0) count++;
     if (filters.responsibleUserKommoIds.length > 0) count++;
     if (filters.sources.length > 0) count++;
