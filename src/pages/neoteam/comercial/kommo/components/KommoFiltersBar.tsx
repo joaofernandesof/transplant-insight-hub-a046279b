@@ -33,6 +33,7 @@ const DATE_PRESETS: { value: DatePreset; label: string }[] = [
   { value: '90d', label: '90 dias' },
   { value: 'this_month', label: 'Este mês' },
   { value: 'last_month', label: 'Mês passado' },
+  { value: 'all', label: 'Todo o período' },
   { value: 'custom', label: 'Personalizado' },
 ];
 
