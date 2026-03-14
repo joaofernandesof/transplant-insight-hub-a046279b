@@ -42,7 +42,7 @@ class KommoAPI {
     return await res.json();
   }
 
-  private async fetchAll(endpoint: string, embeddedKey: string, params?: Record<string, string>, maxPages = 20) {
+  private async fetchAll(endpoint: string, embeddedKey: string, params?: Record<string, string>, maxPages = 8) {
     let results: any[] = [];
     let page = 1;
     while (page <= maxPages) {
